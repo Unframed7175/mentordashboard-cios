@@ -43,7 +43,10 @@ Plans:
   3. Tijdformaat "107u24m" wordt correct omgezet naar minuten voor berekeningen
   4. Alle 19 leerlingen uit de Excel worden gekoppeld aan de bijbehorende PDF-data via naam of studentnummer
   5. Naamsvariaties (bijv. "van den Dool" vs "van den dool") worden correct afgehandeld
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Excel parser (parsers/excel.js) + data model extension (verzuim merge, name matching)
+- [ ] 02-02-PLAN.md — UI wiring: SheetJS CDN, Excel file picker in index.html, import handler in app.js
 **UI hint**: no
 
 ### Phase 3: Doorstroomnorm Engine
@@ -98,7 +101,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. PDF Parser | 3/4 | In Progress|  |
-| 2. Excel Import | 0/? | Not started | - |
+| 2. Excel Import | 0/2 | Not started | - |
 | 3. Doorstroomnorm Engine | 0/? | Not started | - |
 | 4. Klasoverzicht | 0/? | Not started | - |
 | 5. Detailweergave | 0/? | Not started | - |
