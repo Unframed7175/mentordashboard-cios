@@ -8,12 +8,12 @@
 ### PDF Parsing (Voortgang)
 
 - [ ] **PDF-01**: App leest een voortgang-PDF in via drag-and-drop of bestandskiezer
-- [ ] **PDF-02**: Naam, leerling-ID en periode worden correct uitgelezen
-- [ ] **PDF-03**: Per vak worden opdrachten en hun status uitgelezen (Op tijd ingeleverd / Zelfevaluatie afgerond / leeg)
-- [ ] **PDF-04**: Feed Forward tekst per opdracht wordt uitgelezen
+- [x] **PDF-02**: Naam, leerling-ID en periode worden correct uitgelezen
+- [x] **PDF-03**: Per vak worden opdrachten en hun status uitgelezen (Op tijd ingeleverd / Zelfevaluatie afgerond / leeg)
+- [x] **PDF-04**: Feed Forward tekst per opdracht wordt uitgelezen
 - [ ] **PDF-05**: "Overzicht Deelgebieden" tabel wordt uitgelezen — scores V/G/E per deelgebied per opdracht
 - [ ] **PDF-06**: Meerdere PDFs tegelijk importeerbaar (hele klas in één keer)
-- [ ] **PDF-07**: Parser is robuust bij kleine layout-variaties tussen leerlingen/periodes
+- [x] **PDF-07**: Parser is robuust bij kleine layout-variaties tussen leerlingen/periodes
 - [ ] **PDF-08**: Foutmelding bij onleesbare of onverwachte PDF-structuur
 
 ### Excel Import (Verzuim)
