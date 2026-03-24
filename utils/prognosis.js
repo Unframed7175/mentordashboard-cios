@@ -1,170 +1,157 @@
 // utils/prognosis.js — Doorstroomnorm engine (Phase 03)
-// Berekent doorstroomprognose per leerling op basis van officiële CIOS-normen BJ2 → BJ2/SBL/SBC
+// Berekent doorstroomprognose per leerling op basis van officiële CIOS-normen
+// Bron: "Doorstroomnormeringen 25-26", CIOS Zuidwest-NL
+//
+// Toepasbaar op: BJ2 Fase 2/3 (Dordrecht, Goes, Roosendaal)
+// Doorstroom vanuit BJ2 naar:
+//   → Examineringsjaar SBL  (standaard route)
+//   → Profieljaar SBC       (versneld/hoog-presteerders route)
+//   → Negatief BNSA-signaal (te veel onvoldoendes)
 //
 // Depends on (loaded before this script):
 //   utils/schema.js — window.DEELGEBIEDEN, window.normalizeScore
-//
-// NORMS (BJ2 Fase 2 DD):
-//   Positief (BJ2):   ≥13 deelgebieden met score V, G of E
-//   Versneld (SBC):   lesgeven ≥4 G/E  AND  organiseren ≥3 G/E  AND  prof_handelen ≥5 G/E
-//   Negatief:         >6 onvoldoende totaal  OR  >2 onvoldoende binnen één leerlijn
-//   Neutraal:         geen van bovenstaande condities van toepassing
-//
-// Score hierarchy (laag → hoog): null < onvoldoende < voldoende < goed < excellent
-// "Voldoende of hoger" = score ∈ { voldoende, goed, excellent }
-// "Goed of hoger"      = score ∈ { goed, excellent }
-// "Onvoldoende"        = score === 'onvoldoende'
 
 (function() {
 
   // ---------------------------------------------------------------------------
-  // Internal helpers
+  // Kerndeelgebieden voor SBC profieljaar (pagina 4 doorstroomnormering BJ2)
+  // V&A, P&O, C&B en E&B moeten elk minimaal V (voldoende) zijn
+  // "E&B" = 1E&B (Evalueren en bijstellen lesgeven), conform old engine N07
+  // ---------------------------------------------------------------------------
+  var KERN_DEELGEBIEDEN_SBC = ['V&A', 'P&O', 'C&B', '1E&B'];
+
+  // ---------------------------------------------------------------------------
+  // Score helpers
   // ---------------------------------------------------------------------------
 
-  /**
-   * Returns true if the score counts as "voldoende of hoger" (≥V).
-   * @param {string|null} score
-   */
   function isVoldoendeOfHoger(score) {
     return score === 'voldoende' || score === 'goed' || score === 'excellent';
   }
 
-  /**
-   * Returns true if the score counts as "goed of hoger" (≥G).
-   * @param {string|null} score
-   */
-  function isGoedOfHoger(score) {
-    return score === 'goed' || score === 'excellent';
-  }
-
-  /**
-   * Returns true if the score is explicitly onvoldoende.
-   * null (not yet assessed) does NOT count as onvoldoende.
-   * @param {string|null} score
-   */
   function isOnvoldoende(score) {
+    // null (niet beoordeeld) telt NIET als onvoldoende
     return score === 'onvoldoende';
   }
 
   // ---------------------------------------------------------------------------
-  // Main export: window.berekenPrognose(student)
+  // window.berekenPrognose(student) — Hoofdfunctie
+  //
+  // @param {Object} student - StudentRecord met student.deelgebiedScores
+  // @returns {PrognosisResult}
+  //
+  // @typedef {Object} LeerlijntTelling
+  // @property {string} leerlijn        - 'lesgeven' | 'organiseren' | 'prof_handelen'
+  // @property {number} totaal          - Aantal deelgebieden in deze leerlijn
+  // @property {number} voldoendeOfHoger - Score ≥ V
+  // @property {number} onvoldoende     - Score = O (null telt niet mee)
+  // @property {number} onbeoordeeld    - Nog niet beoordeeld (null)
+  //
+  // @typedef {Object} GapAnalysis
+  // @property {number} nodigSBL              - Nog ≥V nodig voor SBL-norm (≥13)
+  // @property {number} nodigSBC_deelgebieden - Nog ≥V nodig voor SBC deelgebied-tel (≥15)
+  // @property {string[]} nodigSBC_kern       - Kerndeelgebieden die nog niet ≥V zijn (voor SBC)
+  // @property {number} onvoldoendeRuimte     - Nog toegestane onvoldoendes (6 - huidig), negatief = overschreden
+  //
+  // @typedef {Object} PrognosisResult
+  // @property {'sbc'|'sbl'|'negatief'|'neutraal'} label
+  // @property {boolean} isSBC
+  // @property {boolean} isSBL
+  // @property {boolean} isNegatief
+  // @property {number} totaalVoldoendeOfHoger
+  // @property {number} totaalOnvoldoende
+  // @property {LeerlijntTelling[]} leerlijnen
+  // @property {GapAnalysis} gaps
   // ---------------------------------------------------------------------------
-
-  /**
-   * Bereken de doorstroomprognose voor één leerling.
-   *
-   * @param {Object} student - StudentRecord from appState
-   * @param {Object<string, string|null>} student.deelgebiedScores - { 'V&A': 'goed', ... }
-   * @returns {PrognosisResult}
-   *
-   * @typedef {Object} LeerlijntTelling
-   * @property {string} leerlijn       - 'lesgeven' | 'organiseren' | 'prof_handelen'
-   * @property {number} totaal         - Total deelgebieden in this leerlijn
-   * @property {number} voldoendeOfHoger - Count with score ≥ V
-   * @property {number} goedOfHoger    - Count with score ≥ G
-   * @property {number} onvoldoende    - Count with score = O
-   * @property {number} onbeoordeeld   - Count with score = null
-   *
-   * @typedef {Object} GapAnalysis
-   * @property {number} nodigPositief  - Extra ≥V needed for Positief norm (0 if already met)
-   * @property {number} nodigVersneld_lesgeven    - Extra ≥G needed in lesgeven for Versneld
-   * @property {number} nodigVersneld_organiseren - Extra ≥G needed in organiseren for Versneld
-   * @property {number} nodigVersneld_profHandelen - Extra ≥G needed in prof_handelen for Versneld
-   *
-   * @typedef {Object} PrognosisResult
-   * @property {'positief'|'versneld'|'negatief'|'neutraal'} label
-   * @property {boolean} isPositief
-   * @property {boolean} isVersneld
-   * @property {boolean} isNegatief
-   * @property {number} totaalVoldoendeOfHoger - Total ≥V across all deelgebieden
-   * @property {number} totaalOnvoldoende      - Total O across all deelgebieden
-   * @property {LeerlijntTelling[]} leerlijnen  - Per-leerlijn breakdown
-   * @property {GapAnalysis} gaps
-   */
   window.berekenPrognose = function(student) {
-    const scores = student.deelgebiedScores || {};
-    const deelgebieden = window.DEELGEBIEDEN;
+    var scores = student.deelgebiedScores || {};
+    var deelgebieden = window.DEELGEBIEDEN;
+    var leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
 
-    // --- Step 1: Per-leerlijn tallies ---
-    const leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
-    const telling = {};
-
-    for (const ll of leerlijnen) {
-      const dgs = deelgebieden.filter(function(dg) { return dg.group === ll; });
-      const result = {
+    // --- Stap 1: Per-leerlijn tellingen ---
+    var telling = {};
+    for (var i = 0; i < leerlijnen.length; i++) {
+      var ll = leerlijnen[i];
+      var dgs = deelgebieden.filter(function(dg) { return dg.group === ll; });
+      var res = {
         leerlijn: ll,
         totaal: dgs.length,
         voldoendeOfHoger: 0,
-        goedOfHoger: 0,
         onvoldoende: 0,
         onbeoordeeld: 0,
       };
-      for (const dg of dgs) {
-        const score = scores[dg.label] ?? null;
+      for (var j = 0; j < dgs.length; j++) {
+        var score = scores[dgs[j].label] !== undefined ? scores[dgs[j].label] : null;
         if (score === null) {
-          result.onbeoordeeld++;
+          res.onbeoordeeld++;
         } else if (isOnvoldoende(score)) {
-          result.onvoldoende++;
+          res.onvoldoende++;
         } else if (isVoldoendeOfHoger(score)) {
-          result.voldoendeOfHoger++;
-          if (isGoedOfHoger(score)) result.goedOfHoger++;
+          res.voldoendeOfHoger++;
         }
       }
-      telling[ll] = result;
+      telling[ll] = res;
     }
 
-    // --- Step 2: Totals across all deelgebieden ---
-    const totaalVoldoendeOfHoger = leerlijnen.reduce(function(sum, ll) {
+    // --- Stap 2: Totalen over alle 19 deelgebieden ---
+    var totaalVoldoendeOfHoger = leerlijnen.reduce(function(sum, ll) {
       return sum + telling[ll].voldoendeOfHoger;
     }, 0);
-    const totaalOnvoldoende = leerlijnen.reduce(function(sum, ll) {
+    var totaalOnvoldoende = leerlijnen.reduce(function(sum, ll) {
       return sum + telling[ll].onvoldoende;
     }, 0);
 
-    // --- Step 3: Apply norms ---
+    // --- Stap 3: Kerndeelgebieden SBC controleren ---
+    // V&A, P&O, C&B en 1E&B moeten elk minimaal V hebben
+    var kernNietVoldaan = KERN_DEELGEBIEDEN_SBC.filter(function(label) {
+      var score = scores[label] !== undefined ? scores[label] : null;
+      return !isVoldoendeOfHoger(score);
+    });
 
-    // Negatief: >6 onvoldoende totaal OR >2 onvoldoende binnen één leerlijn
-    const isNegatief = (
+    // --- Stap 4: Normen toepassen (prioriteit: negatief > sbc > sbl > neutraal) ---
+
+    // NEGATIEF: >6 onvoldoende totaal OF >2 onvoldoende binnen één leerlijn
+    var isNegatief = (
       totaalOnvoldoende > 6 ||
       leerlijnen.some(function(ll) { return telling[ll].onvoldoende > 2; })
     );
 
-    // Versneld (SBC): lesgeven ≥4 G/E  AND  organiseren ≥3 G/E  AND  prof_handelen ≥5 G/E
-    const isVersneld = (
-      telling['lesgeven'].goedOfHoger >= 4 &&
-      telling['organiseren'].goedOfHoger >= 3 &&
-      telling['prof_handelen'].goedOfHoger >= 5
+    // SBC (profieljaar): ≥15 deelgebieden voldoende + kerndeelgebieden V&A/P&O/C&B/1E&B elk ≥V
+    var isSBC = (
+      totaalVoldoendeOfHoger >= 15 &&
+      kernNietVoldaan.length === 0
     );
 
-    // Positief (BJ2): ≥13 deelgebieden voldoende of hoger
-    const isPositief = totaalVoldoendeOfHoger >= 13;
+    // SBL (standaard): ≥13 deelgebieden voldoende
+    var isSBL = totaalVoldoendeOfHoger >= 13;
 
-    // Label priority: negatief > versneld > positief > neutraal
-    let label;
+    // Label (prioriteit: negatief wint altijd)
+    var label;
     if (isNegatief) {
       label = 'negatief';
-    } else if (isVersneld) {
-      label = 'versneld';
-    } else if (isPositief) {
-      label = 'positief';
+    } else if (isSBC) {
+      label = 'sbc';
+    } else if (isSBL) {
+      label = 'sbl';
     } else {
       label = 'neutraal';
     }
 
-    // --- Step 4: Gap analysis ---
-    const gaps = {
-      // Positief: need ≥13 ≥V total
-      nodigPositief: Math.max(0, 13 - totaalVoldoendeOfHoger),
-      // Versneld per leerlijn
-      nodigVersneld_lesgeven:      Math.max(0, 4 - telling['lesgeven'].goedOfHoger),
-      nodigVersneld_organiseren:   Math.max(0, 3 - telling['organiseren'].goedOfHoger),
-      nodigVersneld_profHandelen:  Math.max(0, 5 - telling['prof_handelen'].goedOfHoger),
+    // --- Stap 5: Gap-analyse ---
+    var gaps = {
+      // SBL: hoeveel ≥V nog nodig om 13 te bereiken
+      nodigSBL: Math.max(0, 13 - totaalVoldoendeOfHoger),
+      // SBC deelgebied-tel: hoeveel ≥V nog nodig om 15 te bereiken
+      nodigSBC_deelgebieden: Math.max(0, 15 - totaalVoldoendeOfHoger),
+      // SBC kerndeelgebieden: welke moeten nog minimaal V halen
+      nodigSBC_kern: kernNietVoldaan,
+      // Negatief risico: hoeveel onvoldoendes nog toegestaan (negatief = al over de grens)
+      onvoldoendeRuimte: 6 - totaalOnvoldoende,
     };
 
     return {
       label: label,
-      isPositief: isPositief,
-      isVersneld: isVersneld,
+      isSBC: isSBC,
+      isSBL: isSBL,
       isNegatief: isNegatief,
       totaalVoldoendeOfHoger: totaalVoldoendeOfHoger,
       totaalOnvoldoende: totaalOnvoldoende,
@@ -173,31 +160,27 @@
     };
   };
 
-  /**
-   * Bereken prognoses voor alle studenten in window.appState.students.
-   * Stores result in student.prognose for downstream use (Phase 4 klasoverzicht).
-   *
-   * @returns {Array<{naam: string, prognose: PrognosisResult}>} Summary array
-   */
+  // ---------------------------------------------------------------------------
+  // window.berekenAllePrognoses() — Batch voor alle leerlingen in appState
+  // Schrijft student.prognose op elk student-object (voor Phase 4 klasoverzicht)
+  // ---------------------------------------------------------------------------
   window.berekenAllePrognoses = function() {
-    const students = window.appState.students;
-    const results = [];
-    for (const student of students) {
-      const prognose = window.berekenPrognose(student);
-      student.prognose = prognose; // attach to student record
-      results.push({ naam: student.naam, prognose: prognose });
+    var students = window.appState.students;
+    var results = [];
+    for (var i = 0; i < students.length; i++) {
+      var prognose = window.berekenPrognose(students[i]);
+      students[i].prognose = prognose;
+      results.push({ naam: students[i].naam, prognose: prognose });
     }
     return results;
   };
 
-  /**
-   * debugPrognose(nameOrId) — Toon volledige prognose breakdown in de console.
-   * Gebruik: window.debugPrognose('Bosker') of window.debugPrognose('12345')
-   *
-   * @param {string} query - Partial name or full leerlingId
-   */
+  // ---------------------------------------------------------------------------
+  // window.debugPrognose(nameOrId) — Console breakdown voor één leerling
+  // Gebruik: window.debugPrognose('Bosker') of window.debugPrognose('12345')
+  // ---------------------------------------------------------------------------
   window.debugPrognose = function(query) {
-    const student = window.appState.students.find(function(s) {
+    var student = window.appState.students.find(function(s) {
       return s.naam.toLowerCase().includes(query.toLowerCase()) || s.leerlingId === query;
     });
     if (!student) {
@@ -205,37 +188,38 @@
       return;
     }
 
-    const p = window.berekenPrognose(student);
+    var p = window.berekenPrognose(student);
 
     console.group('Prognose: ' + student.naam + ' → ' + p.label.toUpperCase());
-    console.log('Totaal ≥V:', p.totaalVoldoendeOfHoger, '/ 19 (norm: ≥13 voor Positief)');
-    console.log('Totaal O:', p.totaalOnvoldoende, '(norm: ≤6 voor niet-Negatief)');
+
+    console.group('Doorstroomnorm BJ2 (25-26)');
+    console.log('Totaal ≥V: ' + p.totaalVoldoendeOfHoger + '/19');
+    console.log('  → SBL-norm:  ≥13  ' + (p.isSBL  ? '✅ (' + p.gaps.nodigSBL  + ' tekort)' : '❌ (nog ' + p.gaps.nodigSBL  + ' nodig)'));
+    console.log('  → SBC-norm:  ≥15 + kerndeelgebieden  ' + (p.isSBC ? '✅' : '❌ (nog ' + p.gaps.nodigSBC_deelgebieden + ' DG nodig)'));
+    if (!p.isSBC && p.gaps.nodigSBC_kern.length > 0) {
+      console.log('     Kerndeelgebieden niet ≥V: ' + p.gaps.nodigSBC_kern.join(', '));
+    }
+    console.log('Totaal O: ' + p.totaalOnvoldoende + '  (grens: >6 = negatief)  ' + (p.isNegatief ? '🔴' : '🟢'));
+    console.groupEnd();
 
     console.group('Per leerlijn');
     console.table(p.leerlijnen.map(function(ll) {
+      var overschreden = ll.onvoldoende > 2 ? ' ⚠️' : '';
       return {
         Leerlijn: ll.leerlijn,
         Totaal: ll.totaal,
         '≥V': ll.voldoendeOfHoger,
-        '≥G': ll.goedOfHoger,
-        'O': ll.onvoldoende,
+        'O': ll.onvoldoende + overschreden,
         '?': ll.onbeoordeeld,
       };
     }));
     console.groupEnd();
 
-    console.group('Gap-analyse');
-    console.log('Nog nodig voor Positief: ' + p.gaps.nodigPositief + ' × ≥V');
-    console.log('Nog nodig voor Versneld:');
-    console.log('  lesgeven:      ' + p.gaps.nodigVersneld_lesgeven + ' × ≥G (huidig: ' + p.leerlijnen.find(function(l){return l.leerlijn==='lesgeven';}).goedOfHoger + '/4)');
-    console.log('  organiseren:   ' + p.gaps.nodigVersneld_organiseren + ' × ≥G (huidig: ' + p.leerlijnen.find(function(l){return l.leerlijn==='organiseren';}).goedOfHoger + '/3)');
-    console.log('  prof_handelen: ' + p.gaps.nodigVersneld_profHandelen + ' × ≥G (huidig: ' + p.leerlijnen.find(function(l){return l.leerlijn==='prof_handelen';}).goedOfHoger + '/5)');
-    console.groupEnd();
-
-    console.log('isPositief:', p.isPositief, '| isVersneld:', p.isVersneld, '| isNegatief:', p.isNegatief);
+    console.log('Onvoldoende-ruimte: ' + p.gaps.onvoldoendeRuimte +
+      (p.gaps.onvoldoendeRuimte < 0 ? ' ⚠️ overschreden!' : ' resterende O toegestaan'));
     console.groupEnd();
   };
 
-  console.log('[prognosis.js] Doorstroomnorm engine geladen');
+  console.log('[prognosis.js] Doorstroomnorm engine geladen (BJ2 → SBL / SBC)');
 
 })();
