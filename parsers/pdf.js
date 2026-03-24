@@ -27,6 +27,18 @@ const STATUS_STRINGS = [
   'Zelfevaluatie afgerond',
 ];
 
+/**
+ * Minimum number of deelgebied label matches in a line for it to be
+ * considered the "Overzicht Deelgebieden" header row.
+ */
+const MIN_HEADER_MATCHES = 5;
+
+/**
+ * X-tolerance (in PDF points) for assigning a score cell to the nearest
+ * column header.  Start at 8; tune empirically against real CIOS PDFs.
+ */
+const COLUMN_X_TOLERANCE = 8;
+
 // ---------------------------------------------------------------------------
 // Task 01-02-01: Text extraction and line-grouping utilities
 // ---------------------------------------------------------------------------
@@ -387,13 +399,267 @@ function parseVakSections(lines) {
   return vakken;
 }
 
+// ---------------------------------------------------------------------------
+// Task 01-03-01: Deelgebied table header detection and column map construction
+// ---------------------------------------------------------------------------
+
 /**
- * Main entry point: parse a single voortgang PDF File into a partial StudentRecord.
+ * Returns true when a line contains >= MIN_HEADER_MATCHES text items whose
+ * trimmed, upper-cased value matches one of the 19 deelgebied labels.
+ *
+ * Used both to FIND the header row initially and to SKIP repeated header rows
+ * on subsequent pages of a multi-page table.
+ *
+ * NOTE: window.DEELGEBIEDEN must be available when this function is called
+ * (it is loaded by utils/schema.js before parsers/pdf.js).
+ *
+ * @param {Array} line - Array of text items (one visual row)
+ * @returns {boolean}
+ */
+function isHeaderRow(line) {
+  const labels = window.DEELGEBIEDEN.map(d => d.label.toUpperCase());
+  let matches = 0;
+  for (const item of line) {
+    if (labels.includes(item.str.trim().toUpperCase())) {
+      matches++;
+      if (matches >= MIN_HEADER_MATCHES) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Scan all grouped lines for the "Overzicht Deelgebieden" table header row.
+ *
+ * Two detection strategies (either is sufficient):
+ *  1. A line whose text contains "Overzicht Deelgebieden" (case-insensitive) →
+ *     the NEXT line that passes isHeaderRow() is the column header.
+ *  2. A line that directly passes isHeaderRow() (>= 5 deelgebied abbreviations).
+ *
+ * Returns the index (in `lines`) of the first header row found, or -1 if not found.
+ *
+ * @param {Array<Array>} lines
+ * @returns {number} index into lines, or -1
+ */
+function findDeelgebiedSection(lines) {
+  let afterSectionHeading = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const text = lineToText(lines[i]);
+
+    // Strategy 1: encountered the section title — look ahead for column row
+    if (/overzicht\s*deelgebied/i.test(text)) {
+      afterSectionHeading = true;
+      // The title line itself might contain column headers on the same line
+      // (unlikely but check anyway)
+      if (isHeaderRow(lines[i])) return i;
+      continue;
+    }
+
+    // Strategy 2: direct header row detection (works even if title is missing)
+    if (isHeaderRow(lines[i])) return i;
+
+    // If we saw the section title and have now passed a blank line without
+    // finding a header row, keep looking for up to 10 more lines
+    if (afterSectionHeading && i > 0) {
+      // Limit look-ahead to avoid false positives deep in the document
+      // (findDeelgebiedSection already iterates the full list — this flag
+      //  just helps with strategy 1 semantics; no extra limit needed here)
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Build a map of { deelgebiedLabel → xPosition } from the detected header row.
+ *
+ * Only items whose trimmed upper-case text exactly matches a known deelgebied
+ * label are recorded.  Logs a warning when fewer than 5 columns are detected
+ * (table may be malformed or partially outside the viewport).
+ *
+ * @param {Array} headerLine - Array of text items from the header row
+ * @returns {Object} e.g. { 'V&A': 45.2, 'M&M': 72.8, 'INS': 98.1, … }
+ */
+function buildColumnMap(headerLine) {
+  const labels = window.DEELGEBIEDEN.map(d => d.label.toUpperCase());
+  const map = {};
+
+  for (const item of headerLine) {
+    const upper = item.str.trim().toUpperCase();
+    // Find the canonical label (preserves original casing from DEELGEBIEDEN)
+    const dgIdx = labels.indexOf(upper);
+    if (dgIdx !== -1) {
+      map[window.DEELGEBIEDEN[dgIdx].label] = item.x;
+    }
+  }
+
+  const count = Object.keys(map).length;
+  if (count < MIN_HEADER_MATCHES) {
+    console.warn(`[pdf.js] buildColumnMap: only ${count} deelgebied columns detected — table may be malformed`);
+  } else {
+    console.log(`[pdf.js] buildColumnMap: detected ${count}/19 columns`, map);
+  }
+
+  return map;
+}
+
+// ---------------------------------------------------------------------------
+// Task 01-03-02: Score row parsing and integration into parseSinglePDF
+// ---------------------------------------------------------------------------
+
+/**
+ * Assign a single text item to its nearest deelgebied column.
+ *
+ * Finds the column header whose X position is closest to `item.x`, within
+ * COLUMN_X_TOLERANCE points.  Returns the deelgebied label string or null
+ * if no column is close enough.
+ *
+ * @param {{ str: string, x: number }} item
+ * @param {Object} columnMap - { label: xPosition }
+ * @returns {string|null} deelgebied label or null
+ */
+function assignScoreToColumn(item, columnMap) {
+  let best = null;
+  let bestDist = Infinity;
+
+  for (const [label, colX] of Object.entries(columnMap)) {
+    const dist = Math.abs(item.x - colX);
+    if (dist < bestDist && dist <= COLUMN_X_TOLERANCE) {
+      bestDist = dist;
+      best = label;
+    }
+  }
+
+  return best;
+}
+
+/**
+ * Parse the "Overzicht Deelgebieden" table starting from `startIndex`.
+ *
+ * Algorithm:
+ *  1. Build columnMap from the header row at startIndex.
+ *  2. Walk subsequent lines:
+ *     - Skip blank lines.
+ *     - Skip repeated header rows (isHeaderRow() — multi-page tables).
+ *     - For each data row:
+ *       · The leftmost item (smallest x) is the row label (opdracht/vak name).
+ *       · All other items are candidate score cells.
+ *       · Each score cell is assigned to a column via assignScoreToColumn(),
+ *         then normalised with normalizeScore().
+ *     - Vak grouping: when we see a line that contains NO score cells but a
+ *       non-empty label, treat it as a new vak heading.
+ *  3. "Latest non-null wins" aggregation for deelgebiedScores.
+ *
+ * Returns:
+ *   {
+ *     datapunten: Array<{ vak, datapunt, scores: { label: level|null } }>,
+ *     deelgebiedScores: { label: level|null }   // all 19 keys, aggregated
+ *   }
+ *
+ * @param {Array<Array>} lines
+ * @param {number} startIndex - index of the header row in lines
+ * @returns {{ datapunten: Array, deelgebiedScores: Object }}
+ */
+function parseDeelgebiedTable(lines, startIndex) {
+  const columnMap = buildColumnMap(lines[startIndex]);
+
+  const datapunten = [];
+
+  // Track the current vak name (rows in this table are grouped by vak)
+  let currentVak = '';
+
+  // Walk lines after the header row
+  for (let i = startIndex + 1; i < lines.length; i++) {
+    const line = lines[i];
+    const text = lineToText(line);
+
+    // Skip blank lines
+    if (!text) continue;
+
+    // Skip repeated header rows (table continues on next page)
+    if (isHeaderRow(line)) {
+      console.log(`[pdf.js] Skipping repeated deelgebied header row at line ${i}`);
+      continue;
+    }
+
+    // Sort line items by x (left to right) — PDF.js does not guarantee order
+    const sorted = line.slice().sort((a, b) => a.x - b.x);
+
+    // The leftmost item is the row label (vak name or opdracht/datapunt name)
+    const labelItem = sorted[0];
+    const labelText = labelItem ? labelItem.str.trim() : '';
+
+    // The remaining items are potential score cells
+    const scoreItems = sorted.slice(1);
+
+    // Try to assign scores to columns
+    const scores = {};
+    let hasAnyScore = false;
+
+    for (const item of scoreItems) {
+      const level = window.normalizeScore(item.str);
+      if (level !== null) {
+        const col = assignScoreToColumn(item, columnMap);
+        if (col !== null) {
+          scores[col] = level;
+          hasAnyScore = true;
+        } else {
+          console.warn(`[pdf.js] Score "${item.str}" at x=${item.x.toFixed(1)} did not match any column`);
+        }
+      }
+    }
+
+    if (!hasAnyScore) {
+      // This is a label-only line → treat as a new vak group heading
+      if (labelText && labelText.length > 1) {
+        currentVak = labelText;
+        console.log(`[pdf.js] Deelgebied table: vak heading → "${currentVak}"`);
+      }
+      continue;
+    }
+
+    // Data row: record as a datapunt
+    datapunten.push({
+      vak:      currentVak,
+      datapunt: labelText,
+      scores,
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Aggregate deelgebiedScores: initialize all 19 as null, then apply
+  // "latest non-null wins" across datapunten (document order = latest last).
+  // -----------------------------------------------------------------------
+  const deelgebiedScores = {};
+  for (const dg of window.DEELGEBIEDEN) {
+    deelgebiedScores[dg.label] = null;
+  }
+
+  for (const dp of datapunten) {
+    for (const [label, level] of Object.entries(dp.scores)) {
+      if (level !== null) {
+        deelgebiedScores[label] = level;
+      }
+    }
+  }
+
+  console.log(
+    `[pdf.js] parseDeelgebiedTable: ${datapunten.length} datapunten,`,
+    `${Object.values(deelgebiedScores).filter(v => v !== null).length}/19 deelgebieden scored`
+  );
+
+  return { datapunten, deelgebiedScores };
+}
+
+/**
+ * Main entry point: parse a single voortgang PDF File into a complete StudentRecord.
  *
  * Produces:
- *   { naam, leerlingId, periode, leerjaar, filename, vakken, deelgebiedScores: {}, datapunten: [] }
+ *   { naam, leerlingId, periode, leerjaar, filename, vakken,
+ *     deelgebiedScores, datapunten }
  *
- * deelgebiedScores and datapunten are left empty for Plan 01-03 to fill in.
+ * Throws if the "Overzicht Deelgebieden" table is not found (PDF-08).
  *
  * @param {File} file
  * @returns {Promise<import('../utils/datamodel.js').StudentRecord>}
@@ -416,16 +682,30 @@ async function parseSinglePDF(file) {
     throw new Error(`Geen vakken gevonden in ${file.name}`);
   }
 
+  // --- Plan 01-03: parse Overzicht Deelgebieden table ---
+  const deelgebiedStart = findDeelgebiedSection(lines);
+  let deelgebiedScores = {};
+  let datapunten = [];
+
+  if (deelgebiedStart >= 0) {
+    const result = parseDeelgebiedTable(lines, deelgebiedStart);
+    deelgebiedScores = result.deelgebiedScores;
+    datapunten       = result.datapunten;
+  } else {
+    // Per PDF-08: throw specific error so the batch importer can report it
+    throw new Error('Overzicht Deelgebieden tabel niet gevonden');
+  }
+
   /** @type {import('../utils/datamodel.js').StudentRecord} */
   const record = {
     naam,
-    leerlingId:        header.leerlingId || '',
-    periode:           header.periode    || '',
-    leerjaar:          header.leerjaar   || '',
-    filename:          file.name,
+    leerlingId:  header.leerlingId || '',
+    periode:     header.periode    || '',
+    leerjaar:    header.leerjaar   || '',
+    filename:    file.name,
     vakken,
-    deelgebiedScores:  {},  // Plan 01-03
-    datapunten:        [],  // Plan 01-03
+    deelgebiedScores,
+    datapunten,
   };
 
   return record;
@@ -439,16 +719,25 @@ export {
   // Public API
   parseSinglePDF,
 
-  // Lower-level utilities (exported for Plan 01-03 + debugging)
+  // Lower-level utilities (exported for debugging / future plans)
   extractAllTextItems,
   groupIntoLines,
   lineToText,
   extractHeader,
   parseVakSections,
 
+  // Deelgebied table utilities (Plan 01-03)
+  isHeaderRow,
+  findDeelgebiedSection,
+  buildColumnMap,
+  assignScoreToColumn,
+  parseDeelgebiedTable,
+
   // Constants
   Y_TOLERANCE,
   STATUS_STRINGS,
+  MIN_HEADER_MATCHES,
+  COLUMN_X_TOLERANCE,
 };
 
 // Window globals for browser console debugging
@@ -458,3 +747,8 @@ window.groupIntoLines       = groupIntoLines;
 window.lineToText           = lineToText;
 window.extractHeader        = extractHeader;
 window.parseVakSections     = parseVakSections;
+window.isHeaderRow          = isHeaderRow;
+window.findDeelgebiedSection = findDeelgebiedSection;
+window.buildColumnMap       = buildColumnMap;
+window.assignScoreToColumn  = assignScoreToColumn;
+window.parseDeelgebiedTable = parseDeelgebiedTable;
