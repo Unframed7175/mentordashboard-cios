@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mentordashboard CIOS</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -20,67 +16,64 @@
       min-height: 100vh;
     }
 
+    /* ── Header + nav ─────────────────────────────────────────────────── */
+    #site-header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      height: 56px;
+    }
+
+    #site-header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    #main-nav {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .nav-tab:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-tab.active { background: rgba(255,255,255,0.15); color: #fff; }
+
+    .nav-count {
+      display: inline-block;
+      background: #3b82f6;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      margin-left: 0.3rem;
+      vertical-align: middle;
+    }
+
+    /* ── Main container ───────────────────────────────────────────────── */
     #app {
-      max-width: 960px;
+      max-width: 980px;
       margin: 0 auto;
       padding: 2rem 1rem;
     }
 
-    h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin-bottom: 0.25rem;
-      color: #1a1a2e;
-    }
-
-    .subtitle {
-      color: #6b7280;
-      margin-bottom: 2rem;
-      font-size: 0.95rem;
-    }
-
-    /* Drop zone */
-    #import-zone {
-      border: 2px dashed #9ca3af;
-      border-radius: 12px;
-      background: #ffffff;
-      padding: 3rem 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      user-select: none;
-    }
-
-    #import-zone:hover,
-    #import-zone.drag-over {
-      border-color: #3b82f6;
-      background: #eff6ff;
-    }
-
-    #import-zone .drop-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.75rem;
-      display: block;
-    }
-
-    #import-zone .drop-text {
-      color: #4b5563;
-      font-size: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    #import-zone .drop-hint {
-      color: #9ca3af;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-    }
-
-    /* File input (hidden) */
-    #file-input {
-      display: none;
-    }
-
-    /* Buttons */
+    /* ── Buttons ──────────────────────────────────────────────────────── */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -93,90 +86,56 @@
       cursor: pointer;
       transition: background 0.15s, transform 0.1s;
     }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-danger { background: #fee2e2; color: #991b1b; }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-ghost { background: #f3f4f6; color: #374151; }
+    .btn-ghost:hover { background: #e5e7eb; }
 
-    .btn:active {
-      transform: scale(0.97);
+    /* ── Drop zone ────────────────────────────────────────────────────── */
+    #import-zone {
+      border: 2px dashed #9ca3af;
+      border-radius: 12px;
+      background: #fff;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
     }
-
-    .btn-primary {
-      background: #3b82f6;
-      color: #ffffff;
+    #import-zone:hover, #import-zone.drag-over {
+      border-color: #3b82f6;
+      background: #eff6ff;
     }
+    #import-zone .drop-icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+    #import-zone .drop-text { color: #4b5563; font-size: 1rem; margin-bottom: 1rem; }
+    #import-zone .drop-hint { color: #9ca3af; font-size: 0.85rem; margin-top: 0.5rem; }
+    #file-input { display: none; }
 
-    .btn-primary:hover {
-      background: #2563eb;
-    }
-
-    /* Import progress */
+    /* ── Progress bar ─────────────────────────────────────────────────── */
     #import-progress {
       display: none;
       margin-top: 1.5rem;
       padding: 1rem 1.25rem;
-      background: #ffffff;
+      background: #fff;
       border-radius: 8px;
       border: 1px solid #e5e7eb;
     }
+    #import-progress .progress-label { font-size: 0.9rem; color: #374151; margin-bottom: 0.5rem; }
+    #progress-bar-track { background: #e5e7eb; border-radius: 999px; height: 6px; overflow: hidden; }
+    #progress-bar-fill { background: #3b82f6; height: 100%; width: 0%; border-radius: 999px; transition: width 0.2s; }
 
-    #import-progress .progress-label {
-      font-size: 0.9rem;
-      color: #374151;
-      margin-bottom: 0.5rem;
-    }
+    /* ── Import results ───────────────────────────────────────────────── */
+    #import-results { display: none; margin-top: 1.5rem; }
+    #import-results h2 { font-size: 1.1rem; margin-bottom: 0.75rem; }
+    .result-summary { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .result-badge { padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.875rem; font-weight: 500; }
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-error { background: #fee2e2; color: #991b1b; }
 
-    #progress-bar-track {
-      background: #e5e7eb;
-      border-radius: 999px;
-      height: 6px;
-      overflow: hidden;
-    }
-
-    #progress-bar-fill {
-      background: #3b82f6;
-      height: 100%;
-      width: 0%;
-      border-radius: 999px;
-      transition: width 0.2s;
-    }
-
-    /* Import results */
-    #import-results {
-      display: none;
-      margin-top: 1.5rem;
-    }
-
-    #import-results h2 {
-      font-size: 1.1rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .result-summary {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .result-badge {
-      padding: 0.3rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    .badge-success {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    .badge-error {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .error-list {
-      list-style: none;
-      padding: 0;
-    }
-
+    .error-list { list-style: none; padding: 0; }
     .error-list li {
       padding: 0.5rem 0.75rem;
       background: #fff7ed;
@@ -186,77 +145,256 @@
       font-size: 0.875rem;
       color: #374151;
     }
+    .error-list li strong { color: #1f2937; font-family: 'Courier New', Courier, monospace; font-size: 0.8rem; }
 
-    .error-list li strong {
-      color: #1f2937;
-      font-family: 'Courier New', Courier, monospace;
+    /* ── Klasoverzicht toolbar ────────────────────────────────────────── */
+    .klas-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    #klas-zoek {
+      flex: 1;
+      min-width: 180px;
+      padding: 0.5rem 0.875rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #klas-zoek:focus { border-color: #3b82f6; }
+
+    .sort-group {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .sort-btn {
+      padding: 0.4rem 0.85rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 0.85rem;
+      color: #374151;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .sort-btn:hover { background: #f3f4f6; }
+    .sort-btn.active { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; font-weight: 600; }
+
+    /* ── Klasoverzicht tabel ──────────────────────────────────────────── */
+    .klas-table-wrap { overflow-x: auto; }
+
+    #klas-tabel {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    #klas-tabel thead tr {
+      background: #f9fafb;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    #klas-tabel th {
+      padding: 0.75rem 1rem;
+      text-align: left;
       font-size: 0.8rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    #klas-tabel td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.9rem;
+      vertical-align: middle;
+    }
+
+    #klas-tabel tbody tr:last-child td { border-bottom: none; }
+    #klas-tabel tbody tr:hover { background: #f9fafb; }
+
+    .student-naam {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    /* ── Status badges ────────────────────────────────────────────────── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .status-rood    { background: #fee2e2; color: #991b1b; }
+    .status-oranje  { background: #ffedd5; color: #c2410c; }
+    .status-groen   { background: #d1fae5; color: #065f46; }
+    .status-blauw   { background: #dbeafe; color: #1e40af; }
+    .status-grijs   { background: #f3f4f6; color: #6b7280; }
+
+    /* ── Score bar ────────────────────────────────────────────────────── */
+    .score-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .score-bar-track {
+      flex: 1;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      min-width: 60px;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: #3b82f6;
+      transition: width 0.3s;
+    }
+    .score-label { font-size: 0.8rem; color: #374151; white-space: nowrap; }
+
+    /* ── Leeg-staat ───────────────────────────────────────────────────── */
+    #klas-leeg {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #9ca3af;
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    /* ── Wis-data footer ──────────────────────────────────────────────── */
+    .klas-footer {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: flex-end;
     }
   </style>
 </head>
 <body>
-  <div id="app">
+
+  <!-- ── Site header + navigatie ────────────────────────────────────── -->
+  <header id="site-header">
     <h1>Mentordashboard CIOS</h1>
-    <p class="subtitle">Importeer voortgang-PDFs om leerlingdata in te laden</p>
-
-    <!-- Drop zone + file picker -->
-    <div id="import-zone">
-      <span class="drop-icon">&#128196;</span>
-      <p class="drop-text">Sleep PDF-bestanden hierheen of klik om te kiezen</p>
-      <button class="btn btn-primary" id="choose-btn" type="button">
-        Kies bestanden
+    <nav id="main-nav">
+      <button class="nav-tab active" id="nav-import">Importeren</button>
+      <button class="nav-tab" id="nav-overzicht">
+        Klasoverzicht
+        <span class="nav-count" id="nav-student-count" style="display:none"></span>
       </button>
-      <p class="drop-hint">Ondersteunt meerdere PDFs tegelijk (de hele klas in &eacute;&eacute;n keer)</p>
-    </div>
+    </nav>
+  </header>
 
-    <!-- Hidden file input -->
-    <input type="file" id="file-input" multiple accept=".pdf">
+  <div id="app">
 
-    <!-- Import progress indicator (shown during processing) -->
-    <div id="import-progress">
-      <p class="progress-label" id="progress-label">Verwerkt: 0/0 PDFs</p>
-      <div id="progress-bar-track">
-        <div id="progress-bar-fill"></div>
+    <!-- ── Import view ──────────────────────────────────────────────── -->
+    <div id="import-view">
+
+      <p class="subtitle" style="margin-top:1.5rem;">Importeer voortgang-PDFs om leerlingdata in te laden</p>
+
+      <!-- Drop zone + file picker -->
+      <div id="import-zone">
+        <span class="drop-icon">&#128196;</span>
+        <p class="drop-text">Sleep PDF-bestanden hierheen of klik om te kiezen</p>
+        <button class="btn btn-primary" id="choose-btn" type="button">Kies bestanden</button>
+        <p class="drop-hint">Ondersteunt meerdere PDFs tegelijk (de hele klas in &eacute;&eacute;n keer)</p>
       </div>
-    </div>
+      <input type="file" id="file-input" multiple accept=".pdf">
 
-    <!-- Import results (shown after processing) -->
-    <div id="import-results">
-      <h2>Importresultaat</h2>
-      <div class="result-summary">
-        <span class="result-badge badge-success" id="result-success">0 geslaagd</span>
-        <span class="result-badge badge-error" id="result-errors" style="display:none">0 mislukt</span>
+      <!-- Progress -->
+      <div id="import-progress">
+        <p class="progress-label" id="progress-label">Verwerkt: 0/0 PDFs</p>
+        <div id="progress-bar-track"><div id="progress-bar-fill"></div></div>
       </div>
-      <ul class="error-list" id="error-list"></ul>
-    </div>
 
-    <!-- Excel verzuim import -->
-    <div id="excel-import-section" style="margin-top:2rem;">
-      <h2 style="font-size:1.25rem;font-weight:600;margin-bottom:0.75rem;">Verzuim importeren</h2>
-      <p style="color:#6b7280;font-size:0.9rem;margin-bottom:1rem;">Importeer de verzuim-Excel (.xls of .xlsx) om aanwezigheids- en verzuimdata te koppelen aan leerlingen.</p>
-      <input type="file" id="excel-file-input" accept=".xls,.xlsx" style="display:none;">
-      <button class="btn btn-primary" id="excel-choose-btn" type="button">
-        Kies Excel-bestand
-      </button>
-      <div id="excel-import-results" style="display:none;margin-top:1rem;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
-        <p id="excel-result-text" style="font-size:0.9rem;color:#374151;"></p>
-        <ul id="excel-unmatched-list" class="error-list" style="margin-top:0.5rem;"></ul>
+      <!-- Results -->
+      <div id="import-results">
+        <h2>Importresultaat</h2>
+        <div class="result-summary">
+          <span class="result-badge badge-success" id="result-success">0 geslaagd</span>
+          <span class="result-badge badge-error" id="result-errors" style="display:none">0 mislukt</span>
+        </div>
+        <ul class="error-list" id="error-list"></ul>
       </div>
-    </div>
-  </div>
+
+      <!-- Excel verzuim import -->
+      <div id="excel-import-section" style="margin-top:2rem;">
+        <h2 style="font-size:1.25rem;font-weight:600;margin-bottom:0.75rem;">Verzuim importeren</h2>
+        <p style="color:#6b7280;font-size:0.9rem;margin-bottom:1rem;">Importeer de verzuim-Excel (.xls of .xlsx) om aanwezigheids- en verzuimdata te koppelen aan leerlingen.</p>
+        <input type="file" id="excel-file-input" accept=".xls,.xlsx" style="display:none;">
+        <button class="btn btn-primary" id="excel-choose-btn" type="button">Kies Excel-bestand</button>
+        <div id="excel-import-results" style="display:none;margin-top:1rem;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
+          <p id="excel-result-text" style="font-size:0.9rem;color:#374151;"></p>
+          <ul id="excel-unmatched-list" class="error-list" style="margin-top:0.5rem;"></ul>
+        </div>
+      </div>
+
+    </div><!-- /#import-view -->
+
+    <!-- ── Klasoverzicht view ────────────────────────────────────────── -->
+    <div id="klasoverzicht-view" style="display:none;">
+
+      <div class="klas-toolbar">
+        <input type="search" id="klas-zoek" placeholder="Zoek leerling..." autocomplete="off">
+        <div class="sort-group">
+          <button class="sort-btn active" id="sort-naam" data-sort="naam">Naam ↕</button>
+          <button class="sort-btn" id="sort-status" data-sort="status">Status</button>
+          <button class="sort-btn" id="sort-verzuim" data-sort="verzuim">Verzuim</button>
+        </div>
+      </div>
+
+      <div class="klas-table-wrap">
+        <table id="klas-tabel" aria-label="Klasoverzicht">
+          <thead>
+            <tr>
+              <th>Naam</th>
+              <th>Status</th>
+              <th>Deelgebieden ≥V</th>
+              <th>Ongeoorloofd</th>
+              <th>Totaal verzuim</th>
+            </tr>
+          </thead>
+          <tbody id="klas-tbody"></tbody>
+        </table>
+        <div id="klas-leeg">Geen leerlingen gevonden.</div>
+      </div>
+
+      <div class="klas-footer">
+        <button class="btn btn-danger" id="wis-data-btn">Wis alle data</button>
+      </div>
+
+    </div><!-- /#klasoverzicht-view -->
+
+  </div><!-- /#app -->
 
   <!-- SheetJS for Excel (.xls/.xlsx) parsing -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <!-- Classic scripts first — globals available to module scripts -->
   <script src="utils/schema.js"></script>
   <script src="utils/datamodel.js"></script>
-  <!-- Excel parser — classic script, uses window.* globals -->
+  <!-- Excel parser — classic script -->
   <script src="parsers/excel.js"></script>
-  <!-- Doorstroomnorm engine — classic script, uses window.DEELGEBIEDEN from schema.js -->
+  <!-- Doorstroomnorm engine -->
   <script src="utils/prognosis.js"></script>
-  <!-- PDF parser as ES module (required for PDF.js ESM import) -->
+  <!-- PDF parser as ES module -->
   <script type="module" src="parsers/pdf.js"></script>
-  <!-- App logic: import UI wiring — loaded as module so it executes after parsers/pdf.js -->
+  <!-- App logic -->
   <script type="module" src="app.js"></script>
+
 </body>
 </html>

@@ -138,6 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Task 01-04-02: console debug output
     logImportResults(results);
+
+    // Phase 04: auto-save + show "Naar klasoverzicht" button
+    if (typeof window._afterPDFImport === 'function') window._afterPDFImport();
+    showNaarKlasBtn();
   }
 
   // ---------------------------------------------------------------------------
@@ -449,6 +453,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       excelResults.style.display = 'block';
 
+      // Phase 04: auto-save after verzuim merge
+      if (typeof window._afterPDFImport === 'function') window._afterPDFImport();
+
       // Console summary
       console.group('Excel Import Results');
       console.log(`Bestand: ${file.name}`);
@@ -473,5 +480,229 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  console.log('[app.js] Import UI ready — PDF drag/drop + Excel verzuim import');
+  // ---------------------------------------------------------------------------
+  // Phase 04 helpers (referenced from Phase 01/02 code above)
+  // ---------------------------------------------------------------------------
+
+  function showNaarKlasBtn() {
+    const existing = document.getElementById('naar-klas-btn');
+    if (existing) return; // al aanwezig
+    const btn = document.createElement('button');
+    btn.id = 'naar-klas-btn';
+    btn.className = 'btn btn-primary';
+    btn.style.cssText = 'margin-top:1.25rem;';
+    btn.textContent = 'Naar klasoverzicht →';
+    btn.addEventListener('click', () => showView('klas'));
+    document.getElementById('import-results').appendChild(btn);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase 04 — Klasoverzicht: navigatie, rendering, sortering, zoeken
+  // ---------------------------------------------------------------------------
+
+  const VERZUIM_DREMPEL_MIN = 600; // 10 uur ongeoorloofd = oranje/warning
+
+  const navImport    = document.getElementById('nav-import');
+  const navOverzicht = document.getElementById('nav-overzicht');
+  const navCount     = document.getElementById('nav-student-count');
+  const importView   = document.getElementById('import-view');
+  const klasView     = document.getElementById('klasoverzicht-view');
+  const klasZoek     = document.getElementById('klas-zoek');
+  const klasTbody    = document.getElementById('klas-tbody');
+  const klasLeeg     = document.getElementById('klas-leeg');
+  const wisDataBtn   = document.getElementById('wis-data-btn');
+
+  let sortKey   = 'naam';   // 'naam' | 'status' | 'verzuim'
+  let sortAsc   = true;
+  let zoekTerm  = '';
+
+  // ── Navigatie ──────────────────────────────────────────────────────────
+
+  function showView(view) {
+    if (view === 'klas') {
+      importView.style.display = 'none';
+      klasView.style.display   = 'block';
+      navImport.classList.remove('active');
+      navOverzicht.classList.add('active');
+      renderKlasoverzicht();
+    } else {
+      klasView.style.display   = 'none';
+      importView.style.display = 'block';
+      navOverzicht.classList.remove('active');
+      navImport.classList.add('active');
+    }
+  }
+
+  navImport.addEventListener('click', () => showView('import'));
+  navOverzicht.addEventListener('click', () => showView('klas'));
+
+  function updateNavCount() {
+    const n = window.appState.students.length;
+    navCount.textContent    = n;
+    navCount.style.display  = n > 0 ? 'inline-block' : 'none';
+  }
+
+  // ── Status berekening (gecombineerd prognose + verzuim) ─────────────────
+  // rood   = negatief prognose
+  // oranje = neutraal prognose OF ongeoorloofd > drempel
+  // groen  = sbl (op koers)
+  // blauw  = sbc (profieljaar)
+  // grijs  = onbekend (geen scores)
+
+  function berekenStatus(student) {
+    const p = window.berekenPrognose(student, 'bj2');
+    const ongeoorloofd = student.verzuim ? student.verzuim.ongeoorloofd : 0;
+    const heeftScores  = p.totaalVoldoendeOfHoger + p.totaalOnvoldoende > 0;
+
+    if (!heeftScores) return { kleur: 'grijs', label: 'Onbekend', prognose: p };
+    if (p.label === 'negatief') return { kleur: 'rood',   label: 'Risico',         prognose: p };
+    if (p.label === 'neutraal') return { kleur: 'oranje', label: 'Let op',          prognose: p };
+    if (ongeoorloofd > VERZUIM_DREMPEL_MIN)
+                                return { kleur: 'oranje', label: 'Verzuim',         prognose: p };
+    if (p.label === 'sbc')      return { kleur: 'blauw',  label: 'Profieljaar SBC', prognose: p };
+    return                             { kleur: 'groen',  label: 'Op koers',        prognose: p };
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+
+  const STATUS_VOLGORDE = { rood: 0, oranje: 1, groen: 2, blauw: 3, grijs: 4 };
+
+  function minNaarUren(min) {
+    if (!min || min === 0) return '—';
+    const u = Math.floor(min / 60);
+    const m = min % 60;
+    return m > 0 ? `${u}u${m}m` : `${u}u`;
+  }
+
+  // ── Renderen ───────────────────────────────────────────────────────────
+
+  function renderKlasoverzicht() {
+    updateNavCount();
+
+    const students = window.appState.students;
+    if (students.length === 0) {
+      klasTbody.innerHTML = '';
+      klasLeeg.style.display = 'block';
+      klasLeeg.textContent = 'Nog geen leerlingen geïmporteerd.';
+      return;
+    }
+
+    // Bereken status + zoekfilter
+    let rijen = students.map(s => ({
+      student: s,
+      status:  berekenStatus(s),
+    }));
+
+    if (zoekTerm) {
+      const q = zoekTerm.toLowerCase();
+      rijen = rijen.filter(r => r.student.naam.toLowerCase().includes(q));
+    }
+
+    // Sorteren
+    rijen.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'naam') {
+        cmp = a.student.naam.localeCompare(b.student.naam, 'nl');
+      } else if (sortKey === 'status') {
+        cmp = STATUS_VOLGORDE[a.status.kleur] - STATUS_VOLGORDE[b.status.kleur];
+      } else if (sortKey === 'verzuim') {
+        const av = a.student.verzuim ? a.student.verzuim.ongeoorloofd : 0;
+        const bv = b.student.verzuim ? b.student.verzuim.ongeoorloofd : 0;
+        cmp = bv - av; // hoog eerst
+      }
+      return sortAsc ? cmp : -cmp;
+    });
+
+    if (rijen.length === 0) {
+      klasTbody.innerHTML = '';
+      klasLeeg.style.display = 'block';
+      klasLeeg.textContent = `Geen leerlingen gevonden voor "${zoekTerm}".`;
+      return;
+    }
+
+    klasLeeg.style.display = 'none';
+
+    const totalDG = 19;
+    klasTbody.innerHTML = rijen.map(({ student: s, status }) => {
+      const p   = status.prognose;
+      const pct = Math.round((p.totaalVoldoendeOfHoger / totalDG) * 100);
+      const ongeoorloofd = s.verzuim ? s.verzuim.ongeoorloofd : null;
+      const totaalVerzuim = s.verzuim ? s.verzuim.totaal : null;
+
+      return `<tr>
+        <td class="student-naam">${escapeHtml(s.naam)}</td>
+        <td><span class="status-badge status-${status.kleur}">${escapeHtml(status.label)}</span></td>
+        <td>
+          <div class="score-bar-wrap">
+            <div class="score-bar-track">
+              <div class="score-bar-fill" style="width:${pct}%"></div>
+            </div>
+            <span class="score-label">${p.totaalVoldoendeOfHoger}/${totalDG}</span>
+          </div>
+        </td>
+        <td>${ongeoorloofd !== null ? minNaarUren(ongeoorloofd) : '<span style="color:#9ca3af">—</span>'}</td>
+        <td>${totaalVerzuim !== null ? minNaarUren(totaalVerzuim) : '<span style="color:#9ca3af">—</span>'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Sorteerknoppen ─────────────────────────────────────────────────────
+
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.sort;
+      if (sortKey === key) {
+        sortAsc = !sortAsc;
+      } else {
+        sortKey = key;
+        sortAsc = key === 'naam'; // naam: A→Z standaard; status/verzuim: laagste/hoogste eerst
+      }
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderKlasoverzicht();
+    });
+  });
+
+  // ── Zoeken ─────────────────────────────────────────────────────────────
+
+  klasZoek.addEventListener('input', () => {
+    zoekTerm = klasZoek.value.trim();
+    renderKlasoverzicht();
+  });
+
+  // ── Wis alle data ──────────────────────────────────────────────────────
+
+  wisDataBtn.addEventListener('click', () => {
+    if (!confirm('Alle geïmporteerde data wissen? Dit kan niet ongedaan worden gemaakt.')) return;
+    window.clearState();
+    updateNavCount();
+    // Reset import UI
+    document.getElementById('import-results').style.display = 'none';
+    document.getElementById('import-progress').style.display = 'none';
+    document.getElementById('excel-import-results').style.display = 'none';
+    showView('import');
+  });
+
+  // ── Auto-save helper (aangeroepen na elke import) ───────────────────────
+
+  function autoSave() {
+    const ok = window.saveState();
+    updateNavCount();
+    if (ok) console.log('[app.js] State opgeslagen (' + window.appState.students.length + ' leerlingen)');
+  }
+
+  // Hook auto-save in na PDF import — patch importPDFs resultaat
+  // (wordt aangeroepen aan einde van de bestaande importPDFs functie via event)
+  const _origShowImportResults = showImportResults;
+  // Expose autoSave zodat importPDFs het kan aanroepen
+  window._afterPDFImport = autoSave;
+
+  // ── Startup: laad eerder opgeslagen state ──────────────────────────────
+
+  if (window.loadState && window.loadState()) {
+    updateNavCount();
+    showView('klas');
+  }
+
+  console.log('[app.js] Import UI ready — PDF drag/drop + Excel verzuim import + klasoverzicht');
 });
