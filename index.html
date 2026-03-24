@@ -229,11 +229,29 @@
       </div>
       <ul class="error-list" id="error-list"></ul>
     </div>
+
+    <!-- Excel verzuim import -->
+    <div id="excel-import-section" style="margin-top:2rem;">
+      <h2 style="font-size:1.25rem;font-weight:600;margin-bottom:0.75rem;">Verzuim importeren</h2>
+      <p style="color:#6b7280;font-size:0.9rem;margin-bottom:1rem;">Importeer de verzuim-Excel (.xls of .xlsx) om aanwezigheids- en verzuimdata te koppelen aan leerlingen.</p>
+      <input type="file" id="excel-file-input" accept=".xls,.xlsx" style="display:none;">
+      <button class="btn btn-primary" id="excel-choose-btn" type="button">
+        Kies Excel-bestand
+      </button>
+      <div id="excel-import-results" style="display:none;margin-top:1rem;padding:1rem;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
+        <p id="excel-result-text" style="font-size:0.9rem;color:#374151;"></p>
+        <ul id="excel-unmatched-list" class="error-list" style="margin-top:0.5rem;"></ul>
+      </div>
+    </div>
   </div>
 
+  <!-- SheetJS for Excel (.xls/.xlsx) parsing -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <!-- Classic scripts first — globals available to module scripts -->
   <script src="utils/schema.js"></script>
   <script src="utils/datamodel.js"></script>
+  <!-- Excel parser — classic script, uses window.* globals -->
+  <script src="parsers/excel.js"></script>
   <!-- PDF parser as ES module (required for PDF.js ESM import) -->
   <script type="module" src="parsers/pdf.js"></script>
   <!-- App logic: import UI wiring — loaded as module so it executes after parsers/pdf.js -->
