@@ -75,3 +75,90 @@ window.getStudentScores = function(leerlingId) {
 };
 
 console.log('[datamodel.js] Data model loaded');
+
+// ---------------------------------------------------------------------------
+// Phase 02 — Verzuim (absence) extension
+// ---------------------------------------------------------------------------
+
+/**
+ * @typedef {Object} Verzuim
+ * @property {number} aanwezigheid - Attendance in minutes
+ * @property {number} geoorloofd - Excused absence in minutes
+ * @property {number} ongeoorloofd - Unexcused absence in minutes
+ * @property {number} totaal - Total absence in minutes
+ * @property {string} laatsteMelding - Date of last absence report
+ */
+
+/**
+ * Normalize a student name for case-insensitive, whitespace-tolerant matching.
+ * Handles Dutch name variations like "van den Dool" vs "van den dool".
+ *
+ * @param {string} naam - Raw name string
+ * @returns {string} Lowercased, whitespace-collapsed, trimmed name
+ */
+window.normalizeNaam = function(naam) {
+  if (!naam) return '';
+  return String(naam).toLowerCase().replace(/\s+/g, ' ').trim();
+};
+
+/**
+ * Merge verzuim records into the matching students in window.appState.students.
+ *
+ * Matching strategy (per XLS-04):
+ *   1. Exact match by leerlingnummer === student.leerlingId
+ *   2. Fallback: normalized name match (case-insensitive, whitespace-tolerant)
+ *
+ * Sets student.verzuim = { aanwezigheid, geoorloofd, ongeoorloofd, totaal, laatsteMelding }
+ * on each matched student.
+ *
+ * @param {Array<{naam: string, leerlingnummer: string, aanwezigheid: number, geoorloofd: number, ongeoorloofd: number, totaal: number, laatsteMelding: string}>} verzuimRecords
+ * @returns {{ matched: number, unmatched: string[] }}
+ */
+window.mergeVerzuim = function(verzuimRecords) {
+  const result = { matched: 0, unmatched: [] };
+
+  for (const v of verzuimRecords) {
+    // Strategy 1: match by leerlingnummer (exact string)
+    let student = window.appState.students.find(function(s) {
+      return s.leerlingId === v.leerlingnummer;
+    });
+
+    // Strategy 2: match by normalized name
+    if (!student) {
+      const normVerzuimNaam = window.normalizeNaam(v.naam);
+      student = window.appState.students.find(function(s) {
+        return window.normalizeNaam(s.naam) === normVerzuimNaam;
+      });
+    }
+
+    if (student) {
+      student.verzuim = {
+        aanwezigheid: v.aanwezigheid,
+        geoorloofd: v.geoorloofd,
+        ongeoorloofd: v.ongeoorloofd,
+        totaal: v.totaal,
+        laatsteMelding: v.laatsteMelding
+      };
+      console.log('[mergeVerzuim] Gekoppeld: ' + v.naam + ' -> ' + student.naam);
+      result.matched++;
+    } else {
+      console.warn('[mergeVerzuim] Niet gekoppeld: ' + v.naam);
+      result.unmatched.push(v.naam);
+    }
+  }
+
+  return result;
+};
+
+/**
+ * Get the verzuim record for a student by leerlingId.
+ *
+ * @param {string} leerlingId - Student ID
+ * @returns {Verzuim|null} The student's verzuim object, or null if not found / no verzuim set
+ */
+window.getVerzuim = function(leerlingId) {
+  const student = window.appState.students.find(function(s) {
+    return s.leerlingId === leerlingId;
+  });
+  return (student && student.verzuim) ? student.verzuim : null;
+};
