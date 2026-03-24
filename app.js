@@ -400,5 +400,78 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#39;');
   }
 
-  console.log('[app.js] Import UI ready — drag PDFs or click "Kies bestanden"');
+  // ---------------------------------------------------------------------------
+  // Excel verzuim import (Phase 02)
+  // ---------------------------------------------------------------------------
+
+  const excelFileInput = document.getElementById('excel-file-input');
+  const excelChooseBtn = document.getElementById('excel-choose-btn');
+  const excelResults   = document.getElementById('excel-import-results');
+  const excelResultTxt = document.getElementById('excel-result-text');
+  const excelUnmatched = document.getElementById('excel-unmatched-list');
+
+  excelChooseBtn.addEventListener('click', () => excelFileInput.click());
+
+  excelFileInput.addEventListener('change', async () => {
+    const file = excelFileInput.files[0];
+    if (!file) return;
+
+    // Guard: parseExcelFile must be available
+    if (typeof window.parseExcelFile !== 'function') {
+      showError('Excel-parser niet geladen. Ververs de pagina en probeer opnieuw.');
+      return;
+    }
+
+    // Guard: students must be imported first
+    if (window.appState.students.length === 0) {
+      showError('Importeer eerst voortgang-PDFs voordat je verzuimdata importeert.');
+      return;
+    }
+
+    try {
+      excelChooseBtn.disabled = true;
+      excelChooseBtn.textContent = 'Bezig met importeren...';
+
+      const verzuimRecords = await window.parseExcelFile(file);
+      const result = window.mergeVerzuim(verzuimRecords);
+
+      // Show results
+      excelResultTxt.textContent = `${result.matched} van ${verzuimRecords.length} leerlingen gekoppeld aan voortgangdata.`;
+
+      excelUnmatched.innerHTML = '';
+      if (result.unmatched.length > 0) {
+        for (const name of result.unmatched) {
+          const li = document.createElement('li');
+          li.textContent = `Niet gekoppeld: ${name}`;
+          excelUnmatched.appendChild(li);
+        }
+      }
+
+      excelResults.style.display = 'block';
+
+      // Console summary
+      console.group('Excel Import Results');
+      console.log(`Bestand: ${file.name}`);
+      console.log(`Gekoppeld: ${result.matched}/${verzuimRecords.length}`);
+      if (result.unmatched.length > 0) {
+        console.warn('Niet gekoppeld:', result.unmatched);
+      }
+      // Debug: show verzuim data for first matched student
+      const firstWithVerzuim = window.appState.students.find(s => s.verzuim);
+      if (firstWithVerzuim) {
+        console.log('Voorbeeld verzuim:', firstWithVerzuim.naam, firstWithVerzuim.verzuim);
+      }
+      console.groupEnd();
+
+    } catch (err) {
+      showError(`Excel-import mislukt: ${err.message}`);
+      console.error('[app.js] Excel import error:', err);
+    } finally {
+      excelChooseBtn.disabled = false;
+      excelChooseBtn.textContent = 'Kies Excel-bestand';
+      excelFileInput.value = ''; // reset for re-import
+    }
+  });
+
+  console.log('[app.js] Import UI ready — PDF drag/drop + Excel verzuim import');
 });
