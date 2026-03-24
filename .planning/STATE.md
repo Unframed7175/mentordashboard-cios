@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 01 complete — ready for Phase 02
-last_updated: "2026-03-24T07:12:00.000Z"
+status: Ready to execute
+last_updated: "2026-03-24T14:40:34.841Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,12 +18,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** Phase 02 — Excel import (verzuim)
+**Current focus:** Phase 02 — excel-import
 
 ## Current Position
 
-Phase: 01 (pdf-parser) — COMPLETE
-Plan: 4 of 4 (all plans complete)
+Phase: 02 (excel-import) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -36,6 +36,7 @@ Plans completed: 4/4
 | 01    | 01-02 | 15 min   | 2     | 1     |
 | 01    | 01-03 | 4 min    | 2     | 1     |
 | 01    | 01-04 | 3 min    | 2     | 2     |
+| Phase 02-excel-import P02-01 | 5 min | 2 tasks | 2 files |
 
 ## Decisions
 
@@ -50,6 +51,8 @@ Plans completed: 4/4
 - [Phase 01-03]: All 19 deelgebied keys always present in deelgebiedScores (null = not yet assessed) — Phase 3 can iterate safely
 - [01-04]: app.js loaded as type=module — ensures execution after parsers/pdf.js in module script order
 - [01-04]: DOMContentLoaded guard retained in module script — harmless; provides documentation value
+- [Phase 02-excel-import]: excel.js uses window.* globals (not ES module) — consistent with schema.js/datamodel.js, avoids module scope issues
+- [Phase 02-excel-import]: mergeVerzuim matches by leerlingnummer first, normalized naam as fallback — ID match preferred, name match handles XLS exports without matching IDs
 
 ## Session Log
 
