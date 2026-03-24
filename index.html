@@ -189,6 +189,8 @@
 
     .error-list li strong {
       color: #1f2937;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.8rem;
     }
   </style>
 </head>
@@ -234,5 +236,7 @@
   <script src="utils/datamodel.js"></script>
   <!-- PDF parser as ES module (required for PDF.js ESM import) -->
   <script type="module" src="parsers/pdf.js"></script>
+  <!-- App logic: import UI wiring — loaded as module so it executes after parsers/pdf.js -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>
