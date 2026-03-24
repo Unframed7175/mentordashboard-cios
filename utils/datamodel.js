@@ -162,3 +162,58 @@ window.getVerzuim = function(leerlingId) {
   });
   return (student && student.verzuim) ? student.verzuim : null;
 };
+
+// ---------------------------------------------------------------------------
+// Phase 04 — Persistentie via localStorage (PER-01, PER-02)
+// ---------------------------------------------------------------------------
+
+var STORAGE_KEY = 'mentordashboard_v1';
+
+/**
+ * Sla huidige appState op in localStorage.
+ * @returns {boolean} true als opslaan gelukt is
+ */
+window.saveState = function() {
+  try {
+    var data = {
+      students: window.appState.students,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  } catch (e) {
+    console.warn('[datamodel] saveState mislukt:', e.message);
+    return false;
+  }
+};
+
+/**
+ * Laad opgeslagen state uit localStorage in appState.
+ * @returns {boolean} true als er data geladen is
+ */
+window.loadState = function() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    var data = JSON.parse(raw);
+    if (data.students && Array.isArray(data.students) && data.students.length > 0) {
+      window.appState.students = data.students;
+      console.log('[datamodel] ' + data.students.length + ' leerlingen geladen (opgeslagen: ' + data.savedAt + ')');
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.warn('[datamodel] loadState mislukt:', e.message);
+    return false;
+  }
+};
+
+/**
+ * Wis alle opgeslagen data (localStorage + appState).
+ */
+window.clearState = function() {
+  localStorage.removeItem(STORAGE_KEY);
+  window.appState.students = [];
+  window.appState.lastImportErrors = [];
+  console.log('[datamodel] Alle data gewist');
+};
