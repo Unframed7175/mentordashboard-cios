@@ -27,7 +27,7 @@ Vijf fases die stap voor stap het dashboard opbouwen. Phase 1 bouwt de PDF-parse
   6. Bij een onleesbare of onverwachte PDF verschijnt een duidelijke foutmelding
 **Plans:** 4 plans
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffold: start.bat, vendored PDF.js, schema.js, data model
+- [x] 01-01-PLAN.md — Project scaffold: start.bat, vendored PDF.js, schema.js, data model
 - [ ] 01-02-PLAN.md — PDF parser core: header extraction + vak/opdracht/status/feedforward
 - [ ] 01-03-PLAN.md — Overzicht Deelgebieden table extraction (V/G/E scores per deelgebied)
 - [ ] 01-04-PLAN.md — Import UI: drag-and-drop, file picker, live counter, error display
