@@ -25,6 +25,8 @@ const Y_TOLERANCE = 3;
 const STATUS_STRINGS = [
   'Op tijd ingeleverd en wel beoordeeld',
   'Zelfevaluatie afgerond',
+  'Niet ingeleverd',
+  'Beoordeeld',
 ];
 
 /**
@@ -187,22 +189,27 @@ function extractHeader(lines) {
     const text = lineToText(line);
 
     if (!result.naam) {
-      const m = text.match(/^Naam\s*:\s*(.+)/i);
+      // Naam and Periode appear on the SAME line in the header table:
+      // "Naam: Blansjaar, M.J.J. (Mick) Periode: BJ2 Fase 2 DD"
+      // Capture up to "Periode:" to avoid swallowing the Periode value.
+      const m = text.match(/Naam\s*:\s*(.+?)(?=\s+Periode\s*:|$)/i);
       if (m) result.naam = m[1].trim();
     }
 
     if (!result.leerlingId) {
-      const m = text.match(/^Leerling[\s\-]*ID\s*:\s*(.+)/i);
+      // "Leerling ID: 248109 Leerjaar 1" — capture up to "Leerjaar"
+      const m = text.match(/Leerling[\s\-]*ID\s*:\s*(.+?)(?=\s+Leerjaar\b|$)/i);
       if (m) result.leerlingId = m[1].trim();
     }
 
     if (!result.periode) {
-      const m = text.match(/^Periode\s*:\s*(.+)/i);
+      // No ^ anchor — Periode follows Naam on the same line
+      const m = text.match(/Periode\s*:\s*(.+?)(?=\s{2,}|\s+Leerjaar\b|\s+Naam\s*:|$)/i);
       if (m) result.periode = m[1].trim();
     }
 
     if (!result.leerjaar) {
-      const m = text.match(/^Leerjaar\s+(\d+)/i);
+      const m = text.match(/Leerjaar\s+(\d+)/i);
       if (m) result.leerjaar = m[1];
     }
   }
