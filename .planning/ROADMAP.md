@@ -8,7 +8,7 @@ Vijf fases die stap voor stap het dashboard opbouwen. Phase 1 bouwt de PDF-parse
 
 - [ ] **Phase 1: PDF Parser** - Voortgang-PDFs per leerling betrouwbaar inlezen: naam, deelgebied-scores V/G/E, opdracht-statussen en feed forward
 - [ ] **Phase 2: Excel Import** - Verzuim-Excel (.xls) inlezen en koppelen aan leerlingen uit PDF-data
-- [ ] **Phase 3: Doorstroomnorm Engine** - Leerlijn-mapping, V/G/E-telling per leerlijn, en prognoseberekening op basis van officiële doorstroomnormen
+- [x] **Phase 3: Doorstroomnorm Engine** - Leerlijn-mapping, V/G/E-telling per leerlijn, en prognoseberekening op basis van officiële doorstroomnormen (completed 2026-03-25)
 - [ ] **Phase 4: Klasoverzicht** - Overzichtstabel van hele klas met rood/oranje/groen status, sorteren, zoeken en data-persistentie
 - [ ] **Phase 5: Detailweergave** - Volledig mentorgesprek-dossier per leerling met voortgang, verzuim, prognose en notities
 
@@ -102,6 +102,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. PDF Parser | 3/4 | In Progress|  |
 | 2. Excel Import | 0/2 | Not started | - |
-| 3. Doorstroomnorm Engine | 0/? | Not started | - |
+| 3. Doorstroomnorm Engine | 2/2 | Complete   | 2026-03-25 |
 | 4. Klasoverzicht | 0/? | Not started | - |
 | 5. Detailweergave | 0/? | Not started | - |

@@ -25,7 +25,7 @@
 
 ### Doorstroomnorm Calculatie
 
-- [ ] **NORM-01**: Mentor kan deelgebieden toewijzen aan leerlijnen (lesgeven / organiseren / professioneel handelen)
+- [x] **NORM-01**: Mentor kan deelgebieden toewijzen aan leerlijnen (lesgeven / organiseren / professioneel handelen)
 - [ ] **NORM-02**: App telt automatisch V/G/E per leerlijn per leerling
 - [ ] **NORM-03**: Prognose "Positief (BJ2)" berekend: ≥13 deelgebieden voldoende totaal
 - [ ] **NORM-04**: Prognose "Versneld (SBC)" berekend: lesgeven ≥4 G, organiseren ≥3 G, prof. handelen ≥5 G
