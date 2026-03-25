@@ -2,13 +2,22 @@
 
 ## What This Is
 
-Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL (klas CSD2A) die voortgang-PDFs per leerling en verzuim-Excel exports inleest en omzet naar een overzichtelijk dashboard. Het dashboard geeft per leerling een rood/oranje/groen prognose op basis van de officiële doorstroomnormeringen, zodat mentoren in minder dan 2 minuten klaar zijn voor een mentorgesprek — zonder door meerdere systemen te hoeven klikken.
+Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL die voortgang-PDFs per leerling en verzuim-Excel exports inleest en omzet naar een overzichtelijk dashboard. Het dashboard geeft per leerling een rood/oranje/groen prognose op basis van de officiële doorstroomnormeringen, zodat mentoren in minder dan 2 minuten klaar zijn voor een mentorgesprek — zonder door meerdere systemen te hoeven klikken. Meerdere klassen ondersteund met tabbladen, periodes vergelijkbaar per leerling, en PDF-export voor mentorgesprekverslagen.
 
 ## Core Value
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
-## Current State (v1.0)
+## Current Milestone: v1.1 Klasbeheer & Export
+
+**Goal:** Mentor kan meerdere klassen beheren, fase 1 vs fase 2 per leerling vergelijken, en een volledig PDF-dossier afdrukken voor het mentorgesprek.
+
+**Target features:**
+- Meerdere klassen als tabbladen (CSD2A / CSD2B) — eigen import, eigen data, schakelen zonder dataverlies
+- Periodes vergelijken in detailweergave — fase 1 + fase 2 naast elkaar, groei in V/G/E per deelgebied
+- Print-to-PDF via browser — CSS print stylesheet op detailweergave, geen extra library
+
+## Current State (v1.0 baseline)
 
 - **Shipped:** 2026-03-25
 - **Stack:** ~3000 LOC JavaScript (browser-only, no build step, no server)
@@ -27,20 +36,23 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ Detailweergave per leerling: volledige voortgang + verzuim + prognose op één scherm voor mentorgesprek — v1.0
 - ✓ Leerlijn-mapping: mentor kan deelgebieden toewijzen aan leerlijnen (lesgeven / organiseren / professioneel handelen) — v1.0
 
-### Active (v2 candidates)
+### Active (v1.1 milestone)
 
-- [ ] Meerdere klassen beheren in één dashboard
-- [ ] Vergelijking tussen periodes (fase 1 vs fase 2)
-- [ ] Export naar PDF/Word voor mentorgesprekverslag
+- [ ] Meerdere klassen beheren in één dashboard (tabbladen)
+- [ ] Vergelijking tussen periodes (fase 1 vs fase 2) in detailweergave
+- [ ] Print-to-PDF export voor mentorgesprekverslag
+
+### Future (v2+)
+
 - [ ] Rekenen en Nederlands voortgang apart bijhouden met eigen norm
 
 ### Out of Scope
 
 - API-koppeling met schoolsystemen — bewust gekozen voor bestandsimport vanwege slechte IT-systemen
-- Inloggen / authenticatie — lokale tool voor één mentor, geen multi-user nodig in v1
-- Meerdere klassen — v1 focust op CSD2A; uitbreiding naar v2
+- Inloggen / authenticatie — lokale tool voor één mentor, geen multi-user nodig
 - Mobiele app — gebruik via browser op laptop/desktop
 - Automatische PDF-download — mentor exporteert handmatig uit het systeem
+- Word/docx export — browser print-to-PDF voldoet voor v1.1
 
 ## Context
 
@@ -78,5 +90,12 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 | Gemini cross-AI review vóór implementatie | Adversarial review pikt edge cases op die planning mist | ✓ Waardevol — alle 3 HIGH/MEDIUM issues voorspeld en bevestigd |
 | Document-level drop prevention | Voorkomt browsernavigatie bij per ongeluk droppen van PDF buiten dropzone | ✓ Fix voor "bestandstype wordt niet ondersteund" Windows-fout |
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase:** Move shipped requirements to Validated, log decisions, update Active.
+**After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
+
 ---
-*Last updated: 2026-03-25 after v1.0 milestone*
+*Last updated: 2026-03-25 — v1.1 Klasbeheer & Export milestone started*
