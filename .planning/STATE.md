@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Klasbeheer & Export
-status: Defining requirements
-last_updated: "2026-03-25T09:15:00Z"
+status: Roadmap defined
+last_updated: "2026-03-25T10:00:00Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -18,19 +18,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** v1.1 — Klasbeheer & Export (defining requirements)
+**Current focus:** v1.1 — Klasbeheer & Export (Phase 6: Multi-class UI)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 6 — Multi-class UI
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-25 — Milestone v1.1 started
+Status: Roadmap defined — ready to plan Phase 6
+Last activity: 2026-03-25 — Roadmap v1.1 created (phases 6–8)
+
+```
+v1.1 progress: [░░░░░░░░░░] 0% (0/3 phases)
+```
 
 ## Performance Metrics
 
-Phases completed: 1/5
-Plans completed: 4/4
+v1.1 phases completed: 0/3
+v1.1 plans completed: 0/?
+
+### v1.0 Historical (for reference)
 
 | Phase | Plan  | Duration | Tasks | Files |
 |-------|-------|----------|-------|-------|
@@ -43,6 +49,8 @@ Plans completed: 4/4
 | Phase 03 P03-02 | 7 | 2 tasks | 4 files |
 
 ## Decisions
+
+### v1.0 Decisions (archived)
 
 - [01-01] PDF.js vendored as ESM (pdf.min.mjs + pdf.worker.min.mjs) — required for browser-only no-npm constraint
 - [01-01] schema.js copied verbatim from sister project — 19 DEELGEBIEDEN IDs must not change for Phase 3 compatibility
@@ -61,8 +69,19 @@ Plans completed: 4/4
 - [Phase 03]: leerlijnen.js uses IIFE classic script (no ES module) — consistent with schema.js/prognosis.js pattern
 - [Phase 03]: telLeerlijnen fallback: mapping[dg.id] || dg.group — backward compatible if leerlijnen.js is not loaded
 
+### v1.1 Decisions (accumulating)
+
+*(none yet — begin with Phase 6 planning)*
+
+## Blockers
+
+*(none)*
+
 ## Session Log
 
 - 2026-03-24: Project geïnitialiseerd via `/gsd:new-project`
 - 2026-03-24: Completed 01-01-PLAN.md — project scaffold, PDF.js vendor, schema, data model
 - 2026-03-24: Completed 01-04-PLAN.md — import UI with drag-and-drop, live counter, batch processing
+- 2026-03-25: v1.0 shipped — all 5 phases complete
+- 2026-03-25: v1.1 milestone started — requirements defined (KLS-01..06, CMP-01..04, EXP-01..04)
+- 2026-03-25: v1.1 roadmap created — phases 6 (Multi-class UI), 7 (Periode Vergelijking), 8 (Print-to-PDF Export)

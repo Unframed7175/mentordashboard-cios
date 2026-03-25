@@ -48,6 +48,17 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| KLS-01 t/m KLS-06 | Phase 6 — Multi-class UI | Pending |
-| CMP-01 t/m CMP-04 | Phase 7 — Periodes Vergelijken | Pending |
-| EXP-01 t/m EXP-04 | Phase 8 — Print-to-PDF Export | Pending |
+| KLS-01 | Phase 6 — Multi-class UI | Pending |
+| KLS-02 | Phase 6 — Multi-class UI | Pending |
+| KLS-03 | Phase 6 — Multi-class UI | Pending |
+| KLS-04 | Phase 6 — Multi-class UI | Pending |
+| KLS-05 | Phase 6 — Multi-class UI | Pending |
+| KLS-06 | Phase 6 — Multi-class UI | Pending |
+| CMP-01 | Phase 7 — Periode Vergelijking | Pending |
+| CMP-02 | Phase 7 — Periode Vergelijking | Pending |
+| CMP-03 | Phase 7 — Periode Vergelijking | Pending |
+| CMP-04 | Phase 7 — Periode Vergelijking | Pending |
+| EXP-01 | Phase 8 — Print-to-PDF Export | Pending |
+| EXP-02 | Phase 8 — Print-to-PDF Export | Pending |
+| EXP-03 | Phase 8 — Print-to-PDF Export | Pending |
+| EXP-04 | Phase 8 — Print-to-PDF Export | Pending |
