@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const successBadge = document.getElementById('result-success');
   const errorBadge   = document.getElementById('result-errors');
   const errorList    = document.getElementById('error-list');
+  const detailView   = document.getElementById('detail-view');
 
   // ---------------------------------------------------------------------------
   // Task 01-04-01 — Drag-and-drop + file picker handlers
@@ -414,7 +415,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const excelResultTxt = document.getElementById('excel-result-text');
   const excelUnmatched = document.getElementById('excel-unmatched-list');
 
-  excelChooseBtn.addEventListener('click', () => excelFileInput.click());
+  // Guard: if SheetJS CDN failed to load, disable button with Dutch error
+  if (typeof window.XLSX === 'undefined') {
+    excelChooseBtn.disabled = true;
+    excelChooseBtn.textContent = 'SheetJS niet geladen. Ververs de pagina.';
+  } else {
+    excelChooseBtn.addEventListener('click', () => excelFileInput.click());
+  }
 
   excelFileInput.addEventListener('change', async () => {
     const file = excelFileInput.files[0];
@@ -456,12 +463,19 @@ document.addEventListener('DOMContentLoaded', () => {
       // Phase 04: auto-save after verzuim merge
       if (typeof window._afterPDFImport === 'function') window._afterPDFImport();
 
+      // Sla records op voor debugVerzuimKoppeling()
+      window._lastVerzuimRecords = verzuimRecords;
+
       // Console summary
       console.group('Excel Import Results');
       console.log(`Bestand: ${file.name}`);
       console.log(`Gekoppeld: ${result.matched}/${verzuimRecords.length}`);
       if (result.unmatched.length > 0) {
         console.warn('Niet gekoppeld:', result.unmatched);
+        console.warn('Tip: voer window.debugVerzuimKoppeling() uit in de console voor een vergelijkingstabel.');
+        // Toon Excel-namen vs PDF-namen voor directe diagnose
+        console.log('Excel namen:', verzuimRecords.map(r => r.naam + (r.leerlingnummer ? ' [' + r.leerlingnummer + ']' : '')));
+        console.log('PDF namen: ', window.appState.students.map(s => s.naam + ' [' + s.leerlingId + ']'));
       }
       // Debug: show verzuim data for first matched student
       const firstWithVerzuim = window.appState.students.find(s => s.verzuim);
@@ -519,16 +533,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Navigatie ──────────────────────────────────────────────────────────
 
   function showView(view) {
-    if (view === 'klas') {
-      importView.style.display = 'none';
+    importView.style.display = 'none';
+    klasView.style.display   = 'none';
+    detailView.style.display = 'none';
+    navImport.classList.remove('active');
+    navOverzicht.classList.remove('active');
+
+    if (view === 'detail') {
+      detailView.style.display = 'block';
+      navOverzicht.classList.add('active');
+    } else if (view === 'klas') {
       klasView.style.display   = 'block';
-      navImport.classList.remove('active');
       navOverzicht.classList.add('active');
       renderKlasoverzicht();
     } else {
-      klasView.style.display   = 'none';
       importView.style.display = 'block';
-      navOverzicht.classList.remove('active');
       navImport.classList.add('active');
     }
   }
@@ -549,18 +568,32 @@ document.addEventListener('DOMContentLoaded', () => {
   // blauw  = sbc (profieljaar)
   // grijs  = onbekend (geen scores)
 
+  // Detecteer traject op basis van periode/leerjaar veld uit de PDF
+  function detectTraject(student) {
+    const periode  = String(student.periode  || '').toLowerCase();
+    const leerjaar = String(student.leerjaar || '').trim();
+    if (periode.indexOf('bj1') !== -1 || leerjaar === '1') return 'bj1';
+    return 'bj2';
+  }
+
   function berekenStatus(student) {
-    const p = window.berekenPrognose(student, 'bj2');
+    const traject = detectTraject(student);
+    const p = window.berekenPrognose(student, traject);
     const ongeoorloofd = student.verzuim ? student.verzuim.ongeoorloofd : 0;
     const heeftScores  = p.totaalVoldoendeOfHoger + p.totaalOnvoldoende > 0;
 
     if (!heeftScores) return { kleur: 'grijs', label: 'Onbekend', prognose: p };
-    if (p.label === 'negatief') return { kleur: 'rood',   label: 'Risico',         prognose: p };
-    if (p.label === 'neutraal') return { kleur: 'oranje', label: 'Let op',          prognose: p };
+    if (p.label === 'negatief')     return { kleur: 'rood',   label: 'Risico',         prognose: p };
+    if (p.label === 'neutraal')     return { kleur: 'oranje', label: 'Let op',          prognose: p };
     if (ongeoorloofd > VERZUIM_DREMPEL_MIN)
-                                return { kleur: 'oranje', label: 'Verzuim',         prognose: p };
-    if (p.label === 'sbc')      return { kleur: 'blauw',  label: 'Profieljaar SBC', prognose: p };
-    return                             { kleur: 'groen',  label: 'Op koers',        prognose: p };
+                                    return { kleur: 'oranje', label: 'Verzuim',         prognose: p };
+    // BJ2 uitkomsten
+    if (p.label === 'sbc')          return { kleur: 'blauw',  label: 'Profieljaar SBC', prognose: p };
+    if (p.label === 'sbl')          return { kleur: 'groen',  label: 'Op koers',        prognose: p };
+    // BJ1 uitkomsten
+    if (p.label === 'versneld_sbc') return { kleur: 'blauw',  label: 'Versneld SBC',    prognose: p };
+    if (p.label === 'bj2')          return { kleur: 'groen',  label: 'Op koers BJ2',    prognose: p };
+    return                                 { kleur: 'groen',  label: 'Op koers',        prognose: p };
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────
@@ -572,6 +605,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const u = Math.floor(min / 60);
     const m = min % 60;
     return m > 0 ? `${u}u${m}m` : `${u}u`;
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+
+  function buildMiniVerzuimBar(student) {
+    if (!student.verzuim) return `<span style="color:#9ca3af;font-size:0.8rem;">—</span>`;
+    const v      = student.verzuim;
+    const totaal = (v.aanwezigheid || 0) + (v.geoorloofd || 0) + (v.ongeoorloofd || 0);
+    if (!totaal) return `<span style="color:#9ca3af;font-size:0.8rem;">—</span>`;
+    const pA = Math.round((v.aanwezigheid || 0) / totaal * 100);
+    const pG = Math.round((v.geoorloofd   || 0) / totaal * 100);
+    const pO = 100 - pA - pG;
+    const kleurTekst = v.ongeoorloofd > 600 ? '#991b1b' : '#6b7280';
+    const ongeoorloofdTekst = v.ongeoorloofd > 0
+      ? `<div style="font-size:0.75rem;color:${kleurTekst};margin-top:3px;">${minNaarUren(v.ongeoorloofd)} ongeoorloofd</div>`
+      : '';
+    return `<div class="mini-verzuim-bar">
+      <div class="mvb-seg mvb-aanwezig"     style="width:${pA}%"></div>
+      <div class="mvb-seg mvb-geoorloofd"   style="width:${pG}%"></div>
+      <div class="mvb-seg mvb-ongeoorloofd" style="width:${pO}%"></div>
+    </div>${ongeoorloofdTekst}`;
   }
 
   // ── Renderen ───────────────────────────────────────────────────────────
@@ -622,14 +676,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     klasLeeg.style.display = 'none';
 
+    // Track ordered list for prev/next navigation in detail view
+    detailStudentList = rijen.map(r => r.student.leerlingId);
+
     const totalDG = 19;
     klasTbody.innerHTML = rijen.map(({ student: s, status }) => {
       const p   = status.prognose;
       const pct = Math.round((p.totaalVoldoendeOfHoger / totalDG) * 100);
-      const ongeoorloofd = s.verzuim ? s.verzuim.ongeoorloofd : null;
-      const totaalVerzuim = s.verzuim ? s.verzuim.totaal : null;
 
-      return `<tr>
+      return `<tr data-id="${escapeHtml(s.leerlingId)}" style="cursor:pointer;">
         <td class="student-naam">${escapeHtml(s.naam)}</td>
         <td><span class="status-badge status-${status.kleur}">${escapeHtml(status.label)}</span></td>
         <td>
@@ -640,8 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="score-label">${p.totaalVoldoendeOfHoger}/${totalDG}</span>
           </div>
         </td>
-        <td>${ongeoorloofd !== null ? minNaarUren(ongeoorloofd) : '<span style="color:#9ca3af">—</span>'}</td>
-        <td>${totaalVerzuim !== null ? minNaarUren(totaalVerzuim) : '<span style="color:#9ca3af">—</span>'}</td>
+        <td>${buildMiniVerzuimBar(s)}</td>
       </tr>`;
     }).join('');
   }
@@ -663,6 +717,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ── Rij-klik → detailweergave ──────────────────────────────────────────
+
+  klasTbody.addEventListener('click', (e) => {
+    const row = e.target.closest('tr[data-id]');
+    if (row) showDetail(row.dataset.id);
+  });
+
   // ── Zoeken ─────────────────────────────────────────────────────────────
 
   klasZoek.addEventListener('input', () => {
@@ -675,6 +736,8 @@ document.addEventListener('DOMContentLoaded', () => {
   wisDataBtn.addEventListener('click', () => {
     if (!confirm('Alle geïmporteerde data wissen? Dit kan niet ongedaan worden gemaakt.')) return;
     window.clearState();
+    detailStudentId   = null;
+    detailStudentList = [];
     updateNavCount();
     // Reset import UI
     document.getElementById('import-results').style.display = 'none';
@@ -696,6 +759,406 @@ document.addEventListener('DOMContentLoaded', () => {
   const _origShowImportResults = showImportResults;
   // Expose autoSave zodat importPDFs het kan aanroepen
   window._afterPDFImport = autoSave;
+
+  // ---------------------------------------------------------------------------
+  // Phase 05 — Detailweergave per leerling
+  // ---------------------------------------------------------------------------
+
+  const NOTITIES_KEY = 'mentordashboard_notities';
+  let detailStudentId   = null;
+  let detailStudentList = []; // leerlingIds in current klas sort order
+
+  const LEERLIJN_LABEL = {
+    lesgeven:      'Lesgeven',
+    organiseren:   'Organiseren',
+    prof_handelen: 'Prof. handelen',
+  };
+
+  const SCORE_CHIP_MAP = {
+    onvoldoende: { css: 'score-o', kort: 'O' },
+    voldoende:   { css: 'score-v', kort: 'V' },
+    goed:        { css: 'score-g', kort: 'G' },
+    excellent:   { css: 'score-e', kort: 'E' },
+  };
+
+  function loadNotities() {
+    try { return JSON.parse(localStorage.getItem(NOTITIES_KEY) || '{}'); } catch(e) { return {}; }
+  }
+
+  function saveNotitie(id, text) {
+    const n = loadNotities();
+    if (text.trim()) n[id] = text; else delete n[id];
+    try { localStorage.setItem(NOTITIES_KEY, JSON.stringify(n)); } catch(e) {}
+  }
+
+  function getNotitie(id) {
+    return loadNotities()[id] || '';
+  }
+
+  function showDetail(leerlingId) {
+    const student = window.appState.students.find(s => s.leerlingId === leerlingId);
+    if (!student) return;
+    detailStudentId = leerlingId;
+    // If not in current list (direct call), build from all students
+    if (!detailStudentList.includes(leerlingId)) {
+      detailStudentList = window.appState.students.map(s => s.leerlingId);
+    }
+    detailView.innerHTML = buildDetailHTML(student);
+    showView('detail');
+    wireDetailEvents();
+  }
+
+  function buildDetailHTML(student) {
+    const status = berekenStatus(student);
+    const p      = status.prognose;
+    const idx    = detailStudentList.indexOf(student.leerlingId);
+    const prevId = idx > 0 ? detailStudentList[idx - 1] : null;
+    const nextId = idx < detailStudentList.length - 1 ? detailStudentList[idx + 1] : null;
+    return buildDetailHeader(student, prevId, nextId)
+      + buildDetailPrognose(status, p, student)
+      + buildDetailAanvullend(student)
+      + buildDetailLeerlijnen(p)
+      + buildDetailDeelgebieden(student)
+      + buildDetailVerzuim(student)
+      + buildDetailVakken(student)
+      + buildDetailNotities(student.leerlingId);
+  }
+
+  function buildDetailHeader(student, prevId, nextId) {
+    const meta = [student.periode, student.leerjaar].filter(Boolean).map(escapeHtml).join(' · ');
+    return `<div class="detail-header">
+      <button class="detail-nav-btn" id="detail-back">← Terug</button>
+      <div class="detail-student-info">
+        <span class="detail-student-naam">${escapeHtml(student.naam)}</span>
+        ${meta ? `<span class="detail-student-meta">${meta}</span>` : ''}
+      </div>
+      <div class="detail-nav-arrows">
+        <button class="detail-nav-btn" id="detail-prev"${prevId ? ` data-id="${escapeHtml(prevId)}"` : ' disabled'}>‹ Vorige</button>
+        <button class="detail-nav-btn" id="detail-next"${nextId ? ` data-id="${escapeHtml(nextId)}"` : ' disabled'}>Volgende ›</button>
+      </div>
+    </div>`;
+  }
+
+  function buildDetailPrognose(status, p, student) {
+    const trajectLabel = student ? (detectTraject(student) === 'bj1' ? 'BJ1' : 'BJ2') : (p.traject === 'bj1' ? 'BJ1' : 'BJ2');
+    const items = [];
+
+    if (p.isNegatief) {
+      items.push(`<div class="gap-item gap-danger">Negatief advies: ${p.totaalOnvoldoende} onvoldoende(s) — max. 6 totaal, max. 2 per leerlijn</div>`);
+    } else {
+      const ruimte = p.gaps.onvoldoendeRuimte;
+      if (ruimte <= 1) {
+        items.push(`<div class="gap-item gap-warn">Opgelet: nog maar ${ruimte} onvoldoende(s) toegestaan (${p.totaalOnvoldoende}/6 O)</div>`);
+      }
+      for (const [ll, r] of Object.entries(p.gaps.onvoldoendeRuimtePerLeerlijn || {})) {
+        if (r <= 0) items.push(`<div class="gap-item gap-warn">${escapeHtml(LEERLIJN_LABEL[ll] || ll)}: max. 2 O per leerlijn bereikt</div>`);
+      }
+    }
+
+    if (p.traject === 'bj2') {
+      const { nodigSBL, nodigSBC_deelgebieden, nodigSBC_kern } = p.gaps;
+      items.push(nodigSBL === 0
+        ? `<div class="gap-item gap-ok">SBL-norm gehaald (${p.totaalVoldoendeOfHoger}/19 ≥V, norm ≥13)</div>`
+        : `<div class="gap-item gap-warn">Nog ${nodigSBL} deelgebied(en) ≥V nodig voor SBL (nu ${p.totaalVoldoendeOfHoger}/19)</div>`);
+      if (nodigSBC_deelgebieden === 0 && nodigSBC_kern.length === 0) {
+        items.push(`<div class="gap-item gap-ok">SBC-norm gehaald (≥15 ≥V + alle kerndeelgebieden)</div>`);
+      } else {
+        if (nodigSBC_deelgebieden > 0) items.push(`<div class="gap-item gap-info">SBC: nog ${nodigSBC_deelgebieden} deelgebied(en) ≥V nodig (nu ${p.totaalVoldoendeOfHoger}/19, norm ≥15)</div>`);
+        if (nodigSBC_kern.length > 0) items.push(`<div class="gap-item gap-info">SBC kerndeelgebieden nog niet ≥V: ${escapeHtml(nodigSBC_kern.join(', '))}</div>`);
+      }
+    } else {
+      const { nodigBJ2, nodigVersneld_lesgeven: nvL, nodigVersneld_organiseren: nvO, nodigVersneld_profHandelen: nvP } = p.gaps;
+      items.push(nodigBJ2 === 0
+        ? `<div class="gap-item gap-ok">BJ2-norm gehaald (${p.totaalVoldoendeOfHoger}/19 ≥V, norm ≥13)</div>`
+        : `<div class="gap-item gap-warn">Nog ${nodigBJ2} deelgebied(en) ≥V nodig voor doorstroom BJ2</div>`);
+      if (nvL === 0 && nvO === 0 && nvP === 0) {
+        items.push(`<div class="gap-item gap-ok">Versneld SBC-norm gehaald</div>`);
+      } else {
+        const tekort = [nvL > 0 && `lesgeven nog ${nvL} ≥G`, nvO > 0 && `org. nog ${nvO} ≥G`, nvP > 0 && `prof.handelen nog ${nvP} ≥G`].filter(Boolean);
+        items.push(`<div class="gap-item gap-info">Versneld SBC: ${escapeHtml(tekort.join(' · '))}</div>`);
+      }
+    }
+
+    return `<div class="detail-section">
+      <div class="detail-section-title">Doorstroomprognose</div>
+      <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+        <span class="status-badge status-${status.kleur}">${escapeHtml(status.label)}</span>
+        <span class="traject-tag">Traject: ${trajectLabel}</span>
+        <span style="font-size:0.875rem;color:#6b7280;">${p.totaalVoldoendeOfHoger}/19 ≥V &nbsp;·&nbsp; ${p.totaalOnvoldoende} onvoldoende</span>
+      </div>
+      <div class="gap-items">${items.join('')}</div>
+    </div>`;
+  }
+
+  function buildDetailLeerlijnen(p) {
+    const rows = p.leerlijnen.map(ll => {
+      const naam  = escapeHtml(LEERLIJN_LABEL[ll.leerlijn] || ll.leerlijn);
+      const pct   = ll.totaal > 0 ? Math.round((ll.voldoendeOfHoger / ll.totaal) * 100) : 0;
+      const oStyle = ll.onvoldoende > 2 ? ' style="color:#991b1b;font-weight:700;"' : '';
+      return `<div class="leerlijn-row">
+        <span class="leerlijn-naam">${naam} (${ll.totaal})</span>
+        <span class="leerlijn-stat"><strong>${ll.voldoendeOfHoger}</strong>/${ll.totaal} ≥V</span>
+        <span class="leerlijn-stat"${oStyle}>${ll.onvoldoende} O</span>
+        <span class="leerlijn-stat" style="color:#9ca3af;">${ll.onbeoordeeld} ?</span>
+        <div class="leerlijn-bar-track"><div class="leerlijn-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+    return `<div class="detail-section">
+      <div class="detail-section-title">Per leerlijn</div>
+      <div class="leerlijn-rows">${rows}</div>
+    </div>`;
+  }
+
+  function buildDetailDeelgebieden(student) {
+    const scores     = student.deelgebiedScores || {};
+    const datapunten = student.datapunten       || [];
+    const allDG      = window.DEELGEBIEDEN;
+
+    const GROEPEN = [
+      { key: 'lesgeven',      label: 'Lesgeven',      cls: 'groep-lesgeven'     },
+      { key: 'organiseren',   label: 'Organiseren',   cls: 'groep-organiseren'  },
+      { key: 'prof_handelen', label: 'Prof. handelen', cls: 'groep-profhandelen' },
+    ];
+
+    const groepDG = {};
+    for (const g of GROEPEN) groepDG[g.key] = allDG.filter(dg => dg.group === g.key);
+
+    function dmChip(score) {
+      if (!score) return `<span class="dm-chip score-none">—</span>`;
+      const c = SCORE_CHIP_MAP[score];
+      return c ? `<span class="dm-chip ${c.css}">${c.kort}</span>` : `<span class="dm-chip score-none">?</span>`;
+    }
+
+    const groepCols = GROEPEN.map(g =>
+      `<th colspan="${groepDG[g.key].length}" class="${g.cls}">${g.label}</th>`
+    ).join('');
+
+    const dgCols = GROEPEN.flatMap(g =>
+      groepDG[g.key].map(dg => `<th>${escapeHtml(dg.label)}</th>`)
+    ).join('');
+
+    const dataRows = datapunten.length === 0
+      ? `<tr><td class="cell-naam" colspan="${allDG.length + 1}" style="color:#9ca3af;padding:0.75rem 1rem;font-size:0.85rem;">Geen datapunten in dit PDF</td></tr>`
+      : datapunten.map(dp => {
+          const cells = GROEPEN.flatMap(g =>
+            groepDG[g.key].map(dg => `<td>${dmChip(dp.scores[dg.label] || null)}</td>`)
+          ).join('');
+          return `<tr>
+            <td class="cell-naam">
+              ${dp.vak ? `<span class="cell-vak">${escapeHtml(dp.vak)}</span>` : ''}
+              <span class="cell-dp">${escapeHtml(dp.datapunt)}</span>
+            </td>${cells}
+          </tr>`;
+        }).join('');
+
+    const footerCells = GROEPEN.flatMap(g =>
+      groepDG[g.key].map(dg => `<td>${dmChip(scores[dg.label] || null)}</td>`)
+    ).join('');
+
+    return `<div class="detail-section">
+      <div class="detail-section-title">Beoordelingen per datapunt × deelgebied</div>
+      <div class="dg-matrix-wrap">
+        <table class="dg-matrix">
+          <thead>
+            <tr><th class="col-naam" rowspan="2">Datapunt</th>${groepCols}</tr>
+            <tr>${dgCols}</tr>
+          </thead>
+          <tbody>${dataRows}</tbody>
+          <tfoot>
+            <tr><td class="cell-naam"><strong>Eindoordeel</strong></td>${footerCells}</tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  function buildDetailAanvullend(student) {
+    const taal    = student.taalniveau  || '';
+    const rekenen = student.rekenniveau || '';
+    const bpv     = (student.bpvUren !== undefined && student.bpvUren !== null) ? student.bpvUren : '';
+
+    const taalOpts = ['2F', '3F'].map(v =>
+      `<option value="${v}"${taal === v ? ' selected' : ''}>${v}</option>`).join('');
+    const rekenOpts = ['MBO 3', 'MBO 4'].map(v =>
+      `<option value="${v}"${rekenen === v ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('');
+
+    return `<div class="detail-section">
+      <div class="detail-section-title">Aanvullende gegevens</div>
+      <div class="aanvullend-grid">
+        <div class="aanvullend-veld">
+          <label for="aanv-taal">Taalniveau</label>
+          <select id="aanv-taal" data-aanv-field="taalniveau">
+            <option value="">— niet ingevuld —</option>
+            ${taalOpts}
+          </select>
+        </div>
+        <div class="aanvullend-veld">
+          <label for="aanv-rekenen">Rekenniveau</label>
+          <select id="aanv-rekenen" data-aanv-field="rekenniveau">
+            <option value="">— niet ingevuld —</option>
+            ${rekenOpts}
+          </select>
+        </div>
+        <div class="aanvullend-veld">
+          <label for="aanv-bpv">BPV-uren</label>
+          <input type="number" id="aanv-bpv" data-aanv-field="bpvUren"
+                 min="0" step="1" value="${escapeHtml(String(bpv))}" placeholder="bijv. 300">
+        </div>
+      </div>
+      <p class="aanvullend-hint" id="aanvullend-hint"></p>
+    </div>`;
+  }
+
+  function buildDetailVerzuim(student) {
+    if (!student.verzuim) {
+      return `<div class="detail-section">
+        <div class="detail-section-title">Verzuim</div>
+        <p style="font-size:0.9rem;color:#9ca3af;">Geen verzuimdata — importeer de Excel verzuimexport om dit te zien.</p>
+      </div>`;
+    }
+    const v = student.verzuim;
+
+    // Totale geplande tijd = aanwezigheid + geoorloofd + ongeoorloofd
+    const totaalTijd = (v.aanwezigheid || 0) + (v.geoorloofd || 0) + (v.ongeoorloofd || 0);
+
+    // Percentages (0 wanneer er geen data is)
+    function pct(deel) {
+      if (!totaalTijd) return 0;
+      return Math.round((deel / totaalTijd) * 100);
+    }
+
+    const pAanwezig     = pct(v.aanwezigheid  || 0);
+    const pGeoorloofd   = pct(v.geoorloofd    || 0);
+    const pOngeoorloofd = pct(v.ongeoorloofd  || 0);
+
+    // Label in segment alleen tonen als het segment breed genoeg is (≥ 8%)
+    function segLabel(p) {
+      return p >= 8 ? `<span class="vb-label">${p}%</span>` : '';
+    }
+
+    const bar = `<div class="verzuim-bar">
+      <div class="vb-seg vb-aanwezig"     style="width:${pAanwezig}%"    >${segLabel(pAanwezig)}</div>
+      <div class="vb-seg vb-geoorloofd"   style="width:${pGeoorloofd}%"  >${segLabel(pGeoorloofd)}</div>
+      <div class="vb-seg vb-ongeoorloofd" style="width:${pOngeoorloofd}%">${segLabel(pOngeoorloofd)}</div>
+    </div>`;
+
+    const legend = `<div class="verzuim-legend">
+      <div class="vl-item">
+        <span class="vl-dot vl-dot-aanwezig"></span>
+        <span class="vl-titel">Aanwezig</span>
+        <span class="vl-tijd">${minNaarUren(v.aanwezigheid)}</span>
+        <span class="vl-pct">${pAanwezig}%</span>
+      </div>
+      <div class="vl-item">
+        <span class="vl-dot vl-dot-geoorloofd"></span>
+        <span class="vl-titel">Geoorloofd afwezig</span>
+        <span class="vl-tijd">${minNaarUren(v.geoorloofd)}</span>
+        <span class="vl-pct">${pGeoorloofd}%</span>
+      </div>
+      <div class="vl-item">
+        <span class="vl-dot vl-dot-ongeoorloofd"></span>
+        <span class="vl-titel">Ongeoorloofd afwezig</span>
+        <span class="vl-tijd" style="${v.ongeoorloofd > 600 ? 'color:#991b1b;' : ''}">${minNaarUren(v.ongeoorloofd)}</span>
+        <span class="vl-pct">${pOngeoorloofd}%</span>
+      </div>
+    </div>`;
+
+    const melding = v.laatsteMelding
+      ? `<p class="verzuim-melding">Laatste verzuimmelding: <strong>${escapeHtml(v.laatsteMelding)}</strong></p>`
+      : '';
+
+    return `<div class="detail-section">
+      <div class="detail-section-title">Verzuim</div>
+      ${bar}
+      ${legend}
+      ${melding}
+    </div>`;
+  }
+
+  function buildDetailVakken(student) {
+    if (!student.vakken || student.vakken.length === 0) {
+      return `<div class="detail-section">
+        <div class="detail-section-title">Voortgang per vak</div>
+        <p style="font-size:0.9rem;color:#9ca3af;">Geen vakdata beschikbaar.</p>
+      </div>`;
+    }
+    const vakCards = student.vakken.map(vak => {
+      const opdrachten = (vak.opdrachten || []).map(op => {
+        const st = op.status ? `<div class="opdracht-status">${escapeHtml(op.status)}</div>` : '';
+        const ff = op.feedForward ? `<div class="opdracht-ff">${escapeHtml(op.feedForward)}</div>` : '';
+        return `<div class="opdracht-row"><div class="opdracht-naam">${escapeHtml(op.naam)}</div>${st}${ff}</div>`;
+      }).join('');
+      return `<div class="vak-card">
+        <div class="vak-header"><span>${escapeHtml(vak.naam)}</span><span class="vak-chevron">▼</span></div>
+        <div class="vak-body">${opdrachten}</div>
+      </div>`;
+    }).join('');
+    return `<div class="detail-section">
+      <div class="detail-section-title">Voortgang per vak</div>
+      <div class="vak-list">${vakCards}</div>
+    </div>`;
+  }
+
+  function buildDetailNotities(leerlingId) {
+    const notitie = escapeHtml(getNotitie(leerlingId));
+    return `<div class="detail-section" style="margin-bottom:2rem;">
+      <div class="detail-section-title">Notities mentorgesprek</div>
+      <textarea id="notitie-textarea" placeholder="Schrijf hier notities voor dit mentorgesprek...">${notitie}</textarea>
+      <p class="notitie-hint" id="notitie-hint"></p>
+    </div>`;
+  }
+
+  function wireDetailEvents() {
+    const backBtn = document.getElementById('detail-back');
+    if (backBtn) backBtn.addEventListener('click', () => showView('klas'));
+
+    const prevBtn = document.getElementById('detail-prev');
+    const nextBtn = document.getElementById('detail-next');
+    if (prevBtn && !prevBtn.disabled) prevBtn.addEventListener('click', () => showDetail(prevBtn.dataset.id));
+    if (nextBtn && !nextBtn.disabled) nextBtn.addEventListener('click', () => showDetail(nextBtn.dataset.id));
+
+    // Vak accordion toggle
+    detailView.querySelectorAll('.vak-header').forEach(h => {
+      h.addEventListener('click', () => h.closest('.vak-card').classList.toggle('open'));
+    });
+
+    // Aanvullende gegevens: taal / rekenen / BPV-uren
+    detailView.querySelectorAll('[data-aanv-field]').forEach(el => {
+      el.addEventListener('change', () => {
+        const student = window.appState.students.find(s => s.leerlingId === detailStudentId);
+        if (!student) return;
+        const field = el.dataset.aanvField;
+        let val = el.value;
+        if (el.type === 'number') val = val ? parseInt(val, 10) : null;
+        else val = val || null;
+        student[field] = val;
+        window.saveState();
+        const hint = document.getElementById('aanvullend-hint');
+        if (hint) {
+          hint.textContent = 'Opgeslagen ✓';
+          setTimeout(() => { hint.textContent = ''; }, 2000);
+        }
+      });
+    });
+
+    // Notities auto-save (debounced 600 ms)
+    const textarea = document.getElementById('notitie-textarea');
+    const hint     = document.getElementById('notitie-hint');
+    if (textarea && detailStudentId) {
+      let timer = null;
+      textarea.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          saveNotitie(detailStudentId, textarea.value);
+          if (hint) {
+            hint.textContent = 'Opgeslagen';
+            hint.classList.add('saved');
+            setTimeout(() => { hint.classList.remove('saved'); hint.textContent = ''; }, 2000);
+          }
+        }, 600);
+      });
+    }
+  }
 
   // ── Startup: laad eerder opgeslagen state ──────────────────────────────
 
