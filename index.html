@@ -284,6 +284,357 @@
       display: flex;
       justify-content: flex-end;
     }
+
+    /* ── Detail view ──────────────────────────────────────────────────── */
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .detail-student-info { flex: 1; min-width: 0; }
+
+    .detail-student-naam {
+      display: block;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .detail-student-meta { font-size: 0.8rem; color: #6b7280; }
+
+    .detail-nav-btn {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.875rem;
+      color: #374151;
+      cursor: pointer;
+      transition: background 0.12s;
+      white-space: nowrap;
+    }
+    .detail-nav-btn:hover:not(:disabled) { background: #e5e7eb; }
+    .detail-nav-btn:disabled { opacity: 0.38; cursor: default; }
+
+    .detail-nav-arrows { display: flex; gap: 0.35rem; }
+
+    .detail-section {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .detail-section-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    /* Stats grid (verzuim) */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .stat-card { background: #f9fafb; border-radius: 8px; padding: 0.75rem 1rem; }
+    .stat-label { font-size: 0.75rem; color: #6b7280; font-weight: 500; margin-bottom: 0.2rem; }
+    .stat-value { font-size: 1.05rem; font-weight: 700; color: #111827; }
+
+    /* Leerlijn rows */
+    .leerlijn-rows { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .leerlijn-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: #f9fafb;
+      border-radius: 8px;
+      flex-wrap: wrap;
+    }
+
+    .leerlijn-naam { width: 145px; font-weight: 600; font-size: 0.9rem; color: #374151; flex-shrink: 0; }
+    .leerlijn-stat { font-size: 0.85rem; color: #6b7280; min-width: 52px; }
+    .leerlijn-stat strong { color: #111827; font-size: 1rem; }
+    .leerlijn-bar-track { flex: 1; height: 6px; background: #e5e7eb; border-radius: 999px; overflow: hidden; min-width: 60px; }
+    .leerlijn-bar-fill { height: 100%; border-radius: 999px; background: #3b82f6; }
+
+    /* Datapunt × deelgebied matrix */
+    .dg-matrix-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb; }
+
+    .dg-matrix {
+      border-collapse: collapse;
+      font-size: 0.77rem;
+      width: 100%;
+      min-width: 860px;
+    }
+
+    .dg-matrix th {
+      padding: 0.3rem 0.45rem;
+      background: #f9fafb;
+      color: #6b7280;
+      font-weight: 600;
+      border-bottom: 2px solid #e5e7eb;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .dg-matrix th.col-naam   { text-align: left; min-width: 170px; background: #f3f4f6; border-right: 1px solid #e5e7eb; }
+    .dg-matrix th.groep-lesgeven     { background: #eff6ff; color: #1e40af; border-bottom-color: #bfdbfe; }
+    .dg-matrix th.groep-organiseren  { background: #f0fdf4; color: #166534; border-bottom-color: #bbf7d0; }
+    .dg-matrix th.groep-profhandelen { background: #faf5ff; color: #6b21a8; border-bottom-color: #e9d5ff; }
+
+    .dg-matrix td {
+      padding: 0.25rem 0.35rem;
+      border-bottom: 1px solid #f3f4f6;
+      text-align: center;
+    }
+
+    .dg-matrix td.cell-naam {
+      text-align: left;
+      padding: 0.3rem 0.6rem;
+      border-right: 1px solid #e5e7eb;
+      max-width: 200px;
+    }
+
+    .dg-matrix .cell-vak { font-size: 0.68rem; color: #9ca3af; display: block; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dg-matrix .cell-dp  { font-weight: 500; color: #374151; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dg-matrix tr:hover td { background: #f9fafb; }
+    .dg-matrix tr:hover td.cell-naam { background: #f3f4f6; }
+    .dg-matrix tfoot td { background: #f3f4f6; font-weight: 700; border-top: 2px solid #d1d5db; }
+
+    .dm-chip {
+      display: inline-block;
+      width: 1.5rem;
+      line-height: 1.6rem;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-align: center;
+    }
+
+    .score-o    { background: #fee2e2; color: #991b1b; }
+    .score-v    { background: #d1fae5; color: #065f46; }
+    .score-g    { background: #dbeafe; color: #1e40af; }
+    .score-e    { background: #ede9fe; color: #6d28d9; }
+    .score-none { background: #f3f4f6; color: #c4c9d4; }
+
+    /* Gap items */
+    .gap-items { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.75rem; }
+    .gap-item { font-size: 0.875rem; padding: 0.4rem 0.75rem; border-radius: 6px; }
+    .gap-ok     { background: #d1fae5; color: #065f46; }
+    .gap-warn   { background: #fef9c3; color: #92400e; }
+    .gap-danger { background: #fee2e2; color: #991b1b; }
+    .gap-info   { background: #eff6ff; color: #1e40af; }
+
+    /* Vak accordion */
+    .vak-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .vak-card { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+
+    .vak-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      background: #f9fafb;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+    }
+    .vak-header:hover { background: #f3f4f6; }
+    .vak-chevron { font-size: 0.7rem; color: #9ca3af; transition: transform 0.15s; }
+    .vak-card.open .vak-chevron { transform: rotate(180deg); }
+    .vak-body { display: none; }
+    .vak-card.open .vak-body { display: block; }
+
+    .opdracht-row { padding: 0.5rem 1rem; border-top: 1px solid #f3f4f6; font-size: 0.875rem; }
+    .opdracht-naam { font-weight: 500; color: #111827; margin-bottom: 0.15rem; }
+    .opdracht-status { color: #6b7280; font-size: 0.8rem; }
+    .opdracht-ff { margin-top: 0.3rem; font-size: 0.8rem; color: #374151; font-style: italic; padding-left: 0.75rem; border-left: 2px solid #e5e7eb; }
+
+    /* Verzuim stacked bar */
+    .verzuim-bar {
+      display: flex;
+      height: 44px;
+      border-radius: 8px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .vb-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      overflow: hidden;
+      transition: width 0.4s ease;
+    }
+
+    .vb-aanwezig     { background: #22c55e; }
+    .vb-geoorloofd   { background: #f97316; }
+    .vb-ongeoorloofd { background: #ef4444; }
+
+    .vb-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      padding: 0 6px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+      pointer-events: none;
+    }
+
+    .verzuim-legend {
+      display: flex;
+      gap: 1.25rem;
+      margin-top: 0.9rem;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .vl-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.875rem;
+    }
+
+    .vl-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .vl-dot-aanwezig     { background: #22c55e; }
+    .vl-dot-geoorloofd   { background: #f97316; }
+    .vl-dot-ongeoorloofd { background: #ef4444; }
+
+    .vl-titel { color: #374151; }
+    .vl-tijd  { font-weight: 700; color: #111827; margin-left: 0.15rem; }
+    .vl-pct   { color: #9ca3af; font-size: 0.8rem; margin-left: 0.15rem; }
+
+    .verzuim-melding {
+      margin-top: 0.85rem;
+      font-size: 0.825rem;
+      color: #6b7280;
+    }
+    .verzuim-melding strong { color: #374151; }
+
+    /* Mini stacked bar (klasoverzicht) */
+    .mini-verzuim-bar {
+      display: flex;
+      height: 10px;
+      border-radius: 4px;
+      overflow: hidden;
+      width: 100%;
+      min-width: 80px;
+    }
+    .mvb-seg { min-width: 0; flex-shrink: 0; }
+    .mvb-aanwezig     { background: #22c55e; }
+    .mvb-geoorloofd   { background: #f97316; }
+    .mvb-ongeoorloofd { background: #ef4444; }
+
+    /* Aanvullende gegevens */
+    .aanvullend-grid {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .aanvullend-veld {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      min-width: 140px;
+    }
+    .aanvullend-veld label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .aanvullend-veld select,
+    .aanvullend-veld input[type="number"] {
+      padding: 0.4rem 0.6rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: #111827;
+      background: #fff;
+      outline: none;
+    }
+    .aanvullend-veld select:focus,
+    .aanvullend-veld input[type="number"]:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+    }
+    .aanvullend-hint {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #22c55e;
+      min-height: 1.2em;
+    }
+
+    /* Leerlijn-toewijzing */
+    #leerlijn-toewijzing { margin-top: 2rem; display: none; }
+    #leerlijn-toewijzing h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+    #leerlijn-toewijzing .lt-desc { color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem; }
+    .lt-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .lt-table th { padding: 0.6rem 1rem; text-align: left; font-size: 0.8rem; font-weight: 600; color: #6b7280; text-transform: uppercase; background: #f9fafb; border-bottom: 2px solid #e5e7eb; }
+    .lt-table td { padding: 0.5rem 1rem; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
+    .lt-table tbody tr:hover { background: #f9fafb; }
+    .lt-table select { padding: 0.35rem 0.6rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem; background: #fff; }
+    .lt-table select:focus { border-color: #3b82f6; outline: none; }
+    .lt-table .lt-changed { background: #fffbeb; }
+    .lt-footer { margin-top: 0.75rem; display: flex; gap: 0.75rem; align-items: center; }
+    .lt-footer .lt-status { font-size: 0.85rem; color: #6b7280; }
+
+    /* Traject tag */
+    .traject-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    /* Notities */
+    #notitie-textarea {
+      width: 100%;
+      min-height: 110px;
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      line-height: 1.5;
+      color: #111827;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+      background: #fff;
+    }
+    #notitie-textarea:focus { border-color: #3b82f6; }
+
+    .notitie-hint { font-size: 0.75rem; color: #9ca3af; margin-top: 0.4rem; min-height: 1.1rem; transition: color 0.3s; }
+    .notitie-hint.saved { color: #10b981; }
   </style>
 </head>
 <body>
@@ -344,6 +695,25 @@
         </div>
       </div>
 
+      <!-- Leerlijn-toewijzing (NORM-01) -->
+      <div id="leerlijn-toewijzing">
+        <h2>Leerlijn-toewijzing</h2>
+        <p class="lt-desc">Wijs deelgebieden toe aan leerlijnen. Standaard gebaseerd op B02-definitief mapping.</p>
+        <table class="lt-table">
+          <thead>
+            <tr>
+              <th>Deelgebied</th>
+              <th>Leerlijn</th>
+            </tr>
+          </thead>
+          <tbody id="lt-tbody"></tbody>
+        </table>
+        <div class="lt-footer">
+          <button class="btn btn-ghost" id="lt-reset-btn">Herstel standaard</button>
+          <span class="lt-status" id="lt-status"></span>
+        </div>
+      </div>
+
     </div><!-- /#import-view -->
 
     <!-- ── Klasoverzicht view ────────────────────────────────────────── -->
@@ -365,8 +735,7 @@
               <th>Naam</th>
               <th>Status</th>
               <th>Deelgebieden ≥V</th>
-              <th>Ongeoorloofd</th>
-              <th>Totaal verzuim</th>
+              <th>Verzuim</th>
             </tr>
           </thead>
           <tbody id="klas-tbody"></tbody>
@@ -380,6 +749,9 @@
 
     </div><!-- /#klasoverzicht-view -->
 
+    <!-- ── Detail view ──────────────────────────────────────────────── -->
+    <div id="detail-view" style="display:none;"></div>
+
   </div><!-- /#app -->
 
   <!-- SheetJS for Excel (.xls/.xlsx) parsing -->
@@ -387,6 +759,8 @@
   <!-- Classic scripts first — globals available to module scripts -->
   <script src="utils/schema.js"></script>
   <script src="utils/datamodel.js"></script>
+  <!-- Leerlijn-toewijzing persistence (NORM-01) -->
+  <script src="utils/leerlijnen.js"></script>
   <!-- Excel parser — classic script -->
   <script src="parsers/excel.js"></script>
   <!-- Doorstroomnorm engine -->

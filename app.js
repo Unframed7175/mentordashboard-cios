@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorList    = document.getElementById('error-list');
   const detailView   = document.getElementById('detail-view');
 
+  // Leerlijn-toewijzing UI (NORM-01)
+  const ltSection  = document.getElementById('leerlijn-toewijzing');
+  const ltTbody    = document.getElementById('lt-tbody');
+  const ltResetBtn = document.getElementById('lt-reset-btn');
+  const ltStatus   = document.getElementById('lt-status');
+
   // ---------------------------------------------------------------------------
   // Task 01-04-01 — Drag-and-drop + file picker handlers
   // ---------------------------------------------------------------------------
@@ -561,6 +567,85 @@ document.addEventListener('DOMContentLoaded', () => {
     navCount.style.display  = n > 0 ? 'inline-block' : 'none';
   }
 
+  // ── Leerlijn-toewijzing UI (NORM-01) ──────────────────────────────────
+
+  function renderLeerlijntoewijzing() {
+    if (!ltTbody) return;
+    var mapping = window.getLeerlijnenMapping();
+    var deelgebieden = window.DEELGEBIEDEN;
+    var leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
+    var labels = { lesgeven: 'Lesgeven', organiseren: 'Organiseren', prof_handelen: 'Professioneel handelen' };
+
+    ltTbody.innerHTML = '';
+    for (var i = 0; i < deelgebieden.length; i++) {
+      var dg = deelgebieden[i];
+      var current = mapping[dg.id] || dg.group;
+      var isChanged = current !== dg.group;
+      var tr = document.createElement('tr');
+      if (isChanged) tr.classList.add('lt-changed');
+
+      var tdLabel = document.createElement('td');
+      tdLabel.textContent = dg.label;
+      tr.appendChild(tdLabel);
+
+      var tdSelect = document.createElement('td');
+      var sel = document.createElement('select');
+      sel.dataset.dgId = dg.id;
+      for (var j = 0; j < leerlijnen.length; j++) {
+        var opt = document.createElement('option');
+        opt.value = leerlijnen[j];
+        opt.textContent = labels[leerlijnen[j]];
+        if (leerlijnen[j] === current) opt.selected = true;
+        sel.appendChild(opt);
+      }
+      sel.addEventListener('change', onLeerlijnenChange);
+      tdSelect.appendChild(sel);
+      tr.appendChild(tdSelect);
+      ltTbody.appendChild(tr);
+    }
+  }
+
+  function onLeerlijnenChange() {
+    // Collect all current select values into a mapping object
+    var selects = ltTbody.querySelectorAll('select');
+    var mapping = {};
+    selects.forEach(function(sel) {
+      mapping[sel.dataset.dgId] = sel.value;
+    });
+    window.saveLeerlijnenMapping(mapping);
+
+    // Highlight changed rows
+    var deelgebieden = window.DEELGEBIEDEN;
+    var rows = ltTbody.querySelectorAll('tr');
+    rows.forEach(function(tr, idx) {
+      var dg = deelgebieden[idx];
+      if (mapping[dg.id] !== dg.group) {
+        tr.classList.add('lt-changed');
+      } else {
+        tr.classList.remove('lt-changed');
+      }
+    });
+
+    // Re-calculate prognoses and re-render klasoverzicht if students loaded
+    if (window.appState.students.length > 0) {
+      renderKlasoverzicht();
+    }
+    ltStatus.textContent = 'Opgeslagen';
+    setTimeout(function() { ltStatus.textContent = ''; }, 2000);
+  }
+
+  if (ltResetBtn) {
+    ltResetBtn.addEventListener('click', function() {
+      window.resetLeerlijnenMapping();
+      renderLeerlijntoewijzing();
+      if (window.appState.students.length > 0) {
+        renderKlasoverzicht();
+      }
+      ltStatus.textContent = 'Standaard hersteld';
+      setTimeout(function() { ltStatus.textContent = ''; }, 2000);
+    });
+  }
+
   // ── Status berekening (gecombineerd prognose + verzuim) ─────────────────
   // rood   = negatief prognose
   // oranje = neutraal prognose OF ongeoorloofd > drempel
@@ -743,6 +828,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('import-results').style.display = 'none';
     document.getElementById('import-progress').style.display = 'none';
     document.getElementById('excel-import-results').style.display = 'none';
+    // Hide leerlijn-toewijzing section (NORM-01)
+    if (ltSection) ltSection.style.display = 'none';
     showView('import');
   });
 
@@ -752,6 +839,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const ok = window.saveState();
     updateNavCount();
     if (ok) console.log('[app.js] State opgeslagen (' + window.appState.students.length + ' leerlingen)');
+    // Show leerlijn-toewijzing section when students are loaded (NORM-01)
+    if (ltSection && window.appState.students.length > 0) {
+      ltSection.style.display = 'block';
+      renderLeerlijntoewijzing();
+    }
   }
 
   // Hook auto-save in na PDF import — patch importPDFs resultaat
@@ -1164,6 +1256,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (window.loadState && window.loadState()) {
     updateNavCount();
+    // Show leerlijn-toewijzing section if students are loaded (NORM-01)
+    if (ltSection && window.appState.students.length > 0) {
+      ltSection.style.display = 'block';
+      renderLeerlijntoewijzing();
+    }
     showView('klas');
   }
 
