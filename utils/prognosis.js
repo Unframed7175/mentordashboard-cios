@@ -60,7 +60,11 @@
 
     for (var i = 0; i < leerlijnen.length; i++) {
       var ll = leerlijnen[i];
-      var dgs = deelgebieden.filter(function(dg) { return dg.group === ll; });
+      var mapping = window.getLeerlijnenMapping ? window.getLeerlijnenMapping() : {};
+      var dgs = deelgebieden.filter(function(dg) {
+        var dgLeerlijn = mapping[dg.id] || dg.group;
+        return dgLeerlijn === ll;
+      });
       var res = {
         leerlijn: ll,
         totaal: dgs.length,
