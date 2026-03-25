@@ -18,7 +18,7 @@
 
 ### Excel Import (Verzuim)
 
-- [ ] **XLS-01**: App leest .xls verzuimexport in via bestandskiezer
+- [x] **XLS-01**: App leest .xls verzuimexport in via bestandskiezer
 - [ ] **XLS-02**: Per leerling: aanwezigheid, geoorloofd, ongeoorloofd, totaal en laatste verzuimmelding uitgelezen
 - [ ] **XLS-03**: Tijdformaat "107u24m" wordt correct geparsed naar minuten
 - [ ] **XLS-04**: Koppeling tussen leerling in verzuim-Excel en voortgang-PDF via naam of studentnummer

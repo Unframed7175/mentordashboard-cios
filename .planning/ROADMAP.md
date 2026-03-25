@@ -45,8 +45,8 @@ Plans:
   5. Naamsvariaties (bijv. "van den Dool" vs "van den dool") worden correct afgehandeld
 **Plans:** 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — Excel parser (parsers/excel.js) + data model extension (verzuim merge, name matching)
-- [ ] 02-02-PLAN.md — UI wiring: SheetJS CDN, Excel file picker in index.html, import handler in app.js
+- [x] 02-01-PLAN.md — Excel parser (parsers/excel.js) + data model extension (verzuim merge, name matching)
+- [x] 02-02-PLAN.md — UI wiring: SheetJS CDN, Excel file picker in index.html, import handler in app.js
 **UI hint**: no
 
 ### Phase 3: Doorstroomnorm Engine
