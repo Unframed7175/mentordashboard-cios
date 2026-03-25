@@ -115,39 +115,91 @@ window.normalizeNaam = function(naam) {
  * @returns {{ matched: number, unmatched: string[] }}
  */
 window.mergeVerzuim = function(verzuimRecords) {
-  const result = { matched: 0, unmatched: [] };
+  var result = { matched: 0, unmatched: [] };
 
-  for (const v of verzuimRecords) {
-    // Strategy 1: match by leerlingnummer (exact string)
-    let student = window.appState.students.find(function(s) {
-      return s.leerlingId === v.leerlingnummer;
+  for (var i = 0; i < verzuimRecords.length; i++) {
+    var v = verzuimRecords[i];
+    var student = null;
+    var matchedStrategy = '';
+
+    // Strategy 1: leerlingnummer === leerlingId (exact string)
+    student = window.appState.students.find(function(s) {
+      return s.leerlingId && s.leerlingId === v.leerlingnummer;
     });
+    if (student) matchedStrategy = 'leerlingnummer';
 
-    // Strategy 2: match by normalized name
-    if (!student) {
-      const normVerzuimNaam = window.normalizeNaam(v.naam);
+    // Strategy 2: volledige genormaliseerde naam (exact)
+    if (!student && v.naam) {
+      var normV = window.normalizeNaam(v.naam);
       student = window.appState.students.find(function(s) {
-        return window.normalizeNaam(s.naam) === normVerzuimNaam;
+        return window.normalizeNaam(s.naam) === normV;
       });
+      if (student) matchedStrategy = 'exacte naam';
+    }
+
+    // Strategy 3: achternaam match
+    // PDF-formaat: "Achternaam, Initialen (Voornaam)" → achternaam = alles vóór de eerste komma
+    // Excel-formaat: "Achternaam, Voornaam" of "Voornaam Achternaam" of "Achternaam"
+    // Beide kanten: deel vóór eerste komma OF eerste woord vergelijken
+    if (!student && v.naam) {
+      var normV3 = window.normalizeNaam(v.naam);
+      // Excel achternaam = alles vóór eerste komma, anders eerste "woord"
+      var excelAchternaam = normV3.split(',')[0].trim();
+      if (excelAchternaam.length >= 3) {
+        student = window.appState.students.find(function(s) {
+          var pdfAchternaam = window.normalizeNaam(s.naam).split(',')[0].trim();
+          return pdfAchternaam.length >= 3 && pdfAchternaam === excelAchternaam;
+        });
+        if (student) matchedStrategy = 'achternaam';
+      }
+    }
+
+    // Strategy 4: PDF-achternaam is een substring van de Excel-naam of vice versa
+    if (!student && v.naam) {
+      var normV4 = window.normalizeNaam(v.naam);
+      student = window.appState.students.find(function(s) {
+        var pdfAchternaam = window.normalizeNaam(s.naam).split(',')[0].trim();
+        return pdfAchternaam.length >= 4 && normV4.indexOf(pdfAchternaam) !== -1;
+      });
+      if (student) matchedStrategy = 'achternaam-substring';
     }
 
     if (student) {
       student.verzuim = {
-        aanwezigheid: v.aanwezigheid,
-        geoorloofd: v.geoorloofd,
-        ongeoorloofd: v.ongeoorloofd,
-        totaal: v.totaal,
-        laatsteMelding: v.laatsteMelding
+        aanwezigheid:  v.aanwezigheid,
+        geoorloofd:    v.geoorloofd,
+        ongeoorloofd:  v.ongeoorloofd,
+        totaal:        v.totaal,
+        laatsteMelding: v.laatsteMelding,
       };
-      console.log('[mergeVerzuim] Gekoppeld: ' + v.naam + ' -> ' + student.naam);
+      console.log('[mergeVerzuim] ✓ ' + v.naam + ' → ' + student.naam + ' [via ' + matchedStrategy + ']');
       result.matched++;
     } else {
-      console.warn('[mergeVerzuim] Niet gekoppeld: ' + v.naam);
+      console.warn('[mergeVerzuim] ✗ Niet gekoppeld: "' + v.naam + '"');
       result.unmatched.push(v.naam);
     }
   }
 
   return result;
+};
+
+/**
+ * Debug helper: vergelijk Excel-namen met PDF-namen in de console.
+ * Aanroepen als: window.debugVerzuimKoppeling(verzuimRecords)
+ * De records zijn beschikbaar na import via: window._lastVerzuimRecords
+ */
+window.debugVerzuimKoppeling = function(records) {
+  var recs = records || window._lastVerzuimRecords || [];
+  console.group('Verzuim koppeling debug');
+  console.log('Student namen in app (PDF-formaat):');
+  console.table(window.appState.students.map(function(s) {
+    return { naam: s.naam, leerlingId: s.leerlingId, achternaam: s.naam.split(',')[0].trim() };
+  }));
+  console.log('Excel namen (' + recs.length + ' records):');
+  console.table(recs.map(function(r) {
+    return { naam: r.naam, leerlingnummer: r.leerlingnummer };
+  }));
+  console.groupEnd();
 };
 
 /**

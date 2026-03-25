@@ -3,17 +3,11 @@
 
 import * as pdfjsLib from '../vendor/pdf.min.mjs';
 
-// CRITICAL: load worker as ES module worker (required for .mjs worker in pdfjs-dist 5.x)
-// Using workerPort instead of workerSrc ensures {type:'module'} is passed to the Worker
-// constructor. Without this, Chrome/Edge on Windows silently fails on .mjs classic workers.
-const _workerUrl = new URL('../vendor/pdf.worker.min.mjs', import.meta.url).href;
-try {
-  pdfjsLib.GlobalWorkerOptions.workerPort = new Worker(_workerUrl, { type: 'module' });
-} catch (e) {
-  // Fallback: workerSrc for environments where module workers aren't supported
-  pdfjsLib.GlobalWorkerOptions.workerSrc = _workerUrl;
-  console.warn('[pdf.js] Module worker niet beschikbaar, fallback naar workerSrc:', e.message);
-}
+// pdfjs-dist 5.x internally does: new Worker(workerSrc, {type:'module'})
+// so setting workerSrc to our .mjs file is all that's needed.
+// Do NOT use workerPort — that code path (#gr) resolves the worker promise immediately
+// before the module worker has finished bootstrapping, causing silent message loss.
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.mjs', import.meta.url).href;
 
 console.log('[pdf.js] PDF.js initialized, version:', pdfjsLib.version);
 

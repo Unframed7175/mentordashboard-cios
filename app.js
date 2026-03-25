@@ -11,6 +11,11 @@
 // executes. The DOMContentLoaded guard is kept for explicitness; it fires
 // before module scripts execute in the HTML spec, so it's safe either way.
 
+// Prevent the browser from navigating away when a PDF is accidentally dropped
+// outside the designated drop zone (would show "bestandstype wordt niet ondersteund").
+document.addEventListener('dragover', (e) => e.preventDefault());
+document.addEventListener('drop',     (e) => e.preventDefault());
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ---------------------------------------------------------------------------
@@ -1265,4 +1270,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   console.log('[app.js] Import UI ready — PDF drag/drop + Excel verzuim import + klasoverzicht');
+
+  // Pre-flight: if parseSinglePDF is still missing after 3 s, the module failed to load.
+  setTimeout(() => {
+    if (typeof window.parseSinglePDF !== 'function') {
+      console.error('[app.js] FOUT: parsers/pdf.js module niet geladen. Controleer de browser-console op module-laadfouten.');
+      showError('PDF-parser kon niet worden geladen. Open de browser-console (F12) en zoek naar rode fouten. Ververs de pagina en probeer opnieuw.');
+    } else {
+      console.log('[app.js] parseSinglePDF geladen ✓');
+    }
+  }, 3000);
 });

@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: Milestone complete
-last_updated: "2026-03-25T07:21:25.388Z"
+milestone_name: MVP
+status: Archived
+last_updated: "2026-03-25T09:00:00Z"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
   completed_plans: 10
 ---
@@ -15,15 +15,15 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-24)
+See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** Phase 05 — detailweergave
+**Current focus:** v1.0 archived — start `/gsd:new-milestone` for v2
 
 ## Current Position
 
-Phase: 05
-Plan: Not started
+Milestone v1.0 complete and archived.
+Next: `/gsd:new-milestone` to define v2 scope.
 
 ## Performance Metrics
 

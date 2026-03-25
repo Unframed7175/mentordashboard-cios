@@ -8,26 +8,37 @@ Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL (klas CSD2A) die voo
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
+## Current State (v1.0)
+
+- **Shipped:** 2026-03-25
+- **Stack:** ~3000 LOC JavaScript (browser-only, no build step, no server)
+- **Files:** `index.html`, `app.js`, `parsers/pdf.js`, `parsers/excel.js`, `utils/schema.js`, `utils/datamodel.js`, `utils/prognosis.js`, `utils/leerlijnen.js`, `vendor/pdf.min.mjs` + `pdf.worker.min.mjs`
+- **Status:** All 5 phases shipped. Ready for real-world use with CSD2A class.
+- **Known gaps:** DET-02/03/04 partially validated — UI is implemented but full end-to-end verification requires live CSD2A data.
+
 ## Requirements
 
 ### Validated
 
-(Nog geen — eerst bouwen en valideren)
+- ✓ Voortgang PDF per leerling betrouwbaar inlezen (naam, deelgebied-scores V/G/E, opdracht-statussen, feed forward) — v1.0
+- ✓ Verzuim Excel (.xls) inlezen: geoorloofd, ongeoorloofd, totaal per leerling — v1.0
+- ✓ Doorstroomnorm calculatie: V/G/E tellen per leerlijn (lesgeven, organiseren, professioneel handelen) en vergelijken met BJ2 normen — v1.0
+- ✓ Klasoverzicht: alle leerlingen met rood/oranje/groen status op basis van voortgang + verzuim — v1.0
+- ✓ Detailweergave per leerling: volledige voortgang + verzuim + prognose op één scherm voor mentorgesprek — v1.0
+- ✓ Leerlijn-mapping: mentor kan deelgebieden toewijzen aan leerlijnen (lesgeven / organiseren / professioneel handelen) — v1.0
 
-### Active
+### Active (v2 candidates)
 
-- [ ] Voortgang PDF per leerling betrouwbaar inlezen (naam, deelgebied-scores V/G/E, opdracht-statussen, feed forward)
-- [ ] Verzuim Excel (.xls) inlezen: geoorloofd, ongeoorloofd, totaal per leerling
-- [ ] Doorstroomnorm calculatie: V/G/E tellen per leerlijn (lesgeven, organiseren, professioneel handelen) en vergelijken met BJ2 normen
-- [ ] Klasoverzicht: alle leerlingen met rood/oranje/groen status op basis van voortgang + verzuim
-- [ ] Detailweergave per leerling: volledige voortgang + verzuim + prognose op één scherm voor mentorgesprek
-- [ ] Leerlijn-mapping: mentor kan deelgebieden toewijzen aan leerlijnen (lesgeven / organiseren / professioneel handelen)
+- [ ] Meerdere klassen beheren in één dashboard
+- [ ] Vergelijking tussen periodes (fase 1 vs fase 2)
+- [ ] Export naar PDF/Word voor mentorgesprekverslag
+- [ ] Rekenen en Nederlands voortgang apart bijhouden met eigen norm
 
 ### Out of Scope
 
 - API-koppeling met schoolsystemen — bewust gekozen voor bestandsimport vanwege slechte IT-systemen
 - Inloggen / authenticatie — lokale tool voor één mentor, geen multi-user nodig in v1
-- Meerdere klassen — v1 focust op CSD2A; uitbreiding later
+- Meerdere klassen — v1 focust op CSD2A; uitbreiding naar v2
 - Mobiele app — gebruik via browser op laptop/desktop
 - Automatische PDF-download — mentor exporteert handmatig uit het systeem
 
@@ -46,9 +57,6 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
   - Positief (BJ2): ≥13 deelgebieden voldoende in fase 2
   - Versneld traject (SBC): lesgeven ≥4 goed, organiseren ≥3 goed, professioneel handelen ≥5 goed
   - Negatief: >6 deelgebieden onvoldoende OF >2 onvoldoende binnen één leerlijn
-  - Rekenen en Nederlands apart bijhouden
-- **Betrouwbaarheid PDF-parsing is kritiek** — dit is het kernprobleem; onbetrouwbare parsing maakt het dashboard onbruikbaar
-- **Geen installatie vereist** — openen in browser, bestanden importeren, klaar
 
 ## Constraints
 
@@ -62,10 +70,13 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Browserapp zonder server | Geen installatie voor mentor, werkt overal | — Pending |
-| PDF per leerling (niet klassenrapport) | Zo genereert het systeem de exports | — Pending |
-| .xls support vereist | Systeem exporteert in oud formaat | — Pending |
-| Leerlijn-mapping door mentor | Systeem kent de mapping niet; mentor weet dit | — Pending |
+| Browserapp zonder server | Geen installatie voor mentor, werkt overal | ✓ Goed — start.bat + Python http.server werkt eenvoudig |
+| PDF per leerling (niet klassenrapport) | Zo genereert het systeem de exports | ✓ Correct — SomToday genereert inderdaad per leerling |
+| .xls support vereist | Systeem exporteert in oud formaat | ✓ Correct — SheetJS verwerkt .xls zonder problemen |
+| Leerlijn-mapping door mentor | Systeem kent de mapping niet; mentor weet dit | ✓ Goed — dropdown UI met localStorage persistentie werkt goed |
+| workerSrc (niet workerPort) voor pdfjs | pdfjs 5.x doet intern `new Worker(src, {type:'module'})` — workerPort stuurt configure voor de worker klaar is | ✓ Kritiek — workerPort was kapot, revert naar workerSrc lost het op |
+| Gemini cross-AI review vóór implementatie | Adversarial review pikt edge cases op die planning mist | ✓ Waardevol — alle 3 HIGH/MEDIUM issues voorspeld en bevestigd |
+| Document-level drop prevention | Voorkomt browsernavigatie bij per ongeluk droppen van PDF buiten dropzone | ✓ Fix voor "bestandstype wordt niet ondersteund" Windows-fout |
 
 ---
-*Last updated: 2026-03-24 — project initialisatie*
+*Last updated: 2026-03-25 after v1.0 milestone*
