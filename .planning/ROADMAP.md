@@ -53,7 +53,7 @@
 Plans:
 - [x] 06-01-PLAN.md — Data layer (klassen.js) + HTML scaffold
 - [x] 06-02-PLAN.md — Class tabs, modal, empty state, app.js wiring
-- [ ] 06-03-PLAN.md — Tile grid klasoverzicht replacing table
+- [x] 06-03-PLAN.md — Tile grid klasoverzicht replacing table
 **UI hint**: yes
 
 ### Phase 7: Periode Vergelijking
