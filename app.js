@@ -686,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (view === 'klas') {
       klasView.style.display   = 'block';
       navOverzicht.classList.add('active');
-      renderKlasoverzicht();
+      renderKlasGrid();
     } else {
       importView.style.display = 'block';
       navImport.classList.add('active');
@@ -763,7 +763,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Re-calculate prognoses and re-render klasoverzicht if students loaded
     if (window.appState.students.length > 0) {
-      renderKlasoverzicht();
+      renderKlasGrid();
     }
     ltStatus.textContent = 'Opgeslagen';
     setTimeout(function() { ltStatus.textContent = ''; }, 2000);
@@ -774,7 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.resetLeerlijnenMapping();
       renderLeerlijntoewijzing();
       if (window.appState.students.length > 0) {
-        renderKlasoverzicht();
+        renderKlasGrid();
       }
       ltStatus.textContent = 'Standaard hersteld';
       setTimeout(function() { ltStatus.textContent = ''; }, 2000);
@@ -819,6 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Helpers ────────────────────────────────────────────────────────────
 
   const STATUS_VOLGORDE = { rood: 0, oranje: 1, groen: 2, blauw: 3, grijs: 4 };
+  const RAG_BORDER = { groen: '#22c55e', oranje: '#f97316', rood: '#ef4444', grijs: '#d1d5db', blauw: '#3b82f6' };
 
   function minNaarUren(min) {
     if (!min || min === 0) return '—';
@@ -850,13 +851,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Renderen ───────────────────────────────────────────────────────────
 
-  function renderKlasoverzicht() {
+  function renderKlasGrid() {
     updateNavCount();
-    // Phase 6 Plan 03 replaces this with renderKlasGrid()
-    if (klasGrid) {
-      klasGrid.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:2rem;">Klasoverzicht wordt geladen... (Plan 03)</p>';
+
+    const students = window.appState.students;
+    if (students.length === 0) {
+      klasGrid.innerHTML = '';
+      klasLeeg.style.display = 'block';
+      klasLeeg.textContent = 'Nog geen leerlingen geimporteerd.';
+      return;
     }
+
+    // Calculate status + search filter
+    let rijen = students.map(s => ({ student: s, status: berekenStatus(s) }));
+
+    if (zoekTerm) {
+      const q = zoekTerm.toLowerCase();
+      rijen = rijen.filter(r => r.student.naam.toLowerCase().includes(q));
+    }
+
+    // Sort
+    rijen.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'naam') {
+        cmp = a.student.naam.localeCompare(b.student.naam, 'nl');
+      } else if (sortKey === 'status') {
+        cmp = STATUS_VOLGORDE[a.status.kleur] - STATUS_VOLGORDE[b.status.kleur];
+      } else if (sortKey === 'verzuim') {
+        const av = a.student.verzuim ? a.student.verzuim.ongeoorloofd : 0;
+        const bv = b.student.verzuim ? b.student.verzuim.ongeoorloofd : 0;
+        cmp = bv - av;
+      }
+      return sortAsc ? cmp : -cmp;
+    });
+
+    if (rijen.length === 0) {
+      klasGrid.innerHTML = '';
+      klasLeeg.style.display = 'block';
+      klasLeeg.textContent = 'Geen leerlingen gevonden voor "' + zoekTerm + '".';
+      return;
+    }
+
+    klasLeeg.style.display = 'none';
+
+    // Track ordered list for prev/next in detail view
+    detailStudentList = rijen.map(r => r.student.leerlingId);
+
+    // Build tiles
+    klasGrid.innerHTML = rijen.map(({ student: s, status }) => {
+      const borderColor = RAG_BORDER[status.kleur] || RAG_BORDER.grijs;
+      const miniBar = buildMiniVerzuimBar(s);
+
+      return '<div class="klas-tile" data-id="' + escapeHtml(s.leerlingId) + '" tabindex="0"'
+        + ' style="border-left-color: ' + borderColor + ';">'
+        + '<div class="klas-tile-naam">' + escapeHtml(s.naam) + '</div>'
+        + '<span class="status-badge status-' + status.kleur + '">' + escapeHtml(status.label) + '</span>'
+        + '<div>' + miniBar + '</div>'
+        + '</div>';
+    }).join('');
   }
+
+  // Tile click → detail view (event delegation)
+  klasGrid.addEventListener('click', (e) => {
+    const tile = e.target.closest('.klas-tile[data-id]');
+    if (tile) showDetail(tile.dataset.id);
+  });
+
+  // Keyboard support for tile navigation
+  klasGrid.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const tile = e.target.closest('.klas-tile[data-id]');
+      if (tile) showDetail(tile.dataset.id);
+    }
+  });
 
   // ── Sorteerknoppen ─────────────────────────────────────────────────────
 
@@ -871,7 +938,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderKlasoverzicht();
+      renderKlasGrid();
     });
   });
 
@@ -883,7 +950,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   klasZoek.addEventListener('input', () => {
     zoekTerm = klasZoek.value.trim();
-    renderKlasoverzicht();
+    renderKlasGrid();
   });
 
   // ── Wis alle data ──────────────────────────────────────────────────────
