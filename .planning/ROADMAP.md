@@ -33,7 +33,7 @@
 | 3. Doorstroomnorm Engine | 2/2 | Complete | 2026-03-25 |
 | 4. Klasoverzicht | 1/1 | Complete | 2026-03-25 |
 | 5. Detailweergave | — | Complete | 2026-03-25 |
-| 6. Multi-class UI | 1/3 | In Progress|  |
+| 6. Multi-class UI | 2/3 | In Progress|  |
 | 7. Periode Vergelijking | 0/? | Not started | - |
 | 8. Print-to-PDF Export | 0/? | Not started | - |
 
@@ -52,7 +52,7 @@
 **Plans**: 3 plans
 Plans:
 - [x] 06-01-PLAN.md — Data layer (klassen.js) + HTML scaffold
-- [ ] 06-02-PLAN.md — Class tabs, modal, empty state, app.js wiring
+- [x] 06-02-PLAN.md — Class tabs, modal, empty state, app.js wiring
 - [ ] 06-03-PLAN.md — Tile grid klasoverzicht replacing table
 **UI hint**: yes
 
