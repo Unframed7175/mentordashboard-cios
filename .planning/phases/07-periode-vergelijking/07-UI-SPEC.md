@@ -53,7 +53,6 @@ Inherited from Phase 6 UI-SPEC (no changes):
 | 3xl | 64px | Not used in this phase |
 
 Exceptions:
-- Growth badge `<span>` margin-left: 2px (sub-xs, component-intrinsic — keeps badge flush against the chip without adding layout spacing)
 - tfoot row height: no explicit override — inherits `.dg-matrix td` padding (`0.25rem 0.35rem`) which resolves to approximately 20px cell height at 0.77rem font size
 
 Source: index.html — existing `.dg-matrix td` padding; Phase 6 UI-SPEC spacing scale.
@@ -131,7 +130,7 @@ Source: CONTEXT.md D-09 (locked decisions — exact hex values mandated).
     <td class="cell-naam">{periode2 label}</td>
     <td>
       <span class="dm-chip score-{o|v|g|e|none}">{score}</span>
-      <span class="growth-{up|down|same}">{↑|↓|=}</span>  <!-- only when fase1 score is not null -->
+      <span class="growth-{up|down|same}" aria-label="{gestegen|gedaald|gelijk}">{↑|↓|=}</span>  <!-- only when fase1 score is not null -->
     </td>
     ... (one td per deelgebied)
   </tr>
@@ -155,7 +154,6 @@ Appended as a sibling to `.dm-chip` inside the Fase 2 tfoot cell only.
 | Element | `<span>` |
 | Font size | 0.68rem |
 | Font weight | 700 |
-| Margin-left | 2px |
 | Vertical-align | middle |
 | Color (up) | `#16a34a` |
 | Color (down) | `#dc2626` |
@@ -163,6 +161,9 @@ Appended as a sibling to `.dm-chip` inside the Fase 2 tfoot cell only.
 | Character (up) | ↑ (U+2191) |
 | Character (down) | ↓ (U+2193) |
 | Character (same) | = (U+003D) |
+| aria-label (up) | `gestegen` |
+| aria-label (down) | `gedaald` |
+| aria-label (same) | `gelijk` |
 | Background | none — transparent, not a chip |
 | Border-radius | none |
 
