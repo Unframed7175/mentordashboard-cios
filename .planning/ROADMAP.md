@@ -33,7 +33,7 @@
 | 3. Doorstroomnorm Engine | 2/2 | Complete | 2026-03-25 |
 | 4. Klasoverzicht | 1/1 | Complete | 2026-03-25 |
 | 5. Detailweergave | — | Complete | 2026-03-25 |
-| 6. Multi-class UI | 0/? | Not started | - |
+| 6. Multi-class UI | 0/3 | Planning complete | - |
 | 7. Periode Vergelijking | 0/? | Not started | - |
 | 8. Print-to-PDF Export | 0/? | Not started | - |
 
@@ -49,7 +49,11 @@
   3. Na pagina-refresh zijn alle klassen, hun data en de actieve klas hersteld zonder opnieuw te importeren
   4. Mentor kan een klas verwijderen via een bevestigingsdialoog — de klas verdwijnt uit de tabs en de data is gewist uit localStorage
   5. Elke klas kan onafhankelijk PDFs en verzuim-Excel importeren zonder data van andere klassen te overschrijven
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 06-01-PLAN.md — Data layer (klassen.js) + HTML scaffold
+- [ ] 06-02-PLAN.md — Class tabs, modal, empty state, app.js wiring
+- [ ] 06-03-PLAN.md — Tile grid klasoverzicht replacing table
 **UI hint**: yes
 
 ### Phase 7: Periode Vergelijking
