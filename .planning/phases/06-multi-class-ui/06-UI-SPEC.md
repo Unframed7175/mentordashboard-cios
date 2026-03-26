@@ -28,6 +28,14 @@ Source: index.html body font-family declaration, v1.0 architecture decision (no 
 
 ---
 
+## Visuals
+
+Primary focal point: tile grid with RAG left-border coloring.
+
+The tile grid is the dominant visual element in the klasoverzicht view. The 3px left-border RAG color (green/orange/red/grey) is the primary at-a-glance signal. All other visual elements — toolbar, class tabs, header — are subordinate to this grid.
+
+---
+
 ## Spacing Scale
 
 Declared values (multiples of 4):
@@ -45,9 +53,8 @@ Declared values (multiples of 4):
 Exceptions:
 - Class-tab strip height: 44px (matches existing `#site-header` at 56px; class-tab row sits below header, uses 44px height to maintain visual hierarchy without duplicating header weight)
 - Tile minimum touch target: 80px height (sufficient for laptop pointer use; this is a desktop-only mentor tool)
-- Mini verzuim bar height: 10px (existing `.mini-verzuim-bar` pattern — intentionally compact)
 
-Source: index.html spacing values, existing `.nav-tab` padding (`0.4rem 0.9rem`), existing `.mini-verzuim-bar`.
+Source: index.html spacing values, existing `.nav-tab` padding (`0.4rem 0.9rem`).
 
 ---
 
@@ -56,18 +63,18 @@ Source: index.html spacing values, existing `.nav-tab` padding (`0.4rem 0.9rem`)
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 16px (1rem) | 400 (regular) | 1.5 |
-| Label / UI text | 14px (0.875rem) | 500 (medium) | 1.4 |
+| Label / UI text | 14px (0.875rem) | 400 (regular) | 1.4 |
 | Tile student naam | 15px (0.94rem) | 600 (semibold) | 1.3 |
 | Section heading | 20px (1.25rem) | 600 (semibold) | 1.2 |
 
 Notes:
 - No new type sizes are introduced in Phase 6. All four roles map directly to existing declarations in index.html.
-- Class tab labels use 14px weight-500, matching existing `.nav-tab` (`font-size: 0.9rem; font-weight: 500`).
+- Class tab labels use 14px weight-400, matching the label/UI text role. (Existing `.nav-tab` uses `font-weight: 500`; this is reassigned to 400 per the two-weight constraint.)
 - Modal heading ("Nieuwe klas aanmaken") uses section heading: 20px semibold.
 - Prognose badge inside tile uses label size: 14px weight-600, matching existing `.status-badge`.
 - Empty-state copy uses body: 16px weight-400, color `#9ca3af` (matching existing `#klas-leeg`).
 
-Source: index.html — body (16px/1.5), `.nav-tab` (0.9rem/500), `.student-naam` (weight-600), section h2 (1.25rem/600).
+Source: index.html — body (16px/1.5), `.nav-tab` (0.9rem), `.student-naam` (weight-600), section h2 (1.25rem/600).
 
 ---
 
@@ -77,13 +84,13 @@ Source: index.html — body (16px/1.5), `.nav-tab` (0.9rem/500), `.student-naam`
 |------|-------|-------|
 | Dominant (60%) | `#f5f5f7` | Page background (body), tile grid background |
 | Secondary (30%) | `#ffffff` + `#1a1a2e` | Card/tile surface (#fff), site header + class-tab strip (#1a1a2e) |
-| Accent (10%) | `#3b82f6` | Active class tab indicator, "+" create button, modal "Aanmaken" primary button, focus rings |
+| Accent (10%) | `#3b82f6` | Active class tab indicator, "+" create button, modal "Klas aanmaken" primary button, focus rings |
 | Destructive | `#fee2e2` / `#991b1b` | Delete class button (`.btn-danger` pattern), browser confirm dialog |
 
 Accent reserved for:
 1. Active class tab — highlight the currently selected tab (background `rgba(255,255,255,0.15)`, same as existing `.nav-tab.active`)
 2. "+" new class button — primary action in the tab strip
-3. "Aanmaken" button in the new-class modal — single primary CTA per modal
+3. "Klas aanmaken" button in the new-class modal — single primary CTA per modal
 4. Input focus ring — `border-color: #3b82f6` on text input focus (matches existing pattern)
 
 Accent is NOT used for: tile backgrounds, prognose badges, hover states on inactive tabs, or toolbar sort buttons.
@@ -107,7 +114,7 @@ Implementation: RAG is expressed as a 3px left border on the tile card (not full
 | Geoorloofd verzuim | `#f97316` | `.mvb-geoorloofd` |
 | Ongeoorloofd verzuim | `#ef4444` | `.mvb-ongeoorloofd` |
 
-Height: 10px, border-radius: 4px. Reuses existing `.mini-verzuim-bar` + `.mvb-seg` declarations verbatim.
+Height: 10px (component-intrinsic — see Component Inventory §3), border-radius: 4px. Reuses existing `.mini-verzuim-bar` + `.mvb-seg` declarations verbatim.
 
 Source: index.html `.status-rood/oranje/groen/grijs`, `.vb-aanwezig/geoorloofd/ongeoorloofd`, `.mini-verzuim-bar`.
 
@@ -120,7 +127,7 @@ Source: index.html `.status-rood/oranje/groen/grijs`, `.vb-aanwezig/geoorloofd/o
 - Position: between `#site-header` and the existing `#main-nav` view tabs. Rendered as a second horizontal band attached to the bottom of the site header, full viewport width, background `#1a1a2e`.
 - Height: 44px.
 - Contents: `[ KlasNaam ] [ KlasNaam ] [ + ]` — left-aligned tabs, "+" rightmost.
-- Tab style: inherits `.nav-tab` — `background: transparent; color: #94a3b8; font-size: 0.9rem; font-weight: 500; padding: 0.4rem 0.9rem; border-radius: 6px`.
+- Tab style: inherits `.nav-tab` — `background: transparent; color: #94a3b8; font-size: 0.9rem; font-weight: 400; padding: 0.4rem 0.9rem; border-radius: 6px`.
 - Active class tab: `.nav-tab.active` — `background: rgba(255,255,255,0.15); color: #fff`.
 - "+" button: same `.nav-tab` base style, color `#3b82f6` (accent) to distinguish it as a creation action.
 - Overflow: `overflow-x: auto; white-space: nowrap` on the strip container — horizontal scroll when tabs exceed width. No wrapping.
@@ -132,10 +139,10 @@ Source: index.html `.status-rood/oranje/groen/grijs`, `.vb-aanwezig/geoorloofd/o
 - Structure: centered overlay modal, `max-width: 400px`, `border-radius: 10px`, `box-shadow: 0 8px 32px rgba(0,0,0,0.18)`, white background.
 - Contents (top to bottom, spacing lg=24px between groups):
   - Heading: "Nieuwe klas aanmaken" — 20px semibold, color `#111827`
-  - Text input: full-width, `placeholder="bijv. CSD2A"`, `border: 1px solid #d1d5db`, `border-radius: 8px`, `padding: 0.5rem 0.875rem`, focus ring `#3b82f6` (matches existing `#klas-zoek`)
+  - Text input: full-width, `placeholder="bijv. CSD2A"`, `border: 1px solid #d1d5db`, `border-radius: 8px`, `padding: 0.5rem 1rem`, focus ring `#3b82f6` (matches existing `#klas-zoek`)
   - Validation message: 14px color `#ef4444` shown below input when name is blank on submit attempt — "Voer een klasnaam in."
-  - Button row: `justify-content: flex-end; gap: 0.75rem` — "Annuleren" (`.btn-ghost`) then "Aanmaken" (`.btn-primary`)
-- Keyboard: Enter key in text input submits (same as clicking "Aanmaken"). Escape closes modal.
+  - Button row: `justify-content: flex-end; gap: 0.5rem` — "Annuleren" (`.btn-ghost`) then "Klas aanmaken" (`.btn-primary`)
+- Keyboard: Enter key in text input submits (same as clicking "Klas aanmaken"). Escape closes modal.
 - On success: modal closes, new class tab appears and becomes active, view switches to import view for that class.
 
 ### 3. Klas Tile (`#klas-grid` item)
@@ -145,7 +152,8 @@ Source: index.html `.status-rood/oranje/groen/grijs`, `.vb-aanwezig/geoorloofd/o
   - `background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 16px; border-left: 3px solid {RAG color}; cursor: pointer`
   - Row 1: Student naam — 15px semibold, `color: #111827`, truncated with `text-overflow: ellipsis` if too long
   - Row 2: Prognose badge — `.status-badge` pill (existing classes: `.status-groen`, `.status-oranje`, `.status-rood`, `.status-grijs`)
-  - Row 3: Mini verzuim bar — `.mini-verzuim-bar` with `.mvb-seg` segments, full tile width, 10px tall
+  - Row 3: Mini verzuim bar — `.mini-verzuim-bar` with `.mvb-seg` segments, full tile width
+- Mini verzuim bar intrinsic dimensions: height 10px, border-radius 4px. This is a component-intrinsic constant carried over from the existing `.mini-verzuim-bar` declaration; it is not a layout spacing token.
 - Hover: `box-shadow: 0 2px 8px rgba(0,0,0,0.13); transform: translateY(-1px)` — subtle lift. Transition: `0.15s ease`.
 - Click: opens detail view for that student (same as existing table row click).
 - No data state (tile before PDF import for this class): naam shown, prognose badge shows `.status-grijs` "Geen data", mini-bar is a flat `#e5e7eb` bar.
@@ -183,7 +191,7 @@ Source: index.html `.status-rood/oranje/groen/grijs`, `.vb-aanwezig/geoorloofd/o
 | Empty state body | "Maak een klas aan om te beginnen. Je kunt daarna PDFs en verzuim importeren." |
 | Modal heading | "Nieuwe klas aanmaken" |
 | Modal input placeholder | "bijv. CSD2A" |
-| Modal submit button | "Aanmaken" |
+| Modal submit button | "Klas aanmaken" |
 | Modal cancel button | "Annuleren" |
 | Tile no-data prognose badge | "Geen data" |
 | Tile no-data verzuim | (flat grey bar, no label) |
@@ -246,4 +254,4 @@ No component registry is used. All components are hand-authored HTML/CSS/JS cons
 - [ ] Dimension 5 Spacing: PASS
 - [ ] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved
