@@ -90,3 +90,4 @@ v1.1 plans completed: 0/?
 - 2026-03-25: v1.1 milestone started — requirements defined (KLS-01..06, CMP-01..04, EXP-01..04)
 - 2026-03-25: v1.1 roadmap created — phases 6 (Multi-class UI), 7 (Periode Vergelijking), 8 (Print-to-PDF Export)
 - 2026-03-26: Phase 6 complete — all KLS requirements verified by user; tile grid klasoverzicht, multi-class tabs, persistence all confirmed
+- 2026-03-26: Phase 6 UAT complete — all 6 human-UAT items approved; 06-HUMAN-UAT.md and 06-VERIFICATION.md closed as complete
