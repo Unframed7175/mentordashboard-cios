@@ -93,8 +93,8 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-- Tile grid complete — awaiting human verification checkpoint (Task 2)
-- After checkpoint approval: Phase 6 multi-class-ui fully complete
+- Tile grid complete — human verification checkpoint (Task 2) APPROVED by user
+- Phase 6 multi-class-ui fully complete (all KLS requirements verified)
 - Phase 7 (periode vergelijking) can begin
 
 ---

@@ -20,7 +20,7 @@
 
 ### v1.1 Klasbeheer & Export
 
-- [ ] **Phase 6: Multi-class UI** — Mentor beheert meerdere klassen als tabbladen met geïsoleerde data en persistentie
+- [x] **Phase 6: Multi-class UI** — Mentor beheert meerdere klassen als tabbladen met geïsoleerde data en persistentie
 - [ ] **Phase 7: Periode Vergelijking** — Detailweergave toont fase 1 en fase 2 naast elkaar met visuele groei-indicatie
 - [ ] **Phase 8: Print-to-PDF Export** — Mentor drukt een volledig mentorgesprekdossier af via de browser
 
@@ -33,7 +33,7 @@
 | 3. Doorstroomnorm Engine | 2/2 | Complete | 2026-03-25 |
 | 4. Klasoverzicht | 1/1 | Complete | 2026-03-25 |
 | 5. Detailweergave | — | Complete | 2026-03-25 |
-| 6. Multi-class UI | 2/3 | In Progress|  |
+| 6. Multi-class UI | 3/3 | Complete | 2026-03-26 |
 | 7. Periode Vergelijking | 0/? | Not started | - |
 | 8. Print-to-PDF Export | 0/? | Not started | - |
 
