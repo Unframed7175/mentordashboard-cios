@@ -635,6 +635,54 @@
 
     .notitie-hint { font-size: 0.75rem; color: #9ca3af; margin-top: 0.4rem; min-height: 1.1rem; transition: color 0.3s; }
     .notitie-hint.saved { color: #10b981; }
+
+    /* ── Klas tiles (Phase 6) ─────────────────────────────────────────── */
+    .klas-tile {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      padding: 16px;
+      border-left: 3px solid #d1d5db;
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .klas-tile:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+      transform: translateY(-1px);
+    }
+    .klas-tile:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+    .klas-tile-naam {
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Empty state (Phase 6) ────────────────────────────────────────── */
+    #klassen-leeg {
+      text-align: center;
+      padding: 48px 16px;
+      color: #9ca3af;
+    }
+    #klassen-leeg h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+    #klassen-leeg p {
+      font-size: 1rem;
+      color: #9ca3af;
+      margin-bottom: 1.5rem;
+    }
   </style>
 </head>
 <body>
@@ -651,7 +699,25 @@
     </nav>
   </header>
 
+  <div id="klas-tabs" style="
+    background: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    height: 44px;
+    overflow-x: auto;
+    white-space: nowrap;
+  "></div>
+
   <div id="app">
+
+    <!-- Empty state: geen klassen (Phase 6) -->
+    <div id="klassen-leeg" style="display:none;">
+      <h2>Geen klassen aangemaakt</h2>
+      <p>Maak een klas aan om te beginnen. Je kunt daarna PDFs en verzuim importeren.</p>
+      <button class="btn btn-primary" id="klassen-leeg-btn">Nieuwe klas aanmaken</button>
+    </div>
 
     <!-- ── Import view ──────────────────────────────────────────────── -->
     <div id="import-view">
@@ -728,23 +794,15 @@
         </div>
       </div>
 
-      <div class="klas-table-wrap">
-        <table id="klas-tabel" aria-label="Klasoverzicht">
-          <thead>
-            <tr>
-              <th>Naam</th>
-              <th>Status</th>
-              <th>Deelgebieden ≥V</th>
-              <th>Verzuim</th>
-            </tr>
-          </thead>
-          <tbody id="klas-tbody"></tbody>
-        </table>
-        <div id="klas-leeg">Geen leerlingen gevonden.</div>
-      </div>
+      <div id="klas-grid" style="
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+      "></div>
+      <div id="klas-leeg" style="display:none;">Geen leerlingen gevonden.</div>
 
       <div class="klas-footer">
-        <button class="btn btn-danger" id="wis-data-btn">Wis alle data</button>
+        <button class="btn btn-danger" id="wis-data-btn">Klas verwijderen</button>
       </div>
 
     </div><!-- /#klasoverzicht-view -->
@@ -754,6 +812,21 @@
 
   </div><!-- /#app -->
 
+  <!-- Nieuwe klas modal (Phase 6) -->
+  <div id="nieuwe-klas-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.18); max-width:400px; width:90%; padding:24px;">
+      <h3 style="font-size:1.25rem; font-weight:600; color:#111827; margin-bottom:16px;">Nieuwe klas aanmaken</h3>
+      <input type="text" id="nieuwe-klas-naam" placeholder="bijv. CSD2A"
+        style="width:100%; padding:0.5rem 1rem; border:1px solid #d1d5db; border-radius:8px; font-size:0.9rem; outline:none; box-sizing:border-box;"
+      >
+      <p id="nieuwe-klas-error" style="font-size:0.875rem; color:#ef4444; margin-top:0.5rem; min-height:1.2em;"></p>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:16px;">
+        <button class="btn btn-ghost" id="modal-annuleren">Annuleren</button>
+        <button class="btn btn-primary" id="modal-aanmaken">Klas aanmaken</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SheetJS for Excel (.xls/.xlsx) parsing -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <!-- Classic scripts first — globals available to module scripts -->
@@ -761,6 +834,8 @@
   <script src="utils/datamodel.js"></script>
   <!-- Leerlijn-toewijzing persistence (NORM-01) -->
   <script src="utils/leerlijnen.js"></script>
+  <!-- Multi-class manager (Phase 6) -->
+  <script src="utils/klassen.js"></script>
   <!-- Excel parser — classic script -->
   <script src="parsers/excel.js"></script>
   <!-- Doorstroomnorm engine -->
