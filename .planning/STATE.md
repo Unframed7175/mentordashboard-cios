@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Klasbeheer & Export
-status: Roadmap defined
-last_updated: "2026-03-25T10:00:00Z"
+status: Ready to execute
+last_updated: "2026-03-26T18:22:26.401Z"
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
 ---
 
 # Project State
@@ -18,18 +18,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** v1.1 — Klasbeheer & Export (Phase 6: Multi-class UI)
+**Current focus:** Phase 06 — multi-class-ui
 
 ## Current Position
 
-Phase: 6 — Multi-class UI
-Plan: —
-Status: Roadmap defined — ready to plan Phase 6
-Last activity: 2026-03-25 — Roadmap v1.1 created (phases 6–8)
-
-```
-v1.1 progress: [░░░░░░░░░░] 0% (0/3 phases)
-```
+Phase: 06 (multi-class-ui) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -47,6 +41,7 @@ v1.1 plans completed: 0/?
 | Phase 02-excel-import P02-01 | 5 min | 2 tasks | 2 files |
 | Phase 02-excel-import P02-03 | 2 | 1 tasks | 1 files |
 | Phase 03 P03-02 | 7 | 2 tasks | 4 files |
+| Phase 06 P06-01 | 2 | 2 tasks | 2 files |
 
 ## Decisions
 
@@ -68,6 +63,9 @@ v1.1 plans completed: 0/?
 - [Phase 02-03]: Guard placed at initialization time (not click time) — button state is correct immediately on page load when XLSX CDN fails
 - [Phase 03]: leerlijnen.js uses IIFE classic script (no ES module) — consistent with schema.js/prognosis.js pattern
 - [Phase 03]: telLeerlijnen fallback: mapping[dg.id] || dg.group — backward compatible if leerlijnen.js is not loaded
+- [Phase 06]: Bridge pattern (D-07): window.appState.students = active class array reference so existing import/merge functions work without modification
+- [Phase 06]: Single storage key mentordashboard_klassen_v1 with nested structure for all classes (vs per-class keys)
+- [Phase 06]: Auto-migration: v1.0 users get Klas 1 created from mentordashboard_v1 on first load — transparent, old key removed
 
 ### v1.1 Decisions (accumulating)
 

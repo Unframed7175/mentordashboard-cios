@@ -8,12 +8,12 @@
 
 ### Meerdere Klassen (Multi-class)
 
-- [ ] **KLS-01**: Mentor kan een nieuwe klas aanmaken met een naam (bijv. "CSD2A", "CSD2B")
+- [x] **KLS-01**: Mentor kan een nieuwe klas aanmaken met een naam (bijv. "CSD2A", "CSD2B")
 - [ ] **KLS-02**: Elke klas verschijnt als een eigen tabblad — schakelen wisselt de actieve klas zonder data te verliezen
 - [ ] **KLS-03**: Elke klas heeft eigen PDF-import, Excel-import en leerlijn-toewijzing
-- [ ] **KLS-04**: Alle klassen en hun data worden bewaard na pagina-refresh (localStorage)
-- [ ] **KLS-05**: Mentor kan een klas verwijderen met bevestigingsdialoog
-- [ ] **KLS-06**: De actieve klas wordt onthouden na pagina-refresh
+- [x] **KLS-04**: Alle klassen en hun data worden bewaard na pagina-refresh (localStorage)
+- [x] **KLS-05**: Mentor kan een klas verwijderen met bevestigingsdialoog
+- [x] **KLS-06**: De actieve klas wordt onthouden na pagina-refresh
 
 ### Periodes Vergelijken (Period Comparison)
 
@@ -48,12 +48,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| KLS-01 | Phase 6 — Multi-class UI | Pending |
+| KLS-01 | Phase 6 — Multi-class UI | Complete |
 | KLS-02 | Phase 6 — Multi-class UI | Pending |
 | KLS-03 | Phase 6 — Multi-class UI | Pending |
-| KLS-04 | Phase 6 — Multi-class UI | Pending |
-| KLS-05 | Phase 6 — Multi-class UI | Pending |
-| KLS-06 | Phase 6 — Multi-class UI | Pending |
+| KLS-04 | Phase 6 — Multi-class UI | Complete |
+| KLS-05 | Phase 6 — Multi-class UI | Complete |
+| KLS-06 | Phase 6 — Multi-class UI | Complete |
 | CMP-01 | Phase 7 — Periode Vergelijking | Pending |
 | CMP-02 | Phase 7 — Periode Vergelijking | Pending |
 | CMP-03 | Phase 7 — Periode Vergelijking | Pending |
