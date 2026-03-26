@@ -40,6 +40,135 @@ document.addEventListener('DOMContentLoaded', () => {
   const ltResetBtn = document.getElementById('lt-reset-btn');
   const ltStatus   = document.getElementById('lt-status');
 
+  // Phase 6 — Multi-class UI DOM references
+  const klasTabs        = document.getElementById('klas-tabs');
+  const klasGrid        = document.getElementById('klas-grid');
+  const nieuweKlasModal = document.getElementById('nieuwe-klas-modal');
+  const nieuweKlasNaam  = document.getElementById('nieuwe-klas-naam');
+  const nieuweKlasError = document.getElementById('nieuwe-klas-error');
+  const modalAnnuleren  = document.getElementById('modal-annuleren');
+  const modalAanmaken   = document.getElementById('modal-aanmaken');
+  const klassenLeeg     = document.getElementById('klassen-leeg');
+  const klassenLeegBtn  = document.getElementById('klassen-leeg-btn');
+
+  // ---------------------------------------------------------------------------
+  // Phase 6 — Class tab strip, modal, empty-state helpers
+  // ---------------------------------------------------------------------------
+
+  function renderKlasTabStrip() {
+    klasTabs.innerHTML = '';
+    var klassen = Object.values(window.klassenState.klassen);
+
+    for (var i = 0; i < klassen.length; i++) {
+      var klas = klassen[i];
+      var btn = document.createElement('button');
+      btn.className = 'nav-tab' + (klas.id === window.klassenState.activeKlasId ? ' active' : '');
+      btn.textContent = klas.naam;
+      (function(k) {
+        btn.addEventListener('click', function() {
+          window.switchActiveKlas(k.id);
+          renderKlasTabStrip();
+          updateNavCount();
+          if (ltSection) {
+            ltSection.style.display = window.appState.students.length > 0 ? 'block' : 'none';
+          }
+          if (window.appState.students.length > 0) {
+            showView('klas');
+          } else {
+            showView('import');
+          }
+        });
+      })(klas);
+      klasTabs.appendChild(btn);
+    }
+
+    // "+" button to create new class
+    var plusBtn = document.createElement('button');
+    plusBtn.className = 'nav-tab';
+    plusBtn.textContent = '+';
+    plusBtn.style.color = '#3b82f6';
+    plusBtn.title = 'Nieuwe klas aanmaken';
+    plusBtn.addEventListener('click', openNieuweKlasModal);
+    klasTabs.appendChild(plusBtn);
+
+    if (klassen.length === 0) {
+      klasTabs.style.display = 'none';
+    } else {
+      klasTabs.style.display = 'flex';
+    }
+  }
+
+  function openNieuweKlasModal() {
+    nieuweKlasModal.style.display = 'flex';
+    nieuweKlasNaam.value = '';
+    nieuweKlasError.textContent = '';
+    nieuweKlasNaam.focus();
+  }
+
+  function closeNieuweKlasModal() {
+    nieuweKlasModal.style.display = 'none';
+    nieuweKlasNaam.value = '';
+    nieuweKlasError.textContent = '';
+  }
+
+  function handleCreateKlas() {
+    var naam = nieuweKlasNaam.value.trim();
+    if (!naam) {
+      nieuweKlasError.textContent = 'Voer een klasnaam in.';
+      nieuweKlasNaam.focus();
+      return;
+    }
+    var result = window.createKlas(naam);
+    if (result && result.error === 'duplicate') {
+      nieuweKlasError.textContent = "Er bestaat al een klas met de naam '" + naam + "'.";
+      nieuweKlasNaam.focus();
+      return;
+    }
+    closeNieuweKlasModal();
+    renderKlasTabStrip();
+    updateNavCount();
+    if (klassenLeeg) klassenLeeg.style.display = 'none';
+    if (ltSection) { ltSection.style.display = 'block'; renderLeerlijntoewijzing(); }
+    klasTabs.style.display = 'flex';
+    var mainNav = document.getElementById('main-nav');
+    if (mainNav) mainNav.style.display = 'flex';
+    showView('import');
+  }
+
+  modalAnnuleren.addEventListener('click', closeNieuweKlasModal);
+  modalAanmaken.addEventListener('click', handleCreateKlas);
+
+  nieuweKlasNaam.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter')  handleCreateKlas();
+    if (e.key === 'Escape') closeNieuweKlasModal();
+  });
+
+  // Close modal when clicking the backdrop (not the inner card)
+  nieuweKlasModal.addEventListener('click', function(e) {
+    if (e.target === nieuweKlasModal) closeNieuweKlasModal();
+  });
+
+  function showEmptyKlassenState() {
+    var importView  = document.getElementById('import-view');
+    var klasView    = document.getElementById('klasoverzicht-view');
+    var dView       = document.getElementById('detail-view');
+    var mainNav     = document.getElementById('main-nav');
+    if (importView)  importView.style.display  = 'none';
+    if (klasView)    klasView.style.display    = 'none';
+    if (dView)       dView.style.display       = 'none';
+    if (mainNav)     mainNav.style.display     = 'none';
+    if (klassenLeeg) klassenLeeg.style.display = 'block';
+    renderKlasTabStrip(); // will hide klasTabs since no klassen
+  }
+
+  function hideEmptyKlassenState() {
+    if (klassenLeeg) klassenLeeg.style.display = 'none';
+    var mainNav = document.getElementById('main-nav');
+    if (mainNav) mainNav.style.display = 'flex';
+  }
+
+  klassenLeegBtn.addEventListener('click', openNieuweKlasModal);
+
   // ---------------------------------------------------------------------------
   // Task 01-04-01 — Drag-and-drop + file picker handlers
   // ---------------------------------------------------------------------------
@@ -533,7 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const importView   = document.getElementById('import-view');
   const klasView     = document.getElementById('klasoverzicht-view');
   const klasZoek     = document.getElementById('klas-zoek');
-  const klasTbody    = document.getElementById('klas-tbody');
+  // klasTbody (#klas-tbody) removed — replaced by #klas-grid in Phase 6 Plan 01
   const klasLeeg     = document.getElementById('klas-leeg');
   const wisDataBtn   = document.getElementById('wis-data-btn');
 
@@ -544,6 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Navigatie ──────────────────────────────────────────────────────────
 
   function showView(view) {
+    hideEmptyKlassenState(); // Phase 6: ensure main-nav visible whenever a view is shown
     importView.style.display = 'none';
     klasView.style.display   = 'none';
     detailView.style.display = 'none';
@@ -722,72 +852,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderKlasoverzicht() {
     updateNavCount();
-
-    const students = window.appState.students;
-    if (students.length === 0) {
-      klasTbody.innerHTML = '';
-      klasLeeg.style.display = 'block';
-      klasLeeg.textContent = 'Nog geen leerlingen geïmporteerd.';
-      return;
+    // Phase 6 Plan 03 replaces this with renderKlasGrid()
+    if (klasGrid) {
+      klasGrid.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:2rem;">Klasoverzicht wordt geladen... (Plan 03)</p>';
     }
-
-    // Bereken status + zoekfilter
-    let rijen = students.map(s => ({
-      student: s,
-      status:  berekenStatus(s),
-    }));
-
-    if (zoekTerm) {
-      const q = zoekTerm.toLowerCase();
-      rijen = rijen.filter(r => r.student.naam.toLowerCase().includes(q));
-    }
-
-    // Sorteren
-    rijen.sort((a, b) => {
-      let cmp = 0;
-      if (sortKey === 'naam') {
-        cmp = a.student.naam.localeCompare(b.student.naam, 'nl');
-      } else if (sortKey === 'status') {
-        cmp = STATUS_VOLGORDE[a.status.kleur] - STATUS_VOLGORDE[b.status.kleur];
-      } else if (sortKey === 'verzuim') {
-        const av = a.student.verzuim ? a.student.verzuim.ongeoorloofd : 0;
-        const bv = b.student.verzuim ? b.student.verzuim.ongeoorloofd : 0;
-        cmp = bv - av; // hoog eerst
-      }
-      return sortAsc ? cmp : -cmp;
-    });
-
-    if (rijen.length === 0) {
-      klasTbody.innerHTML = '';
-      klasLeeg.style.display = 'block';
-      klasLeeg.textContent = `Geen leerlingen gevonden voor "${zoekTerm}".`;
-      return;
-    }
-
-    klasLeeg.style.display = 'none';
-
-    // Track ordered list for prev/next navigation in detail view
-    detailStudentList = rijen.map(r => r.student.leerlingId);
-
-    const totalDG = 19;
-    klasTbody.innerHTML = rijen.map(({ student: s, status }) => {
-      const p   = status.prognose;
-      const pct = Math.round((p.totaalVoldoendeOfHoger / totalDG) * 100);
-
-      return `<tr data-id="${escapeHtml(s.leerlingId)}" style="cursor:pointer;">
-        <td class="student-naam">${escapeHtml(s.naam)}</td>
-        <td><span class="status-badge status-${status.kleur}">${escapeHtml(status.label)}</span></td>
-        <td>
-          <div class="score-bar-wrap">
-            <div class="score-bar-track">
-              <div class="score-bar-fill" style="width:${pct}%"></div>
-            </div>
-            <span class="score-label">${p.totaalVoldoendeOfHoger}/${totalDG}</span>
-          </div>
-        </td>
-        <td>${buildMiniVerzuimBar(s)}</td>
-      </tr>`;
-    }).join('');
   }
 
   // ── Sorteerknoppen ─────────────────────────────────────────────────────
@@ -808,11 +876,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Rij-klik → detailweergave ──────────────────────────────────────────
-
-  klasTbody.addEventListener('click', (e) => {
-    const row = e.target.closest('tr[data-id]');
-    if (row) showDetail(row.dataset.id);
-  });
+  // NOTE: klasTbody (#klas-tbody) removed in Phase 6 Plan 01 — replaced by #klas-grid tile grid.
+  // Tile click handler will be added in Plan 03.
 
   // ── Zoeken ─────────────────────────────────────────────────────────────
 
@@ -824,26 +889,34 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Wis alle data ──────────────────────────────────────────────────────
 
   wisDataBtn.addEventListener('click', () => {
-    if (!confirm('Alle geïmporteerde data wissen? Dit kan niet ongedaan worden gemaakt.')) return;
-    window.clearState();
+    var activeKlas = window.klassenState.klassen[window.klassenState.activeKlasId];
+    var klasNaam = activeKlas ? activeKlas.naam : 'deze klas';
+    if (!confirm("Klas '" + klasNaam + "' en alle leerlingdata verwijderen? Dit kan niet ongedaan worden gemaakt.")) return;
+    window.deleteKlas(window.klassenState.activeKlasId);
     detailStudentId   = null;
     detailStudentList = [];
     updateNavCount();
+    renderKlasTabStrip();
     // Reset import UI
     document.getElementById('import-results').style.display = 'none';
     document.getElementById('import-progress').style.display = 'none';
     document.getElementById('excel-import-results').style.display = 'none';
-    // Hide leerlijn-toewijzing section (NORM-01)
     if (ltSection) ltSection.style.display = 'none';
-    showView('import');
+    // If no classes remain, show empty state
+    if (Object.keys(window.klassenState.klassen).length === 0) {
+      showEmptyKlassenState();
+    } else {
+      showView('klas');
+    }
   });
 
   // ── Auto-save helper (aangeroepen na elke import) ───────────────────────
 
   function autoSave() {
-    const ok = window.saveState();
+    window.saveKlassen();    // Phase 6: authoritative save
+    window.saveState();      // Backward compat — harmless redundancy
     updateNavCount();
-    if (ok) console.log('[app.js] State opgeslagen (' + window.appState.students.length + ' leerlingen)');
+    console.log('[app.js] State opgeslagen (' + window.appState.students.length + ' leerlingen)');
     // Show leerlijn-toewijzing section when students are loaded (NORM-01)
     if (ltSection && window.appState.students.length > 0) {
       ltSection.style.display = 'block';
@@ -1230,6 +1303,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else val = val || null;
         student[field] = val;
         window.saveState();
+        window.saveKlassen(); // Phase 6: keep klassen storage in sync
         const hint = document.getElementById('aanvullend-hint');
         if (hint) {
           hint.textContent = 'Opgeslagen ✓';
@@ -1259,14 +1333,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Startup: laad eerder opgeslagen state ──────────────────────────────
 
-  if (window.loadState && window.loadState()) {
+  if (window.loadKlassen && window.loadKlassen()) {
+    renderKlasTabStrip();
     updateNavCount();
-    // Show leerlijn-toewijzing section if students are loaded (NORM-01)
     if (ltSection && window.appState.students.length > 0) {
       ltSection.style.display = 'block';
       renderLeerlijntoewijzing();
     }
-    showView('klas');
+    showView(window.appState.students.length > 0 ? 'klas' : 'import');
+  } else {
+    showEmptyKlassenState();
   }
 
   console.log('[app.js] Import UI ready — PDF drag/drop + Excel verzuim import + klasoverzicht');
