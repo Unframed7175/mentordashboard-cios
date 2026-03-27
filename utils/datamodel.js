@@ -53,10 +53,13 @@ window.appState = {
 
 /**
  * Add a parsed student to the app state.
- * If a student with the same leerlingId already exists, replace (latest import wins).
+ * If a student with the same leerlingId + periode already exists, replace (latest import wins).
+ * Different periodes coexist in the array.
  */
 window.addStudent = function(student) {
-  const idx = window.appState.students.findIndex(s => s.leerlingId === student.leerlingId);
+  var idx = window.appState.students.findIndex(function(s) {
+    return s.leerlingId === student.leerlingId && s.periode === student.periode;
+  });
   if (idx >= 0) {
     window.appState.students[idx] = student;
   } else {
