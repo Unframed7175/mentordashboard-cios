@@ -1175,6 +1175,21 @@ document.addEventListener('DOMContentLoaded', () => {
       return c ? `<span class="dm-chip ${c.css}">${c.kort}</span>` : `<span class="dm-chip score-none">?</span>`;
     }
 
+    function scoreRank(score) {
+      return score ? window.SCORE_LEVELS.indexOf(score) : -1;
+    }
+
+    function growthBadge(score1, score2) {
+      // score1 = Fase 1, score2 = Fase 2
+      if (score1 === null || score1 === undefined) return ''; // no basis for comparison
+      var r1 = scoreRank(score1);
+      var r2 = scoreRank(score2);
+      if (r2 < 0) return ''; // score2 is null — no badge
+      if (r2 > r1) return '<span class="growth-up" aria-label="gestegen">\u2191</span>';
+      if (r2 < r1) return '<span class="growth-down" aria-label="gedaald">\u2193</span>';
+      return '<span class="growth-same" aria-label="gelijk">=</span>';
+    }
+
     const groepCols = GROEPEN.map(g =>
       `<th colspan="${groepDG[g.key].length}" class="${g.cls}">${g.label}</th>`
     ).join('');
@@ -1197,25 +1212,59 @@ document.addEventListener('DOMContentLoaded', () => {
           </tr>`;
         }).join('');
 
-    const footerCells = GROEPEN.flatMap(g =>
-      groepDG[g.key].map(dg => `<td>${dmChip(scores[dg.label] || null)}</td>`)
-    ).join('');
+    // Multi-period tfoot (D-06, D-09, D-12)
+    var allRecords = window.getAllRecordsForStudent(student.leerlingId);
+    // allRecords is sorted oldest-first by periode
+    var hasTwoPeriods = allRecords.length >= 2
+      && allRecords[0].periode !== allRecords[allRecords.length - 1].periode;
 
-    return `<div class="detail-section">
-      <div class="detail-section-title">Beoordelingen per datapunt × deelgebied</div>
-      <div class="dg-matrix-wrap">
-        <table class="dg-matrix">
-          <thead>
-            <tr><th class="col-naam" rowspan="2">Datapunt</th>${groepCols}</tr>
-            <tr>${dgCols}</tr>
-          </thead>
-          <tbody>${dataRows}</tbody>
-          <tfoot>
-            <tr><td class="cell-naam"><strong>Eindoordeel</strong></td>${footerCells}</tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>`;
+    var tfootHTML = '';
+    if (hasTwoPeriods) {
+      var oldest = allRecords[0];
+      var newest = allRecords[allRecords.length - 1];
+      var scores1 = oldest.deelgebiedScores || {};
+      var scores2 = newest.deelgebiedScores || {};
+
+      // Fase 1 row (oldest)
+      var fase1Cells = GROEPEN.flatMap(g =>
+        groepDG[g.key].map(dg => '<td>' + dmChip(scores1[dg.label] || null) + '</td>')
+      ).join('');
+      // Fase 2 row (newest) with growth badges
+      var fase2Cells = GROEPEN.flatMap(g =>
+        groepDG[g.key].map(dg => {
+          var s1 = scores1[dg.label] || null;
+          var s2 = scores2[dg.label] || null;
+          return '<td>' + dmChip(s2) + growthBadge(s1, s2) + '</td>';
+        })
+      ).join('');
+
+      tfootHTML = '<tfoot>'
+        + '<tr><td class="cell-naam"><strong>' + escapeHtml(oldest.periode || 'Periode 1') + '</strong></td>' + fase1Cells + '</tr>'
+        + '<tr><td class="cell-naam"><strong>' + escapeHtml(newest.periode || 'Periode 2') + '</strong></td>' + fase2Cells + '</tr>'
+        + '</tfoot>';
+    } else {
+      // Single period — existing behavior (D-12)
+      var footerCells = GROEPEN.flatMap(g =>
+        groepDG[g.key].map(dg => '<td>' + dmChip(scores[dg.label] || null) + '</td>')
+      ).join('');
+      tfootHTML = '<tfoot>'
+        + '<tr><td class="cell-naam"><strong>Eindoordeel</strong></td>' + footerCells + '</tr>'
+        + '</tfoot>';
+    }
+
+    return '<div class="detail-section">'
+      + '<div class="detail-section-title">Beoordelingen per datapunt \u00d7 deelgebied</div>'
+      + '<div class="dg-matrix-wrap">'
+      + '<table class="dg-matrix">'
+      + '<thead>'
+      + '<tr><th class="col-naam" rowspan="2">Datapunt</th>' + groepCols + '</tr>'
+      + '<tr>' + dgCols + '</tr>'
+      + '</thead>'
+      + '<tbody>' + dataRows + '</tbody>'
+      + tfootHTML
+      + '</table>'
+      + '</div>'
+      + '</div>';
   }
 
   function buildDetailAanvullend(student) {

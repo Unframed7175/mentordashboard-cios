@@ -413,7 +413,9 @@
     .dg-matrix .cell-dp  { font-weight: 500; color: #374151; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .dg-matrix tr:hover td { background: #f9fafb; }
     .dg-matrix tr:hover td.cell-naam { background: #f3f4f6; }
-    .dg-matrix tfoot td { background: #f3f4f6; font-weight: 700; border-top: 2px solid #d1d5db; }
+    .dg-matrix tfoot td { background: #f3f4f6; font-weight: 700; }
+    .dg-matrix tfoot tr:first-child td { border-top: 2px solid #d1d5db; }
+    .dg-matrix tfoot tr + tr td { border-top: 1px solid #e5e7eb; }
 
     .dm-chip {
       display: inline-block;
@@ -430,6 +432,11 @@
     .score-g    { background: #dbeafe; color: #1e40af; }
     .score-e    { background: #ede9fe; color: #6d28d9; }
     .score-none { background: #f3f4f6; color: #c4c9d4; }
+
+    /* Phase 7: Growth indicator badges (D-09, D-10) */
+    .growth-up   { font-size: 0.68rem; font-weight: 700; color: #16a34a; vertical-align: middle; margin-left: 2px; }
+    .growth-down { font-size: 0.68rem; font-weight: 700; color: #dc2626; vertical-align: middle; margin-left: 2px; }
+    .growth-same { font-size: 0.68rem; font-weight: 700; color: #9ca3af; vertical-align: middle; margin-left: 2px; }
 
     /* Gap items */
     .gap-items { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.75rem; }
