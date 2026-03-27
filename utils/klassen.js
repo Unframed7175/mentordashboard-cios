@@ -166,11 +166,40 @@ window._migrateV1ToKlassen = function() {
 
 // ── getActiveStudents() — convenience getter ──────────────────────────────────
 window.getActiveStudents = function() {
-  if (!window.klassenState.activeKlasId) {
-    return [];
-  }
+  if (!window.klassenState.activeKlasId) return [];
   var klas = window.klassenState.klassen[window.klassenState.activeKlasId];
-  return klas ? klas.students : [];
+  if (!klas) return [];
+  // Deduplicate to one (most recent) record per leerlingId for grid display (D-11)
+  var sorted = klas.students.slice().sort(function(a, b) {
+    return (b.periode || '').localeCompare(a.periode || '');
+  });
+  var seen = {};
+  var result = [];
+  for (var i = 0; i < sorted.length; i++) {
+    if (!seen[sorted[i].leerlingId]) {
+      seen[sorted[i].leerlingId] = true;
+      result.push(sorted[i]);
+    }
+  }
+  return result;
+};
+
+/**
+ * Get all StudentRecords for a given leerlingId in the active class,
+ * sorted oldest-first by periode string (alphabetical).
+ * Used by buildDetailDeelgebieden for multi-period comparison.
+ * @param {string} leerlingId
+ * @returns {StudentRecord[]}
+ */
+window.getAllRecordsForStudent = function(leerlingId) {
+  if (!window.klassenState.activeKlasId) return [];
+  var klas = window.klassenState.klassen[window.klassenState.activeKlasId];
+  if (!klas) return [];
+  return klas.students.filter(function(s) {
+    return s.leerlingId === leerlingId;
+  }).sort(function(a, b) {
+    return (a.periode || '').localeCompare(b.periode || '');
+  });
 };
 
 console.log('[klassen.js] Multi-class manager loaded');

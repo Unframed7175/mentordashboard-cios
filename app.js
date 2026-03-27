@@ -854,7 +854,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderKlasGrid() {
     updateNavCount();
 
-    const students = window.appState.students;
+    const students = window.getActiveStudents();
     if (students.length === 0) {
       klasGrid.innerHTML = '';
       klasLeeg.style.display = 'block';
@@ -1033,12 +1033,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showDetail(leerlingId) {
-    const student = window.appState.students.find(s => s.leerlingId === leerlingId);
-    if (!student) return;
+    // Get the most recent record for this leerlingId (D-07: prognose uses most-recent)
+    var allRecords = window.appState.students.filter(function(s) { return s.leerlingId === leerlingId; });
+    if (allRecords.length === 0) return;
+    allRecords.sort(function(a, b) { return (b.periode || '').localeCompare(a.periode || ''); });
+    var student = allRecords[0]; // most recent
+    // Pitfall 4 mitigation: if most-recent record lacks verzuim, inherit from any record that has it
+    if (!student.verzuim) {
+      for (var i = 1; i < allRecords.length; i++) {
+        if (allRecords[i].verzuim) { student = Object.assign({}, student, { verzuim: allRecords[i].verzuim }); break; }
+      }
+    }
     detailStudentId = leerlingId;
-    // If not in current list (direct call), build from all students
+    // If not in current list (direct call), build from deduplicated active students
     if (!detailStudentList.includes(leerlingId)) {
-      detailStudentList = window.appState.students.map(s => s.leerlingId);
+      detailStudentList = window.getActiveStudents().map(function(s) { return s.leerlingId; });
     }
     detailView.innerHTML = buildDetailHTML(student);
     showView('detail');
