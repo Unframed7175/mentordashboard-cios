@@ -34,7 +34,7 @@
 | 4. Klasoverzicht | 1/1 | Complete | 2026-03-25 |
 | 5. Detailweergave | — | Complete | 2026-03-25 |
 | 6. Multi-class UI | 3/3 | Complete | 2026-03-26 |
-| 7. Periode Vergelijking | 0/? | Not started | - |
+| 7. Periode Vergelijking | 0/2 | Planning complete | - |
 | 8. Print-to-PDF Export | 0/? | Not started | - |
 
 ## Phase Details
@@ -54,7 +54,6 @@ Plans:
 - [x] 06-01-PLAN.md — Data layer (klassen.js) + HTML scaffold
 - [x] 06-02-PLAN.md — Class tabs, modal, empty state, app.js wiring
 - [x] 06-03-PLAN.md — Tile grid klasoverzicht replacing table
-**UI hint**: yes
 
 ### Phase 7: Periode Vergelijking
 **Goal**: Mentor kan per leerling de voortgang van fase 1 en fase 2 naast elkaar zien en de doorstroomprognose klopt op de meest recente data
@@ -65,8 +64,10 @@ Plans:
   2. Detailweergave toont deelgebied-scores van fase 1 en fase 2 in twee kolommen naast elkaar
   3. Deelgebieden waarbij de score gestegen of gedaald is zijn visueel onderscheidbaar (bijv. kleur of pijl) ten opzichte van de vorige periode
   4. Doorstroomprognose in de detailweergave en het klasoverzicht is berekend op basis van de meest recente geïmporteerde periode
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 2 plans
+Plans:
+- [ ] 07-01-PLAN.md — Data layer: compound dedup key, getActiveStudents dedup, consumer fixes
+- [ ] 07-02-PLAN.md — Detail view: two-row tfoot comparison with growth badges
 
 ### Phase 8: Print-to-PDF Export
 **Goal**: Mentor kan de detailweergave van een leerling afdrukken als een netjes opgemaakte A4-pagina voor het mentorgesprek
