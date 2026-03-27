@@ -34,7 +34,7 @@
 | 4. Klasoverzicht | 1/1 | Complete | 2026-03-25 |
 | 5. Detailweergave | — | Complete | 2026-03-25 |
 | 6. Multi-class UI | 3/3 | Complete | 2026-03-26 |
-| 7. Periode Vergelijking | 0/2 | Planning complete | - |
+| 7. Periode Vergelijking | 1/2 | In Progress|  |
 | 8. Print-to-PDF Export | 0/? | Not started | - |
 
 ## Phase Details
@@ -66,7 +66,7 @@ Plans:
   4. Doorstroomprognose in de detailweergave en het klasoverzicht is berekend op basis van de meest recente geïmporteerde periode
 **Plans**: 2 plans
 Plans:
-- [ ] 07-01-PLAN.md — Data layer: compound dedup key, getActiveStudents dedup, consumer fixes
+- [x] 07-01-PLAN.md — Data layer: compound dedup key, getActiveStudents dedup, consumer fixes
 - [ ] 07-02-PLAN.md — Detail view: two-row tfoot comparison with growth badges
 
 ### Phase 8: Print-to-PDF Export

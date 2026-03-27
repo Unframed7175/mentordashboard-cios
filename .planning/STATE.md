@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Klasbeheer & Export
-status: Phase 6 complete — Phase 7 ready to start
-last_updated: "2026-03-26T18:45:00.000Z"
+status: Ready to execute
+last_updated: "2026-03-27T06:23:53.516Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
 ---
 
 # Project State
@@ -18,13 +18,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** Phase 06 — multi-class-ui
+**Current focus:** Phase 07 — periode-vergelijking
 
 ## Current Position
 
-Phase: 06 (multi-class-ui) — COMPLETE
-Plan: 3 of 3 — COMPLETE
-Next: Phase 07 (periode-vergelijking)
+Phase: 07 (periode-vergelijking) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -45,6 +44,7 @@ v1.1 plans completed: 0/?
 | Phase 06 P06-01 | 2 | 2 tasks | 2 files |
 | Phase 06 P06-02 | 3 | 2 tasks | 1 files |
 | Phase 06-multi-class-ui P06-03 | 8 | 1 tasks | 1 files |
+| Phase 07 P07-01 | 68 | 2 tasks | 3 files |
 
 ## Decisions
 
@@ -72,6 +72,9 @@ v1.1 plans completed: 0/?
 - [Phase 06]: Temporary renderKlasoverzicht() stub — Plan 03 replaces with renderKlasGrid(); avoids null-ref errors on #klas-tbody removal
 - [Phase 06]: Tab click does NOT re-render leerlijn content (D-08: mapping is shared across classes) — only toggles ltSection visibility
 - [Phase 06-multi-class-ui]: renderKlasGrid() replaces renderKlasoverzicht() stub — RAG tile grid with colored left-border tiles, event delegation click/keydown to showDetail()
+- [Phase 07]: Compound dedup key (leerlingId + periode) in addStudent — Fase 2 PDFs coexist with Fase 1 records
+- [Phase 07]: getActiveStudents deduplicates to most-recent record per leerlingId via alphabetical periode sort
+- [Phase 07]: Verzuim inheritance in showDetail — most-recent record inherits verzuim from older period if it lacks one
 
 ### v1.1 Decisions (accumulating)
 

@@ -17,10 +17,10 @@
 
 ### Periodes Vergelijken (Period Comparison)
 
-- [ ] **CMP-01**: Mentor kan per klas PDFs van meerdere periodes importeren (bijv. fase 1 én fase 2)
+- [x] **CMP-01**: Mentor kan per klas PDFs van meerdere periodes importeren (bijv. fase 1 én fase 2)
 - [ ] **CMP-02**: Detailweergave toont deelgebied-scores van fase 1 én fase 2 naast elkaar
 - [ ] **CMP-03**: Groei per deelgebied (V/G/E stijging/daling) is visueel onderscheidbaar in de vergelijking
-- [ ] **CMP-04**: Doorstroomprognose wordt berekend op de meest recente periode
+- [x] **CMP-04**: Doorstroomprognose wordt berekend op de meest recente periode
 
 ### Print-to-PDF Export
 
@@ -54,10 +54,10 @@
 | KLS-04 | Phase 6 — Multi-class UI | Complete |
 | KLS-05 | Phase 6 — Multi-class UI | Complete |
 | KLS-06 | Phase 6 — Multi-class UI | Complete |
-| CMP-01 | Phase 7 — Periode Vergelijking | Pending |
+| CMP-01 | Phase 7 — Periode Vergelijking | Complete |
 | CMP-02 | Phase 7 — Periode Vergelijking | Pending |
 | CMP-03 | Phase 7 — Periode Vergelijking | Pending |
-| CMP-04 | Phase 7 — Periode Vergelijking | Pending |
+| CMP-04 | Phase 7 — Periode Vergelijking | Complete |
 | EXP-01 | Phase 8 — Print-to-PDF Export | Pending |
 | EXP-02 | Phase 8 — Print-to-PDF Export | Pending |
 | EXP-03 | Phase 8 — Print-to-PDF Export | Pending |
