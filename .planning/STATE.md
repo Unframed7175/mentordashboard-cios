@@ -3,12 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Klasbeheer & Export
 status: Ready to plan
-last_updated: "2026-04-06T00:00:00.000Z"
+last_updated: "2026-04-06T14:53:42.255Z"
 progress:
-  total_phases: 3
+  total_phases: 2
   completed_phases: 2
   total_plans: 5
   completed_plans: 5
+  percent: 100
 ---
 
 # Project State

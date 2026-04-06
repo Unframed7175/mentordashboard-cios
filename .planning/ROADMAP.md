@@ -2,19 +2,19 @@
 
 ## Milestones
 
-- ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-03-25) · [archive](.planning/milestones/v1.0-ROADMAP.md)
+- ✅ **v1.0 MVP** — Phases 1–5 (shipped 2008-03-25) · [archive](.planning/milestones/v1.0-ROADMAP.md)
 - **v1.1 Klasbeheer & Export** — Phases 6–8 (in progress)
 
 ## Phases
 
 <details>
-<summary>✅ v1.0 MVP (Phases 1–5) — SHIPPED 2026-03-25</summary>
+<summary>✅ v1.0 MVP (Phases 1–5) — SHIPPED 2008-03-25</summary>
 
-- [x] Phase 1: PDF Parser (4/4 plans) — completed 2026-03-24
-- [x] Phase 2: Excel Import (3/3 plans) — completed 2026-03-25
-- [x] Phase 3: Doorstroomnorm Engine (2/2 plans) — completed 2026-03-25
-- [x] Phase 4: Klasoverzicht (1/1 plan) — completed 2026-03-25
-- [x] Phase 5: Detailweergave (0 plans, implemented in phase 4) — verified 2026-03-25
+- [x] Phase 1: PDF Parser (4/4 plans) — completed 2008-03-24
+- [x] Phase 2: Excel Import (3/3 plans) — completed 2008-03-25
+- [x] Phase 3: Doorstroomnorm Engine (2/2 plans) — completed 2008-03-25
+- [x] Phase 4: Klasoverzicht (1/1 plan) — completed 2008-03-25
+- [x] Phase 5: Detailweergave (0 plans, implemented in phase 4) — verified 2008-03-25
 
 </details>
 
@@ -22,20 +22,18 @@
 
 - [x] **Phase 6: Multi-class UI** — Mentor beheert meerdere klassen als tabbladen met geïsoleerde data en persistentie
 - [x] **Phase 7: Periode Vergelijking** — Detailweergave toont fase 1 en fase 2 naast elkaar met visuele groei-indicatie
-- [ ] **Phase 8: Print-to-PDF Export** — Mentor drukt een volledig mentorgesprekdossier af via de browser
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. PDF Parser | 4/4 | Complete | 2026-03-24 |
-| 2. Excel Import | 3/3 | Complete | 2026-03-25 |
-| 3. Doorstroomnorm Engine | 2/2 | Complete | 2026-03-25 |
-| 4. Klasoverzicht | 1/1 | Complete | 2026-03-25 |
-| 5. Detailweergave | — | Complete | 2026-03-25 |
-| 6. Multi-class UI | 3/3 | Complete | 2026-03-26 |
-| 7. Periode Vergelijking | 2/2 | Complete | 2026-04-06 |
-| 8. Print-to-PDF Export | 0/? | Not started | - |
+| 1. PDF Parser | 4/4 | Complete | 2008-03-24 |
+| 2. Excel Import | 3/3 | Complete | 2008-03-25 |
+| 3. Doorstroomnorm Engine | 2/2 | Complete | 2008-03-25 |
+| 4. Klasoverzicht | 1/1 | Complete | 2008-03-25 |
+| 5. Detailweergave | — | Complete | 2008-03-25 |
+| 6. Multi-class UI | 3/3 | Complete | 2008-03-26 |
+| 7. Periode Vergelijking | 2/2 | Complete | 2008-04-06 |
 
 ## Phase Details
 
@@ -68,15 +66,3 @@ Plans:
 Plans:
 - [x] 07-01-PLAN.md — Data layer: compound dedup key, getActiveStudents dedup, consumer fixes
 - [x] 07-02-PLAN.md — Detail view: two-row tfoot comparison with growth badges
-
-### Phase 8: Print-to-PDF Export
-**Goal**: Mentor kan de detailweergave van een leerling afdrukken als een netjes opgemaakte A4-pagina voor het mentorgesprek
-**Depends on**: Phase 7
-**Requirements**: EXP-01, EXP-02, EXP-03, EXP-04
-**Success Criteria** (what must be TRUE):
-  1. Detailweergave heeft een zichtbare "Afdrukken voor mentorgesprek" knop die window.print() aanroept
-  2. Het afdrukvoorbeeld (en de resulterende PDF) toont naam, klas, prognose-samenvatting, voortgang per vak, verzuim-overzicht en notities op A4-formaat
-  3. Navigatiebalk, tabbladen, importknoppen en alle interactie-UI zijn niet zichtbaar in het afdrukvoorbeeld
-  4. De opmaak is leesbaar zonder handmatig schalen — marges, lettertypes en tabellen passen op A4
-**Plans**: TBD
-**UI hint**: yes
