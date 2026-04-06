@@ -21,7 +21,7 @@
 ### v1.1 Klasbeheer & Export
 
 - [x] **Phase 6: Multi-class UI** — Mentor beheert meerdere klassen als tabbladen met geïsoleerde data en persistentie
-- [ ] **Phase 7: Periode Vergelijking** — Detailweergave toont fase 1 en fase 2 naast elkaar met visuele groei-indicatie
+- [x] **Phase 7: Periode Vergelijking** — Detailweergave toont fase 1 en fase 2 naast elkaar met visuele groei-indicatie
 - [ ] **Phase 8: Print-to-PDF Export** — Mentor drukt een volledig mentorgesprekdossier af via de browser
 
 ## Progress
@@ -34,7 +34,7 @@
 | 4. Klasoverzicht | 1/1 | Complete | 2026-03-25 |
 | 5. Detailweergave | — | Complete | 2026-03-25 |
 | 6. Multi-class UI | 3/3 | Complete | 2026-03-26 |
-| 7. Periode Vergelijking | 1/2 | In Progress|  |
+| 7. Periode Vergelijking | 2/2 | Complete | 2026-04-06 |
 | 8. Print-to-PDF Export | 0/? | Not started | - |
 
 ## Phase Details
@@ -67,7 +67,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 07-01-PLAN.md — Data layer: compound dedup key, getActiveStudents dedup, consumer fixes
-- [ ] 07-02-PLAN.md — Detail view: two-row tfoot comparison with growth badges
+- [x] 07-02-PLAN.md — Detail view: two-row tfoot comparison with growth badges
 
 ### Phase 8: Print-to-PDF Export
 **Goal**: Mentor kan de detailweergave van een leerling afdrukken als een netjes opgemaakte A4-pagina voor het mentorgesprek
