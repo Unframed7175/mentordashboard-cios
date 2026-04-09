@@ -30,6 +30,13 @@
       --status-blauw-text: #1e40af;
       --status-grijs-bg: #f3f4f6;
       --status-grijs-text: #6b7280;
+      /* Spider chart tokens — Phase 10 */
+      --spider-lesgeven:             #e5f9db;
+      --spider-lesgeven-stroke:      #5fcc7a;
+      --spider-organiseren:          #fff5b8;
+      --spider-organiseren-stroke:   #d4a017;
+      --spider-prof-handelen:        #d4fafc;
+      --spider-prof-handelen-stroke: #22b8c8;
     }
 
     body.dark {
@@ -52,6 +59,13 @@
       --status-blauw-text: #93c5fd;
       --status-grijs-bg: #1f2937;
       --status-grijs-text: #9ca3af;
+      /* Spider chart tokens — Phase 10 dark mode */
+      --spider-lesgeven:             #1a3d2b;
+      --spider-lesgeven-stroke:      #4ade80;
+      --spider-organiseren:          #3d3200;
+      --spider-organiseren-stroke:   #facc15;
+      --spider-prof-handelen:        #0a2e33;
+      --spider-prof-handelen-stroke: #67e8f9;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -908,6 +922,45 @@
       left: 0;
       background: var(--bg-surface);
       z-index: 1;
+    }
+
+    /* Spider chart layout — Phase 10 */
+    .spider-charts-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: flex-start;
+      margin-top: 8px;
+    }
+    .spider-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 160px;
+      flex: 1;
+      padding: 12px;
+      background: var(--bg-surface-alt);
+      border-radius: 8px;
+    }
+    .spider-svg {
+      display: block;
+      width: 100%;
+      max-width: 180px;
+    }
+    .spider-leerlijn-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary, var(--text-muted));
+      margin-top: 8px;
+    }
+    .spider-empty {
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
     }
   </style>
 </head>
