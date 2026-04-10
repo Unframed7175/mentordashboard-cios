@@ -1742,16 +1742,34 @@ document.addEventListener('DOMContentLoaded', () => {
     tpFiltered.forEach(function(t) {
       console.log('  "' + normDatapunt(t.datapunt) + '"  [' + t.fase + ']');
     });
-    console.log('\nMatch resultaat (bidirectioneel):');
-    datapunten.forEach(function(dp) {
-      var dpNorm = normDatapunt(dp.datapunt);
-      var match = tpFiltered.find(function(t) {
-        var tNorm = normDatapunt(t.datapunt);
-        return dpNorm === tNorm
+    // Same tokenSet + tokenSubsetMatch logic as findStudentDp in buildDetailDeelgebieden
+    function dbgTokenSet(s) {
+      return s.replace(/\bp(\d)/g, '$1').split(/\s+/).filter(Boolean).sort();
+    }
+    function dbgTokenSubset(a, b) {
+      var ta = dbgTokenSet(a), tb = dbgTokenSet(b);
+      var shorter = ta.length <= tb.length ? ta : tb;
+      var longer  = ta.length <= tb.length ? tb : ta;
+      if (shorter.length < 2) return false;
+      return shorter.every(function(t) { return longer.indexOf(t) !== -1; });
+    }
+    function dbgFind(dpNorm, tpArr) {
+      var fallback = null;
+      for (var i = 0; i < tpArr.length; i++) {
+        var tNorm = normDatapunt(tpArr[i].datapunt);
+        if (dpNorm === tNorm
           || dpNorm.indexOf(tNorm + ' ') === 0 || dpNorm.indexOf(tNorm + ':') === 0
           || tNorm.indexOf(dpNorm + ' ') === 0 || tNorm.indexOf(dpNorm + ':') === 0
-          || tNorm.indexOf(dpNorm) === 0;
-      });
+          || tNorm.indexOf(dpNorm) === 0) return tpArr[i];
+        if (!fallback && dbgTokenSubset(dpNorm, tNorm)) fallback = tpArr[i];
+      }
+      return fallback;
+    }
+
+    console.log('\nMatch resultaat (volledig — zelfde logica als D2 tabel):');
+    datapunten.forEach(function(dp) {
+      var dpNorm = normDatapunt(dp.datapunt);
+      var match = dbgFind(dpNorm, tpFiltered);
       console.log('  "' + dpNorm + '" →', match ? '✅ "' + normDatapunt(match.datapunt) + '" [' + match.fase + ']' : '❌ geen match in gefilterd toetsplan');
     });
     console.groupEnd();
