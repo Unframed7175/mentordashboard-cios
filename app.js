@@ -1712,31 +1712,41 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
-  // Debug helper: call window.debugToetsplanKoppeling() in the console to inspect matching
-  window.debugToetsplanKoppeling = function(leerlingId) {
-    var toetsplan = getActiveToetsplan();
-    if (!toetsplan) { console.log('Geen toetsplan geladen.'); return; }
-    var student = window.appState.students.find(function(s) { return s.leerlingId === leerlingId; });
-    if (!student) { console.log('Student niet gevonden:', leerlingId); return; }
+  // Debug helper: call window.debugMerge(leerlingId) in the console to diagnose merge issues
+  window.debugMerge = function(leerlingId) {
+    var allStudents = window.appState.students;
+    // pick first student if no id given
+    if (!leerlingId) { leerlingId = allStudents[0] && allStudents[0].leerlingId; }
     var allRecords = window.getAllRecordsForStudent(leerlingId);
-    var studentDP = [];
-    allRecords.forEach(function(rec) { (rec.datapunten || []).forEach(function(dp) { studentDP.push(dp); }); });
-    console.group('Toetsplan koppeling voor ' + (student.naam || leerlingId));
-    console.log('Toetsplan datapunten (' + toetsplan.length + '):', toetsplan.slice(0, 5).map(function(d) { return d.datapunt; }));
-    console.log('Student PDF datapunten (' + studentDP.length + '):', studentDP.slice(0, 5).map(function(d) { return d.datapunt; }));
-    var matched = 0;
-    toetsplan.forEach(function(tp) {
-      var found = findPDFScoresForDatapunt(tp.datapunt, studentDP);
-      if (found) matched++;
+    if (!allRecords.length) { console.log('Geen records voor', leerlingId); return; }
+    allRecords.sort(function(a,b){ return (b.periode||'').localeCompare(a.periode||''); });
+    var student = allRecords[0];
+    var datapunten = student.datapunten || [];
+
+    var tp = getActiveToetsplan() || [];
+    console.group('🔍 Merge diagnose — ' + (student.naam || leerlingId));
+    console.log('PDF datapunten (' + datapunten.length + '):');
+    datapunten.forEach(function(dp) {
+      console.log('  RAW: "' + dp.datapunt + '"  →  NORM: "' + normDatapunt(dp.datapunt) + '"');
     });
-    console.log('Overeenkomsten: ' + matched + '/' + toetsplan.length);
-    if (matched === 0 && studentDP.length > 0) {
-      console.warn('Geen overeenkomsten gevonden. Vergelijk toetsplan codes met PDF codes:');
-      console.log('  Toetsplan voorbeeld:', toetsplan[0] && toetsplan[0].datapunt);
-      console.log('  PDF voorbeeld:', studentDP[0] && studentDP[0].datapunt);
-    }
+    console.log('\nToetsplan datapunten (' + tp.length + ') — eerste 10:');
+    tp.slice(0, 10).forEach(function(t) {
+      console.log('  RAW: "' + t.datapunt + '"  →  NORM: "' + normDatapunt(t.datapunt) + '"  [' + t.fase + ']');
+    });
+    console.log('\nMatch resultaat:');
+    datapunten.forEach(function(dp) {
+      var dpNorm = normDatapunt(dp.datapunt);
+      var match = tp.find(function(t) {
+        var tNorm = normDatapunt(t.datapunt);
+        return dpNorm === tNorm || dpNorm.indexOf(tNorm + ' ') === 0 || dpNorm.indexOf(tNorm + ':') === 0;
+      });
+      console.log('  PDF "' + dpNorm + '" →', match ? '✅ match: "' + normDatapunt(match.datapunt) + '"' : '❌ geen match');
+    });
     console.groupEnd();
   };
+
+  // Legacy alias
+  window.debugToetsplanKoppeling = window.debugMerge;
 
   function getActiveToetsplan() {
     if (!window.klassenState.activeKlasId) return null;
