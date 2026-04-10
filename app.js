@@ -1742,25 +1742,42 @@ document.addEventListener('DOMContentLoaded', () => {
     return (klas && klas.toetsplan && klas.toetsplan.length > 0) ? klas.toetsplan : null;
   }
 
-  // Detect a student's school-year prefix from their periode field.
+  // Detect a student's school-year prefix.
   // Returns lowercase prefix like 'bj1', 'bj2', 'pj', 'exj', or null (= show all).
   function detectJaarPrefix(student) {
-    var p = String(student.periode || '').toLowerCase();
-    if (p.indexOf('bj1') !== -1) return 'bj1';
-    if (p.indexOf('bj2') !== -1) return 'bj2';
-    if (p.indexOf('exj') !== -1 || p.indexOf('ex-j') !== -1) return 'exj';
-    if (p.indexOf('pj') !== -1) return 'pj';
+    var p = String(student.periode  || '').toLowerCase();
+    var l = String(student.leerjaar || '').trim();
+
+    // BJ1 — all known variants
+    var bj1 = ['bj1', 'basisjaar 1', 'basisjaar1', '1e jaar', 'jaar 1', 'leerjaar 1', 'bj 1', 'klas 1'];
+    for (var i = 0; i < bj1.length; i++) { if (p.indexOf(bj1[i]) !== -1) return 'bj1'; }
+
+    // BJ2 — all known variants
+    var bj2 = ['bj2', 'basisjaar 2', 'basisjaar2', '2e jaar', 'jaar 2', 'leerjaar 2', 'bj 2', 'klas 2'];
+    for (var j = 0; j < bj2.length; j++) { if (p.indexOf(bj2[j]) !== -1) return 'bj2'; }
+
+    if (p.indexOf('exj') !== -1 || p.indexOf('ex-j') !== -1 || p.indexOf('examenjaar') !== -1) return 'exj';
+    if (p.indexOf('pj') !== -1 || p.indexOf('praktijkjaar') !== -1) return 'pj';
+
+    // Leerjaar field fallback
+    if (l === '1') return 'bj1';
+    if (l === '2') return 'bj2';
+
     return null;
   }
 
   // Filter toetsplan fases to only those matching the student's school year.
+  // Tab names follow the pattern "BJ1 F1", "BJ1 F2", "BJ2 F2 vervolg", "BJ2 Fase 3 start".
   // Klas-level schooljaar setting takes precedence over per-student auto-detection.
   function filterFasesForStudent(faseOrder, student) {
     var activeKlas = getActiveKlas();
     var jaar = (activeKlas && activeKlas.schooljaar) ? activeKlas.schooljaar : detectJaarPrefix(student);
     if (!jaar) return faseOrder; // unknown year — show all
+    // Match only fases that START with the year prefix so "bj1" never matches "bj2 ..." tabs
+    var prefix = jaar.toLowerCase();
     return faseOrder.filter(function(fase) {
-      return fase.toLowerCase().indexOf(jaar) !== -1;
+      var f = fase.toLowerCase().trim();
+      return f === prefix || f.indexOf(prefix + ' ') === 0 || f.indexOf(prefix + '_') === 0;
     });
   }
 
