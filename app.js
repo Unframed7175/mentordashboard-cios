@@ -1715,7 +1715,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Debug helper: call window.debugMerge(leerlingId) in the console to diagnose merge issues
   window.debugMerge = function(leerlingId) {
     var allStudents = window.appState.students;
-    // pick first student if no id given
     if (!leerlingId) { leerlingId = allStudents[0] && allStudents[0].leerlingId; }
     var allRecords = window.getAllRecordsForStudent(leerlingId);
     if (!allRecords.length) { console.log('Geen records voor', leerlingId); return; }
@@ -1723,24 +1722,37 @@ document.addEventListener('DOMContentLoaded', () => {
     var student = allRecords[0];
     var datapunten = student.datapunten || [];
 
-    var tp = getActiveToetsplan() || [];
+    // Apply same filters as D2 merge: RSD + year
+    var tp = (getActiveToetsplan() || []).filter(function(t) {
+      var fields = [t.datapunt, t.beoordelaar, t.omschrijving, t.fase, t.opmerking].join(' ').toLowerCase();
+      return fields.indexOf('rsd') === -1 && fields.indexOf('roosendaal') === -1;
+    });
+    var fases = filterFasesForStudent(tp.reduce(function(acc, t) {
+      if (acc.indexOf(t.fase) === -1) acc.push(t.fase); return acc;
+    }, []), student);
+    var tpFiltered = fases.length > 0 ? tp.filter(function(t) { return fases.indexOf(t.fase) !== -1; }) : tp;
+
     console.group('🔍 Merge diagnose — ' + (student.naam || leerlingId));
-    console.log('PDF datapunten (' + datapunten.length + '):');
+    console.log('Jaar:', fases.length ? fases.join(', ') : '(geen filter)');
+    console.log('\nPDF datapunten (' + datapunten.length + '):');
     datapunten.forEach(function(dp) {
-      console.log('  RAW: "' + dp.datapunt + '"  →  NORM: "' + normDatapunt(dp.datapunt) + '"');
+      console.log('  "' + normDatapunt(dp.datapunt) + '"');
     });
-    console.log('\nToetsplan datapunten (' + tp.length + ') — eerste 10:');
-    tp.slice(0, 10).forEach(function(t) {
-      console.log('  RAW: "' + t.datapunt + '"  →  NORM: "' + normDatapunt(t.datapunt) + '"  [' + t.fase + ']');
+    console.log('\nToetsplan datapunten na filter (' + tpFiltered.length + '):');
+    tpFiltered.forEach(function(t) {
+      console.log('  "' + normDatapunt(t.datapunt) + '"  [' + t.fase + ']');
     });
-    console.log('\nMatch resultaat:');
+    console.log('\nMatch resultaat (bidirectioneel):');
     datapunten.forEach(function(dp) {
       var dpNorm = normDatapunt(dp.datapunt);
-      var match = tp.find(function(t) {
+      var match = tpFiltered.find(function(t) {
         var tNorm = normDatapunt(t.datapunt);
-        return dpNorm === tNorm || dpNorm.indexOf(tNorm + ' ') === 0 || dpNorm.indexOf(tNorm + ':') === 0;
+        return dpNorm === tNorm
+          || dpNorm.indexOf(tNorm + ' ') === 0 || dpNorm.indexOf(tNorm + ':') === 0
+          || tNorm.indexOf(dpNorm + ' ') === 0 || tNorm.indexOf(dpNorm + ':') === 0
+          || tNorm.indexOf(dpNorm) === 0;
       });
-      console.log('  PDF "' + dpNorm + '" →', match ? '✅ match: "' + normDatapunt(match.datapunt) + '"' : '❌ geen match');
+      console.log('  "' + dpNorm + '" →', match ? '✅ "' + normDatapunt(match.datapunt) + '" [' + match.fase + ']' : '❌ geen match in gefilterd toetsplan');
     });
     console.groupEnd();
   };
