@@ -2134,21 +2134,44 @@ document.addEventListener('DOMContentLoaded', () => {
       studentDpMap[normDatapunt(dp.datapunt)] = dp;
     });
 
+    // Normalise a key for token-set matching:
+    // • strip "p" prefix from number tokens (p1→1, p2→2)
+    // • split on whitespace, sort tokens, return array
+    function tokenSet(s) {
+      return s.replace(/\bp(\d)/g, '$1')
+              .split(/\s+/).filter(Boolean).sort();
+    }
+
+    // Token-subset match: all tokens of the shorter string appear in the longer.
+    // Requires ≥2 tokens in the shorter set to avoid trivial single-word false positives.
+    function tokenSubsetMatch(a, b) {
+      var ta = tokenSet(a), tb = tokenSet(b);
+      var shorter = ta.length <= tb.length ? ta : tb;
+      var longer  = ta.length <= tb.length ? tb : ta;
+      if (shorter.length < 2) return false;
+      return shorter.every(function(t) { return longer.indexOf(t) !== -1; });
+    }
+
     // Lenient bidirectional lookup:
-    // Case A — PDF key starts with toetsplan key  (PDF has subtitle:  "Zwemmen" + toetsplan "Zwemmen: De hippe zwemles" → NO, but reverse)
-    // Case B — Toetsplan key starts with PDF key  (toetsplan is fuller: "Zwemmen: De hippe zwemles" starts with "zwemmen")
+    // 1. Exact key
+    // 2. Prefix match (either direction, with space/:)
+    // 3. Token-subset match (handles number-position swaps, "p1"→"1", extra subtitle words)
     function findStudentDp(tpKey) {
       if (studentDpMap[tpKey]) return studentDpMap[tpKey];
+      var tokenFallback = null;
       for (var k in studentDpMap) {
         if (k === tpKey
-          || k.indexOf(tpKey + ' ') === 0 || k.indexOf(tpKey + ':') === 0   // PDF longer than toetsplan
-          || tpKey.indexOf(k + ' ') === 0 || tpKey.indexOf(k + ':') === 0   // toetsplan longer than PDF
-          || tpKey.indexOf(k) === 0                                           // toetsplan starts with full PDF word
+          || k.indexOf(tpKey + ' ') === 0 || k.indexOf(tpKey + ':') === 0
+          || tpKey.indexOf(k + ' ') === 0 || tpKey.indexOf(k + ':') === 0
+          || tpKey.indexOf(k) === 0
         ) {
-          return studentDpMap[k];
+          return studentDpMap[k];          // prefix match wins immediately
+        }
+        if (!tokenFallback && tokenSubsetMatch(k, tpKey)) {
+          tokenFallback = studentDpMap[k]; // remember first token match, keep looking for prefix
         }
       }
-      return null;
+      return tokenFallback;
     }
 
     // Build merged rows: walk filtered toetsplan in deadline order, dedupe by normKey
