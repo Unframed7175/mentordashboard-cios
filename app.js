@@ -1696,7 +1696,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------------------------------------------------------------------------
 
   function normDatapunt(s) {
-    return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    return String(s || '').trim().toLowerCase()
+      .replace(/^[-–—•*·]+\s*/, '')   // strip leading dash/bullet (PDF artefact)
+      .replace(/\s+/g, ' ');
   }
 
   function findPDFScoresForDatapunt(datapuntId, studentDatapunten) {
