@@ -2062,30 +2062,66 @@ document.addEventListener('DOMContentLoaded', () => {
       groepDG[g.key].map(dg => `<th>${escapeHtml(dg.label)}</th>`)
     ).join('');
 
-    // --- Phase 11 D2: Sort datapunten by toetsplan deadline (chronological) ---
+    // --- Phase 11 D2: Merge toetsplan + PDF datapunten, sort chronologically ---
     var toetsplan = getActiveToetsplan() || [];
+
+    // Build deadline map: normKey → earliest deadline
     var deadlineMap = {};
     toetsplan.forEach(function(tp) {
       var key = normDatapunt(tp.datapunt);
       if (!deadlineMap[key]) deadlineMap[key] = tp.deadline;
     });
-    var sortedDatapunten = datapunten.slice().sort(function(a, b) {
-      var da = deadlineMap[normDatapunt(a.datapunt)] || null;
-      var db = deadlineMap[normDatapunt(b.datapunt)] || null;
-      if (da && db) return da < db ? -1 : da > db ? 1 : 0;
-      if (da) return -1;
-      if (db) return 1;
-      return 0;
+
+    // Build student scores map: normKey → student dp object
+    var studentDpMap = {};
+    datapunten.forEach(function(dp) {
+      studentDpMap[normDatapunt(dp.datapunt)] = dp;
     });
 
-    const dataRows = sortedDatapunten.length === 0
-      ? `<tr><td class="cell-naam" colspan="${allDG.length + 2}" style="color:#9ca3af;padding:0.75rem 1rem;font-size:0.85rem;">Geen datapunten in dit PDF</td></tr>`
-      : sortedDatapunten.map(dp => {
+    // Build merged rows: walk toetsplan in deadline order, dedupe by normKey
+    var seenKeys = {};
+    var mergedRows = [];
+    // Sort toetsplan entries by deadline first so we process earliest per datapunt first
+    var sortedTp = toetsplan.slice().sort(function(a, b) {
+      if (a.deadline < b.deadline) return -1;
+      if (a.deadline > b.deadline) return 1;
+      return 0;
+    });
+    sortedTp.forEach(function(tp) {
+      var key = normDatapunt(tp.datapunt);
+      if (seenKeys[key]) return;
+      seenKeys[key] = true;
+      var studentDp = studentDpMap[key];
+      mergedRows.push({
+        datapunt: tp.datapunt,
+        vak: studentDp ? studentDp.vak : null,
+        scores: studentDp ? (studentDp.scores || {}) : {},
+        deadline: tp.deadline,
+        fromToetsplan: true,
+      });
+    });
+
+    // Append student datapunten not in toetsplan (unmatched PDF rows)
+    datapunten.forEach(function(dp) {
+      var key = normDatapunt(dp.datapunt);
+      if (!seenKeys[key]) {
+        mergedRows.push({
+          datapunt: dp.datapunt,
+          vak: dp.vak,
+          scores: dp.scores || {},
+          deadline: null,
+          fromToetsplan: false,
+        });
+      }
+    });
+
+    const dataRows = mergedRows.length === 0
+      ? `<tr><td class="cell-naam" colspan="${allDG.length + 2}" style="color:#9ca3af;padding:0.75rem 1rem;font-size:0.85rem;">Geen datapunten gevonden</td></tr>`
+      : mergedRows.map(dp => {
           const cells = GROEPEN.flatMap(g =>
             groepDG[g.key].map(dg => `<td>${dmChip(dp.scores[dg.label] || null)}</td>`)
           ).join('');
-          const deadline = deadlineMap[normDatapunt(dp.datapunt)] || null;
-          const deadlineCell = `<td style="font-size:0.78rem;color:#6b7280;white-space:nowrap;padding:0.25rem 0.5rem;">${deadline ? escapeHtml(deadline) : '—'}</td>`;
+          const deadlineCell = `<td style="font-size:0.78rem;color:#6b7280;white-space:nowrap;padding:0.25rem 0.5rem;">${dp.deadline ? escapeHtml(dp.deadline) : '—'}</td>`;
           return `<tr>
             <td class="cell-naam">
               ${dp.vak ? `<span class="cell-vak">${escapeHtml(dp.vak)}</span>` : ''}
