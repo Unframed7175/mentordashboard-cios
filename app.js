@@ -2063,7 +2063,11 @@ document.addEventListener('DOMContentLoaded', () => {
     ).join('');
 
     // --- Phase 11 D2: Merge toetsplan + PDF datapunten, sort chronologically ---
-    var toetsplan = getActiveToetsplan() || [];
+    var toetsplan = (getActiveToetsplan() || []).filter(function(tp) {
+      // Exclude Roosendaal/RSD entries — check all text fields
+      var fields = [tp.datapunt, tp.beoordelaar, tp.omschrijving, tp.fase, tp.opmerking].join(' ').toLowerCase();
+      return fields.indexOf('rsd') === -1 && fields.indexOf('roosendaal') === -1;
+    });
 
     // Filter toetsplan to student's school year (BJ1/BJ2/PJ/ExJ)
     var studentFasesD2 = filterFasesForStudent(
