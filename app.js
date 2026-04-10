@@ -1697,7 +1697,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function normDatapunt(s) {
     return String(s || '').trim().toLowerCase()
-      .replace(/^[-–—•*·]+\s*/, '')   // strip leading dash/bullet (PDF artefact)
+      .replace(/^[\u2010\u2011\u2012\u2013\u2014\-–—•*·]+\s*/, '')  // strip leading dash/bullet incl. U+2010 non-breaking hyphen
       .replace(/\s+/g, ' ');
   }
 
@@ -2122,12 +2122,17 @@ document.addEventListener('DOMContentLoaded', () => {
       studentDpMap[normDatapunt(dp.datapunt)] = dp;
     });
 
-    // Lenient lookup: same logic as findPDFScoresForDatapunt —
-    // PDF names may have suffixes (e.g. "D1.1 Lesontwerp (verslag)" vs toetsplan "D1.1 Lesontwerp")
+    // Lenient bidirectional lookup:
+    // Case A — PDF key starts with toetsplan key  (PDF has subtitle:  "Zwemmen" + toetsplan "Zwemmen: De hippe zwemles" → NO, but reverse)
+    // Case B — Toetsplan key starts with PDF key  (toetsplan is fuller: "Zwemmen: De hippe zwemles" starts with "zwemmen")
     function findStudentDp(tpKey) {
       if (studentDpMap[tpKey]) return studentDpMap[tpKey];
       for (var k in studentDpMap) {
-        if (k === tpKey || k.indexOf(tpKey + ' ') === 0 || k.indexOf(tpKey + ':') === 0) {
+        if (k === tpKey
+          || k.indexOf(tpKey + ' ') === 0 || k.indexOf(tpKey + ':') === 0   // PDF longer than toetsplan
+          || tpKey.indexOf(k + ' ') === 0 || tpKey.indexOf(k + ':') === 0   // toetsplan longer than PDF
+          || tpKey.indexOf(k) === 0                                           // toetsplan starts with full PDF word
+        ) {
           return studentDpMap[k];
         }
       }
