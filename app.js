@@ -2065,9 +2065,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Phase 11 D2: Merge toetsplan + PDF datapunten, sort chronologically ---
     var toetsplan = getActiveToetsplan() || [];
 
-    // Build deadline map: normKey → earliest deadline
+    // Filter toetsplan to student's school year (BJ1/BJ2/PJ/ExJ)
+    var studentFasesD2 = filterFasesForStudent(
+      toetsplan.reduce(function(acc, tp) {
+        if (acc.indexOf(tp.fase) === -1) acc.push(tp.fase); return acc;
+      }, []),
+      student
+    );
+    var toetsplanFiltered = studentFasesD2.length > 0
+      ? toetsplan.filter(function(tp) { return studentFasesD2.indexOf(tp.fase) !== -1; })
+      : toetsplan;
+
+    // Build deadline map: normKey → earliest deadline (filtered)
     var deadlineMap = {};
-    toetsplan.forEach(function(tp) {
+    toetsplanFiltered.forEach(function(tp) {
       var key = normDatapunt(tp.datapunt);
       if (!deadlineMap[key]) deadlineMap[key] = tp.deadline;
     });
@@ -2078,11 +2089,11 @@ document.addEventListener('DOMContentLoaded', () => {
       studentDpMap[normDatapunt(dp.datapunt)] = dp;
     });
 
-    // Build merged rows: walk toetsplan in deadline order, dedupe by normKey
+    // Build merged rows: walk filtered toetsplan in deadline order, dedupe by normKey
     var seenKeys = {};
     var mergedRows = [];
     // Sort toetsplan entries by deadline first so we process earliest per datapunt first
-    var sortedTp = toetsplan.slice().sort(function(a, b) {
+    var sortedTp = toetsplanFiltered.slice().sort(function(a, b) {
       if (a.deadline < b.deadline) return -1;
       if (a.deadline > b.deadline) return 1;
       return 0;
