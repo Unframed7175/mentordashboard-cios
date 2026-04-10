@@ -2079,16 +2079,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const dataRows = sortedDatapunten.length === 0
-      ? `<tr><td class="cell-naam" colspan="${allDG.length + 1}" style="color:#9ca3af;padding:0.75rem 1rem;font-size:0.85rem;">Geen datapunten in dit PDF</td></tr>`
+      ? `<tr><td class="cell-naam" colspan="${allDG.length + 2}" style="color:#9ca3af;padding:0.75rem 1rem;font-size:0.85rem;">Geen datapunten in dit PDF</td></tr>`
       : sortedDatapunten.map(dp => {
           const cells = GROEPEN.flatMap(g =>
             groepDG[g.key].map(dg => `<td>${dmChip(dp.scores[dg.label] || null)}</td>`)
           ).join('');
+          const deadline = deadlineMap[normDatapunt(dp.datapunt)] || null;
+          const deadlineCell = `<td style="font-size:0.78rem;color:#6b7280;white-space:nowrap;padding:0.25rem 0.5rem;">${deadline ? escapeHtml(deadline) : '—'}</td>`;
           return `<tr>
             <td class="cell-naam">
               ${dp.vak ? `<span class="cell-vak">${escapeHtml(dp.vak)}</span>` : ''}
               <span class="cell-dp">${escapeHtml(dp.datapunt)}</span>
-            </td>${cells}
+            </td>${deadlineCell}${cells}
           </tr>`;
         }).join('');
 
@@ -2119,8 +2121,8 @@ document.addEventListener('DOMContentLoaded', () => {
       ).join('');
 
       tfootHTML = '<tfoot>'
-        + '<tr><td class="cell-naam"><strong>' + escapeHtml(oldest.periode || 'Periode 1') + '</strong></td>' + fase1Cells + '</tr>'
-        + '<tr><td class="cell-naam"><strong>' + escapeHtml(newest.periode || 'Periode 2') + '</strong></td>' + fase2Cells + '</tr>'
+        + '<tr><td class="cell-naam"><strong>' + escapeHtml(oldest.periode || 'Periode 1') + '</strong></td><td></td>' + fase1Cells + '</tr>'
+        + '<tr><td class="cell-naam"><strong>' + escapeHtml(newest.periode || 'Periode 2') + '</strong></td><td></td>' + fase2Cells + '</tr>'
         + '</tfoot>';
     } else {
       // Single period — existing behavior (D-12)
@@ -2128,7 +2130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         groepDG[g.key].map(dg => '<td>' + dmChip(scores[dg.label] || null) + '</td>')
       ).join('');
       tfootHTML = '<tfoot>'
-        + '<tr><td class="cell-naam"><strong>Eindoordeel</strong></td>' + footerCells + '</tr>'
+        + '<tr><td class="cell-naam"><strong>Eindoordeel</strong></td><td></td>' + footerCells + '</tr>'
         + '</tfoot>';
     }
 
@@ -2137,7 +2139,7 @@ document.addEventListener('DOMContentLoaded', () => {
       + '<div class="dg-matrix-wrap">'
       + '<table class="dg-matrix">'
       + '<thead>'
-      + '<tr><th class="col-naam" rowspan="2">Datapunt</th>' + groepCols + '</tr>'
+      + '<tr><th class="col-naam" rowspan="2">Datapunt</th><th rowspan="2" style="font-size:0.78rem;color:#6b7280;white-space:nowrap;padding:0.25rem 0.5rem;">Deadline</th>' + groepCols + '</tr>'
       + '<tr>' + dgCols + '</tr>'
       + '</thead>'
       + '<tbody>' + dataRows + '</tbody>'
