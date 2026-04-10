@@ -2104,11 +2104,23 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!deadlineMap[key]) deadlineMap[key] = tp.deadline;
     });
 
-    // Build student scores map: normKey → student dp object
+    // Build student scores map: normKey → student dp object (exact key)
     var studentDpMap = {};
     datapunten.forEach(function(dp) {
       studentDpMap[normDatapunt(dp.datapunt)] = dp;
     });
+
+    // Lenient lookup: same logic as findPDFScoresForDatapunt —
+    // PDF names may have suffixes (e.g. "D1.1 Lesontwerp (verslag)" vs toetsplan "D1.1 Lesontwerp")
+    function findStudentDp(tpKey) {
+      if (studentDpMap[tpKey]) return studentDpMap[tpKey];
+      for (var k in studentDpMap) {
+        if (k === tpKey || k.indexOf(tpKey + ' ') === 0 || k.indexOf(tpKey + ':') === 0) {
+          return studentDpMap[k];
+        }
+      }
+      return null;
+    }
 
     // Build merged rows: walk filtered toetsplan in deadline order, dedupe by normKey
     var seenKeys = {};
@@ -2123,7 +2135,9 @@ document.addEventListener('DOMContentLoaded', () => {
       var key = normDatapunt(tp.datapunt);
       if (seenKeys[key]) return;
       seenKeys[key] = true;
-      var studentDp = studentDpMap[key];
+      var studentDp = findStudentDp(key);
+      // Also mark the student dp key as seen to prevent it appearing again at bottom
+      if (studentDp) seenKeys[normDatapunt(studentDp.datapunt)] = true;
       mergedRows.push({
         datapunt: tp.datapunt,
         vak: studentDp ? studentDp.vak : null,
