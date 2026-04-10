@@ -1357,14 +1357,19 @@ document.addEventListener('DOMContentLoaded', () => {
       return periode.indexOf(p) !== -1;
     });
 
-    if (matchesBJ1 || leerjaar === '1') return 'bj1';
-
     // BJ2-varianten — expliciet matchen geeft zekerheid (anders onzeker)
     const bj2Patterns = ['bj2', '2e jaar', 'jaar 2', 'leerjaar 2', 'bj 2', 'klas 2'];
     const matchesBJ2 = bj2Patterns.some(function(p) {
       return periode.indexOf(p) !== -1;
     });
-    if (matchesBJ2 || leerjaar === '2') return 'bj2';
+
+    // Periode is leidend — 'Leerjaar' in CIOS PDF ≠ schooljaar (BJ2-leerlingen hebben Leerjaar 1)
+    if (matchesBJ1) return 'bj1';
+    if (matchesBJ2) return 'bj2';
+
+    // Alleen leerjaar als fallback wanneer periode niets herkent
+    if (leerjaar === '1') return 'bj1';
+    if (leerjaar === '2') return 'bj2';
 
     // Onzeker — log waarschuwing en val terug op bj2 (huidige default)
     console.warn('[detectTraject] Onzeker traject voor student:', (student && student.naam) || '(onbekend)', '— valt terug op bj2');
@@ -2057,9 +2062,25 @@ document.addEventListener('DOMContentLoaded', () => {
       groepDG[g.key].map(dg => `<th>${escapeHtml(dg.label)}</th>`)
     ).join('');
 
-    const dataRows = datapunten.length === 0
+    // --- Phase 11 D2: Sort datapunten by toetsplan deadline (chronological) ---
+    var toetsplan = getActiveToetsplan() || [];
+    var deadlineMap = {};
+    toetsplan.forEach(function(tp) {
+      var key = normDatapunt(tp.datapunt);
+      if (!deadlineMap[key]) deadlineMap[key] = tp.deadline;
+    });
+    var sortedDatapunten = datapunten.slice().sort(function(a, b) {
+      var da = deadlineMap[normDatapunt(a.datapunt)] || null;
+      var db = deadlineMap[normDatapunt(b.datapunt)] || null;
+      if (da && db) return da < db ? -1 : da > db ? 1 : 0;
+      if (da) return -1;
+      if (db) return 1;
+      return 0;
+    });
+
+    const dataRows = sortedDatapunten.length === 0
       ? `<tr><td class="cell-naam" colspan="${allDG.length + 1}" style="color:#9ca3af;padding:0.75rem 1rem;font-size:0.85rem;">Geen datapunten in dit PDF</td></tr>`
-      : datapunten.map(dp => {
+      : sortedDatapunten.map(dp => {
           const cells = GROEPEN.flatMap(g =>
             groepDG[g.key].map(dg => `<td>${dmChip(dp.scores[dg.label] || null)}</td>`)
           ).join('');
@@ -2145,7 +2166,25 @@ document.addEventListener('DOMContentLoaded', () => {
       var p = rec.periode || 'Onbekend';
       periodeMap[p] = rec; // later imports overwrite earlier ones
     });
-    var periodes = Object.keys(periodeMap).sort();
+    // --- Phase 11 D3: Sort periodes by earliest toetsplan deadline (chronological) ---
+    function normPeriode(p) {
+      return p.replace(/\s+DD\s*$/i, '').trim();
+    }
+    var faseMinDeadline = {};
+    toetsplan.forEach(function(tp) {
+      var faseKey = tp.fase.trim();
+      if (!faseMinDeadline[faseKey] || tp.deadline < faseMinDeadline[faseKey]) {
+        faseMinDeadline[faseKey] = tp.deadline;
+      }
+    });
+    var periodes = Object.keys(periodeMap).sort(function(a, b) {
+      var da = faseMinDeadline[normPeriode(a)] || null;
+      var db = faseMinDeadline[normPeriode(b)] || null;
+      if (da && db) return da < db ? -1 : da > db ? 1 : 0;
+      if (da) return -1;
+      if (db) return 1;
+      return 0;
+    });
     var colCount = periodes.length;
 
     // Determine which deelgebieden the toetsplan uses for this student's year
