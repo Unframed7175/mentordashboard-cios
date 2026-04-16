@@ -33,6 +33,22 @@
  * @property {Vak[]} vakken - Subjects with assignments (status + feedforward)
  * @property {Object<string, string|null>} deelgebiedScores - Aggregated scores per deelgebied
  * @property {Datapunt[]} datapunten - Per-assignment scores for gap analysis
+ * @property {string}  [taalniveauSchrijven]   - '' | '2F' | '3F' (Phase 12)
+ * @property {string}  [taalniveauGesprekken]  - '' | '2F' | '3F' (Phase 12)
+ * @property {number|null} [rekenDomeinenAfgerond] - 0–7 or null (Phase 12)
+ * @property {Actiepunt[]} [actiepunten] - Mentor actiepunten (Phase 13 Plan 02)
+ */
+
+/**
+ * @typedef {Object} Actiepunt
+ * @property {string} id        Generated UUID (crypto.randomUUID or Date.now+random fallback)
+ * @property {string} onderwerp Free-text subject
+ * @property {string} datum     ISO date YYYY-MM-DD or '' when not set
+ * @property {'open'|'opgepakt'|'herhaling'} status
+ *
+ * Stored on the most recent StudentRecord for leerlingId as student.actiepunten[].
+ * Persisted via window.appState + window.saveState() — included in backup export/import.
+ * Managed via window.actiepuntenStore (utils/actiepunten.js).
  */
 
 /**

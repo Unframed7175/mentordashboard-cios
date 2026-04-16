@@ -544,6 +544,19 @@
     .growth-down { font-size: 0.68rem; font-weight: 700; color: #dc2626; vertical-align: middle; margin-left: 2px; }
     .growth-same { font-size: 0.68rem; font-weight: 700; color: #9ca3af; vertical-align: middle; margin-left: 2px; }
 
+    /* Phase 13 D-02: Vote-count badges in Eindoordeel tfoot */
+    .vote-count-cell { padding: 0.25rem; vertical-align: middle; text-align: center; }
+    .vote-badges { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 4px; }
+    .vote-badge {
+      display: inline-block;
+      padding: 4px;
+      border-radius: 3px;
+      font-size: 0.69rem;
+      font-weight: 600;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
     /* Gap items */
     .gap-items { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.75rem; }
     .gap-item { font-size: 0.875rem; padding: 0.4rem 0.75rem; border-radius: 6px; }
@@ -1241,6 +1254,10 @@
   <script src="parsers/excel.js"></script>
   <!-- Doorstroomnorm engine -->
   <script src="utils/prognosis.js"></script>
+  <!-- Phase 13 D-01: modus-based aggregation (depends on schema.js SCORE_LEVELS + DEELGEBIEDEN) -->
+  <script src="utils/aggregation.js"></script>
+  <!-- Phase 13 Plan 02 — Actiepunten store (FEED-01/02, D-09) -->
+  <script src="utils/actiepunten.js"></script>
   <!-- PDF parser as ES module -->
   <script type="module" src="parsers/pdf.js"></script>
   <!-- App logic -->
