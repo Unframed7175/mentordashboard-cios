@@ -975,6 +975,129 @@
       color: var(--text-muted);
       text-align: center;
     }
+
+    /* Phase 13 Plan 02 — Feedback & Actiepunten panel (FEED-01/02/03) */
+    .ap-subsection-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .ap-subsection-title:first-child { margin-top: 0; }
+
+    .actiepunten-list { display: block; }
+
+    .ap-empty {
+      font-size: 0.875rem;
+      color: var(--text-faint);
+      padding: 0.5rem 0;
+    }
+
+    .ap-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+      background: var(--bg-surface);
+      margin-bottom: 8px;
+    }
+    .ap-row-main {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ap-row-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ap-onderwerp {
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--text-primary);
+      flex: 1;
+    }
+    .ap-datum {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .ap-status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .ap-status-open      { background: var(--status-oranje-bg); color: var(--status-oranje-text); }
+    .ap-status-opgepakt  { background: var(--status-groen-bg);  color: var(--status-groen-text); }
+    .ap-status-herhaling { background: var(--status-rood-bg);   color: var(--status-rood-text); }
+
+    .ap-btn-edit, .ap-btn-delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+    .ap-btn-edit:hover   { background: var(--bg-surface-alt); color: var(--text-secondary); }
+    .ap-btn-delete:hover { background: var(--status-rood-bg); color: var(--status-rood-text); }
+
+    .ap-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      border: 1px solid var(--accent-blue-border);
+      border-radius: 8px;
+      background: var(--accent-blue-light);
+      margin-bottom: 8px;
+    }
+    .ap-form-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ap-form-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .ap-input-onderwerp,
+    .ap-input-datum,
+    .ap-input-status {
+      padding: 8px;
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      outline: none;
+      font-family: inherit;
+    }
+    .ap-input-onderwerp { width: 100%; }
+    .ap-input-datum     { min-width: 140px; }
+    .ap-input-status    { min-width: 120px; }
+    .ap-input-onderwerp:focus,
+    .ap-input-datum:focus,
+    .ap-input-status:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+    }
+
+    .ap-btn-add {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>

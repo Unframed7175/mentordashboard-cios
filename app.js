@@ -2083,6 +2083,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const datapunten = student.datapunten       || [];
     const allDG      = window.DEELGEBIEDEN;
 
+    // Phase 13 D-02: recompute aggregationDetail at render time (not stored on record)
+    var aggResult = (typeof window.aggregateDeelgebiedScores === 'function')
+      ? window.aggregateDeelgebiedScores(student.datapunten || [])
+      : { aggregationDetail: {} };
+    var aggregationDetail = aggResult.aggregationDetail || {};
+
+    function buildVoteBadges(detail) {
+      if (!detail || !detail.counts) return '';
+      var LEVELS = window.SCORE_LEVELS;
+      var SHORT  = { onvoldoende: 'O', voldoende: 'V', goed: 'G', excellent: 'E' };
+      var SCORE_CLASS = { onvoldoende: 'score-o', voldoende: 'score-v', goed: 'score-g', excellent: 'score-e' };
+      var html = '';
+      LEVELS.forEach(function(l) {
+        if (detail.counts[l] > 0) {
+          html += '<span class="vote-badge ' + SCORE_CLASS[l] + '">'
+               + detail.counts[l] + '\u00d7 ' + SHORT[l] + '</span>';
+        }
+      });
+      if (!html) return '';
+      return '<div class="vote-badges">' + html + '</div>';
+    }
+
     const GROEPEN = [
       { key: 'lesgeven',      label: 'Lesgeven',      cls: 'groep-lesgeven'     },
       { key: 'organiseren',   label: 'Organiseren',   cls: 'groep-organiseren'  },
@@ -2277,9 +2299,15 @@ document.addEventListener('DOMContentLoaded', () => {
         + '<tr><td class="cell-naam"><strong>' + escapeHtml(newest.periode || 'Periode 2') + '</strong></td><td></td>' + fase2Cells + '</tr>'
         + '</tfoot>';
     } else {
-      // Single period — existing behavior (D-12)
+      // Single period — Phase 13 D-02: vote-count badges above dm-chip
       var footerCells = GROEPEN.flatMap(g =>
-        groepDG[g.key].map(dg => '<td>' + dmChip(scores[dg.label] || null) + '</td>')
+        groepDG[g.key].map(function(dg) {
+          var detail = aggregationDetail[dg.label];
+          return '<td class="vote-count-cell">'
+            + buildVoteBadges(detail)
+            + dmChip(scores[dg.label] || null)
+            + '</td>';
+        })
       ).join('');
       tfootHTML = '<tfoot>'
         + '<tr><td class="cell-naam"><strong>Eindoordeel</strong></td><td></td>' + footerCells + '</tr>'
@@ -2419,78 +2447,145 @@ document.addEventListener('DOMContentLoaded', () => {
     return html;
   }
 
-  // ── Feedback per deelgebied (Phase 6 — FB-01) ───────────────────────────────
+  // ── Feedback per deelgebied + Mentor actiepunten (Phase 13 Plan 02 — FEED-01/02/03) ────────────
+
+  /**
+   * Build the actiepunten list HTML for a given leerlingId.
+   * Extracted as a helper so event handlers can re-render without rebuilding the whole detail page.
+   * @param {string} leerlingId
+   * @returns {string} HTML for the actiepunten-list container contents
+   */
+  function renderActiepuntenListHtml(leerlingId) {
+    var actiepunten = (window.actiepuntenStore && window.actiepuntenStore.list(leerlingId)) || [];
+    if (actiepunten.length === 0) {
+      return '<p class="ap-empty">Nog geen actiepunten. Voeg een actiepunt toe na het mentorgesprek.</p>';
+    }
+    var html = '';
+    actiepunten.forEach(function(ap) {
+      var label = ap.status === 'opgepakt' ? 'Opgepakt' : (ap.status === 'herhaling' ? 'Herhaling' : 'Open');
+      html += '<div class="ap-row" data-ap-id="' + escapeHtml(ap.id) + '">'
+        + '<div class="ap-row-main">'
+        +   '<span class="ap-onderwerp">' + escapeHtml(ap.onderwerp) + '</span>'
+        +   '<span class="ap-datum">' + escapeHtml(ap.datum || '') + '</span>'
+        + '</div>'
+        + '<div class="ap-row-meta">'
+        +   '<span class="ap-status-badge ap-status-' + escapeHtml(ap.status) + '">' + label + '</span>'
+        +   '<button class="ap-btn-edit" aria-label="Actiepunt bewerken" data-ap-edit="' + escapeHtml(ap.id) + '">Bewerken</button>'
+        +   '<button class="ap-btn-delete" aria-label="Actiepunt verwijderen" data-ap-delete="' + escapeHtml(ap.id) + '">Verwijderen</button>'
+        + '</div>'
+        + '</div>';
+    });
+    return html;
+  }
+
+  /**
+   * Build the actiepunten inline form HTML.
+   * @param {string}      apId    - 'new' for new, or existing id for edit
+   * @param {Object|null} ap      - existing Actiepunt data for pre-fill (null for new)
+   * @returns {string}
+   */
+  function renderActiepuntenFormHtml(apId, ap) {
+    var onderwerp = ap ? escapeHtml(ap.onderwerp) : '';
+    var datum     = ap ? escapeHtml(ap.datum || '') : '';
+    var status    = ap ? ap.status : 'open';
+    var opts = ['open', 'opgepakt', 'herhaling'].map(function(v) {
+      return '<option value="' + v + '"' + (status === v ? ' selected' : '') + '>'
+        + (v === 'open' ? 'Open' : v === 'opgepakt' ? 'Opgepakt' : 'Herhaling')
+        + '</option>';
+    }).join('');
+    return '<form class="ap-form" data-ap-id="' + escapeHtml(apId) + '">'
+      + '<input class="ap-input-onderwerp" type="text" placeholder="Onderwerp actiepunt..." maxlength="200" required value="' + onderwerp + '" />'
+      + '<div class="ap-form-row">'
+      +   '<input class="ap-input-datum" type="date" value="' + datum + '" />'
+      +   '<select class="ap-input-status">' + opts + '</select>'
+      + '</div>'
+      + '<div class="ap-form-actions">'
+      +   '<button type="submit" class="btn btn-primary" style="font-size:0.875rem;padding:0.5rem 1rem;">Actiepunt opslaan</button>'
+      +   '<button type="button" class="ap-btn-annuleer btn btn-ghost" style="font-size:0.875rem;padding:0.5rem 1rem;">Wijzigingen annuleren</button>'
+      + '</div>'
+      + '</form>';
+  }
 
   function buildDetailFeedback(student) {
-    var toetsplan = getActiveToetsplan();
+    var toetsplan  = getActiveToetsplan();
+    var leerlingId = student.leerlingId;
 
-    // No toetsplan: show guidance
+    // ── Sub-section A: feedback per deelgebied ────────────────────────────
+    var feedbackHtml = '';
+
     if (!toetsplan || toetsplan.length === 0) {
-      return '<div class="detail-section">'
-        + '<div class="detail-section-title">Feedback per deelgebied</div>'
-        + '<p style="font-size:0.875rem;color:#9ca3af;">Import eerst een toetsplan om feedback per deelgebied te koppelen.</p>'
-        + '</div>';
-    }
+      feedbackHtml = '<p style="font-size:0.875rem;color:#9ca3af;">Import eerst een toetsplan om feedback per deelgebied te koppelen.</p>';
+    } else {
+      // Build feedbackMap: { deelgebiedId: [{datapunt, deadline, feedForward}] }
+      var feedbackMap = {};
+      window.DEELGEBIEDEN.forEach(function(dg) { feedbackMap[dg.id] = []; });
 
-    // Build feedbackMap: { deelgebiedId: [{datapunt, deadline, feedForward}] }
-    var feedbackMap = {};
-    window.DEELGEBIEDEN.forEach(function(dg) { feedbackMap[dg.id] = []; });
-
-    toetsplan.forEach(function(tp) {
-      var normTP = normDatapunt(tp.datapunt);
-      var ff = '';
-      (student.vakken || []).forEach(function(vak) {
-        (vak.opdrachten || []).forEach(function(op) {
-          if (normDatapunt(op.naam) === normTP) {
-            ff = op.feedForward || '';
+      toetsplan.forEach(function(tp) {
+        var normTP = normDatapunt(tp.datapunt);
+        var ff = '';
+        (student.vakken || []).forEach(function(vak) {
+          (vak.opdrachten || []).forEach(function(op) {
+            if (normDatapunt(op.naam) === normTP) {
+              ff = op.feedForward || '';
+            }
+          });
+        });
+        (tp.deelgebieden || []).forEach(function(dgId) {
+          if (feedbackMap[dgId]) {
+            feedbackMap[dgId].push({
+              datapunt: tp.datapunt,
+              deadline: tp.deadline || '',
+              feedForward: ff
+            });
           }
         });
       });
-      (tp.deelgebieden || []).forEach(function(dgId) {
-        if (feedbackMap[dgId]) {
-          feedbackMap[dgId].push({
-            datapunt: tp.datapunt,
-            deadline: tp.deadline || '',
-            feedForward: ff
+
+      // Sort each deelgebied's entries by deadline
+      Object.keys(feedbackMap).forEach(function(dgId) {
+        feedbackMap[dgId].sort(function(a, b) {
+          return (a.deadline || '').localeCompare(b.deadline || '');
+        });
+      });
+
+      // Render feedback per deelgebied
+      window.DEELGEBIEDEN.forEach(function(dg) {
+        var items = feedbackMap[dg.id];
+        feedbackHtml += '<div style="margin-bottom:1rem;">';
+        feedbackHtml += '<div style="font-size:0.875rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">' + escapeHtml(dg.label) + '</div>';
+        if (items.length === 0) {
+          feedbackHtml += '<span style="color:#9ca3af;font-size:0.875rem;">\u2014 geen feedback beschikbaar</span>';
+        } else {
+          items.forEach(function(item) {
+            var dpText = escapeHtml(item.datapunt);
+            var dlText = item.deadline ? escapeHtml(item.deadline) : '';
+            var ffText = item.feedForward
+              ? '<span style="font-style:italic;font-size:0.78rem;color:#374151;">' + escapeHtml(item.feedForward) + '</span>'
+              : '<span style="color:#9ca3af;">\u2014</span>';
+            feedbackHtml += '<div style="font-size:0.875rem;margin-bottom:0.25rem;padding-left:0.5rem;">'
+              + dpText + (dlText ? ' <span style="color:#6b7280;">' + dlText + '</span>' : '')
+              + ' \u2014 ' + ffText
+              + '</div>';
           });
         }
+        feedbackHtml += '</div>';
       });
-    });
+    }
 
-    // Sort each deelgebied's entries by deadline
-    Object.keys(feedbackMap).forEach(function(dgId) {
-      feedbackMap[dgId].sort(function(a, b) {
-        return (a.deadline || '').localeCompare(b.deadline || '');
-      });
-    });
+    // ── Sub-section B: mentor actiepunten ─────────────────────────────────
+    var apListHtml = renderActiepuntenListHtml(leerlingId);
 
-    // Render
-    var body = '';
-    window.DEELGEBIEDEN.forEach(function(dg) {
-      var items = feedbackMap[dg.id];
-      body += '<div style="margin-bottom:1rem;">';
-      body += '<div style="font-size:0.875rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">' + escapeHtml(dg.label) + '</div>';
-      if (items.length === 0) {
-        body += '<span style="color:#9ca3af;font-size:0.875rem;">\u2014 geen feedback beschikbaar</span>';
-      } else {
-        items.forEach(function(item) {
-          var dpText = escapeHtml(item.datapunt);
-          var dlText = item.deadline ? escapeHtml(item.deadline) : '';
-          var ffText = item.feedForward
-            ? '<span style="font-style:italic;font-size:0.78rem;color:#374151;">' + escapeHtml(item.feedForward) + '</span>'
-            : '<span style="color:#9ca3af;">\u2014</span>';
-          body += '<div style="font-size:0.875rem;margin-bottom:0.25rem;padding-left:0.5rem;">'
-            + dpText + (dlText ? ' <span style="color:#6b7280;">' + dlText + '</span>' : '')
-            + ' \u2014 ' + ffText
-            + '</div>';
-        });
-      }
-      body += '</div>';
-    });
+    var body = '<div class="ap-subsection-title">Feedback per deelgebied</div>'
+      + feedbackHtml
+      + '<div class="ap-subsection-title">Mentor actiepunten</div>'
+      + '<div class="actiepunten-list" id="ap-list-' + escapeHtml(leerlingId) + '">'
+      + apListHtml
+      + '</div>'
+      + '<button class="btn btn-ghost ap-btn-add" id="ap-add-' + escapeHtml(leerlingId) + '">+ Actiepunt toevoegen</button>';
 
     return '<div class="detail-section">'
       + '<div class="feedback-header" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">'
-      + '<div class="detail-section-title" style="margin-bottom:0;">Feedback per deelgebied</div>'
+      + '<div class="detail-section-title" style="margin-bottom:0;">Feedback &amp; actiepunten</div>'
       + '<span class="vak-chevron" aria-label="Feedback uitklappen" style="font-size:0.7rem;color:#9ca3af;transition:transform 0.15s;">\u25BC</span>'
       + '</div>'
       + '<div class="feedback-body" style="display:none;margin-top:1rem;">'
@@ -2687,6 +2782,179 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
+
+    // ── Actiepunten CRUD event delegation (Phase 13 Plan 02 — FEED-01/02/03) ─
+    (function() {
+      var leerlingId = detailStudentId;
+      if (!leerlingId) return;
+
+      /**
+       * Re-render the actiepunten-list container contents for the current student.
+       */
+      function reRenderList() {
+        var listEl = document.getElementById('ap-list-' + leerlingId);
+        if (listEl) listEl.innerHTML = renderActiepuntenListHtml(leerlingId);
+      }
+
+      /** Show the "Actiepunt toevoegen" button; hide any open form in place. */
+      function showAddBtn() {
+        var addBtn = document.getElementById('ap-add-' + leerlingId);
+        if (addBtn) addBtn.style.display = '';
+      }
+
+      /** Hide the "Actiepunt toevoegen" button while form is open. */
+      function hideAddBtn() {
+        var addBtn = document.getElementById('ap-add-' + leerlingId);
+        if (addBtn) addBtn.style.display = 'none';
+      }
+
+      /**
+       * Show transient herhaling hint above the submit button inside a form.
+       * @param {HTMLFormElement} formEl
+       */
+      function showHerhalingHint(formEl) {
+        var existing = formEl.querySelector('.ap-herhaling-notice');
+        if (existing) return; // already shown
+        var notice = document.createElement('div');
+        notice.className = 'gap-item gap-warn ap-herhaling-notice';
+        notice.textContent = 'Onderwerp al eerder gebruikt \u2014 status automatisch ingesteld op Herhaling.';
+        var actiesDiv = formEl.querySelector('.ap-form-actions');
+        if (actiesDiv) {
+          formEl.insertBefore(notice, actiesDiv);
+        } else {
+          formEl.appendChild(notice);
+        }
+        setTimeout(function() {
+          if (notice.parentNode) notice.parentNode.removeChild(notice);
+        }, 4000);
+      }
+
+      /**
+       * Cancel / close whichever form is open.
+       * For edit forms: restore the original read-mode row.
+       * For new forms: just remove the form element.
+       * @param {HTMLFormElement} formEl
+       */
+      function cancelForm(formEl) {
+        var apId = formEl.dataset.apId;
+        if (apId && apId !== 'new') {
+          // Restore read-mode row from store
+          var listEl = document.getElementById('ap-list-' + leerlingId);
+          if (listEl) listEl.innerHTML = renderActiepuntenListHtml(leerlingId);
+        } else {
+          if (formEl.parentNode) formEl.parentNode.removeChild(formEl);
+        }
+        showAddBtn();
+      }
+
+      // ── "Actiepunt toevoegen" button ──────────────────────────────────────
+      var addBtn = document.getElementById('ap-add-' + leerlingId);
+      if (addBtn) {
+        addBtn.addEventListener('click', function() {
+          var listEl = document.getElementById('ap-list-' + leerlingId);
+          if (!listEl) return;
+          hideAddBtn();
+          var formHtml = renderActiepuntenFormHtml('new', null);
+          var wrapper = document.createElement('div');
+          wrapper.innerHTML = formHtml;
+          var formEl = wrapper.firstElementChild;
+          listEl.parentNode.insertBefore(formEl, addBtn);
+          var inputOnderwerp = formEl.querySelector('.ap-input-onderwerp');
+          if (inputOnderwerp) inputOnderwerp.focus();
+          wireForm(formEl);
+        });
+      }
+
+      // ── Event delegation for edit / delete on rendered rows ───────────────
+      var listEl = document.getElementById('ap-list-' + leerlingId);
+      if (listEl) {
+        listEl.addEventListener('click', function(e) {
+          // Delete
+          var deleteBtn = e.target.closest('[data-ap-delete]');
+          if (deleteBtn) {
+            var id = deleteBtn.dataset.apDelete;
+            if (window.actiepuntenStore) window.actiepuntenStore.remove(leerlingId, id);
+            reRenderList();
+            return;
+          }
+          // Edit
+          var editBtn = e.target.closest('[data-ap-edit]');
+          if (editBtn) {
+            var id = editBtn.dataset.apEdit;
+            var list = window.actiepuntenStore ? window.actiepuntenStore.list(leerlingId) : [];
+            var ap = list.find(function(a) { return a.id === id; }) || null;
+            var row = editBtn.closest('.ap-row');
+            if (!row) return;
+            hideAddBtn();
+            var formHtml = renderActiepuntenFormHtml(id, ap);
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = formHtml;
+            var formEl = wrapper.firstElementChild;
+            row.parentNode.replaceChild(formEl, row);
+            var inputOnderwerp = formEl.querySelector('.ap-input-onderwerp');
+            if (inputOnderwerp) inputOnderwerp.focus();
+            wireForm(formEl);
+            return;
+          }
+        });
+      }
+
+      /**
+       * Wire submit, cancel-button, and Escape-key events on a form element.
+       * @param {HTMLFormElement} formEl
+       */
+      function wireForm(formEl) {
+        // Escape key dismisses form
+        formEl.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelForm(formEl);
+          }
+        });
+
+        // Annuleer button
+        var annuleerBtn = formEl.querySelector('.ap-btn-annuleer');
+        if (annuleerBtn) {
+          annuleerBtn.addEventListener('click', function() {
+            cancelForm(formEl);
+          });
+        }
+
+        // Form submit
+        formEl.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var onderwerp = (formEl.querySelector('.ap-input-onderwerp').value || '').trim();
+          if (!onderwerp) {
+            formEl.querySelector('.ap-input-onderwerp').focus();
+            return;
+          }
+          var datum  = formEl.querySelector('.ap-input-datum').value || '';
+          var status = formEl.querySelector('.ap-input-status').value || 'open';
+          var apId   = formEl.dataset.apId;
+          var saved;
+          if (apId === 'new') {
+            saved = window.actiepuntenStore && window.actiepuntenStore.add(leerlingId, { onderwerp: onderwerp, datum: datum, status: status });
+          } else {
+            saved = window.actiepuntenStore && window.actiepuntenStore.update(leerlingId, apId, { onderwerp: onderwerp, datum: datum, status: status });
+          }
+          // Herhaling auto-detect: show hint if store set status to 'herhaling' when user chose something else
+          if (saved && saved.status === 'herhaling' && status !== 'herhaling') {
+            showHerhalingHint(formEl);
+            // Give the user time to see the hint, then re-render
+            setTimeout(function() {
+              if (formEl.parentNode) formEl.parentNode.removeChild(formEl);
+              reRenderList();
+              showAddBtn();
+            }, 1500);
+            return;
+          }
+          // Normal save: immediate re-render
+          if (formEl.parentNode) formEl.parentNode.removeChild(formEl);
+          reRenderList();
+          showAddBtn();
+        });
+      }
+    })();
 
     // Aanvullende gegevens: taal / rekenen / BPV-uren
     detailView.querySelectorAll('[data-aanv-field]').forEach(el => {
