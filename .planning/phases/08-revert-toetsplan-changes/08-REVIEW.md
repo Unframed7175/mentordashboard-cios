@@ -1,0 +1,105 @@
+---
+phase: 08-revert-toetsplan-changes
+reviewed: 2026-04-22T00:00:00Z
+depth: standard
+files_reviewed: 2
+files_reviewed_list:
+  - app.js
+  - index.html
+findings:
+  critical: 0
+  warning: 1
+  info: 3
+  total: 4
+status: issues_found
+---
+
+# Phase 08: Code Review Report
+
+**Reviewed:** 2026-04-22
+**Depth:** standard
+**Files Reviewed:** 2
+**Status:** issues_found
+
+## Summary
+
+This was a surgical deletion phase: ~714 lines of toetsplan-related code removed from `app.js` and ~31 lines from `index.html`. The rewrite of `buildDetailDeelgebieden` (PDF-order rendering) is correct and safe. The rewrite of `buildDetailFeedback` (toetsplan sub-section removed) is clean and functional. No toetsplan DOM elements, event handlers, or API calls remain in the live code path. No runtime crashes introduced.
+
+Three categories of issues remain: one warning (dead code that will mislead future readers of `app.js`), and three info items (unused variable, dead CSS class, and a stale CSS comment that now describes the wrong feature).
+
+---
+
+## Warnings
+
+### WR-01: Dead function `showBackupResult` — assigned and defined but never called
+
+**File:** `app.js:971`
+**Issue:** `showBackupResult(html)` is defined and sets `backupResults.innerHTML`, but it is never called anywhere in `app.js`. All backup result rendering goes through `showBackupImportResult()`. The function appears to be a leftover from an earlier backup UI iteration that was not pruned when toetsplan code was removed. It closes over `backupResults`, which is a valid DOM reference, so it causes no crash — but it is pure dead code that is confusing to future readers.
+**Fix:** Delete the function (lines 971–976):
+```js
+// Remove this entire function:
+function showBackupResult(html) {
+  if (backupResults) {
+    backupResults.style.display = 'block';
+    backupResults.innerHTML = html;
+  }
+}
+```
+
+---
+
+## Info
+
+### IN-01: Unused variable `_origShowImportResults`
+
+**File:** `app.js:1476`
+**Issue:** `const _origShowImportResults = showImportResults;` assigns the `showImportResults` function to a local constant that is never read again. The comment above it says "Hook auto-save in na PDF import — patch importPDFs resultaat" but the actual hooking is done via `window._afterPDFImport = autoSave;` on the next line. The assignment to `_origShowImportResults` is vestigial and serves no purpose.
+**Fix:** Remove line 1476:
+```js
+// Delete this line:
+const _origShowImportResults = showImportResults;
+```
+
+### IN-02: Dead CSS class `.btn-danger-sm` in `index.html`
+
+**File:** `index.html:198-199`
+**Issue:** `.btn-danger-sm` and its hover rule are defined in the stylesheet but no element in the HTML body uses this class. It was previously used by the toetsplan "Vervangen" button (confirmed in pre-revert worktrees). The class is now unreachable.
+**Fix:** Remove lines 198–199:
+```css
+/* Delete these two rules: */
+.btn-danger-sm { background: var(--status-rood-bg); color: var(--status-rood-text); border: 1px solid #fecaca; padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.btn-danger-sm:hover { background: #fecaca; }
+```
+
+### IN-03: Stale CSS comment on `.import-zone-secondary` in `index.html`
+
+**File:** `index.html:181`
+**Issue:** The comment reads `/* ── Toetsplan import zone (Phase 5 — FASE-01) ───────────────────── */`. The `.import-zone-secondary` class is still actively used by the stage drop zone (`#stage-zone`) and the backup restore drop zone (`#backup-zone`) — the class itself is correct and needed. Only the comment is wrong: it still attributes the class to the now-deleted toetsplan feature rather than its current consumers.
+**Fix:** Update the comment to reflect actual usage:
+```css
+/* ── Secondary import zones (stage + backup restore) ──────────────── */
+```
+
+---
+
+## Verification Notes (context for the review)
+
+**Confirmed clean (no action needed):**
+
+1. **Toetsplan references purged.** A full-text scan of both `app.js` and `index.html` for `toetsplan`, `toetsPlan`, `parseToetsplan`, `mergeToetsplan`, and all related identifiers found zero live code hits. The single surviving comment in `app.js` line 1737 (`// Render datapunten in original PDF order (no toetsplan merge, no deadline sorting)`) is a deliberate explanatory note, not a dangling reference.
+
+2. **`buildDetailDeelgebieden` rewrite is correct.** Datapunten are iterated directly from `student.datapunten` in PDF order. `dp.scores` is always initialized as `{}` by the parser (never `undefined`), so `dp.scores[dg.label]` at line 1742 is safe. The empty-state colspan `allDG.length + 1` = 20 matches the actual column count (1 naam + 19 deelgebieden).
+
+3. **`buildDetailFeedback` rewrite is correct.** The toetsplan sub-section (previously rendered between "Feedback" and "Mentor actiepunten") is fully removed. The remaining actiepunten rendering path is intact and all CRUD wiring in `wireDetailEvents()` lines 2085–2255 references only the actiepunten DOM elements, which are still generated by the function.
+
+4. **`window.getAllRecordsForStudent` is defined.** Located at `utils/klassen.js:200`. The call at `app.js:1753` inside `buildDetailDeelgebieden` will not throw.
+
+5. **`window.aggregateDeelgebiedScores` is defined.** Located at `utils/aggregation.js:21`. The call at `app.js:1679` inside `buildDetailDeelgebieden` is guarded by a `typeof` check and will degrade gracefully.
+
+6. **`window.SCORE_LEVELS` is defined.** Located at `utils/schema.js:56`. The reference at `app.js:1685` inside `buildVoteBadges` is safe.
+
+---
+
+_Reviewed: 2026-04-22_
+_Reviewer: Claude (gsd-code-reviewer)_
+_Depth: standard_
