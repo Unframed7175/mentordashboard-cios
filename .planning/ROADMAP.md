@@ -22,6 +22,7 @@
 
 - [x] **Phase 6: Multi-class UI** — Mentor beheert meerdere klassen als tabbladen met geïsoleerde data en persistentie
 - [x] **Phase 7: Periode Vergelijking** — Detailweergave toont fase 1 en fase 2 naast elkaar met visuele groei-indicatie
+- [ ] **Phase 8: Revert toetsplan changes** — TBD
 
 ## Progress
 
@@ -34,6 +35,7 @@
 | 5. Detailweergave | — | Complete | 2008-03-25 |
 | 6. Multi-class UI | 3/3 | Complete | 2008-03-26 |
 | 7. Periode Vergelijking | 2/2 | Complete | 2008-04-06 |
+| 8. Revert toetsplan changes | — | Planned | — |
 
 ## Phase Details
 
@@ -67,18 +69,18 @@ Plans:
 - [x] 07-01-PLAN.md — Data layer: compound dedup key, getActiveStudents dedup, consumer fixes
 - [x] 07-02-PLAN.md — Detail view: two-row tfoot comparison with growth badges
 
-## Backlog
-
-### Phase 999.1: Dashboard UI tegels aanpassen — aanwezigheidspercentage icm ongeoorloofd afwezig + statusbalk (BACKLOG)
-
-**Goal:** [Captured for future planning]
+### Phase 8: Revert toetsplan changes
+**Goal:** TBD
+**Depends on:** Phase 7
 **Requirements:** TBD
 **Plans:** 0 plans
 
 Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
+- [ ] TBD
 
-### Phase 999.2: Revert toetsplan changes (BACKLOG)
+## Backlog
+
+### Phase 999.1: Dashboard UI tegels aanpassen — aanwezigheidspercentage icm ongeoorloofd afwezig + statusbalk (BACKLOG)
 
 **Goal:** [Captured for future planning]
 **Requirements:** TBD
