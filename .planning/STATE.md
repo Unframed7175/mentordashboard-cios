@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Klasbeheer & Export
-status: Ready to execute
-last_updated: "2026-04-22T08:49:18.395Z"
+status: unknown
+last_updated: "2026-04-22T09:48:57.747Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 
 ## Current Position
 
-Phase: 08 (print-to-pdf-export) — NOT STARTED
-Plan: Phase 07 complete (2/2 plans)
+Phase: 08-revert-toetsplan-changes — COMPLETE (1/1 plans)
+Plan: 08-01 complete — Phase 11 toetsplan code fully removed
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ v1.1 plans completed: 0/?
 | Phase 06 P06-02 | 3 | 2 tasks | 1 files |
 | Phase 06-multi-class-ui P06-03 | 8 | 1 tasks | 1 files |
 | Phase 07 P07-01 | 68 | 2 tasks | 3 files |
+| Phase 08 P08-01 | 30 min | 2 tasks | 2 files |
 
 ## Decisions
 
@@ -79,7 +80,10 @@ v1.1 plans completed: 0/?
 
 ### v1.1 Decisions (accumulating)
 
-*(none yet — begin with Phase 6 planning)*
+- [08-01] Manual surgical deletion over git revert — interleaved Phase 10-13 commits made cherry-picked reverts unsafe
+- [08-01] getActiveKlas() preserved — used by stage import and other non-toetsplan code
+- [08-01] klas.toetsplan property in localStorage silently ignored after revert — graceful backward compat
+- [08-01] buildDetailFeedback simplified to actiepunten-only — "Feedback per deelgebied" sub-section required toetsplan data
 
 ## Blockers
 
@@ -97,3 +101,4 @@ v1.1 plans completed: 0/?
 - 2026-03-26: Phase 6 UAT complete — all 6 human-UAT items approved; 06-HUMAN-UAT.md and 06-VERIFICATION.md closed as complete
 - 2026-03-27: 07-02 Task 1 complete (commit 2925b80) — growth CSS + two-row tfoot + growth badges in detail view; paused at Task 2 human-verify checkpoint
 - 2026-04-06: Phase 07 complete — UAT approved; two-period comparison UI with growth badges verified in browser
+- 2026-04-22: Phase 08 plan 01 complete — all Phase 11 toetsplan code removed from app.js and index.html; D2 table back to PDF-order, no Deadline column
