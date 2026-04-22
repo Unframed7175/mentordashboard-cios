@@ -80,16 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
       var btn = document.createElement('button');
       btn.className = 'nav-tab' + (klas.id === window.klassenState.activeKlasId ? ' active' : '');
       btn.textContent = klas.naam;
-      // Toetsplan badge in klas tab (Phase 5 — FASE-01)
-      var tp = klas.toetsplan;
-      if (tp && tp.length > 0) {
-        var faseCount = [];
-        tp.forEach(function(dp) { if (faseCount.indexOf(dp.fase) === -1) faseCount.push(dp.fase); });
-        var badge = document.createElement('span');
-        badge.className = 'toetsplan-badge';
-        badge.textContent = 'Toetsplan: ' + faseCount.length + ' fases';
-        btn.appendChild(badge);
-      }
       (function(k) {
         btn.addEventListener('click', function() {
           window.switchActiveKlas(k.id);
@@ -103,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             showView('import');
           }
-          renderToetsplanZone();
         });
       })(klas);
       klasTabs.appendChild(btn);
@@ -123,8 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       klasTabs.style.display = 'flex';
     }
-    // Refresh toetsplan zone to reflect active klas state (Phase 5)
-    renderToetsplanZone();
   }
 
   function openNieuweKlasModal() {
@@ -707,15 +694,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ---------------------------------------------------------------------------
-  // Toetsplan import (Phase 5 — FASE-01/FASE-02)
-  // ---------------------------------------------------------------------------
-
-  const toetsplanZone      = document.getElementById('toetsplan-zone');
-  const toetsplanChooseBtn = document.getElementById('toetsplan-choose-btn');
-  const toetsplanInput     = document.getElementById('toetsplan-input');
-  const toetsplanStatus    = document.getElementById('toetsplan-status');
-
   // Stage import refs (Phase 6 — STAGE-01)
   const stageZone      = document.getElementById('stage-zone');
   const stageChooseBtn = document.getElementById('stage-choose-btn');
@@ -726,141 +704,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!window.klassenState.activeKlasId) return null;
     return window.klassenState.klassen[window.klassenState.activeKlasId] || null;
   }
-
-  function renderToetsplanZone() {
-    if (!toetsplanZone || !toetsplanStatus) return;
-    var klas = getActiveKlas();
-    if (!klas) return;
-    var tp = klas.toetsplan;
-    if (tp && tp.length > 0) {
-      // Already-loaded state
-      var fases = [];
-      tp.forEach(function(dp) { if (fases.indexOf(dp.fase) === -1) fases.push(dp.fase); });
-      toetsplanZone.style.display = 'none';
-      toetsplanStatus.style.display = 'block';
-      toetsplanStatus.innerHTML =
-        '<div class="toetsplan-status-success">'
-        + '<strong>Toetsplan geladen</strong> &#8212; ' + tp.length + ' datapunten over ' + fases.length + ' fases'
-        + '<br><button class="btn-danger-sm" id="toetsplan-vervangen-btn" style="margin-top:0.5rem;">Vervangen</button>'
-        + '</div>';
-      // Wire double-click confirm on Vervangen
-      var vervBtn = document.getElementById('toetsplan-vervangen-btn');
-      var confirmState = false;
-      vervBtn.addEventListener('click', function() {
-        if (!confirmState) {
-          confirmState = true;
-          vervBtn.textContent = 'Bevestig wissen';
-          vervBtn.style.background = '#fecaca';
-          setTimeout(function() {
-            confirmState = false;
-            vervBtn.textContent = 'Vervangen';
-            vervBtn.style.background = '';
-          }, 3000);
-        } else {
-          klas.toetsplan = null;
-          window.saveKlassen();
-          renderToetsplanZone();
-          renderKlasTabStrip();
-        }
-      });
-    } else {
-      // Idle state
-      toetsplanZone.style.display = '';
-      toetsplanStatus.style.display = 'none';
-    }
-
-    // Schooljaar selector — always visible when a klas is active
-    var sjSection = document.getElementById('klas-schooljaar-section');
-    if (sjSection) {
-      var cur = klas.schooljaar || '';
-      var sjOpts = [
-        { value: '',    label: 'Auto (detecteer per leerling)' },
-        { value: 'bj1', label: 'BJ1 — Basisjaar 1' },
-        { value: 'bj2', label: 'BJ2 — Basisjaar 2' },
-        { value: 'pj',  label: 'PJ — Praktijkjaar' },
-        { value: 'exj', label: 'ExJ — Examenjaar' },
-      ];
-      var optHTML = sjOpts.map(function(o) {
-        return '<option value="' + o.value + '"' + (o.value === cur ? ' selected' : '') + '>' + escapeHtml(o.label) + '</option>';
-      }).join('');
-      sjSection.style.display = '';
-      sjSection.innerHTML = '<label style="font-size:0.875rem;color:#374151;font-weight:500;display:flex;align-items:center;gap:0.5rem;">'
-        + 'Schooljaar type klas'
-        + '<select id="klas-schooljaar-select" style="padding:0.25rem 0.5rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.875rem;">'
-        + optHTML + '</select>'
-        + '<span style="font-size:0.8rem;color:#9ca3af;">— bepaalt welke toetsplan-fases zichtbaar zijn per leerling</span>'
-        + '</label>';
-      var sjSelect = document.getElementById('klas-schooljaar-select');
-      (function(k) {
-        sjSelect.addEventListener('change', function() {
-          k.schooljaar = this.value || null;
-          window.saveKlassen();
-        });
-      })(klas);
-    }
-  }
-
-  async function handleToetsplanImport(file) {
-    if (!file) return;
-    if (!/\.xlsx?$/i.test(file.name)) {
-      toetsplanStatus.style.display = 'block';
-      toetsplanStatus.innerHTML = '<div class="toetsplan-status-error">Alleen Excel-bestanden (.xlsx) worden ondersteund.</div>';
-      return;
-    }
-    var klas = getActiveKlas();
-    if (!klas) {
-      toetsplanStatus.style.display = 'block';
-      toetsplanStatus.innerHTML = '<div class="toetsplan-status-error">Selecteer eerst een klas.</div>';
-      return;
-    }
-    if (typeof window.parseToetsplanFile !== 'function') {
-      toetsplanStatus.style.display = 'block';
-      toetsplanStatus.innerHTML = '<div class="toetsplan-status-error">Toetsplan-parser niet geladen. Ververs de pagina.</div>';
-      return;
-    }
-    // Parsing state
-    toetsplanChooseBtn.disabled = true;
-    toetsplanChooseBtn.textContent = 'Toetsplan wordt ingelezen\u2026';
-    toetsplanStatus.style.display = 'none';
-    try {
-      var result = await window.parseToetsplanFile(file);
-      klas.toetsplan = result;
-      window.saveKlassen();
-      renderToetsplanZone();
-      renderKlasTabStrip();
-    } catch (err) {
-      toetsplanStatus.style.display = 'block';
-      toetsplanStatus.innerHTML = '<div class="toetsplan-status-error">' + escapeHtml(err.message || 'Het toetsplan kon niet worden ingelezen.') + '</div>';
-    } finally {
-      toetsplanChooseBtn.disabled = false;
-      toetsplanChooseBtn.textContent = 'Kies Excel-bestand';
-      toetsplanInput.value = '';
-    }
-  }
-
-  // Event wiring — toetsplan choose button
-  if (typeof window.XLSX === 'undefined') {
-    toetsplanChooseBtn.disabled = true;
-    toetsplanChooseBtn.textContent = 'SheetJS niet geladen. Ververs de pagina.';
-  } else {
-    toetsplanChooseBtn.addEventListener('click', function() { toetsplanInput.click(); });
-  }
-  toetsplanInput.addEventListener('change', function() { handleToetsplanImport(toetsplanInput.files[0]); });
-
-  // Drag-and-drop on toetsplan zone
-  toetsplanZone.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    toetsplanZone.classList.add('drag-over');
-  });
-  toetsplanZone.addEventListener('dragleave', function() {
-    toetsplanZone.classList.remove('drag-over');
-  });
-  toetsplanZone.addEventListener('drop', function(e) {
-    e.preventDefault();
-    toetsplanZone.classList.remove('drag-over');
-    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file) handleToetsplanImport(file);
-  });
 
   // ── Stage import (Phase 6 — STAGE-01) ─────────────────────────────────────
   async function handleStageImport(file) {
@@ -1691,256 +1534,6 @@ document.addEventListener('DOMContentLoaded', () => {
     wireDetailEvents();
   }
 
-  // ---------------------------------------------------------------------------
-  // Phase 05-03 — Toetsplan tijdlijn utility functions
-  // ---------------------------------------------------------------------------
-
-  function normDatapunt(s) {
-    return String(s || '').trim().toLowerCase()
-      .replace(/^[\u2010\u2011\u2012\u2013\u2014\-–—•*·]+\s*/, '')  // strip leading dash/bullet incl. U+2010 non-breaking hyphen
-      .replace(/\s+/g, ' ');
-  }
-
-  function findPDFScoresForDatapunt(datapuntId, studentDatapunten) {
-    var norm = normDatapunt(datapuntId);
-    for (var i = 0; i < studentDatapunten.length; i++) {
-      var dpNorm = normDatapunt(studentDatapunten[i].datapunt);
-      if (dpNorm === norm || dpNorm.startsWith(norm + ' ') || dpNorm.startsWith(norm + ':')) {
-        return studentDatapunten[i].scores || {};
-      }
-    }
-    return null;
-  }
-
-  // Debug helper: call window.debugMerge(leerlingId) in the console to diagnose merge issues
-  window.debugMerge = function(leerlingId) {
-    var allStudents = window.appState.students;
-    if (!leerlingId) { leerlingId = allStudents[0] && allStudents[0].leerlingId; }
-    var allRecords = window.getAllRecordsForStudent(leerlingId);
-    if (!allRecords.length) { console.log('Geen records voor', leerlingId); return; }
-    allRecords.sort(function(a,b){ return (b.periode||'').localeCompare(a.periode||''); });
-    var student = allRecords[0];
-    var datapunten = student.datapunten || [];
-
-    // Apply same filters as D2 merge: RSD + year
-    var tp = (getActiveToetsplan() || []).filter(function(t) {
-      var fields = [t.datapunt, t.beoordelaar, t.omschrijving, t.fase, t.opmerking].join(' ').toLowerCase();
-      return fields.indexOf('rsd') === -1 && fields.indexOf('roosendaal') === -1;
-    });
-    var fases = filterFasesForStudent(tp.reduce(function(acc, t) {
-      if (acc.indexOf(t.fase) === -1) acc.push(t.fase); return acc;
-    }, []), student);
-    var tpFiltered = fases.length > 0 ? tp.filter(function(t) { return fases.indexOf(t.fase) !== -1; }) : tp;
-
-    console.group('🔍 Merge diagnose — ' + (student.naam || leerlingId));
-    console.log('Jaar:', fases.length ? fases.join(', ') : '(geen filter)');
-    console.log('\nPDF datapunten (' + datapunten.length + '):');
-    datapunten.forEach(function(dp) {
-      console.log('  "' + normDatapunt(dp.datapunt) + '"');
-    });
-    console.log('\nToetsplan datapunten na filter (' + tpFiltered.length + '):');
-    tpFiltered.forEach(function(t) {
-      console.log('  "' + normDatapunt(t.datapunt) + '"  [' + t.fase + ']');
-    });
-    // Same tokenSet + tokenSubsetMatch logic as findStudentDp in buildDetailDeelgebieden
-    function dbgTokenSet(s) {
-      return s.replace(/\bp(\d)/g, '$1').split(/\s+/).filter(Boolean).sort();
-    }
-    function dbgTokenSubset(a, b) {
-      var ta = dbgTokenSet(a), tb = dbgTokenSet(b);
-      var shorter = ta.length <= tb.length ? ta : tb;
-      var longer  = ta.length <= tb.length ? tb : ta;
-      if (shorter.length < 2) return false;
-      return shorter.every(function(t) { return longer.indexOf(t) !== -1; });
-    }
-    function dbgFind(dpNorm, tpArr) {
-      var fallback = null;
-      for (var i = 0; i < tpArr.length; i++) {
-        var tNorm = normDatapunt(tpArr[i].datapunt);
-        if (dpNorm === tNorm
-          || dpNorm.indexOf(tNorm + ' ') === 0 || dpNorm.indexOf(tNorm + ':') === 0
-          || tNorm.indexOf(dpNorm + ' ') === 0 || tNorm.indexOf(dpNorm + ':') === 0
-          || tNorm.indexOf(dpNorm) === 0) return tpArr[i];
-        if (!fallback && dbgTokenSubset(dpNorm, tNorm)) fallback = tpArr[i];
-      }
-      return fallback;
-    }
-
-    console.log('\nMatch resultaat (volledig — zelfde logica als D2 tabel):');
-    datapunten.forEach(function(dp) {
-      var dpNorm = normDatapunt(dp.datapunt);
-      var match = dbgFind(dpNorm, tpFiltered);
-      console.log('  "' + dpNorm + '" →', match ? '✅ "' + normDatapunt(match.datapunt) + '" [' + match.fase + ']' : '❌ geen match in gefilterd toetsplan');
-    });
-    console.groupEnd();
-  };
-
-  // Legacy alias
-  window.debugToetsplanKoppeling = window.debugMerge;
-
-  function getActiveToetsplan() {
-    if (!window.klassenState.activeKlasId) return null;
-    var klas = window.klassenState.klassen[window.klassenState.activeKlasId];
-    return (klas && klas.toetsplan && klas.toetsplan.length > 0) ? klas.toetsplan : null;
-  }
-
-  // Detect a student's school-year prefix.
-  // Returns lowercase prefix like 'bj1', 'bj2', 'pj', 'exj', or null (= show all).
-  function detectJaarPrefix(student) {
-    var p = String(student.periode  || '').toLowerCase();
-    var l = String(student.leerjaar || '').trim();
-
-    // BJ1 — all known variants
-    var bj1 = ['bj1', 'basisjaar 1', 'basisjaar1', '1e jaar', 'jaar 1', 'leerjaar 1', 'bj 1', 'klas 1'];
-    for (var i = 0; i < bj1.length; i++) { if (p.indexOf(bj1[i]) !== -1) return 'bj1'; }
-
-    // BJ2 — all known variants
-    var bj2 = ['bj2', 'basisjaar 2', 'basisjaar2', '2e jaar', 'jaar 2', 'leerjaar 2', 'bj 2', 'klas 2'];
-    for (var j = 0; j < bj2.length; j++) { if (p.indexOf(bj2[j]) !== -1) return 'bj2'; }
-
-    if (p.indexOf('exj') !== -1 || p.indexOf('ex-j') !== -1 || p.indexOf('examenjaar') !== -1) return 'exj';
-    if (p.indexOf('pj') !== -1 || p.indexOf('praktijkjaar') !== -1) return 'pj';
-
-    // Leerjaar field fallback
-    if (l === '1') return 'bj1';
-    if (l === '2') return 'bj2';
-
-    return null;
-  }
-
-  // Filter toetsplan fases to only those matching the student's school year.
-  // Tab names follow the pattern "BJ1 F1", "BJ1 F2", "BJ2 F2 vervolg", "BJ2 Fase 3 start".
-  // Klas-level schooljaar setting takes precedence over per-student auto-detection.
-  function filterFasesForStudent(faseOrder, student) {
-    var activeKlas = getActiveKlas();
-    var jaar = (activeKlas && activeKlas.schooljaar) ? activeKlas.schooljaar : detectJaarPrefix(student);
-    if (!jaar) return faseOrder; // unknown year — show all
-    // Match only fases that START with the year prefix so "bj1" never matches "bj2 ..." tabs
-    var prefix = jaar.toLowerCase();
-    return faseOrder.filter(function(fase) {
-      var f = fase.toLowerCase().trim();
-      return f === prefix || f.indexOf(prefix + ' ') === 0 || f.indexOf(prefix + '_') === 0;
-    });
-  }
-
-  function buildDetailTijdlijn(student) {
-    var toetsplan = getActiveToetsplan();
-    if (!toetsplan) return ''; // hidden when no toetsplan
-
-    // Aggregate best deelgebied score across all PDF imports for this student
-    // Key: dg.id → best score string (e.g. "voldoende")
-    var allRecords = window.getAllRecordsForStudent(student.leerlingId);
-    var dgBestScore = {};  // { dgId: scoreString }
-    allRecords.forEach(function(rec) {
-      var recScores = rec.deelgebiedScores || {};
-      window.DEELGEBIEDEN.forEach(function(dg) {
-        var score = recScores[dg.label] || null;
-        if (!score) return;
-        var rank = window.SCORE_LEVELS.indexOf(score);
-        var curRank = dgBestScore[dg.id] ? window.SCORE_LEVELS.indexOf(dgBestScore[dg.id]) : -1;
-        if (rank > curRank) dgBestScore[dg.id] = score;
-      });
-    });
-    var hasAnyPDFData = Object.keys(dgBestScore).length > 0;
-
-    var GROEPEN = [
-      { key: 'lesgeven',      label: 'Lesgeven',      color: '#1e40af' },
-      { key: 'organiseren',   label: 'Organiseren',   color: '#166534' },
-      { key: 'prof_handelen', label: 'Prof. handelen', color: '#6b21a8' },
-    ];
-
-    // Group toetsplan datapunten by fase, then filter to student's school year
-    var faseOrder = [];
-    var faseMap = {};
-    toetsplan.forEach(function(dp) {
-      if (!faseMap[dp.fase]) { faseMap[dp.fase] = []; faseOrder.push(dp.fase); }
-      faseMap[dp.fase].push(dp);
-    });
-    faseOrder = filterFasesForStudent(faseOrder, student);
-    if (faseOrder.length === 0) return ''; // no matching fases for this student's year
-
-    var LABEL_W   = 160;
-    var BAR_H     = 24;
-    var ROW_GAP   = 10;
-    var GROUP_GAP = 24;
-    var BAR_R     = 6;
-    var NM_W      = 52;
-    var barAreaW  = 400;
-    var svgW      = LABEL_W + barAreaW + NM_W;
-
-    var parts = [];
-    var totalHeight = 0;
-
-    GROEPEN.forEach(function(grp) {
-      var dgIds = window.DEELGEBIEDEN.filter(function(d) { return d.group === grp.key; });
-      var dgTotal = dgIds.length;
-
-      // Group title row
-      parts.push('<text x="0" y="' + (totalHeight + 14) + '" font-size="13" font-weight="700" fill="' + grp.color + '">' + escapeHtml(grp.label) + ' (' + dgTotal + ')</text>');
-      totalHeight += 22;
-
-      faseOrder.forEach(function(fase) {
-        var dpInFase = faseMap[fase];
-        // Count deelgebieden in this fase that this student has scored >= voldoende
-        // A deelgebied "counts" if it appears in at least one datapunt in this fase
-        var faseDeelgebieden = {};
-        dpInFase.forEach(function(dp) {
-          dp.deelgebieden.forEach(function(dgId) { faseDeelgebieden[dgId] = true; });
-        });
-        var faseDGIds = dgIds.filter(function(dg) { return faseDeelgebieden[dg.id]; });
-        var faseDGTotal = faseDGIds.length;
-        var countV = 0;
-        faseDGIds.forEach(function(dg) {
-          var score = dgBestScore[dg.id];
-          if (score && window.SCORE_LEVELS.indexOf(score) >= 1) countV++;
-        });
-        // Fall back to all DGs in group if fase has no deelgebied data
-        if (faseDGTotal === 0) { faseDGTotal = dgTotal; }
-
-        var y = totalHeight;
-        // Phase label (truncate long names)
-        var faseLabel = fase.length > 18 ? fase.slice(0, 16) + '\u2026' : fase;
-        parts.push('<text x="' + (LABEL_W - 8) + '" y="' + (y + BAR_H - 6) + '" font-size="12" fill="#374151" text-anchor="end">' + escapeHtml(faseLabel) + '</text>');
-
-        // Bar track
-        parts.push('<rect x="' + LABEL_W + '" y="' + y + '" width="' + barAreaW + '" height="' + BAR_H + '" rx="' + BAR_R + '" fill="#e5e7eb"/>');
-
-        // Bar fill (proportional to faseDGTotal)
-        if (faseDGTotal > 0 && countV > 0) {
-          var fillW = Math.round((countV / faseDGTotal) * barAreaW);
-          parts.push('<rect x="' + LABEL_W + '" y="' + y + '" width="' + fillW + '" height="' + BAR_H + '" rx="' + BAR_R + '" fill="#22c55e">'
-            + '<title>' + escapeHtml(fase) + ': ' + countV + '/' + faseDGTotal + ' \u2265 Voldoende</title></rect>');
-          if (fillW > 40) {
-            var pct = Math.round((countV / faseDGTotal) * 100);
-            parts.push('<text x="' + (LABEL_W + fillW / 2) + '" y="' + (y + BAR_H - 6) + '" font-size="11" fill="#fff" text-anchor="middle" font-weight="600">' + pct + '%</text>');
-          }
-        }
-
-        // N/M label to the right
-        var labelX = LABEL_W + barAreaW + 6;
-        parts.push('<text x="' + labelX + '" y="' + (y + BAR_H - 6) + '" font-size="12" fill="#6b7280">' + countV + '/' + faseDGTotal + '</text>');
-
-        totalHeight += BAR_H + ROW_GAP;
-      });
-
-      totalHeight += GROUP_GAP - ROW_GAP;
-    });
-
-    var noScoreMsg = !hasAnyPDFData
-      ? '<p style="color:#9ca3af;font-size:0.85rem;margin-top:0.5rem;">Nog geen PDF\'s ge\u00efmporteerd voor deze leerling. Scores worden getoond na import.</p>'
-      : '';
-
-    return '<div class="detail-section">'
-      + '<div class="detail-section-title">Leerlijnontwikkeling</div>'
-      + '<div style="overflow-x:auto;">'
-      + '<svg viewBox="0 0 ' + svgW + ' ' + totalHeight + '" width="100%" height="' + totalHeight + '" style="display:block;min-width:300px;max-width:700px;">'
-      + parts.join('')
-      + '</svg>'
-      + '</div>'
-      + noScoreMsg
-      + '</div>';
-  }
-
   function buildDetailSpiderweb(student) {
     if (!window.SpiderChart || typeof window.SpiderChart.buildSpiderSVG !== 'function') {
       if (!buildDetailSpiderweb._warned) {
@@ -1982,8 +1575,6 @@ document.addEventListener('DOMContentLoaded', () => {
       + buildDetailPrognose(status, p, student)
       + buildDetailAanvullend(student)
       + buildDetailStage(student)
-      + buildDetailTijdlijn(student)
-      + buildDetailDeelgebiedenTijdlijn(student, getActiveToetsplan() || [])
       + buildDetailFeedback(student)
       + buildDetailLeerlijnen(p)
       + buildDetailSpiderweb(student)
@@ -2143,128 +1734,18 @@ document.addEventListener('DOMContentLoaded', () => {
       groepDG[g.key].map(dg => `<th>${escapeHtml(dg.label)}</th>`)
     ).join('');
 
-    // --- Phase 11 D2: Merge toetsplan + PDF datapunten, sort chronologically ---
-    var toetsplan = (getActiveToetsplan() || []).filter(function(tp) {
-      // Exclude Roosendaal/RSD entries — check all text fields
-      var fields = [tp.datapunt, tp.beoordelaar, tp.omschrijving, tp.fase, tp.opmerking].join(' ').toLowerCase();
-      return fields.indexOf('rsd') === -1 && fields.indexOf('roosendaal') === -1;
-    });
-
-    // Filter toetsplan to student's school year (BJ1/BJ2/PJ/ExJ)
-    var studentFasesD2 = filterFasesForStudent(
-      toetsplan.reduce(function(acc, tp) {
-        if (acc.indexOf(tp.fase) === -1) acc.push(tp.fase); return acc;
-      }, []),
-      student
-    );
-    var toetsplanFiltered = studentFasesD2.length > 0
-      ? toetsplan.filter(function(tp) { return studentFasesD2.indexOf(tp.fase) !== -1; })
-      : toetsplan;
-
-    // Build deadline map: normKey → earliest deadline (filtered)
-    var deadlineMap = {};
-    toetsplanFiltered.forEach(function(tp) {
-      var key = normDatapunt(tp.datapunt);
-      if (!deadlineMap[key]) deadlineMap[key] = tp.deadline;
-    });
-
-    // Build student scores map: normKey → student dp object (exact key)
-    var studentDpMap = {};
-    datapunten.forEach(function(dp) {
-      studentDpMap[normDatapunt(dp.datapunt)] = dp;
-    });
-
-    // Normalise a key for token-set matching:
-    // • strip "p" prefix from number tokens (p1→1, p2→2)
-    // • split on whitespace, sort tokens, return array
-    function tokenSet(s) {
-      return s.replace(/\bp(\d)/g, '$1')
-              .split(/\s+/).filter(Boolean).sort();
-    }
-
-    // Token-subset match: all tokens of the shorter string appear in the longer.
-    // Requires ≥2 tokens in the shorter set to avoid trivial single-word false positives.
-    function tokenSubsetMatch(a, b) {
-      var ta = tokenSet(a), tb = tokenSet(b);
-      var shorter = ta.length <= tb.length ? ta : tb;
-      var longer  = ta.length <= tb.length ? tb : ta;
-      if (shorter.length < 2) return false;
-      return shorter.every(function(t) { return longer.indexOf(t) !== -1; });
-    }
-
-    // Lenient bidirectional lookup:
-    // 1. Exact key
-    // 2. Prefix match (either direction, with space/:)
-    // 3. Token-subset match (handles number-position swaps, "p1"→"1", extra subtitle words)
-    function findStudentDp(tpKey) {
-      if (studentDpMap[tpKey]) return studentDpMap[tpKey];
-      var tokenFallback = null;
-      for (var k in studentDpMap) {
-        if (k === tpKey
-          || k.indexOf(tpKey + ' ') === 0 || k.indexOf(tpKey + ':') === 0
-          || tpKey.indexOf(k + ' ') === 0 || tpKey.indexOf(k + ':') === 0
-          || tpKey.indexOf(k) === 0
-        ) {
-          return studentDpMap[k];          // prefix match wins immediately
-        }
-        if (!tokenFallback && tokenSubsetMatch(k, tpKey)) {
-          tokenFallback = studentDpMap[k]; // remember first token match, keep looking for prefix
-        }
-      }
-      return tokenFallback;
-    }
-
-    // Build merged rows: walk filtered toetsplan in deadline order, dedupe by normKey
-    var seenKeys = {};
-    var mergedRows = [];
-    // Sort toetsplan entries by deadline first so we process earliest per datapunt first
-    var sortedTp = toetsplanFiltered.slice().sort(function(a, b) {
-      if (a.deadline < b.deadline) return -1;
-      if (a.deadline > b.deadline) return 1;
-      return 0;
-    });
-    sortedTp.forEach(function(tp) {
-      var key = normDatapunt(tp.datapunt);
-      if (seenKeys[key]) return;
-      seenKeys[key] = true;
-      var studentDp = findStudentDp(key);
-      // Also mark the student dp key as seen to prevent it appearing again at bottom
-      if (studentDp) seenKeys[normDatapunt(studentDp.datapunt)] = true;
-      mergedRows.push({
-        datapunt: tp.datapunt,
-        vak: studentDp ? studentDp.vak : null,
-        scores: studentDp ? (studentDp.scores || {}) : {},
-        deadline: tp.deadline,
-        fromToetsplan: true,
-      });
-    });
-
-    // Append student datapunten not in toetsplan (unmatched PDF rows)
-    datapunten.forEach(function(dp) {
-      var key = normDatapunt(dp.datapunt);
-      if (!seenKeys[key]) {
-        mergedRows.push({
-          datapunt: dp.datapunt,
-          vak: dp.vak,
-          scores: dp.scores || {},
-          deadline: null,
-          fromToetsplan: false,
-        });
-      }
-    });
-
-    const dataRows = mergedRows.length === 0
-      ? `<tr><td class="cell-naam" colspan="${allDG.length + 2}" style="color:#9ca3af;padding:0.75rem 1rem;font-size:0.85rem;">Geen datapunten gevonden</td></tr>`
-      : mergedRows.map(dp => {
+    // Render datapunten in original PDF order (no toetsplan merge, no deadline sorting)
+    const dataRows = datapunten.length === 0
+      ? `<tr><td class="cell-naam" colspan="${allDG.length + 1}" style="color:#9ca3af;padding:0.75rem 1rem;font-size:0.85rem;">Geen datapunten gevonden</td></tr>`
+      : datapunten.map(dp => {
           const cells = GROEPEN.flatMap(g =>
             groepDG[g.key].map(dg => `<td>${dmChip(dp.scores[dg.label] || null)}</td>`)
           ).join('');
-          const deadlineCell = `<td style="font-size:0.78rem;color:#6b7280;white-space:nowrap;padding:0.25rem 0.5rem;">${dp.deadline ? escapeHtml(dp.deadline) : '—'}</td>`;
           return `<tr>
             <td class="cell-naam">
               ${dp.vak ? `<span class="cell-vak">${escapeHtml(dp.vak)}</span>` : ''}
               <span class="cell-dp">${escapeHtml(dp.datapunt)}</span>
-            </td>${deadlineCell}${cells}
+            </td>${cells}
           </tr>`;
         }).join('');
 
@@ -2295,8 +1776,8 @@ document.addEventListener('DOMContentLoaded', () => {
       ).join('');
 
       tfootHTML = '<tfoot>'
-        + '<tr><td class="cell-naam"><strong>' + escapeHtml(oldest.periode || 'Periode 1') + '</strong></td><td></td>' + fase1Cells + '</tr>'
-        + '<tr><td class="cell-naam"><strong>' + escapeHtml(newest.periode || 'Periode 2') + '</strong></td><td></td>' + fase2Cells + '</tr>'
+        + '<tr><td class="cell-naam"><strong>' + escapeHtml(oldest.periode || 'Periode 1') + '</strong></td>' + fase1Cells + '</tr>'
+        + '<tr><td class="cell-naam"><strong>' + escapeHtml(newest.periode || 'Periode 2') + '</strong></td>' + fase2Cells + '</tr>'
         + '</tfoot>';
     } else {
       // Single period — Phase 13 D-02: vote-count badges above dm-chip
@@ -2310,7 +1791,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
       ).join('');
       tfootHTML = '<tfoot>'
-        + '<tr><td class="cell-naam"><strong>Eindoordeel</strong></td><td></td>' + footerCells + '</tr>'
+        + '<tr><td class="cell-naam"><strong>Eindoordeel</strong></td>' + footerCells + '</tr>'
         + '</tfoot>';
     }
 
@@ -2319,7 +1800,7 @@ document.addEventListener('DOMContentLoaded', () => {
       + '<div class="dg-matrix-wrap">'
       + '<table class="dg-matrix">'
       + '<thead>'
-      + '<tr><th class="col-naam" rowspan="2">Datapunt</th><th rowspan="2" style="font-size:0.78rem;color:#6b7280;white-space:nowrap;padding:0.25rem 0.5rem;">Deadline</th>' + groepCols + '</tr>'
+      + '<tr><th class="col-naam" rowspan="2">Datapunt</th>' + groepCols + '</tr>'
       + '<tr>' + dgCols + '</tr>'
       + '</thead>'
       + '<tbody>' + dataRows + '</tbody>'
@@ -2327,124 +1808,6 @@ document.addEventListener('DOMContentLoaded', () => {
       + '</table>'
       + '</div>'
       + '</div>';
-  }
-
-  // Phase 05-03: deelgebied matrix with chronological datapunt columns + score dots
-  function buildDetailDeelgebiedenTijdlijn(student, toetsplan) {
-    var allDG = window.DEELGEBIEDEN;
-    var GROEPEN = [
-      { key: 'lesgeven',      label: 'Lesgeven',      cls: 'groep-lesgeven',     color: '#1e40af' },
-      { key: 'organiseren',   label: 'Organiseren',   cls: 'groep-organiseren',  color: '#166534' },
-      { key: 'prof_handelen', label: 'Prof. handelen', cls: 'groep-profhandelen', color: '#6b21a8' },
-    ];
-
-    // Columns = PDF import periods, sorted oldest → newest
-    var allRecords = window.getAllRecordsForStudent(student.leerlingId);
-    if (allRecords.length === 0) return '';
-
-    // De-duplicate by periode (keep latest record per periode)
-    var periodeMap = {};
-    allRecords.forEach(function(rec) {
-      var p = rec.periode || 'Onbekend';
-      periodeMap[p] = rec; // later imports overwrite earlier ones
-    });
-    // --- Phase 11 D3: Sort periodes by earliest toetsplan deadline (chronological) ---
-    function normPeriode(p) {
-      return p.replace(/\s+DD\s*$/i, '').trim();
-    }
-    var faseMinDeadline = {};
-    toetsplan.forEach(function(tp) {
-      var faseKey = tp.fase.trim();
-      if (!faseMinDeadline[faseKey] || tp.deadline < faseMinDeadline[faseKey]) {
-        faseMinDeadline[faseKey] = tp.deadline;
-      }
-    });
-    var periodes = Object.keys(periodeMap).sort(function(a, b) {
-      var da = faseMinDeadline[normPeriode(a)] || null;
-      var db = faseMinDeadline[normPeriode(b)] || null;
-      if (da && db) return da < db ? -1 : da > db ? 1 : 0;
-      if (da) return -1;
-      if (db) return 1;
-      return 0;
-    });
-    var colCount = periodes.length;
-
-    // Determine which deelgebieden the toetsplan uses for this student's year
-    var studentFases = filterFasesForStudent(
-      toetsplan.reduce(function(acc, dp) {
-        if (acc.indexOf(dp.fase) === -1) acc.push(dp.fase); return acc;
-      }, []),
-      student
-    );
-    var toetsplanDGs = {};
-    toetsplan.forEach(function(dp) {
-      if (studentFases.length === 0 || studentFases.indexOf(dp.fase) !== -1) {
-        dp.deelgebieden.forEach(function(id) { toetsplanDGs[id] = true; });
-      }
-    });
-    var hasToetsplanFilter = Object.keys(toetsplanDGs).length > 0;
-
-    var CHIP = {
-      onvoldoende: { bg: '#fee2e2', color: '#991b1b', label: 'O' },
-      voldoende:   { bg: '#d1fae5', color: '#065f46', label: 'V' },
-      goed:        { bg: '#dbeafe', color: '#1e40af', label: 'G' },
-      excellent:   { bg: '#ede9fe', color: '#5b21b6', label: 'E' },
-    };
-
-    // Column headers
-    var colHeaders = '<th class="cell-naam" style="min-width:56px;"></th>'
-      + periodes.map(function(p) {
-          var label = p.length > 16 ? p.slice(0, 14) + '\u2026' : p;
-          return '<th style="text-align:center;font-size:11px;font-weight:600;color:#374151;'
-            + 'padding:6px 4px;min-width:52px;border-bottom:2px solid #e5e7eb;">'
-            + escapeHtml(label) + '</th>';
-        }).join('');
-
-    var html = '<div class="detail-section">'
-      + '<div class="detail-section-title">Scores per deelgebied per periode</div>'
-      + '<div style="overflow-x:auto;">'
-      + '<table style="border-collapse:collapse;width:100%;font-size:13px;">'
-      + '<thead><tr>' + colHeaders + '</tr></thead><tbody>';
-
-    GROEPEN.forEach(function(grp) {
-      var dgIds = allDG.filter(function(d) {
-        if (!hasToetsplanFilter) return d.group === grp.key;
-        return d.group === grp.key && toetsplanDGs[d.id];
-      });
-      if (dgIds.length === 0) return;
-
-      // Group header
-      html += '<tr><td colspan="' + (colCount + 1) + '" style="padding:6px 8px 2px;'
-        + 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;'
-        + 'color:' + grp.color + ';border-top:1px solid #e5e7eb;">'
-        + escapeHtml(grp.label) + '</td></tr>';
-
-      dgIds.forEach(function(dg) {
-        html += '<tr>';
-        html += '<td style="padding:3px 8px;font-size:13px;color:#374151;white-space:nowrap;'
-          + 'border-right:1px solid #e5e7eb;">' + escapeHtml(dg.label) + '</td>';
-
-        periodes.forEach(function(p) {
-          var rec = periodeMap[p];
-          var scores = rec.deelgebiedScores || {};
-          var score = scores[dg.label] || null;
-          if (score && CHIP[score]) {
-            var c = CHIP[score];
-            html += '<td style="text-align:center;padding:3px 4px;">'
-              + '<span style="display:inline-block;padding:1px 7px;border-radius:999px;'
-              + 'background:' + c.bg + ';color:' + c.color + ';font-weight:700;font-size:12px;">'
-              + c.label + '</span></td>';
-          } else {
-            html += '<td style="text-align:center;padding:3px 4px;color:#d1d5db;font-size:11px;">&mdash;</td>';
-          }
-        });
-
-        html += '</tr>';
-      });
-    });
-
-    html += '</tbody></table></div></div>';
-    return html;
   }
 
   // ── Feedback per deelgebied + Mentor actiepunten (Phase 13 Plan 02 — FEED-01/02/03) ────────────
@@ -2507,77 +1870,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function buildDetailFeedback(student) {
-    var toetsplan  = getActiveToetsplan();
     var leerlingId = student.leerlingId;
 
-    // ── Sub-section A: feedback per deelgebied ────────────────────────────
-    var feedbackHtml = '';
-
-    if (!toetsplan || toetsplan.length === 0) {
-      feedbackHtml = '<p style="font-size:0.875rem;color:#9ca3af;">Import eerst een toetsplan om feedback per deelgebied te koppelen.</p>';
-    } else {
-      // Build feedbackMap: { deelgebiedId: [{datapunt, deadline, feedForward}] }
-      var feedbackMap = {};
-      window.DEELGEBIEDEN.forEach(function(dg) { feedbackMap[dg.id] = []; });
-
-      toetsplan.forEach(function(tp) {
-        var normTP = normDatapunt(tp.datapunt);
-        var ff = '';
-        (student.vakken || []).forEach(function(vak) {
-          (vak.opdrachten || []).forEach(function(op) {
-            if (normDatapunt(op.naam) === normTP) {
-              ff = op.feedForward || '';
-            }
-          });
-        });
-        (tp.deelgebieden || []).forEach(function(dgId) {
-          if (feedbackMap[dgId]) {
-            feedbackMap[dgId].push({
-              datapunt: tp.datapunt,
-              deadline: tp.deadline || '',
-              feedForward: ff
-            });
-          }
-        });
-      });
-
-      // Sort each deelgebied's entries by deadline
-      Object.keys(feedbackMap).forEach(function(dgId) {
-        feedbackMap[dgId].sort(function(a, b) {
-          return (a.deadline || '').localeCompare(b.deadline || '');
-        });
-      });
-
-      // Render feedback per deelgebied
-      window.DEELGEBIEDEN.forEach(function(dg) {
-        var items = feedbackMap[dg.id];
-        feedbackHtml += '<div style="margin-bottom:1rem;">';
-        feedbackHtml += '<div style="font-size:0.875rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">' + escapeHtml(dg.label) + '</div>';
-        if (items.length === 0) {
-          feedbackHtml += '<span style="color:#9ca3af;font-size:0.875rem;">\u2014 geen feedback beschikbaar</span>';
-        } else {
-          items.forEach(function(item) {
-            var dpText = escapeHtml(item.datapunt);
-            var dlText = item.deadline ? escapeHtml(item.deadline) : '';
-            var ffText = item.feedForward
-              ? '<span style="font-style:italic;font-size:0.78rem;color:#374151;">' + escapeHtml(item.feedForward) + '</span>'
-              : '<span style="color:#9ca3af;">\u2014</span>';
-            feedbackHtml += '<div style="font-size:0.875rem;margin-bottom:0.25rem;padding-left:0.5rem;">'
-              + dpText + (dlText ? ' <span style="color:#6b7280;">' + dlText + '</span>' : '')
-              + ' \u2014 ' + ffText
-              + '</div>';
-          });
-        }
-        feedbackHtml += '</div>';
-      });
-    }
-
-    // ── Sub-section B: mentor actiepunten ─────────────────────────────────
+    // ── Mentor actiepunten ─────────────────────────────────────────────────
     var apListHtml = renderActiepuntenListHtml(leerlingId);
 
-    var body = '<div class="ap-subsection-title">Feedback per deelgebied</div>'
-      + feedbackHtml
-      + '<div class="ap-subsection-title">Mentor actiepunten</div>'
+    var body = '<div class="ap-subsection-title">Mentor actiepunten</div>'
       + '<div class="actiepunten-list" id="ap-list-' + escapeHtml(leerlingId) + '">'
       + apListHtml
       + '</div>'
@@ -3003,7 +2301,6 @@ document.addEventListener('DOMContentLoaded', () => {
       renderLeerlijntoewijzing();
     }
     showView(window.appState.students.length > 0 ? 'klas' : 'import');
-    renderToetsplanZone(); // Phase 5: reflect toetsplan state for active klas
   } else {
     showEmptyKlassenState();
   }
