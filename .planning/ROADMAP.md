@@ -22,7 +22,7 @@
 
 - [x] **Phase 6: Multi-class UI** — Mentor beheert meerdere klassen als tabbladen met geïsoleerde data en persistentie
 - [x] **Phase 7: Periode Vergelijking** — Detailweergave toont fase 1 en fase 2 naast elkaar met visuele groei-indicatie
-- [ ] **Phase 8: Revert toetsplan changes** — TBD
+- [ ] **Phase 8: Revert toetsplan changes** — Verwijder alle Phase 11 toetsplan-code; herstel post-Phase-7 staat
 
 ## Progress
 
@@ -35,7 +35,7 @@
 | 5. Detailweergave | — | Complete | 2008-03-25 |
 | 6. Multi-class UI | 3/3 | Complete | 2008-03-26 |
 | 7. Periode Vergelijking | 2/2 | Complete | 2008-04-06 |
-| 8. Revert toetsplan changes | — | Planned | — |
+| 8. Revert toetsplan changes | 0/1 | Planned | — |
 
 ## Phase Details
 
@@ -70,13 +70,12 @@ Plans:
 - [x] 07-02-PLAN.md — Detail view: two-row tfoot comparison with growth badges
 
 ### Phase 8: Revert toetsplan changes
-**Goal:** TBD
+**Goal:** Verwijder alle Phase 11 toetsplan-gerelateerde code uit app.js en index.html — herstel de exacte post-Phase-7 staat zonder toetsplan-import UI, merge logic, deadline-kolom of debug helpers
 **Depends on:** Phase 7
-**Requirements:** TBD
-**Plans:** 0 plans
-
+**Requirements:** D-01, D-02, D-03, D-04, D-05
+**Plans:** 1 plan
 Plans:
-- [ ] TBD
+- [ ] 08-01-PLAN.md — Remove all Phase 11 toetsplan code from app.js and index.html
 
 ## Backlog
 
