@@ -66,3 +66,14 @@ Plans:
 Plans:
 - [x] 07-01-PLAN.md — Data layer: compound dedup key, getActiveStudents dedup, consumer fixes
 - [x] 07-02-PLAN.md — Detail view: two-row tfoot comparison with growth badges
+
+## Backlog
+
+### Phase 999.1: Dashboard UI tegels aanpassen — aanwezigheidspercentage icm ongeoorloofd afwezig + statusbalk (BACKLOG)
+
+**Goal:** [Captured for future planning]
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
