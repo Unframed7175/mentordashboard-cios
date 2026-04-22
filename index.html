@@ -195,23 +195,6 @@
       border-color: var(--accent-blue);
       background: var(--accent-blue-light);
     }
-    .toetsplan-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: var(--accent-blue-light);
-      color: var(--status-blauw-text);
-      border: 1px solid var(--accent-blue-border);
-      margin-left: 0.5rem;
-    }
-    .toetsplan-status { margin-top: 0.75rem; font-size: 0.9rem; }
-    .toetsplan-status-success { color: var(--status-groen-text); background: var(--status-groen-bg); padding: 0.5rem 1rem; border-radius: 8px; }
-    .toetsplan-status-error { border-left: 3px solid #f59e0b; padding: 0.5rem 1rem; background: #fffbeb; border-radius: 0 8px 8px 0; }
-    body.dark .toetsplan-status-error { background: #431407; border-left-color: #fb923c; color: #fed7aa; }
     .btn-danger-sm { background: var(--status-rood-bg); color: var(--status-rood-text); border: 1px solid #fecaca; padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
     .btn-danger-sm:hover { background: #fecaca; }
     .btn-ghost-sm { background: transparent; border: 1px solid var(--border-default); color: var(--text-secondary); padding: 0.5rem 1.25rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
@@ -1192,20 +1175,6 @@
           <p id="excel-result-text" style="font-size:0.9rem;color:var(--text-secondary);"></p>
           <ul id="excel-unmatched-list" class="error-list" style="margin-top:0.5rem;"></ul>
         </div>
-      </div>
-
-      <!-- Toetsplan import (Phase 5 — FASE-01) -->
-      <div id="toetsplan-import-section" style="margin-top:2rem;">
-        <h2 style="font-size:1.25rem;font-weight:600;margin-bottom:0.75rem;">Toetsplan importeren</h2>
-        <div id="toetsplan-zone" class="import-zone-secondary">
-          <span class="drop-icon" style="font-size:2.5rem;display:block;margin-bottom:0.75rem;">&#128203;</span>
-          <p class="drop-text" style="color:#4b5563;font-size:1rem;margin-bottom:1rem;">Sleep het Excel-toetsplan hierheen</p>
-          <p class="drop-hint" style="color:#9ca3af;font-size:0.85rem;margin-top:0.5rem;">.xlsx &#8212; &#233;&#233;n bestand, meerdere tabbladen per fase</p>
-          <button class="btn-ghost-sm" id="toetsplan-choose-btn" type="button">Kies Excel-bestand</button>
-          <input type="file" id="toetsplan-input" accept=".xlsx,.xls" style="display:none;">
-        </div>
-        <div id="toetsplan-status" class="toetsplan-status" style="display:none;"></div>
-        <div id="klas-schooljaar-section" style="display:none;margin-top:1rem;padding:0.75rem 1rem;background:var(--bg-surface-alt);border:1px solid var(--border-default);border-radius:8px;"></div>
       </div>
 
       <!-- Stage import (Phase 6 — STAGE-01) -->
