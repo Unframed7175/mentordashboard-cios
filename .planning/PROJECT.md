@@ -8,14 +8,14 @@ Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL die voortgang-PDFs p
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
-## Current Milestone: v1.1 Klasbeheer & Export
+## Milestone: v1.1 Klasbeheer & Export — COMPLETE (2026-04-23)
 
 **Goal:** Mentor kan meerdere klassen beheren, fase 1 vs fase 2 per leerling vergelijken, en een volledig PDF-dossier afdrukken voor het mentorgesprek.
 
-**Target features:**
-- Meerdere klassen als tabbladen (CSD2A / CSD2B) — eigen import, eigen data, schakelen zonder dataverlies
-- Periodes vergelijken in detailweergave — fase 1 + fase 2 naast elkaar, groei in V/G/E per deelgebied
-- Print-to-PDF via browser — CSS print stylesheet op detailweergave, geen extra library
+**Delivered:**
+- ✓ Meerdere klassen als tabbladen (CSD2A / CSD2B) — eigen import, eigen data, schakelen zonder dataverlies (Phase 6)
+- ✓ Periodes vergelijken in detailweergave — fase 1 + fase 2 naast elkaar, groei in V/G/E per deelgebied (Phase 7)
+- ✓ Phase 11 toetsplan code volledig verwijderd — codebase hersteld naar schone post-Phase-7 staat (Phase 8)
 
 ## Current State (v1.0 baseline)
 
@@ -36,11 +36,11 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ Detailweergave per leerling: volledige voortgang + verzuim + prognose op één scherm voor mentorgesprek — v1.0
 - ✓ Leerlijn-mapping: mentor kan deelgebieden toewijzen aan leerlijnen (lesgeven / organiseren / professioneel handelen) — v1.0
 
-### Active (v1.1 milestone)
+### Validated (v1.1 milestone — completed 2026-04-23)
 
-- [ ] Meerdere klassen beheren in één dashboard (tabbladen)
-- [ ] Vergelijking tussen periodes (fase 1 vs fase 2) in detailweergave
-- [ ] Print-to-PDF export voor mentorgesprekverslag
+- ✓ Meerdere klassen beheren in één dashboard (tabbladen) — Validated in Phase 6
+- ✓ Vergelijking tussen periodes (fase 1 vs fase 2) in detailweergave — Validated in Phase 7
+- ✓ Codebase hersteld naar schone staat (Phase 11 toetsplan code verwijderd) — Validated in Phase 8
 
 ### Future (v2+)
 
@@ -98,4 +98,4 @@ This document evolves at phase transitions and milestone boundaries.
 **After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
 
 ---
-*Last updated: 2026-03-25 — v1.1 Klasbeheer & Export milestone started*
+*Last updated: 2026-04-23 — v1.1 Klasbeheer & Export milestone complete (3/3 phases)*
