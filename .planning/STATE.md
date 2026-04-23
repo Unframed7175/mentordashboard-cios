@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Klasbeheer & Export
-status: unknown
-last_updated: "2026-04-22T09:48:57.747Z"
+status: Milestone complete
+last_updated: "2026-04-23T00:00:00.000Z"
 progress:
-  total_phases: 4
+  total_phases: 3
   completed_phases: 3
   total_plans: 6
   completed_plans: 6
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** Phase 07 — periode-vergelijking
+**Current focus:** v1.1 milestone complete — all phases (6, 7, 8) done
 
 ## Current Position
 
@@ -28,8 +28,8 @@ Plan: 08-01 complete — Phase 11 toetsplan code fully removed
 
 ## Performance Metrics
 
-v1.1 phases completed: 0/3
-v1.1 plans completed: 0/?
+v1.1 phases completed: 3/3
+v1.1 plans completed: 6/6
 
 ### v1.0 Historical (for reference)
 
@@ -102,3 +102,4 @@ v1.1 plans completed: 0/?
 - 2026-03-27: 07-02 Task 1 complete (commit 2925b80) — growth CSS + two-row tfoot + growth badges in detail view; paused at Task 2 human-verify checkpoint
 - 2026-04-06: Phase 07 complete — UAT approved; two-period comparison UI with growth badges verified in browser
 - 2026-04-22: Phase 08 plan 01 complete — all Phase 11 toetsplan code removed from app.js and index.html; D2 table back to PDF-order, no Deadline column
+- 2026-04-23: Phase 08 complete (UAT approved) — v1.1 milestone Klasbeheer & Export fully complete (3/3 phases)
