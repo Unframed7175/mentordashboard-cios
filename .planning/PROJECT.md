@@ -8,14 +8,14 @@ Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL die voortgang-PDFs p
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
-## Current Milestone: v1.2 Dashboard Redesign
+## Milestone: v1.2 Dashboard Redesign — COMPLETE (2026-04-24)
 
 **Goal:** Mentordashboard krijgt een visuele upgrade in de CIOS Zuidwest huisstijl — cyaan kleurpallet, verbeterde tegels met aanwezigheidspercentage, en een professionele algehele uitstraling.
 
-**Target features:**
-- Klasoverzicht-tegels tonen aanwezigheidspercentage (i.p.v. uren ongeoorloofd)
-- 3-delige verzuimbalk blijft behouden (aanwezig / geoorloofd / ongeoorloofd)
-- Algeheel design in CIOS huisstijl: cyaan `#00AEEF`, navy accent, wit achtergrond, bold sans-serif
+**Delivered:**
+- ✓ Klasoverzicht-tegels tonen aanwezigheidspercentage (i.p.v. uren ongeoorloofd) in neutraal grijs (Phase 9)
+- ✓ 3-delige verzuimbalk behouden (aanwezig / geoorloofd / ongeoorloofd) (Phase 9)
+- ✓ Algeheel design in CIOS huisstijl: cyaan `#00AEEF`, navy `#003057`, bold sans-serif op structurele elementen (Phase 9)
 
 ## Milestone: v1.1 Klasbeheer & Export — COMPLETE (2026-04-23)
 
@@ -51,10 +51,10 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ Vergelijking tussen periodes (fase 1 vs fase 2) in detailweergave — Validated in Phase 7
 - ✓ Codebase hersteld naar schone staat (Phase 11 toetsplan code verwijderd) — Validated in Phase 8
 
-### Active (v1.2 milestone)
+### Validated (v1.2 milestone — completed 2026-04-24)
 
-- [ ] Aanwezigheidspercentage in klasoverzicht-tegels (i.p.v. uren ongeoorloofd)
-- [ ] Algeheel UI redesign in CIOS Zuidwest huisstijl (cyaan, navy, bold sans-serif)
+- ✓ Aanwezigheidspercentage in klasoverzicht-tegels (i.p.v. uren ongeoorloofd) — Validated in Phase 9
+- ✓ Algeheel UI redesign in CIOS Zuidwest huisstijl (cyaan, navy, bold sans-serif) — Validated in Phase 9
 
 ### Future (v2+)
 
@@ -113,4 +113,4 @@ This document evolves at phase transitions and milestone boundaries.
 **After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
 
 ---
-*Last updated: 2026-04-23 — v1.2 Dashboard Redesign milestone started*
+*Last updated: 2026-04-24 — v1.2 Dashboard Redesign milestone complete (Phase 9)*
