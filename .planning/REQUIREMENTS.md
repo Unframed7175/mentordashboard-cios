@@ -73,9 +73,9 @@
 | CMP-02 | Phase 7 — Periode Vergelijking | Complete |
 | CMP-03 | Phase 7 — Periode Vergelijking | Complete |
 | CMP-04 | Phase 7 — Periode Vergelijking | Complete |
-| VRZ-01 | Phase 9 — TBD | Pending |
-| VRZ-02 | Phase 9 — TBD | Pending |
-| DES-01 | Phase 9 — TBD | Pending |
-| DES-02 | Phase 9 — TBD | Pending |
-| DES-03 | Phase 9 — TBD | Pending |
-| DES-04 | Phase 9 — TBD | Pending |
+| VRZ-01 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
+| VRZ-02 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
+| DES-01 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
+| DES-02 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
+| DES-03 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
+| DES-04 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
