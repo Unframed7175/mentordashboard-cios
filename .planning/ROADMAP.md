@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-03-25) · [archive](.planning/milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Klasbeheer & Export** — Phases 6–8 (shipped 2026-04-23)
-- **v1.2 Dashboard Redesign** — Phase 9 (in progress)
+- ✅ **v1.2 Dashboard Redesign** — Phase 9 (shipped 2026-04-24)
 
 ## Phases
 
@@ -30,7 +30,7 @@
 
 ### v1.2 Dashboard Redesign
 
-- [ ] **Phase 9: CIOS Huisstijl & Verzuim Weergave** — Klasoverzicht-tegels tonen aanwezigheidspercentage en het volledige dashboard krijgt de CIOS Zuidwest huisstijl (cyaan, navy, bold sans-serif)
+- [x] **Phase 9: CIOS Huisstijl & Verzuim Weergave** — Klasoverzicht-tegels tonen aanwezigheidspercentage en het volledige dashboard krijgt de CIOS Zuidwest huisstijl (cyaan, navy, bold sans-serif)
 
 ## Phase Details
 
@@ -89,8 +89,8 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 09-01-PLAN.md — CSS kleur-tokens (:root + body.dark), hardcoded hex repareren, font-weight 700 structurele elementen
-- [ ] 09-02-PLAN.md — buildMiniVerzuimBar() aanwezigheidspercentage weergave
+- [x] 09-01-PLAN.md — CSS kleur-tokens (:root + body.dark), hardcoded hex repareren, font-weight 700 structurele elementen
+- [x] 09-02-PLAN.md — buildMiniVerzuimBar() aanwezigheidspercentage weergave
 
 ## Progress
 
@@ -104,4 +104,4 @@ Plans:
 | 6. Multi-class UI | 3/3 | Complete | 2026-03-26 |
 | 7. Periode Vergelijking | 2/2 | Complete | 2026-04-06 |
 | 8. Revert toetsplan changes | 1/1 | Complete | 2026-04-22 |
-| 9. CIOS Huisstijl & Verzuim Weergave | 0/2 | Not started | - |
+| 9. CIOS Huisstijl & Verzuim Weergave | 2/2 | Complete | 2026-04-24 |
