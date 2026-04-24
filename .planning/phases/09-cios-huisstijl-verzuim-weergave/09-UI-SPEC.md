@@ -119,18 +119,19 @@ Existing sizes are preserved. This phase introduces no new size tokens.
 
 ### 3.3 Font Weights
 
-This phase applies `font-weight: 700` more consistently to headings where it is not yet set.
+This phase consolidates to two weights only, aligning with the "bold uitstraling" goal. All former `600` usages (table headers, card labels, sort button active) are promoted to `700`.
 
 | Weight | Usage | Source |
 |--------|-------|--------|
 | `400` | Body text, muted labels | Default |
-| `600` | Table headers, card subheadings, sort button active | Existing |
-| `700` | `h1`, `h2`, section headers, site header h1 | Expand from existing pattern (Source: CONTEXT.md D-04) |
+| `700` | `h1`, `h2`, section headers, site header h1, table headers, card labels, sort button active | CONTEXT.md D-04; checker revision 2026-04-24 |
 
 Target elements for `font-weight: 700` audit during implementation:
 - `#site-header h1` — already 700 (confirmed via line 96)
 - All `h2` elements within section panels
-- Card/tegel primary name labels where only `font-weight: 600` is set
+- Table header cells (`th`) — consolidate from 600 to 700
+- Card/tegel primary name labels — consolidate from 600 to 700
+- `.sort-btn.active` label — consolidate from 600 to 700
 
 ### 3.4 Line Heights
 
@@ -239,7 +240,7 @@ Not applicable. No package registry, no shadcn, no third-party component blocks.
 - [ ] In `index.html` `body.dark` block: add/set `--accent-blue-border: #005F8A`
 - [ ] In `index.html` `body.dark` block: add/set `--bg-header: #003057`
 - [ ] In `app.js` `buildMiniVerzuimBar()`: replace `ongeoorloofdTekst` variable and its conditional with `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:3px;">${pA}% aanwezig</div>`
-- [ ] Audit `h2` and section header elements — apply `font-weight: 700` where not already set
+- [ ] Audit `h2`, section headers, `th` elements, card labels, `.sort-btn.active` — apply `font-weight: 700` (consolidating from any existing 600)
 - [ ] Verify: spider chart stroke colors (`#22b8c8`, `#67e8f9`) are NOT modified
 - [ ] Verify: verzuim bar segment colors (aanwezig/geoorloofd/ongeoorloofd) are NOT modified
 - [ ] Verify: `VERZUIM_DREMPEL_MIN` and threshold logic outside `buildMiniVerzuimBar()` are NOT modified
