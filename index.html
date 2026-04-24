@@ -9,17 +9,17 @@
       --bg-page: #f5f5f7;
       --bg-surface: #ffffff;
       --bg-surface-alt: #f9fafb;
-      --bg-header: #1a1a2e;
+      --bg-header: #003057;
       --text-primary: #111827;
       --text-secondary: #374151;
       --text-muted: #6b7280;
       --text-faint: #9ca3af;
       --border-default: #e5e7eb;
       --border-light: #f3f4f6;
-      --accent-blue: #3b82f6;
-      --accent-blue-hover: #2563eb;
-      --accent-blue-light: #eff6ff;
-      --accent-blue-border: #bfdbfe;
+      --accent-blue: #00AEEF;
+      --accent-blue-hover: #009AD6;
+      --accent-blue-light: #E6F7FD;
+      --accent-blue-border: #80D7F7;
       --status-rood-bg: #fee2e2;
       --status-rood-text: #991b1b;
       --status-oranje-bg: #ffedd5;
@@ -66,6 +66,12 @@
       --spider-organiseren-stroke:   #facc15;
       --spider-prof-handelen:        #0a2e33;
       --spider-prof-handelen-stroke: #67e8f9;
+      /* CIOS huisstijl — Phase 9 */
+      --accent-blue: #00AEEF;
+      --accent-blue-hover: #009AD6;
+      --accent-blue-light: #0A2C3D;
+      --accent-blue-border: #005F8A;
+      --bg-header: #003057;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -120,7 +126,7 @@
 
     .nav-count {
       display: inline-block;
-      background: #3b82f6;
+      background: var(--accent-blue);
       color: #fff;
       font-size: 0.75rem;
       font-weight: 600;
@@ -273,8 +279,8 @@
       transition: background 0.12s, border-color 0.12s;
     }
     .sort-btn:hover { background: var(--border-light); }
-    .sort-btn.active { background: var(--accent-blue-light); border-color: var(--accent-blue); color: #1d4ed8; font-weight: 600; }
-    body.dark .sort-btn.active { background: #1e3a5f; border-color: #3b82f6; color: #93c5fd; }
+    .sort-btn.active { background: var(--accent-blue-light); border-color: var(--accent-blue); color: #1d4ed8; font-weight: 700; }
+    body.dark .sort-btn.active { background: #1e3a5f; border-color: var(--accent-blue); color: #93c5fd; }
 
     /* ── Klasoverzicht tabel ──────────────────────────────────────────── */
     .klas-table-wrap { overflow-x: auto; }
@@ -297,7 +303,7 @@
       padding: 0.75rem 1rem;
       text-align: left;
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -315,7 +321,7 @@
     #klas-tabel tbody tr:hover { background: var(--bg-surface-alt); }
 
     .student-naam {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-primary);
     }
 
@@ -423,7 +429,7 @@
 
     .detail-section-title {
       font-size: 0.78rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -454,7 +460,7 @@
       flex-wrap: wrap;
     }
 
-    .leerlijn-naam { width: 145px; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary); flex-shrink: 0; }
+    .leerlijn-naam { width: 145px; font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); flex-shrink: 0; }
     .leerlijn-stat { font-size: 0.85rem; color: var(--text-muted); min-width: 52px; }
     .leerlijn-stat strong { color: var(--text-primary); font-size: 1rem; }
     .leerlijn-bar-track { flex: 1; height: 6px; background: var(--border-default); border-radius: 999px; overflow: hidden; min-width: 60px; }
@@ -474,7 +480,7 @@
       padding: 0.3rem 0.45rem;
       background: var(--bg-surface-alt);
       color: var(--text-muted);
-      font-weight: 600;
+      font-weight: 700;
       border-bottom: 2px solid var(--border-default);
       text-align: center;
       white-space: nowrap;
@@ -562,7 +568,7 @@
       cursor: pointer;
       user-select: none;
       font-size: 0.9rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-secondary);
     }
     .vak-header:hover { background: var(--border-light); }
@@ -672,7 +678,7 @@
     }
     .aanvullend-veld label {
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.03em;
@@ -701,10 +707,10 @@
 
     /* Leerlijn-toewijzing */
     #leerlijn-toewijzing { margin-top: 2rem; display: none; }
-    #leerlijn-toewijzing h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+    #leerlijn-toewijzing h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
     #leerlijn-toewijzing .lt-desc { color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem; }
     .lt-table { width: 100%; border-collapse: collapse; background: var(--bg-surface); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-    .lt-table th { padding: 0.6rem 1rem; text-align: left; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; background: var(--bg-surface-alt); border-bottom: 2px solid var(--border-default); }
+    .lt-table th { padding: 0.6rem 1rem; text-align: left; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; background: var(--bg-surface-alt); border-bottom: 2px solid var(--border-default); }
     .lt-table td { padding: 0.5rem 1rem; border-bottom: 1px solid var(--border-light); font-size: 0.9rem; }
     .lt-table tbody tr:hover { background: var(--bg-surface-alt); }
     .lt-table select { padding: 0.35rem 0.6rem; border: 1px solid var(--border-default); border-radius: 6px; font-size: 0.85rem; background: var(--bg-surface); color: var(--text-primary); }
@@ -768,7 +774,7 @@
     }
     .klas-tile-naam {
       font-size: 0.94rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-primary);
       white-space: nowrap;
       overflow: hidden;
@@ -783,7 +789,7 @@
     }
     #klassen-leeg h2 {
       font-size: 1.25rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
       margin-bottom: 0.5rem;
     }
@@ -904,7 +910,7 @@
     }
     .dg-matrix-tijdlijn .groep-header {
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       padding: 0.5rem 1rem;
@@ -945,7 +951,7 @@
     }
     .spider-leerlijn-title {
       font-size: 0.85rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-secondary, var(--text-muted));
       margin-top: 8px;
     }
@@ -962,7 +968,7 @@
     /* Phase 13 Plan 02 — Feedback & Actiepunten panel (FEED-01/02/03) */
     .ap-subsection-title {
       font-size: 0.78rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -1167,7 +1173,7 @@
 
       <!-- Excel verzuim import -->
       <div id="excel-import-section" style="margin-top:2rem;">
-        <h2 style="font-size:1.25rem;font-weight:600;margin-bottom:0.75rem;">Verzuim importeren</h2>
+        <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:0.75rem;">Verzuim importeren</h2>
         <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem;">Importeer de verzuim-Excel (.xls of .xlsx) om aanwezigheids- en verzuimdata te koppelen aan leerlingen.</p>
         <input type="file" id="excel-file-input" accept=".xls,.xlsx" style="display:none;">
         <button class="btn btn-primary" id="excel-choose-btn" type="button">Kies Excel-bestand</button>
@@ -1179,7 +1185,7 @@
 
       <!-- Stage import (Phase 6 — STAGE-01) -->
       <div id="stage-import-section" style="margin-top:2rem;">
-        <h2 style="font-size:1.25rem;font-weight:600;margin-bottom:0.75rem;">Stage importeren</h2>
+        <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:0.75rem;">Stage importeren</h2>
         <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1rem;">
           Importeer de stage-Excel (.xlsx) om stage-gegevens te koppelen aan leerlingen.
         </p>
@@ -1195,14 +1201,14 @@
 
       <!-- Backup & Restore (Phase 7 — EXP-01, per D-09) -->
       <div id="backup-section" style="margin-top:2rem;">
-        <h2 style="font-size:1.25rem;font-weight:600;margin-bottom:0.75rem;">Backup &amp; Restore</h2>
+        <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:0.75rem;">Backup &amp; Restore</h2>
         <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1rem;">
           Exporteer al je data als backup (.zip). Optioneel met wachtwoord. Gebruik dezelfde backup om data over te zetten naar een andere laptop.
         </p>
 
         <!-- Export subsection -->
         <div style="background:var(--bg-surface-alt);border:1px solid var(--border-default);border-radius:8px;padding:1rem;margin-bottom:1rem;">
-          <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.5rem;">Backup maken</h3>
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.5rem;">Backup maken</h3>
           <label for="backup-password" style="display:block;font-size:0.875rem;font-weight:500;margin-bottom:0.375rem;">Wachtwoord (optioneel):</label>
           <input type="password" id="backup-password" placeholder="Laat leeg voor backup zonder wachtwoord" autocomplete="off"
             style="width:100%;max-width:320px;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:6px;font-size:0.875rem;margin-bottom:0.75rem;">
@@ -1214,7 +1220,7 @@
 
         <!-- Restore subsection -->
         <div style="background:var(--bg-surface-alt);border:1px solid var(--border-default);border-radius:8px;padding:1rem;">
-          <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.5rem;">Backup terugzetten</h3>
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.5rem;">Backup terugzetten</h3>
           <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.75rem;">
             Kies een eerder gemaakte backup (.zip). Als er al klassen staan, kun je kiezen: alles vervangen of samenvoegen.
           </p>
@@ -1305,7 +1311,7 @@
   <!-- Nieuwe klas modal (Phase 6) -->
   <div id="nieuwe-klas-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center;">
     <div style="background:var(--bg-surface); border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.18); max-width:400px; width:90%; padding:24px;">
-      <h3 style="font-size:1.25rem; font-weight:600; color:var(--text-primary); margin-bottom:16px;">Nieuwe klas aanmaken</h3>
+      <h3 style="font-size:1.25rem; font-weight:700; color:var(--text-primary); margin-bottom:16px;">Nieuwe klas aanmaken</h3>
       <input type="text" id="nieuwe-klas-naam" placeholder="bijv. CSD2A"
         style="width:100%; padding:0.5rem 1rem; border:1px solid var(--border-default); border-radius:8px; font-size:0.9rem; outline:none; box-sizing:border-box; background:var(--bg-surface); color:var(--text-primary);"
       >
