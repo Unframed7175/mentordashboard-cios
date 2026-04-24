@@ -85,12 +85,12 @@ Plans:
   3. Knoppen, actieve tabbladen, links en highlights gebruiken CIOS cyaan `#00AEEF` als accentkleur door de hele app
   4. De header/navigatiebalk gebruikt CIOS navy donkerblauw — visueel onderscheidbaar van de vorige donkere tint
   5. Typografie en CSS-variabelen in de hele app zijn consistent met het CIOS kleurpallet (geen resterende oude tokennamen of kleuren)
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
 
 Plans:
-- [ ] 09-01: CSS variabelen herschrijven naar CIOS kleurpallet + typografie
-- [ ] 09-02: buildMiniVerzuimBar() aanpassen — percentage weergave in tegel
+- [ ] 09-01-PLAN.md — CSS kleur-tokens (:root + body.dark), hardcoded hex repareren, font-weight 700 structurele elementen
+- [ ] 09-02-PLAN.md — buildMiniVerzuimBar() aanwezigheidspercentage weergave
 
 ## Progress
 
