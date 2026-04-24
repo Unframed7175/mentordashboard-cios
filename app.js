@@ -1261,15 +1261,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const pA = Math.round((v.aanwezigheid || 0) / totaal * 100);
     const pG = Math.round((v.geoorloofd   || 0) / totaal * 100);
     const pO = 100 - pA - pG;
-    const kleurTekst = v.ongeoorloofd > 600 ? '#991b1b' : '#6b7280';
-    const ongeoorloofdTekst = v.ongeoorloofd > 0
-      ? `<div style="font-size:0.75rem;color:${kleurTekst};margin-top:3px;">${minNaarUren(v.ongeoorloofd)} ongeoorloofd</div>`
-      : '';
     return `<div class="mini-verzuim-bar">
       <div class="mvb-seg mvb-aanwezig"     style="width:${pA}%"></div>
       <div class="mvb-seg mvb-geoorloofd"   style="width:${pG}%"></div>
       <div class="mvb-seg mvb-ongeoorloofd" style="width:${pO}%"></div>
-    </div>${ongeoorloofdTekst}`;
+    </div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:3px;">${pA}% aanwezig</div>`;
   }
 
   // ── Renderen ───────────────────────────────────────────────────────────
