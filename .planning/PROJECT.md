@@ -8,6 +8,15 @@ Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL die voortgang-PDFs p
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
+## Current Milestone: v1.2 Dashboard Redesign
+
+**Goal:** Mentordashboard krijgt een visuele upgrade in de CIOS Zuidwest huisstijl — cyaan kleurpallet, verbeterde tegels met aanwezigheidspercentage, en een professionele algehele uitstraling.
+
+**Target features:**
+- Klasoverzicht-tegels tonen aanwezigheidspercentage (i.p.v. uren ongeoorloofd)
+- 3-delige verzuimbalk blijft behouden (aanwezig / geoorloofd / ongeoorloofd)
+- Algeheel design in CIOS huisstijl: cyaan `#00AEEF`, navy accent, wit achtergrond, bold sans-serif
+
 ## Milestone: v1.1 Klasbeheer & Export — COMPLETE (2026-04-23)
 
 **Goal:** Mentor kan meerdere klassen beheren, fase 1 vs fase 2 per leerling vergelijken, en een volledig PDF-dossier afdrukken voor het mentorgesprek.
@@ -42,9 +51,15 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ Vergelijking tussen periodes (fase 1 vs fase 2) in detailweergave — Validated in Phase 7
 - ✓ Codebase hersteld naar schone staat (Phase 11 toetsplan code verwijderd) — Validated in Phase 8
 
+### Active (v1.2 milestone)
+
+- [ ] Aanwezigheidspercentage in klasoverzicht-tegels (i.p.v. uren ongeoorloofd)
+- [ ] Algeheel UI redesign in CIOS Zuidwest huisstijl (cyaan, navy, bold sans-serif)
+
 ### Future (v2+)
 
 - [ ] Rekenen en Nederlands voortgang apart bijhouden met eigen norm
+- [ ] Print-to-PDF export voor mentorgesprekverslag (EXP-01–04, uitgesteld uit v1.1)
 
 ### Out of Scope
 
@@ -98,4 +113,4 @@ This document evolves at phase transitions and milestone boundaries.
 **After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
 
 ---
-*Last updated: 2026-04-23 — v1.1 Klasbeheer & Export milestone complete (3/3 phases)*
+*Last updated: 2026-04-23 — v1.2 Dashboard Redesign milestone started*

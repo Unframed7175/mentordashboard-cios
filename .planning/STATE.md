@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Klasbeheer & Export
-status: Milestone complete
+milestone: v1.2
+milestone_name: Dashboard Redesign
+status: Defining requirements
 last_updated: "2026-04-23T00:00:00.000Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -19,12 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** v1.1 milestone complete — all phases (6, 7, 8) done
+**Current focus:** v1.2 Dashboard Redesign — defining requirements
 
 ## Current Position
 
-Phase: 08-revert-toetsplan-changes — COMPLETE (1/1 plans)
-Plan: 08-01 complete — Phase 11 toetsplan code fully removed
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-23 — Milestone v1.2 started
 
 ## Performance Metrics
 
@@ -103,3 +105,4 @@ v1.1 plans completed: 6/6
 - 2026-04-06: Phase 07 complete — UAT approved; two-period comparison UI with growth badges verified in browser
 - 2026-04-22: Phase 08 plan 01 complete — all Phase 11 toetsplan code removed from app.js and index.html; D2 table back to PDF-order, no Deadline column
 - 2026-04-23: Phase 08 complete (UAT approved) — v1.1 milestone Klasbeheer & Export fully complete (3/3 phases)
+- 2026-04-23: v1.2 Dashboard Redesign milestone started — aanwezigheidspercentage in tegels + CIOS huisstijl redesign
