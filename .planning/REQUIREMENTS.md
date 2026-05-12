@@ -4,6 +4,62 @@
 
 ---
 
+## v2.0 Requirements — Stack Modernisering
+
+**Defined:** 2026-05-12
+**Milestone:** v2.0 Stack Modernisering
+**Decisions locked:** OS keychain encryptie, zip.js backups leesbaar houden
+
+### Toolchain & Scaffold (TCH)
+
+- [ ] **TCH-01**: Developer kan het project starten met `npm run dev` — geen Python http.server
+- [ ] **TCH-02**: App bouwt als installeerbare `.exe` (Windows) en `.dmg` (Mac) via één build-commando
+- [ ] **TCH-03**: Alle 128 bestaande tests slagen na migratie (nul regressies)
+- [ ] **TCH-04**: TypeScript type-fouten zijn zichtbaar tijdens development (per-module strict mode)
+
+### Logica Migratie (MIG)
+
+- [ ] **MIG-01**: PDF-parser (pdfjs-dist) geeft identieke resultaten na TypeScript-migratie
+- [ ] **MIG-02**: Excel-parser (.xls SheetJS) geeft identieke resultaten incl. correcte Nederlandse tekens
+- [ ] **MIG-03**: Doorstroomnorm engine (prognosis.js) geeft identieke berekeningen na TypeScript-migratie
+
+### Versleutelde Opslag (STO)
+
+- [ ] **STO-01**: Alle klassendata wordt opgeslagen via Tauri plugin-store (vervangt localStorage)
+- [ ] **STO-02**: Leerlingdata wordt versleuteld opgeslagen (AES-256-GCM) met sleutel in OS keychain
+- [ ] **STO-03**: Bestaande localStorage-data wordt automatisch gemigreerd bij eerste app-start
+- [ ] **STO-04**: Mentor kan een individuele leerling volledig verwijderen (Artikel 17 AVG)
+
+### Bestandstoegang (IMP)
+
+- [ ] **IMP-01**: Mentor kan PDF-bestanden importeren via drag-drop én bestandsdialoog
+- [ ] **IMP-02**: Mentor kan Excel-bestanden (.xls) importeren via drag-drop én bestandsdialoog
+- [ ] **IMP-03**: Mentor kan bestaande zip.js-backups importeren in de nieuwe app
+
+### UI — Klasoverzicht (KOV)
+
+- [ ] **KOV-01**: Klasoverzicht tegel-grid toont identieke informatie als de huidige app
+- [ ] **KOV-02**: Zoeken, sorteren en klas wisselen werken identiek in de React versie
+
+### UI — Detailweergave (DET-v2)
+
+- [ ] **DET-V2-01**: Detailweergave toont identieke informatie (voortgang, verzuim, prognose, notities)
+- [ ] **DET-V2-02**: Actiepunten en feedback werken identiek in de React versie
+
+### Packaging & Cross-platform (PKG)
+
+- [ ] **PKG-01**: App draait correct op Windows 10/11 zonder extra installaties voor de eindgebruiker
+- [ ] **PKG-02**: App draait correct op macOS 12+ zonder extra installaties voor de eindgebruiker
+- [ ] **PKG-03**: UI ziet er visueel identiek uit op Windows (WebView2) én macOS (WebKit)
+
+### Traceability
+
+| REQ-ID | Phase | Plan |
+|--------|-------|------|
+| (ingevuld door roadmapper) | | |
+
+---
+
 ## v1.2 Requirements — Dashboard Redesign
 
 **Defined:** 2026-04-23
