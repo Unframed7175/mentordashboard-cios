@@ -56,7 +56,27 @@
 
 | REQ-ID | Phase | Plan |
 |--------|-------|------|
-| (ingevuld door roadmapper) | | |
+| TCH-01 | Phase 10 — Scaffold & Toolchain | TBD |
+| TCH-02 | Phase 10 — Scaffold & Toolchain | TBD |
+| TCH-03 | Phase 10 — Scaffold & Toolchain | TBD |
+| TCH-04 | Phase 10 — Scaffold & Toolchain | TBD |
+| MIG-01 | Phase 11 — TypeScript Migratie | TBD |
+| MIG-02 | Phase 11 — TypeScript Migratie | TBD |
+| MIG-03 | Phase 11 — TypeScript Migratie | TBD |
+| STO-01 | Phase 12 — Versleutelde Opslag | TBD |
+| STO-02 | Phase 12 — Versleutelde Opslag | TBD |
+| STO-03 | Phase 12 — Versleutelde Opslag | TBD |
+| STO-04 | Phase 12 — Versleutelde Opslag | TBD |
+| IMP-01 | Phase 13 — Bestandstoegang | TBD |
+| IMP-02 | Phase 13 — Bestandstoegang | TBD |
+| IMP-03 | Phase 13 — Bestandstoegang | TBD |
+| KOV-01 | Phase 14 — React UI | TBD |
+| KOV-02 | Phase 14 — React UI | TBD |
+| DET-V2-01 | Phase 14 — React UI | TBD |
+| DET-V2-02 | Phase 14 — React UI | TBD |
+| PKG-01 | Phase 15 — Packaging & Cross-platform | TBD |
+| PKG-02 | Phase 15 — Packaging & Cross-platform | TBD |
+| PKG-03 | Phase 15 — Packaging & Cross-platform | TBD |
 
 ---
 
@@ -135,3 +155,24 @@
 | DES-02 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
 | DES-03 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
 | DES-04 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
+| TCH-01 | Phase 10 — Scaffold & Toolchain | Pending |
+| TCH-02 | Phase 10 — Scaffold & Toolchain | Pending |
+| TCH-03 | Phase 10 — Scaffold & Toolchain | Pending |
+| TCH-04 | Phase 10 — Scaffold & Toolchain | Pending |
+| MIG-01 | Phase 11 — TypeScript Migratie | Pending |
+| MIG-02 | Phase 11 — TypeScript Migratie | Pending |
+| MIG-03 | Phase 11 — TypeScript Migratie | Pending |
+| STO-01 | Phase 12 — Versleutelde Opslag | Pending |
+| STO-02 | Phase 12 — Versleutelde Opslag | Pending |
+| STO-03 | Phase 12 — Versleutelde Opslag | Pending |
+| STO-04 | Phase 12 — Versleutelde Opslag | Pending |
+| IMP-01 | Phase 13 — Bestandstoegang | Pending |
+| IMP-02 | Phase 13 — Bestandstoegang | Pending |
+| IMP-03 | Phase 13 — Bestandstoegang | Pending |
+| KOV-01 | Phase 14 — React UI | Pending |
+| KOV-02 | Phase 14 — React UI | Pending |
+| DET-V2-01 | Phase 14 — React UI | Pending |
+| DET-V2-02 | Phase 14 — React UI | Pending |
+| PKG-01 | Phase 15 — Packaging & Cross-platform | Pending |
+| PKG-02 | Phase 15 — Packaging & Cross-platform | Pending |
+| PKG-03 | Phase 15 — Packaging & Cross-platform | Pending |

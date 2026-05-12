@@ -5,6 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-03-25) · [archive](.planning/milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Klasbeheer & Export** — Phases 6–8 (shipped 2026-04-23)
 - ✅ **v1.2 Dashboard Redesign** — Phase 9 (shipped 2026-04-24)
+- 🔄 **v2.0 Stack Modernisering** — Phases 10–15 (in progress)
 
 ## Phases
 
@@ -31,6 +32,15 @@
 ### v1.2 Dashboard Redesign
 
 - [x] **Phase 9: CIOS Huisstijl & Verzuim Weergave** — Klasoverzicht-tegels tonen aanwezigheidspercentage en het volledige dashboard krijgt de CIOS Zuidwest huisstijl (cyaan, navy, bold sans-serif)
+
+### v2.0 Stack Modernisering
+
+- [ ] **Phase 10: Scaffold & Toolchain** — Rust + Tauri + Vite + React + TypeScript + Vitest draaien lokaal; `npm run dev` start de app en alle bestaande tests slagen
+- [ ] **Phase 11: TypeScript Migratie** — Alle utils en parsers zijn geporteerd naar TypeScript met identieke output; nul regressies in de test suite
+- [ ] **Phase 12: Versleutelde Opslag** — Leerlingdata wordt opgeslagen via plugin-store, versleuteld met AES-256-GCM en OS keychain sleutel; bestaande data gemigreerd; GDPR-verwijderfunctie werkt
+- [ ] **Phase 13: Bestandstoegang** — Mentor kan PDFs, Excel-bestanden en zip-backups importeren via drag-drop én bestandsdialoog in de Tauri app
+- [ ] **Phase 14: React UI** — Klasoverzicht en detailweergave zijn volledig herschreven als React componenten en tonen identieke informatie als de huidige app
+- [ ] **Phase 15: Packaging & Cross-platform** — App bouwt als installeerbare .exe (Windows) en .dmg (Mac); UI ziet er identiek uit op beide platforms; eindgebruiker installeert zonder extra dependencies
 
 ## Phase Details
 
@@ -92,6 +102,73 @@ Plans:
 - [x] 09-01-PLAN.md — CSS kleur-tokens (:root + body.dark), hardcoded hex repareren, font-weight 700 structurele elementen
 - [x] 09-02-PLAN.md — buildMiniVerzuimBar() aanwezigheidspercentage weergave
 
+---
+
+### Phase 10: Scaffold & Toolchain
+**Goal**: Developer kan het project openen, `npm run dev` uitvoeren en de Tauri dev-window zien — Vite + React + TypeScript + Vitest + Tauri 2 draaien allemaal en alle bestaande tests slagen
+**Depends on**: Phase 9 (v1.2 codebase)
+**Requirements**: TCH-01, TCH-02, TCH-03, TCH-04
+**Success Criteria** (what must be TRUE):
+  1. `npm run dev` start een Tauri desktop window met de app — geen Python http.server meer nodig
+  2. `npm run test` voert alle 128 bestaande tests uit via Vitest en slaagt zonder regressies
+  3. TypeScript type-fouten in gewijzigde bestanden zijn direct zichtbaar in de editor (strict mode per module)
+  4. `npm run build` produceert een installer-artefact (.exe op Windows, .dmg op Mac) zonder handmatige stappen
+**Plans**: TBD
+
+### Phase 11: TypeScript Migratie
+**Goal**: Alle utils en parsers zijn geporteerd naar TypeScript — pdfjs-dist, SheetJS en de doorstroomnorm engine geven identieke output als de JavaScript originelen, bewezen door de volledige test suite
+**Depends on**: Phase 10
+**Requirements**: MIG-01, MIG-02, MIG-03
+**Success Criteria** (what must be TRUE):
+  1. PDF-parser verwerkt dezelfde test-PDFs en geeft byte-identieke output ten opzichte van de JavaScript versie
+  2. Excel-parser leest .xls-bestanden inclusief correcte Nederlandse karakters (cpexcel codepage geregistreerd)
+  3. Doorstroomnorm engine produceert identieke prognose-berekeningen voor alle 128 test-cases
+  4. Geen TypeScript compile-errors in gemigreerde modules (`noImplicitAny` actief per module)
+**Plans**: TBD
+
+### Phase 12: Versleutelde Opslag
+**Goal**: Alle klassendata is opgeslagen via Tauri plugin-store en versleuteld met AES-256-GCM; de sleutel zit in de OS keychain; bestaande localStorage-data wordt automatisch gemigreerd; mentor kan een leerling volledig verwijderen
+**Depends on**: Phase 11
+**Requirements**: STO-01, STO-02, STO-03, STO-04
+**Success Criteria** (what must be TRUE):
+  1. Alle klassendata overleeft een app-herstart — opgeslagen via plugin-store, niet localStorage
+  2. Opgeslagen leerlingdata is versleuteld op schijf (AES-256-GCM); de encryptiesleutel is uitsluitend zichtbaar in de OS keychain, niet naast de data
+  3. Bij eerste start van de nieuwe app worden bestaande localStorage-gegevens automatisch gemigreerd zonder dataverlies
+  4. Mentor kan een individuele leerling verwijderen — data is volledig gewist uit de store (Artikel 17 AVG compliance)
+**Plans**: TBD
+
+### Phase 13: Bestandstoegang
+**Goal**: Mentor kan PDFs, Excel-bestanden en zip-backups aanleveren via drag-drop of OS bestandsdialoog in de Tauri app — de parsers verwerken de bestanden identiek als voorheen
+**Depends on**: Phase 12
+**Requirements**: IMP-01, IMP-02, IMP-03
+**Success Criteria** (what must be TRUE):
+  1. Mentor kan één of meerdere PDF-bestanden naar het import-gebied slepen of via "Bestand kiezen" selecteren — de klasoverzicht vult zich met de geïmporteerde leerlingen
+  2. Mentor kan een .xls verzuim-Excel importeren via drag-drop of dialoog — verzuimdata verschijnt correct in de tegels
+  3. Een bestaande zip.js-backup kan worden geïmporteerd in de nieuwe app en herstelt de klassendata volledig
+**Plans**: TBD
+
+### Phase 14: React UI
+**Goal**: Klasoverzicht en detailweergave zijn volledig herschreven als React componenten — de mentor ziet en ervaart exact dezelfde functionaliteit als in de huidige app, inclusief zoeken, sorteren, klas wisselen en actiepunten
+**Depends on**: Phase 13
+**Requirements**: KOV-01, KOV-02, DET-V2-01, DET-V2-02
+**Success Criteria** (what must be TRUE):
+  1. Klasoverzicht toont alle leerlingtegels met aanwezigheidspercentage, verzuimbalk en rood/oranje/groen prognose — identiek aan de huidige app
+  2. Zoeken op naam, sorteren op status en wisselen tussen klassen werken zonder pagina-reload in de React versie
+  3. Detailweergave toont voortgang per deelgebied, verzuim, doorstroomprognose en notities — identiek aan de huidige app
+  4. Actiepunten en feed forward zijn bewerkbaar en worden opgeslagen via de versleutelde store
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 15: Packaging & Cross-platform
+**Goal**: De app bouwt als installeerbare .exe (Windows 10/11) en .dmg (macOS 12+) die de eindgebruiker kan installeren zonder extra dependencies; de UI ziet er visueel identiek uit op beide platforms
+**Depends on**: Phase 14
+**Requirements**: PKG-01, PKG-02, PKG-03
+**Success Criteria** (what must be TRUE):
+  1. Windows .exe installer installeert de app op een schone Windows 10/11 machine — mentor kan direct starten zonder Rust, Node of Python te installeren
+  2. macOS .dmg installeert de app op macOS 12+ — identiek werkend als op Windows
+  3. UI-rendering is visueel equivalent op Windows (WebView2) en macOS (WebKit) — geen layout-breuken of kleurverschillen
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -105,3 +182,9 @@ Plans:
 | 7. Periode Vergelijking | 2/2 | Complete | 2026-04-06 |
 | 8. Revert toetsplan changes | 1/1 | Complete | 2026-04-22 |
 | 9. CIOS Huisstijl & Verzuim Weergave | 2/2 | Complete | 2026-04-24 |
+| 10. Scaffold & Toolchain | 0/? | Not started | - |
+| 11. TypeScript Migratie | 0/? | Not started | - |
+| 12. Versleutelde Opslag | 0/? | Not started | - |
+| 13. Bestandstoegang | 0/? | Not started | - |
+| 14. React UI | 0/? | Not started | - |
+| 15. Packaging & Cross-platform | 0/? | Not started | - |
