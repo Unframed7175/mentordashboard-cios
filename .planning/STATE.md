@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Dashboard Redesign
-status: complete
-last_updated: "2026-04-24T00:00:00.000Z"
-last_activity: 2026-04-24 — Phase 9 complete (2/2 plans, verification passed)
+milestone: v2.0
+milestone_name: Stack Modernisering
+status: planning
+last_updated: "2026-05-12T00:00:00.000Z"
+last_activity: 2026-05-12 — Milestone v2.0 started
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-23)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** v1.2 — Phase 9: CIOS Huisstijl & Verzuim Weergave
+**Current focus:** v2.0 — Stack Modernisering (TypeScript + React + Tauri + AVG)
 
 ## Current Position
 
-Phase: 9 of 9 (CIOS Huisstijl & Verzuim Weergave) — COMPLETE
-Plan: 2/2 plans complete
-Status: v1.2 milestone complete
-Last activity: 2026-04-24 — Phase 9 executed and verified (9/9 must-haves)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-12 — Milestone v2.0 Stack Modernisering started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -58,3 +58,4 @@ None.
 - 2026-04-23: v1.2 Dashboard Redesign milestone started — aanwezigheidspercentage in tegels + CIOS huisstijl redesign
 - 2026-04-24: v1.2 roadmap created — Phase 9 defined (VRZ-01, VRZ-02, DES-01, DES-02, DES-03, DES-04)
 - 2026-04-24: Phase 9 executed — CIOS huisstijl tokens, bold typografie, aanwezigheidspercentage in tegels. Verification 9/9. v1.2 milestone complete.
+- 2026-05-12: v2.0 Stack Modernisering milestone gestart — TypeScript + React + Tauri + AVG-compliance. Seed geactiveerd.

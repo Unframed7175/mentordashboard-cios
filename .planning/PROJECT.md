@@ -8,6 +8,17 @@ Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL die voortgang-PDFs p
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
+## Current Milestone: v2.0 Stack Modernisering
+
+**Goal:** Herbouw het mentordashboard op een professionele, toekomstbestendige stack die meerdere developers ondersteunt, native draait op Mac én Windows, en AVG-compliant leerlingdata opslaat.
+
+**Target features:**
+- TypeScript + React + Vite — professionele DX, type-veiligheid, herkende stack voor NL-developers
+- Tauri desktop wrapper — installeerbare .exe/.dmg app, capability-based security, ~10MB bundle
+- AES-256 versleutelde lokale opslag — vervangt plaintext localStorage; vereist voor AVG-compliance
+- Per-leerling verwijderfunctie — Artikel 17 AVG (recht op vergetelheid)
+- React componentenstructuur — UI opgesplitst in herbruikbare componenten
+
 ## Milestone: v1.2 Dashboard Redesign — COMPLETE (2026-04-24)
 
 **Goal:** Mentordashboard krijgt een visuele upgrade in de CIOS Zuidwest huisstijl — cyaan kleurpallet, verbeterde tegels met aanwezigheidspercentage, en een professionele algehele uitstraling.
@@ -56,7 +67,15 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ Aanwezigheidspercentage in klasoverzicht-tegels (i.p.v. uren ongeoorloofd) — Validated in Phase 9
 - ✓ Algeheel UI redesign in CIOS Zuidwest huisstijl (cyaan, navy, bold sans-serif) — Validated in Phase 9
 
-### Future (v2+)
+### Active (v2.0 milestone)
+
+- [ ] TypeScript + React + Vite — professionele codebase voor developer-contributors
+- [ ] Tauri desktop wrapper — cross-platform .exe/.dmg, capability-based AVG-posture
+- [ ] AES-256 versleutelde lokale opslag — AVG-compliant vervanging van plaintext localStorage
+- [ ] Per-leerling verwijderfunctie — Artikel 17 AVG compliance
+- [ ] React componentenstructuur — UI herschreven als herbruikbare componenten
+
+### Future (post-v2.0)
 
 - [ ] Rekenen en Nederlands voortgang apart bijhouden met eigen norm
 - [ ] Print-to-PDF export voor mentorgesprekverslag (EXP-01–04, uitgesteld uit v1.1)
@@ -113,4 +132,4 @@ This document evolves at phase transitions and milestone boundaries.
 **After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
 
 ---
-*Last updated: 2026-04-24 — v1.2 Dashboard Redesign milestone complete (Phase 9)*
+*Last updated: 2026-05-12 — v2.0 Stack Modernisering milestone started*
