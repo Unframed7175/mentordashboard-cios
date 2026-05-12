@@ -32,13 +32,28 @@ Herbouw het mentordashboard op een professionele, toekomstbestendige stack die:
 - AVG-aantoonbare opslag — geen plaintext studentdata in browser localStorage
 - Contributors kunnen onboarden zonder de huidige single-file architectuur te begrijpen
 
+## AVG-vereisten (onderdeel van deze modernisering — niet als losse patch)
+
+Besluit 2026-05-12: AVG-gaten worden NIET apart gerepareerd in de huidige codebase. Ze worden meegenomen in de volledige modernisering.
+
+**Developer-verantwoordelijkheid (in scope voor deze rebuild):**
+- [ ] **AES-256 versleuteling** voor alle lokaal opgeslagen leerlingdata — sleutel via PBKDF2 (wachtwoord) of OS-native credential store, nooit naast de data
+- [ ] **Per-leerling verwijderfunctie** — recht op verwijdering (artikel 17 AVG); niet alleen "alles wissen"
+- [ ] **Dataflow documentatie** — welke velden worden opgeslagen, hoe lang, waarvoor — ten behoeve van pre-DPIA door school
+
+**School-verantwoordelijkheid (buiten scope app, wel informeren):**
+- App opnemen in verwerkingsregister (artikel 30 AVG)
+- Pre-DPIA uitvoeren via Kennisnet/SIVON voor brede inzet
+- Retentiebeleid bepalen per dataveld
+
 ## Migratiepad (hoog niveau)
 
 1. TypeScript + Vite setup — bestaande logica overzetten van `app.js`
 2. React componentenstructuur — UI opdelen in herbruikbare componenten
 3. Tauri wrapper — desktop packaging, secure IPC voor bestandstoegang
-4. Versleutelde opslag — localStorage vervangen door Tauri secure storage of SQLCipher
-5. AVG audit — dataflow documenteren, verwijdermechanisme toevoegen
+4. Versleutelde opslag — localStorage vervangen door Tauri secure storage of SQLCipher (AES-256)
+5. Per-leerling verwijderfunctie — artikel 17 AVG compliance
+6. Dataflow documentatie — ten behoeve van school pre-DPIA
 
 ## Trigger
 
