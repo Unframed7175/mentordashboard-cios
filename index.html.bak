@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentordashboard CIOS</title>
+  <style>
+    :root {
+      --bg-page: #f5f5f7;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f9fafb;
+      --bg-header: #003057;
+      --text-primary: #111827;
+      --text-secondary: #374151;
+      --text-muted: #6b7280;
+      --text-faint: #9ca3af;
+      --border-default: #e5e7eb;
+      --border-light: #f3f4f6;
+      --accent-blue: #00AEEF;
+      --accent-blue-hover: #009AD6;
+      --accent-blue-light: #E6F7FD;
+      --accent-blue-border: #80D7F7;
+      --status-rood-bg: #fee2e2;
+      --status-rood-text: #991b1b;
+      --status-oranje-bg: #ffedd5;
+      --status-oranje-text: #c2410c;
+      --status-groen-bg: #d1fae5;
+      --status-groen-text: #065f46;
+      --status-blauw-bg: #dbeafe;
+      --status-blauw-text: #1e40af;
+      --status-grijs-bg: #f3f4f6;
+      --status-grijs-text: #6b7280;
+      /* Spider chart tokens — Phase 10 */
+      --spider-lesgeven:             #e5f9db;
+      --spider-lesgeven-stroke:      #5fcc7a;
+      --spider-organiseren:          #fff5b8;
+      --spider-organiseren-stroke:   #d4a017;
+      --spider-prof-handelen:        #d4fafc;
+      --spider-prof-handelen-stroke: #22b8c8;
+    }
+
+    body.dark {
+      --bg-page: #0f172a;
+      --bg-surface: #1e293b;
+      --bg-surface-alt: #1e293b;
+      --text-primary: #e2e8f0;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+      --border-default: #334155;
+      --border-light: #1e293b;
+      --status-rood-bg: #450a0a;
+      --status-rood-text: #fca5a5;
+      --status-oranje-bg: #431407;
+      --status-oranje-text: #fb923c;
+      --status-groen-bg: #052e16;
+      --status-groen-text: #6ee7b7;
+      --status-blauw-bg: #172554;
+      --status-blauw-text: #93c5fd;
+      --status-grijs-bg: #1f2937;
+      --status-grijs-text: #9ca3af;
+      /* Spider chart tokens — Phase 10 dark mode */
+      --spider-lesgeven:             #1a3d2b;
+      --spider-lesgeven-stroke:      #4ade80;
+      --spider-organiseren:          #3d3200;
+      --spider-organiseren-stroke:   #facc15;
+      --spider-prof-handelen:        #0a2e33;
+      --spider-prof-handelen-stroke: #67e8f9;
+      /* CIOS huisstijl — Phase 9 */
+      --accent-blue: #00AEEF;
+      --accent-blue-hover: #009AD6;
+      --accent-blue-light: #0A2C3D;
+      --accent-blue-border: #005F8A;
+      --bg-header: #003057;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      background: var(--bg-page);
+      min-height: 100vh;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    /* ── Header + nav ─────────────────────────────────────────────────── */
+    #site-header {
+      background: var(--bg-header);
+      color: #fff;
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      height: 56px;
+    }
+
+    #site-header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    #main-nav {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .nav-tab:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-tab.active { background: rgba(255,255,255,0.15); color: #fff; }
+
+    .nav-count {
+      display: inline-block;
+      background: var(--accent-blue);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      margin-left: 0.3rem;
+      vertical-align: middle;
+    }
+
+    /* ── Main container ───────────────────────────────────────────────── */
+    #app {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    /* ── Buttons ──────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent-blue); color: #fff; }
+    .btn-primary:hover { background: var(--accent-blue-hover); }
+    .btn-danger { background: var(--status-rood-bg); color: var(--status-rood-text); }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-ghost { background: var(--border-light); color: var(--text-secondary); }
+    .btn-ghost:hover { background: var(--border-default); }
+
+    /* ── Drop zone ────────────────────────────────────────────────────── */
+    #import-zone {
+      border: 2px dashed var(--text-faint);
+      border-radius: 12px;
+      background: var(--bg-surface);
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+    #import-zone:hover, #import-zone.drag-over {
+      border-color: var(--accent-blue);
+      background: var(--accent-blue-light);
+    }
+    #import-zone .drop-icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+    #import-zone .drop-text { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1rem; }
+    #import-zone .drop-hint { color: var(--text-faint); font-size: 0.85rem; margin-top: 0.5rem; }
+    #file-input { display: none; }
+
+    /* ── Toetsplan import zone (Phase 5 — FASE-01) ───────────────────── */
+    .import-zone-secondary {
+      border: 2px dashed var(--text-faint);
+      border-radius: 12px;
+      background: var(--bg-surface);
+      padding: 2rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+      margin-top: 1rem;
+    }
+    .import-zone-secondary:hover,
+    .import-zone-secondary.drag-over {
+      border-color: var(--accent-blue);
+      background: var(--accent-blue-light);
+    }
+    .btn-danger-sm { background: var(--status-rood-bg); color: var(--status-rood-text); border: 1px solid #fecaca; padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .btn-danger-sm:hover { background: #fecaca; }
+    .btn-ghost-sm { background: transparent; border: 1px solid var(--border-default); color: var(--text-secondary); padding: 0.5rem 1.25rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+    .btn-ghost-sm:hover { background: var(--bg-surface-alt); }
+
+    /* ── Progress bar ─────────────────────────────────────────────────── */
+    #import-progress {
+      display: none;
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: var(--bg-surface);
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+    }
+    #import-progress .progress-label { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+    #progress-bar-track { background: var(--border-default); border-radius: 999px; height: 6px; overflow: hidden; }
+    #progress-bar-fill { background: var(--accent-blue); height: 100%; width: 0%; border-radius: 999px; transition: width 0.2s; }
+
+    /* ── Import results ───────────────────────────────────────────────── */
+    #import-results { display: none; margin-top: 1.5rem; }
+    #import-results h2 { font-size: 1.1rem; margin-bottom: 0.75rem; }
+    .result-summary { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .result-badge { padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.875rem; font-weight: 400; }
+    .badge-success { background: var(--status-groen-bg); color: var(--status-groen-text); }
+    .badge-error { background: var(--status-rood-bg); color: var(--status-rood-text); }
+
+    .error-list { list-style: none; padding: 0; }
+    .error-list li {
+      padding: 0.5rem 0.75rem;
+      background: #fff7ed;
+      border-left: 3px solid #f97316;
+      border-radius: 4px;
+      margin-bottom: 0.4rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .error-list li strong { color: var(--text-primary); font-family: 'Courier New', Courier, monospace; font-size: 0.8rem; }
+    body.dark .error-list li { background: #431407; border-left-color: #fb923c; }
+
+    /* ── Klasoverzicht toolbar ────────────────────────────────────────── */
+    .klas-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    #klas-zoek {
+      flex: 1;
+      min-width: 180px;
+      padding: 0.5rem 0.875rem;
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #klas-zoek:focus { border-color: var(--accent-blue); }
+
+    .sort-group {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .sort-btn {
+      padding: 0.4rem 0.85rem;
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      background: var(--bg-surface);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .sort-btn:hover { background: var(--border-light); }
+    .sort-btn.active { background: var(--accent-blue-light); border-color: var(--accent-blue); color: #1d4ed8; font-weight: 700; }
+    body.dark .sort-btn.active { background: #1e3a5f; border-color: var(--accent-blue); color: #93c5fd; }
+
+    /* ── Klasoverzicht tabel ──────────────────────────────────────────── */
+    .klas-table-wrap { overflow-x: auto; }
+
+    #klas-tabel {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-surface);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    #klas-tabel thead tr {
+      background: var(--bg-surface-alt);
+      border-bottom: 2px solid var(--border-default);
+    }
+
+    #klas-tabel th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    #klas-tabel td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.9rem;
+      vertical-align: middle;
+    }
+
+    #klas-tabel tbody tr:last-child td { border-bottom: none; }
+    #klas-tabel tbody tr:hover { background: var(--bg-surface-alt); }
+
+    .student-naam {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ── Status badges ────────────────────────────────────────────────── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .status-rood    { background: var(--status-rood-bg); color: var(--status-rood-text); }
+    .status-oranje  { background: var(--status-oranje-bg); color: var(--status-oranje-text); }
+    .status-groen   { background: var(--status-groen-bg); color: var(--status-groen-text); }
+    .status-blauw   { background: var(--status-blauw-bg); color: var(--status-blauw-text); }
+    .status-grijs   { background: var(--status-grijs-bg); color: var(--status-grijs-text); }
+
+    /* ── Score bar ────────────────────────────────────────────────────── */
+    .score-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .score-bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--border-default);
+      border-radius: 999px;
+      overflow: hidden;
+      min-width: 60px;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent-blue);
+      transition: width 0.3s;
+    }
+    .score-label { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; }
+
+    /* ── Leeg-staat ───────────────────────────────────────────────────── */
+    #klas-leeg {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-faint);
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    /* ── Wis-data footer ──────────────────────────────────────────────── */
+    .klas-footer {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* ── Detail view ──────────────────────────────────────────────────── */
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .detail-student-info { flex: 1; min-width: 0; }
+
+    .detail-student-naam {
+      display: block;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .detail-student-meta { font-size: 0.8rem; color: var(--text-muted); }
+
+    .detail-nav-btn {
+      background: var(--border-light);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.12s;
+      white-space: nowrap;
+    }
+    .detail-nav-btn:hover:not(:disabled) { background: var(--border-default); }
+    .detail-nav-btn:disabled { opacity: 0.38; cursor: default; }
+
+    .detail-nav-arrows { display: flex; gap: 0.35rem; }
+
+    .detail-section {
+      background: var(--bg-surface);
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .detail-section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    /* Stats grid (verzuim) */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .stat-card { background: var(--bg-surface-alt); border-radius: 8px; padding: 0.75rem 1rem; }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; margin-bottom: 0.2rem; }
+    .stat-value { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
+
+    /* Leerlijn rows */
+    .leerlijn-rows { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .leerlijn-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg-surface-alt);
+      border-radius: 8px;
+      flex-wrap: wrap;
+    }
+
+    .leerlijn-naam { width: 145px; font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); flex-shrink: 0; }
+    .leerlijn-stat { font-size: 0.85rem; color: var(--text-muted); min-width: 52px; }
+    .leerlijn-stat strong { color: var(--text-primary); font-size: 1rem; }
+    .leerlijn-bar-track { flex: 1; height: 6px; background: var(--border-default); border-radius: 999px; overflow: hidden; min-width: 60px; }
+    .leerlijn-bar-fill { height: 100%; border-radius: 999px; background: var(--accent-blue); }
+
+    /* Datapunt × deelgebied matrix */
+    .dg-matrix-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-default); }
+
+    .dg-matrix {
+      border-collapse: collapse;
+      font-size: 0.77rem;
+      width: 100%;
+      min-width: 860px;
+    }
+
+    .dg-matrix th {
+      padding: 0.3rem 0.45rem;
+      background: var(--bg-surface-alt);
+      color: var(--text-muted);
+      font-weight: 700;
+      border-bottom: 2px solid var(--border-default);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .dg-matrix th.col-naam   { text-align: left; min-width: 170px; background: var(--border-light); border-right: 1px solid var(--border-default); }
+    .dg-matrix th.groep-lesgeven     { background: #eff6ff; color: #1e40af; border-bottom-color: #bfdbfe; }
+    .dg-matrix th.groep-organiseren  { background: #f0fdf4; color: #166534; border-bottom-color: #bbf7d0; }
+    .dg-matrix th.groep-profhandelen { background: #faf5ff; color: #6b21a8; border-bottom-color: #e9d5ff; }
+
+    .dg-matrix td {
+      padding: 0.25rem 0.35rem;
+      border-bottom: 1px solid var(--border-light);
+      text-align: center;
+    }
+
+    .dg-matrix td.cell-naam {
+      text-align: left;
+      padding: 0.3rem 0.6rem;
+      border-right: 1px solid var(--border-default);
+      max-width: 200px;
+    }
+
+    .dg-matrix .cell-vak { font-size: 0.68rem; color: var(--text-faint); display: block; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dg-matrix .cell-dp  { font-weight: 400; color: var(--text-secondary); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dg-matrix tr:hover td { background: var(--bg-surface-alt); }
+    .dg-matrix tr:hover td.cell-naam { background: var(--border-light); }
+    .dg-matrix tfoot td { background: var(--border-light); font-weight: 700; }
+    .dg-matrix tfoot tr:first-child td { border-top: 2px solid var(--border-default); }
+    .dg-matrix tfoot tr + tr td { border-top: 1px solid var(--border-default); }
+
+    .dm-chip {
+      display: inline-block;
+      width: 1.5rem;
+      line-height: 1.6rem;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-align: center;
+    }
+
+    .score-o    { background: var(--status-rood-bg); color: var(--status-rood-text); }
+    .score-v    { background: var(--status-groen-bg); color: var(--status-groen-text); }
+    .score-g    { background: var(--status-blauw-bg); color: var(--status-blauw-text); }
+    .score-e    { background: #ede9fe; color: #6d28d9; }
+    .score-none { background: var(--status-grijs-bg); color: var(--text-faint); }
+
+    /* Phase 7: Growth indicator badges (D-09, D-10) */
+    .growth-up   { font-size: 0.68rem; font-weight: 700; color: #16a34a; vertical-align: middle; margin-left: 2px; }
+    .growth-down { font-size: 0.68rem; font-weight: 700; color: #dc2626; vertical-align: middle; margin-left: 2px; }
+    .growth-same { font-size: 0.68rem; font-weight: 700; color: #9ca3af; vertical-align: middle; margin-left: 2px; }
+
+    /* Phase 13 D-02: Vote-count badges in Eindoordeel tfoot */
+    .vote-count-cell { padding: 0.25rem; vertical-align: middle; text-align: center; }
+    .vote-badges { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 4px; }
+    .vote-badge {
+      display: inline-block;
+      padding: 4px;
+      border-radius: 3px;
+      font-size: 0.69rem;
+      font-weight: 600;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    /* Gap items */
+    .gap-items { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.75rem; }
+    .gap-item { font-size: 0.875rem; padding: 0.4rem 0.75rem; border-radius: 6px; }
+    .gap-ok     { background: var(--status-groen-bg); color: var(--status-groen-text); }
+    .gap-warn   { background: #fef9c3; color: #92400e; }
+    .gap-danger { background: var(--status-rood-bg); color: var(--status-rood-text); }
+    .gap-info   { background: var(--accent-blue-light); color: var(--status-blauw-text); }
+
+    /* Vak accordion */
+    .vak-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .vak-card { border: 1px solid var(--border-default); border-radius: 8px; overflow: hidden; }
+
+    .vak-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      background: var(--bg-surface-alt);
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+    .vak-header:hover { background: var(--border-light); }
+    .vak-chevron { font-size: 0.7rem; color: var(--text-faint); transition: transform 0.15s; }
+    .vak-card.open .vak-chevron { transform: rotate(180deg); }
+    .vak-body { display: none; }
+    .vak-card.open .vak-body { display: block; }
+
+    .opdracht-row { padding: 0.5rem 1rem; border-top: 1px solid var(--border-light); font-size: 0.875rem; }
+    .opdracht-naam { font-weight: 400; color: var(--text-primary); margin-bottom: 0.15rem; }
+    .opdracht-status { color: var(--text-muted); font-size: 0.8rem; }
+    .opdracht-ff { margin-top: 0.3rem; font-size: 0.8rem; color: var(--text-secondary); font-style: italic; padding-left: 0.75rem; border-left: 2px solid var(--border-default); }
+
+    /* Verzuim stacked bar */
+    .verzuim-bar {
+      display: flex;
+      height: 44px;
+      border-radius: 8px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .vb-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      overflow: hidden;
+      transition: width 0.4s ease;
+    }
+
+    .vb-aanwezig     { background: #22c55e; }
+    .vb-geoorloofd   { background: #f97316; }
+    .vb-ongeoorloofd { background: #ef4444; }
+
+    .vb-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      padding: 0 6px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+      pointer-events: none;
+    }
+
+    .verzuim-legend {
+      display: flex;
+      gap: 1.25rem;
+      margin-top: 0.9rem;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .vl-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.875rem;
+    }
+
+    .vl-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .vl-dot-aanwezig     { background: #22c55e; }
+    .vl-dot-geoorloofd   { background: #f97316; }
+    .vl-dot-ongeoorloofd { background: #ef4444; }
+
+    .vl-titel { color: var(--text-secondary); }
+    .vl-tijd  { font-weight: 700; color: var(--text-primary); margin-left: 0.15rem; }
+    .vl-pct   { color: var(--text-faint); font-size: 0.8rem; margin-left: 0.15rem; }
+
+    .verzuim-melding {
+      margin-top: 0.85rem;
+      font-size: 0.825rem;
+      color: var(--text-muted);
+    }
+    .verzuim-melding strong { color: var(--text-secondary); }
+
+    /* Mini stacked bar (klasoverzicht) */
+    .mini-verzuim-bar {
+      display: flex;
+      height: 10px;
+      border-radius: 4px;
+      overflow: hidden;
+      width: 100%;
+      min-width: 80px;
+    }
+    .mvb-seg { min-width: 0; flex-shrink: 0; }
+    .mvb-aanwezig     { background: #22c55e; }
+    .mvb-geoorloofd   { background: #f97316; }
+    .mvb-ongeoorloofd { background: #ef4444; }
+
+    /* Aanvullende gegevens */
+    .aanvullend-grid {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .aanvullend-veld {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      min-width: 140px;
+    }
+    .aanvullend-veld label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .aanvullend-veld select,
+    .aanvullend-veld input[type="number"] {
+      padding: 0.4rem 0.6rem;
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      outline: none;
+    }
+    .aanvullend-veld select:focus,
+    .aanvullend-veld input[type="number"]:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+    }
+    .aanvullend-hint {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #22c55e;
+      min-height: 1.2em;
+    }
+
+    /* Leerlijn-toewijzing */
+    #leerlijn-toewijzing { margin-top: 2rem; display: none; }
+    #leerlijn-toewijzing h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    #leerlijn-toewijzing .lt-desc { color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem; }
+    .lt-table { width: 100%; border-collapse: collapse; background: var(--bg-surface); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .lt-table th { padding: 0.6rem 1rem; text-align: left; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; background: var(--bg-surface-alt); border-bottom: 2px solid var(--border-default); }
+    .lt-table td { padding: 0.5rem 1rem; border-bottom: 1px solid var(--border-light); font-size: 0.9rem; }
+    .lt-table tbody tr:hover { background: var(--bg-surface-alt); }
+    .lt-table select { padding: 0.35rem 0.6rem; border: 1px solid var(--border-default); border-radius: 6px; font-size: 0.85rem; background: var(--bg-surface); color: var(--text-primary); }
+    .lt-table select:focus { border-color: var(--accent-blue); outline: none; }
+    .lt-table .lt-changed { background: #fffbeb; }
+    .lt-footer { margin-top: 0.75rem; display: flex; gap: 0.75rem; align-items: center; }
+    .lt-footer .lt-status { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Traject tag */
+    .traject-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    /* Notities */
+    #notitie-textarea {
+      width: 100%;
+      min-height: 110px;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      line-height: 1.5;
+      color: var(--text-primary);
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+      background: var(--bg-surface);
+    }
+    #notitie-textarea:focus { border-color: var(--accent-blue); }
+
+    .notitie-hint { font-size: 0.75rem; color: var(--text-faint); margin-top: 0.4rem; min-height: 1.1rem; transition: color 0.3s; }
+    .notitie-hint.saved { color: #10b981; }
+
+    /* ── Klas tiles (Phase 6) ─────────────────────────────────────────── */
+    .klas-tile {
+      background: var(--bg-surface);
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      padding: 16px;
+      border-left: 3px solid var(--border-default);
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .klas-tile:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+      transform: translateY(-1px);
+    }
+    .klas-tile:focus {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: 2px;
+    }
+    .klas-tile-naam {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Empty state (Phase 6) ────────────────────────────────────────── */
+    #klassen-leeg {
+      text-align: center;
+      padding: 48px 16px;
+      color: var(--text-faint);
+    }
+    #klassen-leeg h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    #klassen-leeg p {
+      font-size: 1rem;
+      color: var(--text-faint);
+      margin-bottom: 1.5rem;
+    }
+    /* ── Theme toggle (Phase 8 — UI-01) ──────────────────────────────── */
+    .theme-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      cursor: pointer;
+    }
+    .theme-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .theme-switch-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border-default);
+      border-radius: 24px;
+      transition: background 0.2s;
+    }
+    .theme-switch-slider::before {
+      content: '';
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .theme-switch input:checked + .theme-switch-slider {
+      background: var(--accent-blue);
+    }
+    .theme-switch input:checked + .theme-switch-slider::before {
+      transform: translateX(20px);
+    }
+
+    /* ── KPI strip (Phase 8 — KPI-01) ───────────────────────────────── */
+    #kpi-strip {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    #kpi-strip:empty { display: none; }
+    .kpi-tile {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: 10px;
+      padding: 16px 24px;
+      min-width: 140px;
+      flex: 1;
+    }
+    .kpi-tile .kpi-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.0;
+      color: var(--text-primary);
+    }
+    .kpi-tile .kpi-label {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── Parse warnings (Phase 8 — PARSE-01) ────────────────────────── */
+    .parse-warnings {
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0;
+      padding: 8px 16px;
+      margin-top: 8px;
+      background: #fffbeb;
+    }
+    body.dark .parse-warnings {
+      background: #431407;
+      border-left-color: #fb923c;
+    }
+    .parse-warnings h4 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .parse-warnings li {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+      list-style: none;
+    }
+
+    /* Phase 05-03: Tijdlijn deelgebied matrix — datapunt columns + score dots */
+    .dg-matrix-tijdlijn .dp-col-header {
+      position: relative;
+      height: 60px;
+      min-width: 14px;
+      padding: 0;
+      vertical-align: bottom;
+    }
+    .dg-matrix-tijdlijn .dp-col-label {
+      display: block;
+      transform: rotate(-45deg);
+      transform-origin: bottom left;
+      font-size: 10px;
+      white-space: nowrap;
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+    }
+    .dg-matrix-tijdlijn .groep-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.5rem 1rem;
+    }
+    .dg-matrix-tijdlijn .cell-naam {
+      min-width: 60px;
+      font-size: 0.875rem;
+      padding: 2px 8px;
+      white-space: nowrap;
+      position: sticky;
+      left: 0;
+      background: var(--bg-surface);
+      z-index: 1;
+    }
+
+    /* Spider chart layout — Phase 10 */
+    .spider-charts-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: flex-start;
+      margin-top: 8px;
+    }
+    .spider-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 160px;
+      flex: 1;
+      padding: 12px;
+      background: var(--bg-surface-alt);
+      border-radius: 8px;
+    }
+    .spider-svg {
+      display: block;
+      width: 100%;
+      max-width: 180px;
+    }
+    .spider-leerlijn-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-secondary, var(--text-muted));
+      margin-top: 8px;
+    }
+    .spider-empty {
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* Phase 13 Plan 02 — Feedback & Actiepunten panel (FEED-01/02/03) */
+    .ap-subsection-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .ap-subsection-title:first-child { margin-top: 0; }
+
+    .actiepunten-list { display: block; }
+
+    .ap-empty {
+      font-size: 0.875rem;
+      color: var(--text-faint);
+      padding: 0.5rem 0;
+    }
+
+    .ap-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-default);
+      background: var(--bg-surface);
+      margin-bottom: 8px;
+    }
+    .ap-row-main {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ap-row-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ap-onderwerp {
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--text-primary);
+      flex: 1;
+    }
+    .ap-datum {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .ap-status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .ap-status-open      { background: var(--status-oranje-bg); color: var(--status-oranje-text); }
+    .ap-status-opgepakt  { background: var(--status-groen-bg);  color: var(--status-groen-text); }
+    .ap-status-herhaling { background: var(--status-rood-bg);   color: var(--status-rood-text); }
+
+    .ap-btn-edit, .ap-btn-delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+    .ap-btn-edit:hover   { background: var(--bg-surface-alt); color: var(--text-secondary); }
+    .ap-btn-delete:hover { background: var(--status-rood-bg); color: var(--status-rood-text); }
+
+    .ap-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      border: 1px solid var(--accent-blue-border);
+      border-radius: 8px;
+      background: var(--accent-blue-light);
+      margin-bottom: 8px;
+    }
+    .ap-form-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ap-form-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .ap-input-onderwerp,
+    .ap-input-datum,
+    .ap-input-status {
+      padding: 8px;
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      outline: none;
+      font-family: inherit;
+    }
+    .ap-input-onderwerp { width: 100%; }
+    .ap-input-datum     { min-width: 140px; }
+    .ap-input-status    { min-width: 120px; }
+    .ap-input-onderwerp:focus,
+    .ap-input-datum:focus,
+    .ap-input-status:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+    }
+
+    .ap-btn-add {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme');
+      if (t === 'dark') document.body.classList.add('dark');
+    })();
+  </script>
+
+  <!-- ── Site header + navigatie ────────────────────────────────────── -->
+  <header id="site-header">
+    <h1>Mentordashboard CIOS</h1>
+    <nav id="main-nav">
+      <button class="nav-tab active" id="nav-import">Importeren</button>
+      <button class="nav-tab" id="nav-overzicht">
+        Klasoverzicht
+        <span class="nav-count" id="nav-student-count" style="display:none"></span>
+      </button>
+    </nav>
+    <div id="normset-bar" style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+      <label for="normset-select" style="color:#94a3b8;font-size:0.85rem;font-weight:500;white-space:nowrap;">Traject:</label>
+      <select id="normset-select" style="background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:6px;padding:0.3rem 0.6rem;font-size:0.85rem;cursor:pointer;">
+        <option value="auto">Automatisch (uit PDF)</option>
+        <option value="bj1">Basisjaar 1</option>
+        <option value="bj2">Basisjaar 2</option>
+      </select>
+    </div>
+    <label class="theme-switch" aria-label="Nachtmodus aan/uit">
+      <input type="checkbox" id="theme-toggle-checkbox">
+      <span class="theme-switch-slider"></span>
+    </label>
+  </header>
+
+  <div id="klas-tabs" style="
+    background: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    height: 44px;
+    overflow-x: auto;
+    white-space: nowrap;
+  "></div>
+
+  <div id="app">
+
+    <!-- Empty state: geen klassen (Phase 6) -->
+    <div id="klassen-leeg" style="display:none;">
+      <h2>Geen klassen aangemaakt</h2>
+      <p>Maak een klas aan om te beginnen. Je kunt daarna PDFs en verzuim importeren.</p>
+      <button class="btn btn-primary" id="klassen-leeg-btn">Nieuwe klas aanmaken</button>
+    </div>
+
+    <!-- ── Import view ──────────────────────────────────────────────── -->
+    <div id="import-view">
+
+      <p class="subtitle" style="margin-top:1.5rem;">Importeer voortgang-PDFs om leerlingdata in te laden</p>
+
+      <!-- Drop zone + file picker -->
+      <div id="import-zone">
+        <span class="drop-icon">&#128196;</span>
+        <p class="drop-text">Sleep PDF-bestanden hierheen of klik om te kiezen</p>
+        <button class="btn btn-primary" id="choose-btn" type="button">Kies bestanden</button>
+        <p class="drop-hint">Ondersteunt meerdere PDFs tegelijk (de hele klas in &eacute;&eacute;n keer)</p>
+      </div>
+      <input type="file" id="file-input" multiple accept=".pdf">
+
+      <!-- Progress -->
+      <div id="import-progress">
+        <p class="progress-label" id="progress-label">Verwerkt: 0/0 PDFs</p>
+        <div id="progress-bar-track"><div id="progress-bar-fill"></div></div>
+      </div>
+
+      <!-- Results -->
+      <div id="import-results">
+        <h2>Importresultaat</h2>
+        <div class="result-summary">
+          <span class="result-badge badge-success" id="result-success">0 geslaagd</span>
+          <span class="result-badge badge-error" id="result-errors" style="display:none">0 mislukt</span>
+        </div>
+        <ul class="error-list" id="error-list"></ul>
+      </div>
+
+      <!-- Excel verzuim import -->
+      <div id="excel-import-section" style="margin-top:2rem;">
+        <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:0.75rem;">Verzuim importeren</h2>
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem;">Importeer de verzuim-Excel (.xls of .xlsx) om aanwezigheids- en verzuimdata te koppelen aan leerlingen.</p>
+        <input type="file" id="excel-file-input" accept=".xls,.xlsx" style="display:none;">
+        <button class="btn btn-primary" id="excel-choose-btn" type="button">Kies Excel-bestand</button>
+        <div id="excel-import-results" style="display:none;margin-top:1rem;padding:1rem;background:var(--bg-surface);border-radius:8px;border:1px solid var(--border-default);">
+          <p id="excel-result-text" style="font-size:0.9rem;color:var(--text-secondary);"></p>
+          <ul id="excel-unmatched-list" class="error-list" style="margin-top:0.5rem;"></ul>
+        </div>
+      </div>
+
+      <!-- Stage import (Phase 6 — STAGE-01) -->
+      <div id="stage-import-section" style="margin-top:2rem;">
+        <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:0.75rem;">Stage importeren</h2>
+        <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1rem;">
+          Importeer de stage-Excel (.xlsx) om stage-gegevens te koppelen aan leerlingen.
+        </p>
+        <div class="import-zone-secondary" id="stage-zone">
+          <span class="drop-icon" style="font-size:2.5rem;display:block;margin-bottom:0.75rem;">&#128188;</span>
+          <p class="drop-text" style="color:#4b5563;font-size:1rem;margin-bottom:1rem;">Sleep de stage-Excel hierheen</p>
+          <p class="drop-hint" style="color:#9ca3af;font-size:0.85rem;margin-top:0.5rem;">.xlsx &#8212; &#233;&#233;n bestand, &#233;&#233;n rij per leerling</p>
+          <button class="btn btn-primary" id="stage-choose-btn" type="button">Importeer stage-Excel</button>
+          <input type="file" id="stage-file-input" accept=".xlsx" style="display:none;">
+        </div>
+        <div id="stage-import-results" style="display:none;"></div>
+      </div>
+
+      <!-- Backup & Restore (Phase 7 — EXP-01, per D-09) -->
+      <div id="backup-section" style="margin-top:2rem;">
+        <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:0.75rem;">Backup &amp; Restore</h2>
+        <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1rem;">
+          Exporteer al je data als backup (.zip). Optioneel met wachtwoord. Gebruik dezelfde backup om data over te zetten naar een andere laptop.
+        </p>
+
+        <!-- Export subsection -->
+        <div style="background:var(--bg-surface-alt);border:1px solid var(--border-default);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.5rem;">Backup maken</h3>
+          <label for="backup-password" style="display:block;font-size:0.875rem;font-weight:500;margin-bottom:0.375rem;">Wachtwoord (optioneel):</label>
+          <input type="password" id="backup-password" placeholder="Laat leeg voor backup zonder wachtwoord" autocomplete="off"
+            style="width:100%;max-width:320px;padding:0.5rem 0.75rem;border:1px solid var(--border-default);border-radius:6px;font-size:0.875rem;margin-bottom:0.75rem;">
+          <div>
+            <button class="btn btn-primary" id="backup-export-btn" type="button">Exporteer backup</button>
+          </div>
+          <div id="backup-export-status" style="display:none;margin-top:0.5rem;font-size:0.875rem;"></div>
+        </div>
+
+        <!-- Restore subsection -->
+        <div style="background:var(--bg-surface-alt);border:1px solid var(--border-default);border-radius:8px;padding:1rem;">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.5rem;">Backup terugzetten</h3>
+          <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.75rem;">
+            Kies een eerder gemaakte backup (.zip). Als er al klassen staan, kun je kiezen: alles vervangen of samenvoegen.
+          </p>
+          <div class="import-zone-secondary" id="backup-zone">
+            <span class="drop-icon" style="font-size:2.5rem;display:block;margin-bottom:0.75rem;">&#128230;</span>
+            <p class="drop-text" style="color:#4b5563;font-size:1rem;margin-bottom:1rem;">Sleep een backup-zip hierheen</p>
+            <p class="drop-hint" style="color:#9ca3af;font-size:0.85rem;margin-top:0.5rem;">.zip &#8212; eerder geexporteerde backup</p>
+            <button class="btn btn-primary" id="backup-choose-btn" type="button">Kies backup-bestand</button>
+            <input type="file" id="backup-file-input" accept=".zip" style="display:none;">
+          </div>
+
+          <!-- Password prompt (shown when encrypted zip is detected) -->
+          <div id="backup-password-prompt" style="display:none;margin-top:1rem;padding:0.75rem 1rem;background:var(--status-blauw-bg);border:1px solid var(--accent-blue-border);border-radius:8px;">
+            <p style="font-size:0.875rem;color:var(--status-blauw-text);margin-bottom:0.5rem;font-weight:500;">Deze backup is beveiligd. Voer het wachtwoord in:</p>
+            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+              <input type="password" id="backup-import-password" placeholder="Wachtwoord" autocomplete="off"
+                style="padding:0.5rem 0.75rem;border:1px solid var(--accent-blue-border);border-radius:6px;font-size:0.875rem;width:200px;">
+              <button class="btn btn-primary" id="backup-import-password-btn" type="button" style="padding:0.5rem 1rem;">Ontgrendel &amp; importeer</button>
+            </div>
+          </div>
+
+          <!-- Restore mode choice (shown when existing data is present) -->
+          <div id="backup-restore-choice" style="display:none;margin-top:1rem;">
+            <p style="font-size:0.875rem;font-weight:500;margin-bottom:0.5rem;">Er staat al data in de app. Wat wil je doen?</p>
+            <button class="btn btn-primary" id="backup-overwrite-btn" type="button">Overschrijven</button>
+            <button class="btn btn-ghost-sm" id="backup-merge-btn" type="button" style="margin-left:0.5rem;">Samenvoegen (klassen toevoegen)</button>
+          </div>
+
+          <div id="backup-import-results" style="display:none;margin-top:0.75rem;font-size:0.875rem;"></div>
+        </div>
+
+        <div id="backup-results" style="display:none;margin-top:0.75rem;"></div>
+      </div>
+
+      <!-- Leerlijn-toewijzing (NORM-01) -->
+      <div id="leerlijn-toewijzing">
+        <h2>Leerlijn-toewijzing</h2>
+        <p class="lt-desc">Wijs deelgebieden toe aan leerlijnen. Standaard gebaseerd op B02-definitief mapping.</p>
+        <table class="lt-table">
+          <thead>
+            <tr>
+              <th>Deelgebied</th>
+              <th>Leerlijn</th>
+            </tr>
+          </thead>
+          <tbody id="lt-tbody"></tbody>
+        </table>
+        <div class="lt-footer">
+          <button class="btn btn-ghost" id="lt-reset-btn">Herstel standaard</button>
+          <span class="lt-status" id="lt-status"></span>
+        </div>
+      </div>
+
+    </div><!-- /#import-view -->
+
+    <!-- ── Klasoverzicht view ────────────────────────────────────────── -->
+    <div id="klasoverzicht-view" style="display:none;">
+
+      <div class="klas-toolbar">
+        <input type="search" id="klas-zoek" placeholder="Zoek leerling..." autocomplete="off">
+        <div class="sort-group">
+          <button class="sort-btn active" id="sort-naam" data-sort="naam">Naam ↕</button>
+          <button class="sort-btn" id="sort-status" data-sort="status">Status</button>
+          <button class="sort-btn" id="sort-verzuim" data-sort="verzuim">Verzuim</button>
+        </div>
+      </div>
+
+      <div id="kpi-strip"></div>
+
+      <div id="klas-grid" style="
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+      "></div>
+      <div id="klas-leeg" style="display:none;">Geen leerlingen gevonden.</div>
+
+      <div class="klas-footer">
+        <button class="btn btn-danger" id="wis-data-btn">Klas verwijderen</button>
+      </div>
+
+    </div><!-- /#klasoverzicht-view -->
+
+    <!-- ── Detail view ──────────────────────────────────────────────── -->
+    <div id="detail-view" style="display:none;"></div>
+
+  </div><!-- /#app -->
+
+  <!-- Nieuwe klas modal (Phase 6) -->
+  <div id="nieuwe-klas-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-surface); border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.18); max-width:400px; width:90%; padding:24px;">
+      <h3 style="font-size:1.25rem; font-weight:700; color:var(--text-primary); margin-bottom:16px;">Nieuwe klas aanmaken</h3>
+      <input type="text" id="nieuwe-klas-naam" placeholder="bijv. CSD2A"
+        style="width:100%; padding:0.5rem 1rem; border:1px solid var(--border-default); border-radius:8px; font-size:0.9rem; outline:none; box-sizing:border-box; background:var(--bg-surface); color:var(--text-primary);"
+      >
+      <label style="display:block;margin-top:0.75rem;font-size:0.875rem;color:var(--text-secondary);font-weight:500;">Schooljaar type</label>
+      <select id="nieuwe-klas-schooljaar"
+        style="width:100%;margin-top:0.25rem;padding:0.5rem 1rem;border:1px solid var(--border-default);border-radius:8px;font-size:0.9rem;box-sizing:border-box;background:var(--bg-surface);color:var(--text-primary);">
+        <option value="">Selecteer…</option>
+        <option value="bj1">BJ1 — Basisjaar 1</option>
+        <option value="bj2">BJ2 — Basisjaar 2</option>
+        <option value="pj">PJ — Praktijkjaar</option>
+        <option value="exj">ExJ — Examenjaar</option>
+      </select>
+      <p id="nieuwe-klas-error" style="font-size:0.875rem; color:#ef4444; margin-top:0.5rem; min-height:1.2em;"></p>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:16px;">
+        <button class="btn btn-ghost" id="modal-annuleren">Annuleren</button>
+        <button class="btn btn-primary" id="modal-aanmaken">Klas aanmaken</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- zip.js for AES-encrypted zip export/import (Phase 7 — EXP-01, per D-03) -->
+  <!-- UMD build: sets window.zip = {...} when loaded as classic script -->
+  <script src="vendor/zip.min.js"></script>
+  <!-- SheetJS for Excel (.xls/.xlsx) parsing -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <!-- Classic scripts first — globals available to module scripts -->
+  <script src="utils/schema.js"></script>
+  <script src="utils/datamodel.js"></script>
+  <!-- Leerlijn-toewijzing persistence (NORM-01) -->
+  <script src="utils/leerlijnen.js"></script>
+  <!-- Multi-class manager (Phase 6) -->
+  <script src="utils/klassen.js"></script>
+  <!-- Backup data layer (Phase 7 — EXP-01) -->
+  <script src="utils/backup.js"></script>
+  <!-- Spider chart math module (Phase 10 — SPIDER-01) -->
+  <script src="utils/spider.js"></script>
+  <!-- Excel parser — classic script -->
+  <script src="parsers/excel.js"></script>
+  <!-- Doorstroomnorm engine -->
+  <script src="utils/prognosis.js"></script>
+  <!-- Phase 13 D-01: modus-based aggregation (depends on schema.js SCORE_LEVELS + DEELGEBIEDEN) -->
+  <script src="utils/aggregation.js"></script>
+  <!-- Phase 13 Plan 02 — Actiepunten store (FEED-01/02, D-09) -->
+  <script src="utils/actiepunten.js"></script>
+  <!-- PDF parser as ES module -->
+  <script type="module" src="parsers/pdf.js"></script>
+  <!-- App logic -->
+  <script type="module" src="app.js"></script>
+
+</body>
+</html>
