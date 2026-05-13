@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: planning
-last_updated: "2026-05-12T00:00:00.000Z"
-last_activity: 2026-05-12 — Roadmap created, Phase 10 is next
+status: in-progress
+last_updated: "2026-05-13T18:55:00.000Z"
+last_activity: 2026-05-13 — Phase 10 Plan 01 complete (Tauri scaffold + package.json merge)
 progress:
-  total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 10
+  completed_phases: 4
+  total_plans: 11
+  completed_plans: 9
+  percent: 82
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 ## Current Position
 
 Phase: 10 — Scaffold & Toolchain
-Plan: —
-Status: Not started (roadmap defined, awaiting first plan)
-Last activity: 2026-05-12 — Roadmap v2.0 created (Phases 10–15, 20 requirements mapped)
+Plan: 01 complete (2/3 plans remaining)
+Status: Plan 01 complete; Plan 02 next
+Last activity: 2026-05-13 — Plan 10-01 executed — Tauri react-ts scaffold, index.html.bak, package.json merged (vitest, no jest), npm install 114 pkgs
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -50,6 +50,9 @@ v2.0 phases completed: 0/6
 - [research] SheetJS: register cpexcel.full.mjs before any XLSX.read() call for correct Dutch characters
 - [research] localStorage unreliable in Tauri prod — plugin-store replaces it (useHttpsScheme or migrate before deploy)
 - [research] window.* globals (window.XLSX, window.parseSinglePDF, etc.) must become named ES module exports before React
+- [10-01] scaffold: npm create tauri-app --force wipes ALL untracked files — commit all untracked work before running scaffold in future
+- [10-01] vite-dev script = 'vite', dev script = 'tauri dev', beforeDevCommand references vite-dev to avoid infinite cycle
+- [10-01] package.json type=module required for Vite ESM output
 
 ### Pending Todos
 
@@ -58,7 +61,8 @@ v2.0 phases completed: 0/6
 
 ### Blockers/Concerns
 
-- Rust toolchain not installed — first task of Phase 10 must install it
+- [RESOLVED] Rust toolchain not installed — Rust 1.95.0 confirmed installed (D-09 superseded)
+- [NEW - BLOCKER] Plan 10-03 blocked: 8 test files (backup, parseStage, parseToetsplan, prognosis, spider, aggregation, feedback tests) + utils/aggregation.js + utils/backup.js + utils/spider.js + vendor/zip.min.js permanently deleted by create-tauri-app --force. Must recover before 128-test suite can run. Consider recovering from another git branch or machine backup.
 
 ## Session Log
 
@@ -67,3 +71,4 @@ v2.0 phases completed: 0/6
 - 2026-04-24: Phase 9 executed — CIOS huisstijl tokens, bold typografie, aanwezigheidspercentage in tegels. Verification 9/9. v1.2 milestone complete.
 - 2026-05-12: v2.0 Stack Modernisering milestone gestart — TypeScript + React + Tauri + AVG-compliance. Seed geactiveerd.
 - 2026-05-12: Roadmap v2.0 created — Phases 10–15 defined, all 20 requirements mapped.
+- 2026-05-13: Phase 10 Plan 01 executed — Tauri react-ts scaffold (src/, src-tauri/), index.html.bak, package.json merged (vitest ^4.1.6, jsdom ^29.1.1, no jest), npm install 114 packages. BLOCKER: 8 test files + 3 utils lost due to scaffold --force; Plan 10-03 blocked until recovery.

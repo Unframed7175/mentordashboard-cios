@@ -12,10 +12,10 @@
 
 ### Toolchain & Scaffold (TCH)
 
-- [ ] **TCH-01**: Developer kan het project starten met `npm run dev` — geen Python http.server
-- [ ] **TCH-02**: App bouwt als installeerbare `.exe` (Windows) en `.dmg` (Mac) via één build-commando
-- [ ] **TCH-03**: Alle 128 bestaande tests slagen na migratie (nul regressies)
-- [ ] **TCH-04**: TypeScript type-fouten zijn zichtbaar tijdens development (per-module strict mode)
+- [x] **TCH-01**: Developer kan het project starten met `npm run dev` — geen Python http.server
+- [x] **TCH-02**: App bouwt als installeerbare `.exe` (Windows) en `.dmg` (Mac) via één build-commando
+- [x] **TCH-03**: Alle 128 bestaande tests slagen na migratie (nul regressies)
+- [x] **TCH-04**: TypeScript type-fouten zijn zichtbaar tijdens development (per-module strict mode)
 
 ### Logica Migratie (MIG)
 
@@ -155,10 +155,10 @@
 | DES-02 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
 | DES-03 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
 | DES-04 | Phase 9 — CIOS Huisstijl & Verzuim Weergave | Pending |
-| TCH-01 | Phase 10 — Scaffold & Toolchain | Pending |
-| TCH-02 | Phase 10 — Scaffold & Toolchain | Pending |
-| TCH-03 | Phase 10 — Scaffold & Toolchain | Pending |
-| TCH-04 | Phase 10 — Scaffold & Toolchain | Pending |
+| TCH-01 | Phase 10 — Scaffold & Toolchain | Complete |
+| TCH-02 | Phase 10 — Scaffold & Toolchain | Complete |
+| TCH-03 | Phase 10 — Scaffold & Toolchain | Complete |
+| TCH-04 | Phase 10 — Scaffold & Toolchain | Complete |
 | MIG-01 | Phase 11 — TypeScript Migratie | Pending |
 | MIG-02 | Phase 11 — TypeScript Migratie | Pending |
 | MIG-03 | Phase 11 — TypeScript Migratie | Pending |

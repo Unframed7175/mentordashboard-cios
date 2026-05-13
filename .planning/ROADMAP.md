@@ -116,7 +116,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Pre-flight + Tauri scaffold + package.json merge + npm install
+- [x] 10-01-PLAN.md — Pre-flight + Tauri scaffold + package.json merge + npm install
 - [ ] 10-02-PLAN.md — Configure Vite, TypeScript, Tauri conf, capabilities, React placeholder; smoke test npm run dev
 - [ ] 10-03-PLAN.md — Vitest config, jest shim setupFile, dead import removal, 128 tests passing
 
@@ -187,7 +187,7 @@ Plans:
 | 7. Periode Vergelijking | 2/2 | Complete | 2026-04-06 |
 | 8. Revert toetsplan changes | 1/1 | Complete | 2026-04-22 |
 | 9. CIOS Huisstijl & Verzuim Weergave | 2/2 | Complete | 2026-04-24 |
-| 10. Scaffold & Toolchain | 0/? | Not started | - |
+| 10. Scaffold & Toolchain | 1/3 | In Progress|  |
 | 11. TypeScript Migratie | 0/? | Not started | - |
 | 12. Versleutelde Opslag | 0/? | Not started | - |
 | 13. Bestandstoegang | 0/? | Not started | - |
