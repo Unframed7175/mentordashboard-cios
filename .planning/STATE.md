@@ -36,7 +36,7 @@ Progress: [████████░░] 82%
 v1.0 phases completed: 5/5
 v1.1 phases completed: 3/3
 v1.2 phases completed: 1/1
-v2.0 phases completed: 0/6
+v2.0 phases completed: 1/6
 
 ## Accumulated Context
 
