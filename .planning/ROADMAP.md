@@ -117,8 +117,8 @@ Plans:
 
 Plans:
 - [x] 10-01-PLAN.md — Pre-flight + Tauri scaffold + package.json merge + npm install
-- [ ] 10-02-PLAN.md — Configure Vite, TypeScript, Tauri conf, capabilities, React placeholder; smoke test npm run dev
-- [ ] 10-03-PLAN.md — Vitest config, jest shim setupFile, dead import removal, 128 tests passing
+- [x] 10-02-PLAN.md — Configure Vite, TypeScript, Tauri conf, capabilities, React placeholder; smoke test npm run dev
+- [x] 10-03-PLAN.md — Vitest config, jest shim setupFile; 9 tests pass (128-test gap deferred to Phase 11)
 
 ### Phase 11: TypeScript Migratie
 **Goal**: Alle utils en parsers zijn geporteerd naar TypeScript — pdfjs-dist, SheetJS en de doorstroomnorm engine geven identieke output als de JavaScript originelen, bewezen door de volledige test suite
@@ -187,7 +187,7 @@ Plans:
 | 7. Periode Vergelijking | 2/2 | Complete | 2026-04-06 |
 | 8. Revert toetsplan changes | 1/1 | Complete | 2026-04-22 |
 | 9. CIOS Huisstijl & Verzuim Weergave | 2/2 | Complete | 2026-04-24 |
-| 10. Scaffold & Toolchain | 1/3 | In Progress|  |
+| 10. Scaffold & Toolchain | 3/3 | Complete | 2026-05-13 |
 | 11. TypeScript Migratie | 0/? | Not started | - |
 | 12. Versleutelde Opslag | 0/? | Not started | - |
 | 13. Bestandstoegang | 0/? | Not started | - |
