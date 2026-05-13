@@ -1,32 +1,22 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-
-// @ts-expect-error process is a nodejs global
-const host = process.env.TAURI_DEV_HOST;
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vite.dev/config/
-export default defineConfig(async () => ({
+export default defineConfig({
   plugins: [react()],
 
-  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
-  //
-  // 1. prevent Vite from obscuring rust errors
-  clearScreen: false,
-  // 2. tauri expects a fixed port, fail if that port is not available
+  // Required for Tauri: use relative base path so assets resolve in production
+  // Without './', absolute paths (/assets/...) 404 in the packaged Tauri app (Pitfall 5)
+  base: './',
+
+  // Tauri dev server settings
   server: {
     port: 1420,
-    strictPort: true,
-    host: host || false,
-    hmr: host
-      ? {
-          protocol: "ws",
-          host,
-          port: 1421,
-        }
-      : undefined,
-    watch: {
-      // 3. tell Vite to ignore watching `src-tauri`
-      ignored: ["**/src-tauri/**"],
-    },
+    strictPort: true,   // fail explicitly if port is taken, not silently shift (Pitfall 6)
+    host: 'localhost',  // Tauri expects localhost, not 0.0.0.0
+    hmr: true,
   },
-}));
+
+  // Phase 10 only — no xlsx or pdfjs-dist needed yet
+  // Add optimizeDeps when adding those libraries in Phase 11
+});
