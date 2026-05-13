@@ -113,7 +113,12 @@ Plans:
   2. `npm run test` voert alle 128 bestaande tests uit via Vitest en slaagt zonder regressies
   3. TypeScript type-fouten in gewijzigde bestanden zijn direct zichtbaar in de editor (strict mode per module)
   4. `npm run build` produceert een installer-artefact (.exe op Windows, .dmg op Mac) zonder handmatige stappen
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Pre-flight + Tauri scaffold + package.json merge + npm install
+- [ ] 10-02-PLAN.md — Configure Vite, TypeScript, Tauri conf, capabilities, React placeholder; smoke test npm run dev
+- [ ] 10-03-PLAN.md — Vitest config, jest shim setupFile, dead import removal, 128 tests passing
 
 ### Phase 11: TypeScript Migratie
 **Goal**: Alle utils en parsers zijn geporteerd naar TypeScript — pdfjs-dist, SheetJS en de doorstroomnorm engine geven identieke output als de JavaScript originelen, bewezen door de volledige test suite
