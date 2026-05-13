@@ -129,7 +129,15 @@ Plans:
   2. Excel-parser leest .xls-bestanden inclusief correcte Nederlandse karakters (cpexcel codepage geregistreerd)
   3. Doorstroomnorm engine produceert identieke prognose-berekeningen voor alle 128 test-cases
   4. Geen TypeScript compile-errors in gemigreerde modules (`noImplicitAny` actief per module)
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Wave 0: tsconfig uitbreiden, fflate installeren, test stubs aanmaken, fixture checkpoint
+- [ ] 11-02-PLAN.md — Wave 1: Migreer utils/schema.ts + utils/datamodel.ts + utils/leerlijnen.ts (bodem-laag)
+- [ ] 11-03-PLAN.md — Wave 1: Migreer utils/klassen.ts + utils/actiepunten.ts + utils/prognosis.ts (afhankelijke utils)
+- [ ] 11-04-PLAN.md — Wave 2: Recreëer utils/aggregation.ts + utils/backup.ts + utils/spider.ts (verloren modules)
+- [ ] 11-05-PLAN.md — Wave 2: Migreer parsers/pdf.ts + parsers/excel.ts (parsers)
+- [ ] 11-06-PLAN.md — Wave 3: Tests finaliseren — actiepunten.test.js ESM, prognosis/feedback/parseStage tests
 
 ### Phase 12: Versleutelde Opslag
 **Goal**: Alle klassendata is opgeslagen via Tauri plugin-store en versleuteld met AES-256-GCM; de sleutel zit in de OS keychain; bestaande localStorage-data wordt automatisch gemigreerd; mentor kan een leerling volledig verwijderen
@@ -188,7 +196,7 @@ Plans:
 | 8. Revert toetsplan changes | 1/1 | Complete | 2026-04-22 |
 | 9. CIOS Huisstijl & Verzuim Weergave | 2/2 | Complete | 2026-04-24 |
 | 10. Scaffold & Toolchain | 3/3 | Complete | 2026-05-13 |
-| 11. TypeScript Migratie | 0/? | Not started | - |
+| 11. TypeScript Migratie | 0/6 | Not started | - |
 | 12. Versleutelde Opslag | 0/? | Not started | - |
 | 13. Bestandstoegang | 0/? | Not started | - |
 | 14. React UI | 0/? | Not started | - |
