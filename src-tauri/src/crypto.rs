@@ -36,9 +36,13 @@ fn get_or_init_key(app: &AppHandle) -> Result<Vec<u8>, String> {
 
     if let Some(key_b64) = response.data {
         // Key exists — decode from Base64
-        STANDARD
+        let decoded = STANDARD
             .decode(&key_b64)
-            .map_err(|e| format!("Key decode error: {e}"))
+            .map_err(|e| format!("Key decode error: {e}"))?;
+        if decoded.len() != 32 {
+            return Err(format!("Sleutellengte ongeldig: {} bytes (verwacht 32)", decoded.len()));
+        }
+        Ok(decoded)
     } else {
         // Key not found — generate new AES-256 key (32 bytes) and store in keychain
         let key = Aes256Gcm::generate_key(&mut OsRng);
@@ -76,9 +80,15 @@ fn get_key(app: &AppHandle) -> Result<Vec<u8>, String> {
         .map_err(|_| "Sleutel niet beschikbaar — neem contact op met beheerder".to_string())?;
 
     match response.data {
-        Some(key_b64) => STANDARD
-            .decode(&key_b64)
-            .map_err(|e| format!("Key decode error: {e}")),
+        Some(key_b64) => {
+            let decoded = STANDARD
+                .decode(&key_b64)
+                .map_err(|e| format!("Key decode error: {e}"))?;
+            if decoded.len() != 32 {
+                return Err(format!("Sleutellengte ongeldig: {} bytes (verwacht 32)", decoded.len()));
+            }
+            Ok(decoded)
+        }
         None => Err("Sleutel niet beschikbaar — neem contact op met beheerder".to_string()),
     }
 }
@@ -119,8 +129,8 @@ pub async fn decrypt_klassen(app: AppHandle, ciphertext: String) -> Result<Strin
         .decode(&ciphertext)
         .map_err(|e| format!("Base64 decode: {e}"))?;
 
-    if decoded.len() < 12 {
-        return Err("Ciphertext too short".into());
+    if decoded.len() < 28 {
+        return Err(format!("Ciphertext te kort: {} bytes (minimum 28: 12 nonce + 16 auth tag)", decoded.len()));
     }
 
     let (nonce_bytes, ct) = decoded.split_at(12);
