@@ -169,6 +169,7 @@ Plans:
 - [x] 12-02-PLAN.md — Wave 2: utils/klassen.ts async + deleteStudent + migratie
 - [x] 12-03-PLAN.md — Wave 2: utils/leerlijnen.ts async + datamodel.ts deprecatie
 - [x] 12-04-PLAN.md — Wave 3: tests/storage.test.ts (STO-01..STO-04)
+- [x] 12-05-PLAN.md — Gap closure: key-length guards, write-confirm guard, secure-storage capability (CR-01, CR-03, CR-04, WR-02)
 
 ### Phase 13: Bestandstoegang
 **Goal**: Mentor kan PDFs, Excel-bestanden en zip-backups aanleveren via drag-drop of OS bestandsdialoog in de Tauri app — de parsers verwerken de bestanden identiek als voorheen
@@ -216,8 +217,8 @@ Plans:
 | 8. Revert toetsplan changes | 1/1 | Complete | 2026-04-22 |
 | 9. CIOS Huisstijl & Verzuim Weergave | 2/2 | Complete | 2026-04-24 |
 | 10. Scaffold & Toolchain | 3/3 | Complete | 2026-05-13 |
-| 11. TypeScript Migratie | 0/6 | Not started | - |
-| 12. Versleutelde Opslag | 4/4 | Complete   | 2026-05-14 |
+| 11. TypeScript Migratie | 6/6 | Complete | 2026-05-14 |
+| 12. Versleutelde Opslag | 5/5 | Complete | 2026-05-14 |
 | 13. Bestandstoegang | 0/? | Not started | - |
 | 14. React UI | 0/? | Not started | - |
 | 15. Packaging & Cross-platform | 0/? | Not started | - |

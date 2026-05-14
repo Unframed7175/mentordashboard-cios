@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: Phase 12 Plan 01 uitgevoerd (2026-05-14) — Rust crypto layer compleet. cargo check + cargo test slagen. AES-256-GCM commands beschikbaar voor Wave 1.
-last_updated: "2026-05-14T15:51:03.266Z"
-last_activity: 2026-05-14 — Phase 12 Plan 01 uitgevoerd. crypto.rs met encrypt_klassen/decrypt_klassen. tauri-plugin-store + tauri-plugin-secure-storage geregistreerd. GetItemResponse.data field gecorrigeerd (was .value in RESEARCH). 2 Rust unit tests passing.
+status: Phase 12 volledig geverifieerd (2026-05-14) — gap closure 12-05 slaagt. Tauri runtime keychain bevestigd. Klaar voor Phase 13.
+last_updated: "2026-05-14T20:20:00.000Z"
+last_activity: 2026-05-14 — Phase 12 gap closure 12-05 uitgevoerd. CR-01/CR-03/CR-04/WR-02 opgelost. cargo test 2/2, Vitest 35/35, Tauri runtime keychain bevestigd. Verificatie passed 14/14.
 progress:
   total_phases: 10
   completed_phases: 7
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 12 — Versleutelde Opslag COMPLETE
-Plan: 4/4 executed
-Status: Phase 12 volledig uitgevoerd (2026-05-14) — Rust crypto layer + TypeScript async storage + leerlijnen migratie + Vitest storage tests. STO-01 t/m STO-04 allemaal groen.
-Last activity: 2026-05-14 — Phase 12 Plan 04 uitgevoerd. tests/storage.test.ts aangemaakt. 4 STO-tests passing. LazyStore class mock + btoa invoke mock. Volledige test suite 35 passed, 0 failed. npm run typecheck exit 0.
+Phase: 13 — Bestandstoegang (next)
+Plan: 0/? planned
+Status: Phase 12 volledig geverifieerd (2026-05-14) — gap closure 12-05 compleet. 14/14 must-haves. Tauri runtime keychain bevestigd. Advancing to Phase 13.
+Last activity: 2026-05-14 — Phase 12 gap closure 12-05 uitgevoerd en geverifieerd. 5/5 plans complete. Verificatie passed 14/14. Tauri runtime: geen keychain-fouten.
 
 Progress: [██████████] 100%
 
@@ -36,7 +36,7 @@ Progress: [██████████] 100%
 v1.0 phases completed: 5/5
 v1.1 phases completed: 3/3
 v1.2 phases completed: 1/1
-v2.0 phases completed: 1/6
+v2.0 phases completed: 3/6
 
 ## Accumulated Context
 
