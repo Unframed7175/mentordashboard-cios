@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
 status: in-progress
-last_updated: "2026-05-14T00:00:00.000Z"
-last_activity: 2026-05-14 — Phase 11 planned (6 plans, 4 waves; MIG-01/02/03 covered; verification passed 12/12 dimensions)
+last_updated: "2026-05-14T12:00:00.000Z"
+last_activity: 2026-05-14 — Phase 11 executing — 5/6 plans complete (Wave 0-2 done; Wave 3 in progress)
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 20
-  completed_plans: 12
-  percent: 86
+  completed_plans: 17
+  percent: 95
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 11 — TypeScript Migratie 🗂 PLANNED (ready to execute)
-Plan: 0/6 executed
-Status: Phase 11 planned — 6 plans in 4 waves; ready for /gsd-execute-phase 11
-Last activity: 2026-05-14 — Phase 11 plans created. 6 plans: Wave 0 (setup: tsconfig, fflate, stubs, fixtures), Wave 1 (schema/datamodel/leerlijnen + klassen/actiepunten/prognosis), Wave 2 (lost utils reconstruction + parsers), Wave 3 (tests finalize). MIG-01/02/03 covered.
+Phase: 11 — TypeScript Migratie 🔄 EXECUTING (Wave 3 remaining)
+Plan: 5/6 executed
+Status: Wave 0-2 complete — tsconfig, fflate, 6 utils + 2 parsers gemigreerd, verloren utils gerecreëerd. Wave 3 (Plan 06: tests update) gestart.
+Last activity: 2026-05-14 — Plans 01-05 voltooid. schema/datamodel/leerlijnen/klassen/actiepunten/prognosis/aggregation/backup/spider.ts gemigreerd. parsers/pdf.ts + parsers/excel.ts gemigreerd. 22/26 tests groen (actiepunten.test.js fix in Plan 06).
 
 Progress: [████████░░] 82%
 
