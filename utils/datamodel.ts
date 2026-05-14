@@ -211,43 +211,16 @@ export function getVerzuim(leerlingId: string): any {
 
 var STORAGE_KEY = 'mentordashboard_v1';
 
-/**
- * Sla huidige appState op in localStorage.
- * @returns {boolean} true als opslaan gelukt is
- */
+/** @deprecated Phase 12: klassen.ts is de enige writer. Deze functie doet niets. D-12-07 */
 export function saveState(): boolean {
-  try {
-    var data = {
-      students: appState.students,
-      savedAt: new Date().toISOString(),
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    return true;
-  } catch (e: any) {
-    console.warn('[datamodel] saveState mislukt:', e.message);
-    return false;
-  }
+  // Deprecated per D-12-07 — vervangen door saveKlassen() in utils/klassen.ts
+  return true;
 }
 
-/**
- * Laad opgeslagen state uit localStorage in appState.
- * @returns {boolean} true als er data geladen is
- */
+/** @deprecated Phase 12: gebruik loadKlassen() uit utils/klassen.ts. D-12-07 */
 export function loadState(): boolean {
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    var data = JSON.parse(raw);
-    if (data.students && Array.isArray(data.students) && data.students.length > 0) {
-      appState.students = data.students;
-      console.log('[datamodel] ' + data.students.length + ' leerlingen geladen (opgeslagen: ' + data.savedAt + ')');
-      return true;
-    }
-    return false;
-  } catch (e: any) {
-    console.warn('[datamodel] loadState mislukt:', e.message);
-    return false;
-  }
+  console.warn('[datamodel] loadState is deprecated — gebruik loadKlassen() uit klassen.ts');
+  return false;
 }
 
 /**
