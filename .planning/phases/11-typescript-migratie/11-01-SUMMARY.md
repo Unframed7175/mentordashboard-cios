@@ -93,11 +93,9 @@ Beide typecheck commands: exit 0.
 
 ## Fixture Beslissing
 
-**Status: Nog niet besloten — checkpoint bereikt.**
+**Status: Overgeslagen (OPTIE B).**
 
-De tests/fixtures/ map bestaat maar is leeg (alleen .gitkeep). De parser integration tests (`parseStage.test.ts` en `excel.test.ts`) gebruiken `describe.skipIf(!FIXTURE_EXISTS)` en slaan correct over. Dit is geen blocker voor de migratiegolven.
-
-Wacht op gebruikersbeslissing: fixtures aanleveren of overslaan.
+De tests/fixtures/ map bestaat maar is leeg (alleen .gitkeep). De parser integration tests (`parseStage.test.ts` en `excel.test.ts`) gebruiken `describe.skipIf(!FIXTURE_EXISTS)` en slaan correct over. MIG-01 en MIG-02 worden later geverifieerd via handmatige import na Phase 13.
 
 ## Deviations from Plan
 
