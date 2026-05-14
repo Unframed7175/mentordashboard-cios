@@ -71,9 +71,13 @@ export async function parseExcelFile(file: File): Promise<any[]> {
 
   // ── Stap 1: Kies het juiste werkblad ─────────────────────────────────────
   // Prefereer een werkblad met "verzuim" of "overzicht" in de naam.
-  // Fallback: het werkblad met de meeste rijen.
+  // Fallback: eerste werkblad (workbook.SheetNames[0]).
+  // bestScore starts at 0 so that sheets scoring 0 (no keyword match) do NOT
+  // override the first-sheet default — only sheets with a keyword match (score > 0)
+  // will change sheetName. This fixes the bug where `score > -1` caused the
+  // last zero-scoring sheet to win instead of the first-sheet fallback.
   let sheetName = workbook.SheetNames[0];
-  let bestScore = -1;
+  let bestScore = 0;
 
   workbook.SheetNames.forEach(function(name: string) {
     const ln = name.toLowerCase();
