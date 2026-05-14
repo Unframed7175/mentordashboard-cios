@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
 status: in-progress
-last_updated: "2026-05-14T12:00:00.000Z"
-last_activity: 2026-05-14 — Phase 11 executing — 5/6 plans complete (Wave 0-2 done; Wave 3 in progress)
+last_updated: "2026-05-14T13:00:00.000Z"
+last_activity: 2026-05-14 — Phase 11 complete (6/6 plans). 11 utils/parsers gemigreerd naar TS, 31 tests groen. 3 fixture-afhankelijke items in 11-HUMAN-UAT.md voor Phase 13.
 progress:
-  total_phases: 10
-  completed_phases: 5
-  total_plans: 20
-  completed_plans: 17
-  percent: 95
+  total_phases: 11
+  completed_phases: 6
+  total_plans: 26
+  completed_plans: 23
+  percent: 97
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 11 — TypeScript Migratie 🔄 EXECUTING (Wave 3 remaining)
-Plan: 5/6 executed
-Status: Wave 0-2 complete — tsconfig, fflate, 6 utils + 2 parsers gemigreerd, verloren utils gerecreëerd. Wave 3 (Plan 06: tests update) gestart.
-Last activity: 2026-05-14 — Plans 01-05 voltooid. schema/datamodel/leerlijnen/klassen/actiepunten/prognosis/aggregation/backup/spider.ts gemigreerd. parsers/pdf.ts + parsers/excel.ts gemigreerd. 22/26 tests groen (actiepunten.test.js fix in Plan 06).
+Phase: 12 — Versleutelde Opslag 📋 NEXT
+Plan: 0/? executed
+Status: Phase 11 voltooid — 11 utils/parsers gemigreerd, 31 tests groen. Phase 12 (Versleutelde Opslag) is de volgende stap.
+Last activity: 2026-05-14 — Phase 11 afgesloten. Alle 6 plans uitgevoerd. npm run typecheck + typecheck-migrated + test exit 0. Code review: 5 critical findings in REVIEW.md voor toekomstige verbetering. 3 fixture-verificaties in 11-HUMAN-UAT.md voor Phase 13.
 
 Progress: [████████░░] 82%
 

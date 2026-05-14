@@ -36,7 +36,7 @@
 ### v2.0 Stack Modernisering
 
 - [x] **Phase 10: Scaffold & Toolchain** — Rust + Tauri + Vite + React + TypeScript + Vitest draaien lokaal; `npm run dev` start de app en alle bestaande tests slagen *(completed 2026-05-13)*
-- [ ] **Phase 11: TypeScript Migratie** — Alle utils en parsers zijn geporteerd naar TypeScript met identieke output; nul regressies in de test suite
+- [x] **Phase 11: TypeScript Migratie** — Alle utils en parsers zijn geporteerd naar TypeScript met identieke output; nul regressies in de test suite *(completed 2026-05-14)*
 - [ ] **Phase 12: Versleutelde Opslag** — Leerlingdata wordt opgeslagen via plugin-store, versleuteld met AES-256-GCM en OS keychain sleutel; bestaande data gemigreerd; GDPR-verwijderfunctie werkt
 - [ ] **Phase 13: Bestandstoegang** — Mentor kan PDFs, Excel-bestanden en zip-backups importeren via drag-drop én bestandsdialoog in de Tauri app
 - [ ] **Phase 14: React UI** — Klasoverzicht en detailweergave zijn volledig herschreven als React componenten en tonen identieke informatie als de huidige app
@@ -134,18 +134,18 @@ Plans:
 Plans:
 
 **Wave 0**
-- [ ] 11-01-PLAN.md — Wave 0: tsconfig uitbreiden, fflate installeren, test stubs aanmaken, fixture checkpoint
+- [x] 11-01-PLAN.md — Wave 0: tsconfig uitbreiden, fflate installeren, test stubs aanmaken, fixture checkpoint
 
 **Wave 1** *(blocked on Wave 0 completion)*
-- [ ] 11-02-PLAN.md — Wave 1: Migreer utils/schema.ts + utils/datamodel.ts + utils/leerlijnen.ts (bodem-laag)
-- [ ] 11-03-PLAN.md — Wave 1b: Migreer utils/klassen.ts + utils/actiepunten.ts + utils/prognosis.ts *(blocked on 11-02)*
+- [x] 11-02-PLAN.md — Wave 1: Migreer utils/schema.ts + utils/datamodel.ts + utils/leerlijnen.ts (bodem-laag)
+- [x] 11-03-PLAN.md — Wave 1b: Migreer utils/klassen.ts + utils/actiepunten.ts + utils/prognosis.ts *(blocked on 11-02)*
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 11-04-PLAN.md — Wave 2: Recreëer utils/aggregation.ts + utils/backup.ts + utils/spider.ts (verloren modules)
-- [ ] 11-05-PLAN.md — Wave 2: Migreer parsers/pdf.ts + parsers/excel.ts (parsers)
+- [x] 11-04-PLAN.md — Wave 2: Recreëer utils/aggregation.ts + utils/backup.ts + utils/spider.ts (verloren modules)
+- [x] 11-05-PLAN.md — Wave 2: Migreer parsers/pdf.ts + parsers/excel.ts (parsers)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 11-06-PLAN.md — Wave 3: Tests finaliseren — actiepunten.test.js ESM, prognosis/feedback/parseStage/excel tests
+- [x] 11-06-PLAN.md — Wave 3: Tests finaliseren — actiepunten.test.js ESM, prognosis/feedback/parseStage/excel tests
 
 Cross-cutting constraints:
 - `npm run typecheck-migrated exits 0` required after every migration task (Plans 02–05)
