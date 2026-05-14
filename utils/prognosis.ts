@@ -104,8 +104,8 @@ function telLeerlijnen(scores: any): any {
 //   traject    {string}  - Gebruikte trajectcode
 //
 // Labels per traject:
-//   bj1: 'negatief' | 'versneld_sbc' | 'bj2' | 'neutraal'
-//   bj2: 'negatief' | 'sbc'          | 'sbl' | 'neutraal'
+//   bj1: 'negatief' | 'versneld_sbc' | 'naar_bj2' | 'neutraal'
+//   bj2: 'negatief' | 'sbc'          | 'sbl'       | 'neutraal'
 // ---------------------------------------------------------------------------
 export function berekenPrognose(student: any, traject?: string): any {
   traject = traject || 'bj2';
@@ -148,7 +148,7 @@ export function berekenPrognose(student: any, traject?: string): any {
     } else if (isVersneldSBC) {
       label = 'versneld_sbc';
     } else if (isBJ2) {
-      label = 'bj2';
+      label = 'naar_bj2'; // renamed from 'bj2' to avoid collision with the traject parameter name
     } else {
       label = 'neutraal';
     }
