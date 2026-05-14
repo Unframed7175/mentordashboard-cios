@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
 status: in-progress
-last_updated: "2026-05-13T22:10:00.000Z"
-last_activity: 2026-05-13 — Phase 10 complete (all 3 plans done; TCH-01/02/04 ✓, TCH-03 partial)
+last_updated: "2026-05-14T00:00:00.000Z"
+last_activity: 2026-05-14 — Phase 11 planned (6 plans, 4 waves; MIG-01/02/03 covered; verification passed 12/12 dimensions)
 progress:
   total_phases: 10
   completed_phases: 5
-  total_plans: 14
+  total_plans: 20
   completed_plans: 12
   percent: 86
 ---
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 10 — Scaffold & Toolchain ✅ COMPLETE
-Plan: 3/3 complete
-Status: Phase 10 done — advancing to Phase 11 (TypeScript Migratie)
-Last activity: 2026-05-13 — Plans 10-02 and 10-03 complete. Tauri window verified (TCH-01), installer built (TCH-02), Vitest running 9 tests (TCH-03 partial), typecheck passes (TCH-04)
+Phase: 11 — TypeScript Migratie 🗂 PLANNED (ready to execute)
+Plan: 0/6 executed
+Status: Phase 11 planned — 6 plans in 4 waves; ready for /gsd-execute-phase 11
+Last activity: 2026-05-14 — Phase 11 plans created. 6 plans: Wave 0 (setup: tsconfig, fflate, stubs, fixtures), Wave 1 (schema/datamodel/leerlijnen + klassen/actiepunten/prognosis), Wave 2 (lost utils reconstruction + parsers), Wave 3 (tests finalize). MIG-01/02/03 covered.
 
 Progress: [████████░░] 82%
 
@@ -62,7 +62,11 @@ v2.0 phases completed: 1/6
 ### Blockers/Concerns
 
 - [RESOLVED] Rust toolchain not installed — Rust 1.95.0 confirmed installed (D-09 superseded)
-- [KNOWN GAP → Phase 11] 7 test files + utils/aggregation.js + utils/backup.js + utils/spider.js lost in scaffold --force (Plan 10-01). No backup available. Vitest infrastructure complete (9 tests pass). Test files to be recreated as TypeScript in Phase 11 alongside the TS migration of those utility modules.
+- [RESOLVED → Phase 11] 7 test files + 3 util files lost in scaffold --force — recreated as .ts in Phase 11 plans (aggregation.ts, backup.ts, spider.ts + 6 .test.ts files). fflate replaces vendor/zip.min.js.
+- [Phase 11] @types/pdfjs-dist deprecated — vendor bundle has no .d.ts; use @ts-ignore + as any for pdfjs API calls
+- [Phase 11] tsconfig.migrated.json (noImplicitAny:true, includes utils/**, parsers/**) satisfies D-11-05 without touching global tsconfig
+- [Phase 11] parseStageFile = parseSinglePDF (RESEARCH confirmed; no separate parser/parseStage.js exists)
+- [Phase 11] SheetJS cpexcel: import cpexcel from 'xlsx/dist/cpexcel.full.mjs'; XLSX.set_cptable(cpexcel.cptable)
 
 ## Session Log
 
@@ -73,3 +77,4 @@ v2.0 phases completed: 1/6
 - 2026-05-12: Roadmap v2.0 created — Phases 10–15 defined, all 20 requirements mapped.
 - 2026-05-13: Phase 10 Plan 01 executed — Tauri react-ts scaffold (src/, src-tauri/), index.html.bak, package.json merged (vitest ^4.1.6, jsdom ^29.1.1, no jest), npm install 114 packages. 7 test files + 3 util files lost due to scaffold --force; no backup available.
 - 2026-05-13: Phase 10 Plans 02 + 03 executed — vite.config.ts (base: './'), tsconfig strict:false, tauri.conf.json (useHttpsScheme:true, beforeDevCommand:vite-dev), capabilities core:default, App.tsx placeholder, Tauri window verified (TCH-01), installer built (TCH-02), Vitest 9 tests pass (TCH-03 partial), typecheck 0 errors (TCH-04). Phase 10 complete.
+- 2026-05-14: Phase 11 discussed (21 decisions, 4 areas) and planned (6 plans, 4 waves). Research + pattern mapping complete. Verification passed 12/12 dimensions (iteration 2). Ready to execute.
