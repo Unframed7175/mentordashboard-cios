@@ -54,10 +54,12 @@ export async function getLeerlijnenMapping(): Promise<Record<string, string>> {
     if (legacy) {
       const parsed = JSON.parse(legacy);
       if (isValid(parsed)) {
-        await saveLeerlijnenMapping(parsed);    // persist naar store
-        localStorage.removeItem(LEERLIJNEN_LEGACY_KEY);
-        _cachedMapping = parsed;
-        return _cachedMapping!;
+        const saved = await saveLeerlijnenMapping(parsed);    // persist naar store
+        if (saved) {
+          localStorage.removeItem(LEERLIJNEN_LEGACY_KEY);
+          _cachedMapping = parsed;
+          return _cachedMapping!;
+        }
       }
     }
   } catch (e: any) {
