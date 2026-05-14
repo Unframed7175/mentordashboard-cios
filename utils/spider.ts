@@ -2,6 +2,15 @@
 // TypeScript (Phase 11, Plan 04) — directe TypeScript versie, geen .js tussenversie
 
 /**
+ * Sanitize a CSS custom property name to prevent SVG/HTML injection.
+ * CSS custom property names may only contain: letters, digits, -, _
+ * Strips everything else before embedding in SVG attribute values.
+ */
+function sanitizeCssVar(v: string): string {
+  return v.replace(/[^a-zA-Z0-9\-_]/g, '');
+}
+
+/**
  * Zet een score-string om naar een radius waarde (0.0 – 1.0).
  */
 function scoreToRadius(score: string | null): number {
@@ -62,11 +71,13 @@ export const SpiderChart = {
     }
 
     const pointsStr = points.join(' ');
+    const safeFill   = sanitizeCssVar(fillVar);
+    const safeStroke = sanitizeCssVar(strokeVar);
 
     return (
       '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">' +
       '<polygon points="' + pointsStr + '" ' +
-      'fill="var(' + fillVar + ')" stroke="var(' + strokeVar + ')" stroke-width="2" fill-opacity="0.4"/>' +
+      'fill="var(' + safeFill + ')" stroke="var(' + safeStroke + ')" stroke-width="2" fill-opacity="0.4"/>' +
       '</svg>'
     );
   },
