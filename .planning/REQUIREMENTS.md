@@ -26,7 +26,7 @@
 ### Versleutelde Opslag (STO)
 
 - [ ] **STO-01**: Alle klassendata wordt opgeslagen via Tauri plugin-store (vervangt localStorage)
-- [ ] **STO-02**: Leerlingdata wordt versleuteld opgeslagen (AES-256-GCM) met sleutel in OS keychain
+- [x] **STO-02**: Leerlingdata wordt versleuteld opgeslagen (AES-256-GCM) met sleutel in OS keychain
 - [ ] **STO-03**: Bestaande localStorage-data wordt automatisch gemigreerd bij eerste app-start
 - [ ] **STO-04**: Mentor kan een individuele leerling volledig verwijderen (Artikel 17 AVG)
 
@@ -163,7 +163,7 @@
 | MIG-02 | Phase 11 — TypeScript Migratie | Pending |
 | MIG-03 | Phase 11 — TypeScript Migratie | Pending |
 | STO-01 | Phase 12 — Versleutelde Opslag | Pending |
-| STO-02 | Phase 12 — Versleutelde Opslag | Pending |
+| STO-02 | Phase 12 — Versleutelde Opslag | Complete |
 | STO-03 | Phase 12 — Versleutelde Opslag | Pending |
 | STO-04 | Phase 12 — Versleutelde Opslag | Pending |
 | IMP-01 | Phase 13 — Bestandstoegang | Pending |

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: in-progress
-last_updated: "2026-05-14T16:00:00.000Z"
-last_activity: 2026-05-14 — Phase 12 gepland (4 plans, 3 waves). AES-256-GCM Rust commands, LazyStore async API, auto-migratie, deleteStudent(). Verificatie 0 blockers.
+status: verifying
+last_updated: "2026-05-14T12:45:34.560Z"
+last_activity: "2026-05-14 — Phase 11 afgesloten. Alle 6 plans uitgevoerd. npm run typecheck + typecheck-migrated + test exit 0. Code review: 5 critical findings in REVIEW.md voor toekomstige verbetering. 3 fixture-verificaties in 11-HUMAN-UAT.md voor Phase 13."
 progress:
-  total_phases: 11
+  total_phases: 10
   completed_phases: 6
-  total_plans: 26
-  completed_plans: 23
-  percent: 97
+  total_plans: 21
+  completed_plans: 18
+  percent: 86
 ---
 
 # Project State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 12 — Versleutelde Opslag 📋 Ready to execute
-Plan: 0/4 executed
-Status: Phase 12 gepland (2026-05-14) — 4 plans in 3 waves. Verificatie geslaagd (0 blockers). Klaar voor /gsd-execute-phase 12.
-Last activity: 2026-05-14 — Phase 11 afgesloten. Alle 6 plans uitgevoerd. npm run typecheck + typecheck-migrated + test exit 0. Code review: 5 critical findings in REVIEW.md voor toekomstige verbetering. 3 fixture-verificaties in 11-HUMAN-UAT.md voor Phase 13.
+Phase: 12 — Versleutelde Opslag 🔄 In progress
+Plan: 1/4 executed
+Status: Phase 12 Plan 01 uitgevoerd (2026-05-14) — Rust crypto layer compleet. cargo check + cargo test slagen. AES-256-GCM commands beschikbaar voor Wave 1.
+Last activity: 2026-05-14 — Phase 12 Plan 01 uitgevoerd. crypto.rs met encrypt_klassen/decrypt_klassen. tauri-plugin-store + tauri-plugin-secure-storage geregistreerd. GetItemResponse.data field gecorrigeerd (was .value in RESEARCH). 2 Rust unit tests passing.
 
-Progress: [████████░░] 82%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -53,6 +53,9 @@ v2.0 phases completed: 1/6
 - [10-01] scaffold: npm create tauri-app --force wipes ALL untracked files — commit all untracked work before running scaffold in future
 - [10-01] vite-dev script = 'vite', dev script = 'tauri dev', beforeDevCommand references vite-dev to avoid infinite cycle
 - [10-01] package.json type=module required for Vite ESM output
+- [12-01] GetItemResponse.data field name verified from source — RESEARCH.md A1 assumption (.value) was wrong; actual field is .data: Option<String>
+- [12-01] SecureStorage API takes OptionsRequest struct (not plain string) — get_item returns Ok(data:None) when key absent, not Err
+- [12-01] No explicit rand crate needed — aes_gcm::aead::OsRng re-export works correctly (A4 confirmed)
 
 ### Pending Todos
 
@@ -78,3 +81,4 @@ v2.0 phases completed: 1/6
 - 2026-05-13: Phase 10 Plan 01 executed — Tauri react-ts scaffold (src/, src-tauri/), index.html.bak, package.json merged (vitest ^4.1.6, jsdom ^29.1.1, no jest), npm install 114 packages. 7 test files + 3 util files lost due to scaffold --force; no backup available.
 - 2026-05-13: Phase 10 Plans 02 + 03 executed — vite.config.ts (base: './'), tsconfig strict:false, tauri.conf.json (useHttpsScheme:true, beforeDevCommand:vite-dev), capabilities core:default, App.tsx placeholder, Tauri window verified (TCH-01), installer built (TCH-02), Vitest 9 tests pass (TCH-03 partial), typecheck 0 errors (TCH-04). Phase 10 complete.
 - 2026-05-14: Phase 11 discussed (21 decisions, 4 areas) and planned (6 plans, 4 waves). Research + pattern mapping complete. Verification passed 12/12 dimensions (iteration 2). Ready to execute.
+- 2026-05-14: Phase 12 Plan 01 executed — Rust crypto layer. crypto.rs (AES-256-GCM encrypt_klassen/decrypt_klassen), tauri-plugin-store + tauri-plugin-secure-storage in lib.rs, store:default in capabilities. cargo check + cargo test (2 tests) passing. 3 deviations: GetItemResponse.data field, OptionsRequest struct API, non-ASCII byte string literal.
