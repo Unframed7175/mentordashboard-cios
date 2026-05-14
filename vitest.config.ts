@@ -10,5 +10,9 @@ export default defineConfig({
       provider: 'v8',
       include: ['utils/**', 'parsers/**'],
     },
+    // Use vmForks pool so Node.js built-ins (Uint8Array, TextEncoder) share the
+    // same realm across all modules — avoids jsdom cross-realm instanceof failure
+    // when fflate's zipSync checks `val instanceof u8` (u8 = Uint8Array at load time).
+    pool: 'vmForks',
   },
 })
