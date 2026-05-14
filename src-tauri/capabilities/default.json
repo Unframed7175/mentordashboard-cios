@@ -1,9 +1,10 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-capability",
-  "description": "Phase 10 — minimal permissions for scaffold",
+  "description": "Phase 12 — plugin-store + secure-storage permissions",
   "windows": ["main"],
   "permissions": [
-    "core:default"
+    "core:default",
+    "store:default"
   ]
 }
