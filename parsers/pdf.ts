@@ -677,18 +677,10 @@ async function parseSinglePDF(file: File): Promise<any> {
   const header = extractHeader(lines);
   const vakken = parseVakSections(lines);
 
-  // Filename fallback for naam (per plan spec)
-  let naam = header.naam;
-  if (!naam) {
-    const m = file.name.replace(/\.pdf$/i, '').match(/DD-(.+)$/i);
-    naam = m ? m[1].trim() : file.name.replace(/\.pdf$/i, '');
-  }
-
-  if (!vakken || vakken.length === 0) {
-    throw new Error(`Geen vakken gevonden in ${file.name}`);
-  }
-
-  // --- Plan 01-03: parse Overzicht Deelgebieden table ---
+  // --- Plan 01-03: parse Overzicht Deelgebieden table FIRST ---
+  // (deelgebied data is structurally independent of vakken; parsing it before
+  //  the vakken guard ensures a PDF with a valid deelgebied table but no
+  //  parseable vak lines still returns a useful record instead of throwing.)
   const deelgebiedStart = findDeelgebiedSection(lines);
   let deelgebiedScores: Record<string, string | null> = {};
   let datapunten: any[] = [];
@@ -700,6 +692,22 @@ async function parseSinglePDF(file: File): Promise<any> {
   } else {
     // Per PDF-08: throw specific error so the batch importer can report it
     throw new Error('Overzicht Deelgebieden tabel niet gevonden');
+  }
+
+  // Filename fallback for naam (per plan spec)
+  // Must run after deelgebied parse (so deelgebied data is available regardless of naam)
+  // and before the vakken guard so the fallback naam appears in any error messages.
+  let naam = header.naam;
+  if (!naam) {
+    const m = file.name.replace(/\.pdf$/i, '').match(/DD-(.+)$/i);
+    naam = m ? m[1].trim() : file.name.replace(/\.pdf$/i, '');
+  }
+
+  if (!vakken || vakken.length === 0) {
+    // Warn rather than throw: deelgebied data was already parsed successfully above.
+    // A PDF with a valid deelgebied table but no parseable vak lines is unusual
+    // but should not discard the scores that were already collected.
+    console.warn(`[pdf.ts] Geen vakken gevonden in ${file.name}`);
   }
 
   const record = {
