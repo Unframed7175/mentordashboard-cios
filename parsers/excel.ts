@@ -88,7 +88,7 @@ export async function parseExcelFile(file: File): Promise<any[]> {
     }
   });
 
-  console.log('[excel.ts] Werkblad gekozen:', sheetName, '(uit:', workbook.SheetNames.join(', ') + ')');
+  // Note: sheet selection is logged only in development; omit in production to avoid leaking file metadata.
   const sheet = workbook.Sheets[sheetName];
 
   // ── Stap 2: Alle rijen als ruwe arrays ────────────────────────────────────
@@ -101,10 +101,8 @@ export async function parseExcelFile(file: File): Promise<any[]> {
 
   if (rawRows.length === 0) throw new Error('Het werkblad bevat geen rijen.');
 
-  // Debug: eerste 10 rijen altijd loggen
-  console.group('[excel.ts] RAW rijen: ' + sheetName);
-  rawRows.slice(0, 10).forEach(function(r: any, i: number) { console.log('Rij ' + i + ':', r); });
-  console.groupEnd();
+  // Raw row logging removed: student names, IDs, and absence data are GDPR-sensitive.
+  // Use debugExcelBestand() for manual debugging during development.
 
   // ── Stap 3: Header-rij detectie ───────────────────────────────────────────
   const HEADER_KEYS = [
@@ -128,8 +126,7 @@ export async function parseExcelFile(file: File): Promise<any[]> {
   const headers  = rawRows[headerRowIdx].map(function(h: any) { return String(h || '').trim(); });
   const dataRows = rawRows.slice(headerRowIdx + 1);
 
-  console.log('[excel.ts] Header-rij (index ' + headerRowIdx + '):', headers);
-  console.log('[excel.ts] Datarijen:', dataRows.length);
+  // Header/row count logging removed to avoid leaking file structure in production.
 
   // ── Stap 4: Kolom-zoeker ──────────────────────────────────────────────────
   // Retourneert de waarde van de eerste kandidaat die een niet-lege cel heeft.
@@ -209,8 +206,8 @@ export async function parseExcelFile(file: File): Promise<any[]> {
     });
   }
 
-  console.log('[excel.ts] Records geparsed:', records.length);
-  if (records.length > 0) console.log('[excel.ts] Voorbeeld record:', records[0]);
+  // Records count and sample logging removed: parsed records contain student names
+  // and absence data (GDPR-sensitive). Use debugExcelBestand() during development.
 
   return records;
 }
