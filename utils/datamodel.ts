@@ -1,4 +1,4 @@
-// utils/datamodel.js — In-memory data model for parsed PDF data
+// utils/datamodel.ts — In-memory data model for parsed PDF data
 // Per D-12: structured object, array of leerlingobjecten
 // Per D-13: no persistence — in-memory only
 // Per D-14: deelgebied-scores per leerling opvraagbaar for Phase 3
@@ -47,8 +47,8 @@
  * @property {'open'|'opgepakt'|'herhaling'} status
  *
  * Stored on the most recent StudentRecord for leerlingId as student.actiepunten[].
- * Persisted via window.appState + window.saveState() — included in backup export/import.
- * Managed via window.actiepuntenStore (utils/actiepunten.js).
+ * Persisted via appState + saveState() — included in backup export/import.
+ * Managed via actiepuntenStore (utils/actiepunten.ts).
  */
 
 /**
@@ -58,11 +58,11 @@
  */
 
 // Global app state (per D-12: in-memory only)
-window.appState = {
-  /** @type {StudentRecord[]} */
-  students: [],
-  /** @type {Array<{filename: string, reason: string}>} */
-  lastImportErrors: [],
+export const appState = {
+  /** @type {any[]} */
+  students: [] as any[],
+  /** @type {any[]} */
+  lastImportErrors: [] as any[],
   /** @type {boolean} */
   importing: false,
 };
@@ -72,28 +72,18 @@ window.appState = {
  * If a student with the same leerlingId + periode already exists, replace (latest import wins).
  * Different periodes coexist in the array.
  */
-window.addStudent = function(student) {
-  var idx = window.appState.students.findIndex(function(s) {
+export function addStudent(student: any): void {
+  var idx = appState.students.findIndex(function(s: any) {
     return s.leerlingId === student.leerlingId && s.periode === student.periode;
   });
   if (idx >= 0) {
-    window.appState.students[idx] = student;
+    appState.students[idx] = student;
   } else {
-    window.appState.students.push(student);
+    appState.students.push(student);
   }
-};
+}
 
-/**
- * Get a student's deelgebied scores as a flat map.
- * Returns { 'V&A': 'goed', 'M&M': 'voldoende', ... } — null for unassessed.
- * This is the primary interface for Phase 3 doorstroomnorm calculation.
- */
-window.getStudentScores = function(leerlingId) {
-  const student = window.appState.students.find(s => s.leerlingId === leerlingId);
-  return student ? student.deelgebiedScores : null;
-};
-
-console.log('[datamodel.js] Data model loaded');
+console.log('[datamodel.ts] Data model loaded');
 
 // ---------------------------------------------------------------------------
 // Phase 02 — Verzuim (absence) extension
@@ -115,13 +105,13 @@ console.log('[datamodel.js] Data model loaded');
  * @param {string} naam - Raw name string
  * @returns {string} Lowercased, whitespace-collapsed, trimmed name
  */
-window.normalizeNaam = function(naam) {
+export function normalizeNaam(naam: string): string {
   if (!naam) return '';
   return String(naam).toLowerCase().replace(/\s+/g, ' ').trim();
-};
+}
 
 /**
- * Merge verzuim records into the matching students in window.appState.students.
+ * Merge verzuim records into the matching students in appState.students.
  *
  * Matching strategy (per XLS-04):
  *   1. Exact match by leerlingnummer === student.leerlingId
@@ -133,25 +123,25 @@ window.normalizeNaam = function(naam) {
  * @param {Array<{naam: string, leerlingnummer: string, aanwezigheid: number, geoorloofd: number, ongeoorloofd: number, totaal: number, laatsteMelding: string}>} verzuimRecords
  * @returns {{ matched: number, unmatched: string[] }}
  */
-window.mergeVerzuim = function(verzuimRecords) {
-  var result = { matched: 0, unmatched: [] };
+export function mergeVerzuim(verzuimRecords: any[]): { matched: number; unmatched: string[] } {
+  var result = { matched: 0, unmatched: [] as string[] };
 
   for (var i = 0; i < verzuimRecords.length; i++) {
     var v = verzuimRecords[i];
-    var student = null;
+    var student: any = null;
     var matchedStrategy = '';
 
     // Strategy 1: leerlingnummer === leerlingId (exact string)
-    student = window.appState.students.find(function(s) {
+    student = appState.students.find(function(s: any) {
       return s.leerlingId && s.leerlingId === v.leerlingnummer;
     });
     if (student) matchedStrategy = 'leerlingnummer';
 
     // Strategy 2: volledige genormaliseerde naam (exact)
     if (!student && v.naam) {
-      var normV = window.normalizeNaam(v.naam);
-      student = window.appState.students.find(function(s) {
-        return window.normalizeNaam(s.naam) === normV;
+      var normV = normalizeNaam(v.naam);
+      student = appState.students.find(function(s: any) {
+        return normalizeNaam(s.naam) === normV;
       });
       if (student) matchedStrategy = 'exacte naam';
     }
@@ -161,12 +151,12 @@ window.mergeVerzuim = function(verzuimRecords) {
     // Excel-formaat: "Achternaam, Voornaam" of "Voornaam Achternaam" of "Achternaam"
     // Beide kanten: deel vóór eerste komma OF eerste woord vergelijken
     if (!student && v.naam) {
-      var normV3 = window.normalizeNaam(v.naam);
+      var normV3 = normalizeNaam(v.naam);
       // Excel achternaam = alles vóór eerste komma, anders eerste "woord"
       var excelAchternaam = normV3.split(',')[0].trim();
       if (excelAchternaam.length >= 3) {
-        student = window.appState.students.find(function(s) {
-          var pdfAchternaam = window.normalizeNaam(s.naam).split(',')[0].trim();
+        student = appState.students.find(function(s: any) {
+          var pdfAchternaam = normalizeNaam(s.naam).split(',')[0].trim();
           return pdfAchternaam.length >= 3 && pdfAchternaam === excelAchternaam;
         });
         if (student) matchedStrategy = 'achternaam';
@@ -175,9 +165,9 @@ window.mergeVerzuim = function(verzuimRecords) {
 
     // Strategy 4: PDF-achternaam is een substring van de Excel-naam of vice versa
     if (!student && v.naam) {
-      var normV4 = window.normalizeNaam(v.naam);
-      student = window.appState.students.find(function(s) {
-        var pdfAchternaam = window.normalizeNaam(s.naam).split(',')[0].trim();
+      var normV4 = normalizeNaam(v.naam);
+      student = appState.students.find(function(s: any) {
+        var pdfAchternaam = normalizeNaam(s.naam).split(',')[0].trim();
         return pdfAchternaam.length >= 4 && normV4.indexOf(pdfAchternaam) !== -1;
       });
       if (student) matchedStrategy = 'achternaam-substring';
@@ -200,39 +190,20 @@ window.mergeVerzuim = function(verzuimRecords) {
   }
 
   return result;
-};
-
-/**
- * Debug helper: vergelijk Excel-namen met PDF-namen in de console.
- * Aanroepen als: window.debugVerzuimKoppeling(verzuimRecords)
- * De records zijn beschikbaar na import via: window._lastVerzuimRecords
- */
-window.debugVerzuimKoppeling = function(records) {
-  var recs = records || window._lastVerzuimRecords || [];
-  console.group('Verzuim koppeling debug');
-  console.log('Student namen in app (PDF-formaat):');
-  console.table(window.appState.students.map(function(s) {
-    return { naam: s.naam, leerlingId: s.leerlingId, achternaam: s.naam.split(',')[0].trim() };
-  }));
-  console.log('Excel namen (' + recs.length + ' records):');
-  console.table(recs.map(function(r) {
-    return { naam: r.naam, leerlingnummer: r.leerlingnummer };
-  }));
-  console.groupEnd();
-};
+}
 
 /**
  * Get the verzuim record for a student by leerlingId.
  *
  * @param {string} leerlingId - Student ID
- * @returns {Verzuim|null} The student's verzuim object, or null if not found / no verzuim set
+ * @returns {any|null} The student's verzuim object, or null if not found / no verzuim set
  */
-window.getVerzuim = function(leerlingId) {
-  const student = window.appState.students.find(function(s) {
+export function getVerzuim(leerlingId: string): any {
+  const student = appState.students.find(function(s: any) {
     return s.leerlingId === leerlingId;
   });
   return (student && student.verzuim) ? student.verzuim : null;
-};
+}
 
 // ---------------------------------------------------------------------------
 // Phase 04 — Persistentie via localStorage (PER-01, PER-02)
@@ -244,47 +215,47 @@ var STORAGE_KEY = 'mentordashboard_v1';
  * Sla huidige appState op in localStorage.
  * @returns {boolean} true als opslaan gelukt is
  */
-window.saveState = function() {
+export function saveState(): boolean {
   try {
     var data = {
-      students: window.appState.students,
+      students: appState.students,
       savedAt: new Date().toISOString(),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     return true;
-  } catch (e) {
+  } catch (e: any) {
     console.warn('[datamodel] saveState mislukt:', e.message);
     return false;
   }
-};
+}
 
 /**
  * Laad opgeslagen state uit localStorage in appState.
  * @returns {boolean} true als er data geladen is
  */
-window.loadState = function() {
+export function loadState(): boolean {
   try {
     var raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     var data = JSON.parse(raw);
     if (data.students && Array.isArray(data.students) && data.students.length > 0) {
-      window.appState.students = data.students;
+      appState.students = data.students;
       console.log('[datamodel] ' + data.students.length + ' leerlingen geladen (opgeslagen: ' + data.savedAt + ')');
       return true;
     }
     return false;
-  } catch (e) {
+  } catch (e: any) {
     console.warn('[datamodel] loadState mislukt:', e.message);
     return false;
   }
-};
+}
 
 /**
  * Wis alle opgeslagen data (localStorage + appState).
  */
-window.clearState = function() {
+export function clearState(): void {
   localStorage.removeItem(STORAGE_KEY);
-  window.appState.students = [];
-  window.appState.lastImportErrors = [];
+  appState.students = [];
+  appState.lastImportErrors = [];
   console.log('[datamodel] Alle data gewist');
-};
+}
