@@ -579,22 +579,16 @@ vi.mock('@tauri-apps/plugin-store', () => ({
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact `GetItemResponse` field name in tauri-plugin-secure-storage**
-   - What we know: The struct exists and holds the stored value; method is `get_item(identifier) -> Result<GetItemResponse>`
-   - What's unclear: Field name on `GetItemResponse` (`.value`, `.password`, or `.secret`)
-   - Recommendation: Wave 0 task: add `tauri-plugin-secure-storage` to Cargo.toml, run `cargo doc --open`, inspect struct definition before writing crypto.rs
+   - RESOLVED: Verify via `cargo doc --open` during Wave 1 (Plan 12-01 T1) before writing crypto.rs. Plan 12-01 T2 explicitly instructs the executor to inspect the struct and use the found field name. Assumed `.value` — treat as runtime-verified.
 
 2. **Does tauri-plugin-secure-storage need a capabilities entry?**
-   - What we know: It's a Tauri plugin; official plugins require capability entries; but secure-storage has no JS bindings
-   - What's unclear: Whether plugins without JS commands still need capability entries
-   - Recommendation: Start without entry; if runtime error mentions permission, add `"secure-storage:default"`
+   - RESOLVED: Omit `"secure-storage:default"` from capabilities (plugin has no JS bindings — no frontend permission needed). Add only if a runtime "permission denied" error occurs. Plan 12-01 T2 Step C encodes this decision.
 
 3. **rand crate version for OsRng**
-   - What we know: aes-gcm 0.10.3 re-exports OsRng via its `aead` dependency
-   - What's unclear: Whether `use aes_gcm::aead::OsRng` is the cleanest import or whether an explicit `rand` dependency is needed
-   - Recommendation: Use `use aes_gcm::aead::OsRng` to avoid version conflict; only add explicit `rand` if a command needs other rand functionality
+   - RESOLVED: Use `use aes_gcm::aead::OsRng` re-export — no explicit `rand` dependency added. Plan 12-01 T1 encodes this decision.
 
 ---
 
