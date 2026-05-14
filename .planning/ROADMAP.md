@@ -37,7 +37,7 @@
 
 - [x] **Phase 10: Scaffold & Toolchain** — Rust + Tauri + Vite + React + TypeScript + Vitest draaien lokaal; `npm run dev` start de app en alle bestaande tests slagen *(completed 2026-05-13)*
 - [x] **Phase 11: TypeScript Migratie** — Alle utils en parsers zijn geporteerd naar TypeScript met identieke output; nul regressies in de test suite *(completed 2026-05-14)*
-- [ ] **Phase 12: Versleutelde Opslag** — Leerlingdata wordt opgeslagen via plugin-store, versleuteld met AES-256-GCM en OS keychain sleutel; bestaande data gemigreerd; GDPR-verwijderfunctie werkt
+- [x] **Phase 12: Versleutelde Opslag** — Leerlingdata wordt opgeslagen via plugin-store, versleuteld met AES-256-GCM en OS keychain sleutel; bestaande data gemigreerd; GDPR-verwijderfunctie werkt (completed 2026-05-14)
 - [ ] **Phase 13: Bestandstoegang** — Mentor kan PDFs, Excel-bestanden en zip-backups importeren via drag-drop én bestandsdialoog in de Tauri app
 - [ ] **Phase 14: React UI** — Klasoverzicht en detailweergave zijn volledig herschreven als React componenten en tonen identieke informatie als de huidige app
 - [ ] **Phase 15: Packaging & Cross-platform** — App bouwt als installeerbare .exe (Windows) en .dmg (Mac); UI ziet er identiek uit op beide platforms; eindgebruiker installeert zonder extra dependencies
@@ -166,9 +166,9 @@ Cross-cutting constraints:
 
 Plans:
 - [x] 12-01-PLAN.md — Wave 1: Rust crypto commands (crypto.rs, Cargo.toml, lib.rs, capabilities)
-- [ ] 12-02-PLAN.md — Wave 2: utils/klassen.ts async + deleteStudent + migratie
-- [ ] 12-03-PLAN.md — Wave 2: utils/leerlijnen.ts async + datamodel.ts deprecatie
-- [ ] 12-04-PLAN.md — Wave 3: tests/storage.test.ts (STO-01..STO-04)
+- [x] 12-02-PLAN.md — Wave 2: utils/klassen.ts async + deleteStudent + migratie
+- [x] 12-03-PLAN.md — Wave 2: utils/leerlijnen.ts async + datamodel.ts deprecatie
+- [x] 12-04-PLAN.md — Wave 3: tests/storage.test.ts (STO-01..STO-04)
 
 ### Phase 13: Bestandstoegang
 **Goal**: Mentor kan PDFs, Excel-bestanden en zip-backups aanleveren via drag-drop of OS bestandsdialoog in de Tauri app — de parsers verwerken de bestanden identiek als voorheen
@@ -217,7 +217,7 @@ Plans:
 | 9. CIOS Huisstijl & Verzuim Weergave | 2/2 | Complete | 2026-04-24 |
 | 10. Scaffold & Toolchain | 3/3 | Complete | 2026-05-13 |
 | 11. TypeScript Migratie | 0/6 | Not started | - |
-| 12. Versleutelde Opslag | 1/4 | In Progress|  |
+| 12. Versleutelde Opslag | 4/4 | Complete   | 2026-05-14 |
 | 13. Bestandstoegang | 0/? | Not started | - |
 | 14. React UI | 0/? | Not started | - |
 | 15. Packaging & Cross-platform | 0/? | Not started | - |

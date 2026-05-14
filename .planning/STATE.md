@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: verifying
-last_updated: "2026-05-14T12:45:34.560Z"
-last_activity: "2026-05-14 — Phase 11 afgesloten. Alle 6 plans uitgevoerd. npm run typecheck + typecheck-migrated + test exit 0. Code review: 5 critical findings in REVIEW.md voor toekomstige verbetering. 3 fixture-verificaties in 11-HUMAN-UAT.md voor Phase 13."
+status: Phase 12 Plan 01 uitgevoerd (2026-05-14) — Rust crypto layer compleet. cargo check + cargo test slagen. AES-256-GCM commands beschikbaar voor Wave 1.
+last_updated: "2026-05-14T15:51:03.266Z"
+last_activity: 2026-05-14 — Phase 12 Plan 01 uitgevoerd. crypto.rs met encrypt_klassen/decrypt_klassen. tauri-plugin-store + tauri-plugin-secure-storage geregistreerd. GetItemResponse.data field gecorrigeerd (was .value in RESEARCH). 2 Rust unit tests passing.
 progress:
   total_phases: 10
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 21
-  completed_plans: 18
-  percent: 86
+  completed_plans: 21
+  percent: 100
 ---
 
 # Project State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 12 — Versleutelde Opslag 🔄 In progress
-Plan: 1/4 executed
-Status: Phase 12 Plan 01 uitgevoerd (2026-05-14) — Rust crypto layer compleet. cargo check + cargo test slagen. AES-256-GCM commands beschikbaar voor Wave 1.
-Last activity: 2026-05-14 — Phase 12 Plan 01 uitgevoerd. crypto.rs met encrypt_klassen/decrypt_klassen. tauri-plugin-store + tauri-plugin-secure-storage geregistreerd. GetItemResponse.data field gecorrigeerd (was .value in RESEARCH). 2 Rust unit tests passing.
+Phase: 12 — Versleutelde Opslag COMPLETE
+Plan: 4/4 executed
+Status: Phase 12 volledig uitgevoerd (2026-05-14) — Rust crypto layer + TypeScript async storage + leerlijnen migratie + Vitest storage tests. STO-01 t/m STO-04 allemaal groen.
+Last activity: 2026-05-14 — Phase 12 Plan 04 uitgevoerd. tests/storage.test.ts aangemaakt. 4 STO-tests passing. LazyStore class mock + btoa invoke mock. Volledige test suite 35 passed, 0 failed. npm run typecheck exit 0.
 
-Progress: [█████████░] 86%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -56,6 +56,8 @@ v2.0 phases completed: 1/6
 - [12-01] GetItemResponse.data field name verified from source — RESEARCH.md A1 assumption (.value) was wrong; actual field is .data: Option<String>
 - [12-01] SecureStorage API takes OptionsRequest struct (not plain string) — get_item returns Ok(data:None) when key absent, not Err
 - [12-01] No explicit rand crate needed — aes_gcm::aead::OsRng re-export works correctly (A4 confirmed)
+- [12-04] LazyStore mock must be ES6 class (not vi.fn()) — required for new LazyStore() constructor call in utils/klassen.ts
+- [12-04] invoke mock uses btoa encoding for STO-02 ciphertext opacity — plain prefix fails not.toContain assertion
 
 ### Pending Todos
 
@@ -82,3 +84,4 @@ v2.0 phases completed: 1/6
 - 2026-05-13: Phase 10 Plans 02 + 03 executed — vite.config.ts (base: './'), tsconfig strict:false, tauri.conf.json (useHttpsScheme:true, beforeDevCommand:vite-dev), capabilities core:default, App.tsx placeholder, Tauri window verified (TCH-01), installer built (TCH-02), Vitest 9 tests pass (TCH-03 partial), typecheck 0 errors (TCH-04). Phase 10 complete.
 - 2026-05-14: Phase 11 discussed (21 decisions, 4 areas) and planned (6 plans, 4 waves). Research + pattern mapping complete. Verification passed 12/12 dimensions (iteration 2). Ready to execute.
 - 2026-05-14: Phase 12 Plan 01 executed — Rust crypto layer. crypto.rs (AES-256-GCM encrypt_klassen/decrypt_klassen), tauri-plugin-store + tauri-plugin-secure-storage in lib.rs, store:default in capabilities. cargo check + cargo test (2 tests) passing. 3 deviations: GetItemResponse.data field, OptionsRequest struct API, non-ASCII byte string literal.
+- 2026-05-14: Phase 12 Plan 04 executed — Vitest storage tests. tests/storage.test.ts aangemaakt met STO-01 t/m STO-04. LazyStore als class mock. invoke mock met btoa encoding. 4/4 tests passing. Volledige suite 35 passed. Phase 12 volledig afgerond.
