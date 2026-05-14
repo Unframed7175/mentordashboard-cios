@@ -162,7 +162,13 @@ Cross-cutting constraints:
   2. Opgeslagen leerlingdata is versleuteld op schijf (AES-256-GCM); de encryptiesleutel is uitsluitend zichtbaar in de OS keychain, niet naast de data
   3. Bij eerste start van de nieuwe app worden bestaande localStorage-gegevens automatisch gemigreerd zonder dataverlies
   4. Mentor kan een individuele leerling verwijderen — data is volledig gewist uit de store (Artikel 17 AVG compliance)
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Wave 1: Rust crypto commands (crypto.rs, Cargo.toml, lib.rs, capabilities)
+- [ ] 12-02-PLAN.md — Wave 2: utils/klassen.ts async + deleteStudent + migratie
+- [ ] 12-03-PLAN.md — Wave 2: utils/leerlijnen.ts async + datamodel.ts deprecatie
+- [ ] 12-04-PLAN.md — Wave 3: tests/storage.test.ts (STO-01..STO-04)
 
 ### Phase 13: Bestandstoegang
 **Goal**: Mentor kan PDFs, Excel-bestanden en zip-backups aanleveren via drag-drop of OS bestandsdialoog in de Tauri app — de parsers verwerken de bestanden identiek als voorheen
@@ -211,7 +217,7 @@ Cross-cutting constraints:
 | 9. CIOS Huisstijl & Verzuim Weergave | 2/2 | Complete | 2026-04-24 |
 | 10. Scaffold & Toolchain | 3/3 | Complete | 2026-05-13 |
 | 11. TypeScript Migratie | 0/6 | Not started | - |
-| 12. Versleutelde Opslag | 0/? | Not started | - |
+| 12. Versleutelde Opslag | 0/4 | Not started | - |
 | 13. Bestandstoegang | 0/? | Not started | - |
 | 14. React UI | 0/? | Not started | - |
 | 15. Packaging & Cross-platform | 0/? | Not started | - |
