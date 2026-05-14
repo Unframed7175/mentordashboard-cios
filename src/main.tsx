@@ -1,9 +1,18 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import { loadKlassen } from "../utils/klassen";
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+(async () => {
+  try {
+    await loadKlassen();
+  } catch (err) {
+    console.error('[main.tsx] loadKlassen mislukt:', err);
+  }
+
+  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+})();

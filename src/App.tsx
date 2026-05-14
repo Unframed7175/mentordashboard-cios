@@ -1,13 +1,24 @@
-// Phase 10 placeholder component (D-07)
-// Phase 11+ will replace this with the full React UI migration
+import React, { useEffect } from 'react';
+import ImportPage from './components/ImportPage';
 
 function App() {
+  useEffect(() => {
+    function preventNav(e: DragEvent) {
+      e.preventDefault();
+    }
+    document.addEventListener('dragover', preventNav);
+    document.addEventListener('drop', preventNav);
+    return () => {
+      document.removeEventListener('dragover', preventNav);
+      document.removeEventListener('drop', preventNav);
+    };
+  }, []);
+
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Mentordashboard CIOS</h1>
-      <p>v2.0 &mdash; Scaffold</p>
-      <p style={{ color: 'green' }}>Scaffold complete</p>
-    </div>
+    <>
+      <div id="storage-error-banner" style={{ display: 'none' }} />
+      <ImportPage />
+    </>
   );
 }
 
