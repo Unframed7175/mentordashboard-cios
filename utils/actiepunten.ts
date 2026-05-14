@@ -7,7 +7,7 @@
 
 import { appState, saveState } from './datamodel';
 
-var VALID_STATUS = ['open', 'opgepakt', 'herhaling'];
+const VALID_STATUS = ['open', 'opgepakt', 'herhaling'] as const;
 
 /**
  * Returns the most recent StudentRecord for leerlingId from appState.
