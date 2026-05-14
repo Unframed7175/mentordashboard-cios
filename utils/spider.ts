@@ -33,8 +33,12 @@ export const SpiderChart = {
   /**
    * Genereer een <svg> string voor een spider chart.
    *
-   * @param axes     - Array van { key: string; label: string } as-definities
-   * @param scores   - Record<string, string | null> met score per deelgebied key
+   * @param axes     - Array van { key: string; label: string } as-definities.
+   *   De `key` waarde moet overeenkomen met de sleutels in `scores`.
+   *   Conventie: gebruik `dg.id` (bijv. 'va', 'mm') als key, NIET `dg.label`.
+   *   Scores uit parseSinglePDF zijn gekeyed op `dg.label` — converteer ze eerst:
+   *     Object.fromEntries(DEELGEBIEDEN.map(dg => [dg.id, student.deelgebiedScores[dg.label]]))
+   * @param scores   - Record<string, string | null> met score per deelgebied key (gekeyed op dg.id)
    * @param fillVar  - CSS variabele naam voor opvulkleur (bijv. '--color-spider-fill')
    * @param strokeVar - CSS variabele naam voor lijnkleur (bijv. '--color-spider-stroke')
    * @returns Volledig <svg>...</svg> element als string
