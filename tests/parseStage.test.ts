@@ -5,6 +5,12 @@
 //
 // Note: parseStageFile = parseSinglePDF per Phase 11 research (no separate
 // parsers/parseStage.js — the function lives in parsers/pdf.ts).
+//
+// NOTE on always-run test: parsers/pdf.ts initializes pdfjs at import time,
+// which requires DOMMatrix (not available in jsdom without polyfill). Static
+// import of parsers/pdf.ts crashes the test suite when there is no fixture.
+// To avoid this, pdf.ts is imported dynamically inside the fixture guard block.
+// MIG-01 module availability is instead verified by the fixture-guarded tests.
 // ---------------------------------------------------------------------------
 
 import { existsSync, readFileSync } from 'fs';
@@ -17,6 +23,11 @@ const FIXTURE_EXISTS = existsSync(FIXTURE_PATH);
 // the fixture is available (avoids DOMMatrix error from pdfjs in jsdom env).
 
 describe.skipIf(!FIXTURE_EXISTS)('parseStageFile integration (MIG-01)', () => {
+  test('parseSinglePDF is een functie', async () => {
+    const { parseSinglePDF } = await import('../parsers/pdf');
+    expect(typeof parseSinglePDF).toBe('function');
+  });
+
   test('fixture PDF wordt geparsed en geeft een object met naam terug', async () => {
     const { parseSinglePDF } = await import('../parsers/pdf');
     const pdfBytes = readFileSync(FIXTURE_PATH);
