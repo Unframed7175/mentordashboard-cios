@@ -8,6 +8,11 @@
 import { appState, saveState } from './datamodel';
 
 const VALID_STATUS = ['open', 'opgepakt', 'herhaling'] as const;
+type ValidStatus = typeof VALID_STATUS[number];
+
+function isValidStatus(s: string): s is ValidStatus {
+  return (VALID_STATUS as readonly string[]).includes(s);
+}
 
 /**
  * Returns the most recent StudentRecord for leerlingId from appState.
@@ -89,7 +94,7 @@ var store = {
     var s = getStudent(leerlingId);
     if (!s) return null;
     if (!Array.isArray(s.actiepunten)) s.actiepunten = [];
-    var desired = VALID_STATUS.indexOf(patch.status) >= 0 ? patch.status : 'open';
+    var desired: ValidStatus = isValidStatus(patch.status) ? patch.status : 'open';
     var item = {
       id: genId(),
       onderwerp: String(patch.onderwerp || '').trim(),
@@ -118,7 +123,7 @@ var store = {
       if (s.actiepunten[i].id === id) {
         var merged = Object.assign({}, s.actiepunten[i], patch || {});
         var hasStatus = patch && Object.prototype.hasOwnProperty.call(patch, 'status');
-        var desired = VALID_STATUS.indexOf(merged.status) >= 0 ? merged.status : 'open';
+        var desired: ValidStatus = isValidStatus(merged.status) ? merged.status : 'open';
         if (!hasStatus && isHerhaling(s.actiepunten, merged.onderwerp, id)) {
           merged.status = 'herhaling';
         } else {
