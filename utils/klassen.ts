@@ -1,11 +1,31 @@
-/* utils/klassen.ts — Multi-class state management (Phase 6)
- * TypeScript migration from klassen.js (Plan 03)
- * Depends on: utils/datamodel.ts (appState, saveState)
+/* utils/klassen.ts — Multi-class state management (Phase 12)
+ * Replaces localStorage with plugin-store + AES-256-GCM encryption via Rust commands.
+ * Depends on: utils/datamodel.ts (appState only — saveState/loadState deprecated)
  */
 
-import { appState, saveState } from './datamodel';
+import { appState } from './datamodel';
+import { invoke } from '@tauri-apps/api/core';
+import { LazyStore } from '@tauri-apps/plugin-store';
 
-var KLASSEN_KEY = 'mentordashboard_klassen_v1';
+// LazyStore defers file I/O until first access; defaults:{} + autoSave:false = explicit store.save() required
+const store = new LazyStore('store.json', { defaults: {}, autoSave: false });
+
+// Legacy keys — read-only during migration; never written after Phase 12
+const KLASSEN_KEY_V2 = 'mentordashboard_klassen_v1';
+const KLASSEN_KEY_V1 = 'mentordashboard_v1';
+
+// Show error in UI for critical storage failures (D-12-15, D-12-16)
+// Phase 12: console.error + DOM insertion as minimal viable error display
+// Phase 14: replace with React toast/modal
+function showStorageError(message: string): void {
+  console.error('[klassen.ts] Opslag fout:', message);
+  // Minimal UI notification — Phase 14 will replace with proper React component
+  const el = document.getElementById('storage-error-banner');
+  if (el) {
+    el.textContent = message;
+    (el as HTMLElement).style.display = 'block';
+  }
+}
 
 // ── State object ──────────────────────────────────────────────────────────────
 export const klassenState: { klassen: Record<string, any>; activeKlasId: string | null } = {
@@ -13,8 +33,24 @@ export const klassenState: { klassen: Record<string, any>; activeKlasId: string 
   activeKlasId: null,
 };
 
+// Extracted from existing loadKlassen() bridge logic — named for reuse
+function _restoreBridge(): void {
+  if (klassenState.activeKlasId && klassenState.klassen[klassenState.activeKlasId]) {
+    appState.students = klassenState.klassen[klassenState.activeKlasId].students;
+  } else {
+    const ids = Object.keys(klassenState.klassen);
+    if (ids.length > 0) {
+      klassenState.activeKlasId = ids[0];
+      appState.students = klassenState.klassen[ids[0]].students;
+    } else {
+      klassenState.activeKlasId = null;
+      appState.students = [];
+    }
+  }
+}
+
 // ── createKlas(naam) — D-01/D-03/D-04 ────────────────────────────────────────
-export function createKlas(naam: string): any {
+export async function createKlas(naam: string): Promise<any> {
   if (!naam || typeof naam !== 'string') {
     return { error: 'invalid', naam: naam };
   }
@@ -36,25 +72,25 @@ export function createKlas(naam: string): any {
   var klas: { id: string; naam: string; students: any[] } = { id: id, naam: trimmedNaam, students: [] };
   klassenState.klassen[id] = klas;
 
-  switchActiveKlas(id);
+  await switchActiveKlas(id);
   // switchActiveKlas calls saveKlassen, so no need to call again here
   return klas;
 }
 
 // ── switchActiveKlas(klasId) — D-07, research Pattern 2 ──────────────────────
-export function switchActiveKlas(klasId: string): boolean {
+export async function switchActiveKlas(klasId: string): Promise<boolean> {
   if (!klassenState.klassen[klasId]) {
     return false;
   }
   klassenState.activeKlasId = klasId;
   // CRITICAL bridge: same array reference so addStudent/mergeVerzuim mutate the right array
   appState.students = klassenState.klassen[klasId].students;
-  saveKlassen();
+  await saveKlassen();
   return true;
 }
 
 // ── deleteKlas(klasId) — D-09/KLS-05 ─────────────────────────────────────────
-export function deleteKlas(klasId: string): boolean {
+export async function deleteKlas(klasId: string): Promise<boolean> {
   if (!klassenState.klassen[klasId]) {
     return false;
   }
@@ -73,21 +109,32 @@ export function deleteKlas(klasId: string): boolean {
     }
   }
 
-  saveKlassen();
+  await saveKlassen();
   return true;
 }
 
+// ── deleteStudent(klasId, leerlingId) — D-12-11, D-12-12 ─────────────────────
+// Phase 12 function only — UI wiring in Phase 14
+// Hard delete — filter students array then re-encrypt entire blob (AVG Art. 17)
+export async function deleteStudent(klasId: string, leerlingId: string): Promise<boolean> {
+  const klas = klassenState.klassen[klasId];
+  if (!klas) return false;
+  klas.students = klas.students.filter((s: any) => s.leerlingId !== leerlingId);
+  return saveKlassen();
+}
+
 // ── saveKlassen() — KLS-04 ────────────────────────────────────────────────────
-export function saveKlassen(): boolean {
+export async function saveKlassen(): Promise<boolean> {
   try {
-    var payload = {
+    const payload = {
       klassen: klassenState.klassen,
       activeKlasId: klassenState.activeKlasId,
       savedAt: new Date().toISOString(),
     };
-    localStorage.setItem(KLASSEN_KEY, JSON.stringify(payload));
-    // Also call saveState() for backward compatibility (harmless dual-write)
-    saveState();
+    const plaintext = JSON.stringify(payload);
+    const ciphertext = await invoke<string>('encrypt_klassen', { plaintext });
+    await store.set('klassen', ciphertext);
+    await store.save();   // REQUIRED: set() is in-memory only; save() flushes to disk
     return true;
   } catch (e) {
     console.error('[klassen.ts] saveKlassen mislukt:', e);
@@ -96,70 +143,72 @@ export function saveKlassen(): boolean {
 }
 
 // ── loadKlassen() — KLS-04/KLS-06 ────────────────────────────────────────────
-export function loadKlassen(): boolean {
+export async function loadKlassen(): Promise<boolean> {
   try {
-    var raw = localStorage.getItem(KLASSEN_KEY);
-    if (raw) {
-      var data = JSON.parse(raw);
+    const ciphertext = await store.get<string>('klassen');
+    if (ciphertext) {
+      const plaintext = await invoke<string>('decrypt_klassen', { ciphertext });
+      const data = JSON.parse(plaintext);
       if (data && data.klassen) {
         klassenState.klassen = data.klassen;
         klassenState.activeKlasId = data.activeKlasId || null;
-
-        // Re-establish the bridge for the active class
-        if (klassenState.activeKlasId && klassenState.klassen[klassenState.activeKlasId]) {
-          appState.students = klassenState.klassen[klassenState.activeKlasId].students;
-        } else {
-          // Active class ID stored but class no longer exists — pick first
-          var ids = Object.keys(klassenState.klassen);
-          if (ids.length > 0) {
-            klassenState.activeKlasId = ids[0];
-            appState.students = klassenState.klassen[ids[0]].students;
-          } else {
-            klassenState.activeKlasId = null;
-            appState.students = [];
-          }
-        }
-
+        _restoreBridge();
         return Object.keys(klassenState.klassen).length > 0;
       }
     }
+    // No plugin-store data — attempt localStorage migration (D-12-14)
+    return _migrateLocalStorageToStore();
   } catch (e) {
     console.error('[klassen.ts] loadKlassen mislukt:', e);
+    // D-12-16: keychain error — start with empty state, show NL error
+    showStorageError('Sleutel niet beschikbaar — neem contact op met beheerder');
+    return false;
   }
-
-  // No klassen data found — attempt v1.0 migration
-  return _migrateV1ToKlassen();
 }
 
-// ── _migrateV1ToKlassen() — v1.0 auto-migration ───────────────────────────────
-export function _migrateV1ToKlassen(): boolean {
+// ── _migrateLocalStorageToStore() — replaces _migrateV1ToKlassen ─────────────
+async function _migrateLocalStorageToStore(): Promise<boolean> {
   try {
-    var raw = localStorage.getItem('mentordashboard_v1');
-    if (!raw) {
+    // Detect localStorage data (v2 multi-klas format or v1 single-klas)
+    const rawV2 = localStorage.getItem(KLASSEN_KEY_V2);
+    const rawV1 = localStorage.getItem(KLASSEN_KEY_V1);
+    const raw = rawV2 || rawV1;
+    if (!raw) return false;
+
+    const oldData = JSON.parse(raw);
+    // Reconstruct klassenState from old format
+    if (rawV2 && oldData && oldData.klassen) {
+      klassenState.klassen = oldData.klassen;
+      klassenState.activeKlasId = oldData.activeKlasId || null;
+    } else if (rawV1 && oldData && Array.isArray(oldData.students) && oldData.students.length > 0) {
+      // v1 single-class migration (same as existing _migrateV1ToKlassen)
+      const id = 'klas_' + Date.now().toString(36);
+      klassenState.klassen[id] = { id, naam: 'Klas 1', students: oldData.students };
+      klassenState.activeKlasId = id;
+    } else {
       return false;
     }
-    var oldData = JSON.parse(raw);
-    if (!oldData || !Array.isArray(oldData.students) || oldData.students.length === 0) {
+
+    _restoreBridge();
+
+    // Encrypt and persist to plugin-store FIRST (D-12-15: don't remove before confirming write)
+    const saved = await saveKlassen();
+    if (!saved) {
+      // Rollback: keep klassenState empty, don't touch localStorage
+      klassenState.klassen = {};
+      klassenState.activeKlasId = null;
+      appState.students = [];
       return false;
     }
 
-    // Create a class named "Klas 1" and populate with old students
-    var id = 'klas_' + Date.now().toString(36);
-    var klas = { id: id, naam: 'Klas 1', students: oldData.students };
-    klassenState.klassen[id] = klas;
-    klassenState.activeKlasId = id;
+    // Only remove localStorage entries AFTER confirmed write (D-12-14, D-12-15)
+    if (rawV2) localStorage.removeItem(KLASSEN_KEY_V2);
+    if (rawV1) localStorage.removeItem(KLASSEN_KEY_V1);
 
-    // Establish bridge
-    appState.students = klas.students;
-
-    // Persist under new key and remove old key
-    saveKlassen();
-    localStorage.removeItem('mentordashboard_v1');
-
-    console.log('[klassen.ts] Migratie van v1 naar multi-klas uitgevoerd (' + oldData.students.length + ' leerlingen -> Klas 1)');
+    console.log('[klassen.ts] Migratie localStorage → plugin-store geslaagd');
     return true;
   } catch (e) {
-    console.error('[klassen.ts] _migrateV1ToKlassen mislukt:', e);
+    console.error('[klassen.ts] _migrateLocalStorageToStore mislukt:', e);
     return false;
   }
 }
