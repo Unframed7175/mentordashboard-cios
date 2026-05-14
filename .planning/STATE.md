@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: Phase 12 volledig geverifieerd (2026-05-14) — gap closure 12-05 slaagt. Tauri runtime keychain bevestigd. Klaar voor Phase 13.
-last_updated: "2026-05-14T20:20:00.000Z"
-last_activity: 2026-05-14 — Phase 12 gap closure 12-05 uitgevoerd. CR-01/CR-03/CR-04/WR-02 opgelost. cargo test 2/2, Vitest 35/35, Tauri runtime keychain bevestigd. Verificatie passed 14/14.
+status: Phase 13 gepland (2026-05-14) — 2 plans in 2 waves. Klaar voor uitvoering.
+last_updated: "2026-05-14T00:00:00.000Z"
+last_activity: 2026-05-14 — Phase 13 Bestandstoegang gepland. 2 plans (13-01 App wiring, 13-02 ImportPage component). Verificatie passed. IMP-01, IMP-02, IMP-03 gedekt.
 progress:
   total_phases: 10
   completed_phases: 7
-  total_plans: 21
+  total_plans: 23
   completed_plans: 21
-  percent: 100
+  percent: 91
 ---
 
 # Project State

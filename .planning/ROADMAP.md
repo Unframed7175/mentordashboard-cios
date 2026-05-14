@@ -183,8 +183,12 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — App wiring: loadKlassen() at startup, ImportPage mount, document drop guard
+
+**Wave 1**
 - [ ] 13-02-PLAN.md — ImportPage component: universal dropzone, batch PDF, Excel, backup restore
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 13-01-PLAN.md — App wiring: loadKlassen() at startup, ImportPage mount, document drop guard
 
 ### Phase 14: React UI
 **Goal**: Klasoverzicht en detailweergave zijn volledig herschreven als React componenten — de mentor ziet en ervaart exact dezelfde functionaliteit als in de huidige app, inclusief zoeken, sorteren, klas wisselen en actiepunten
@@ -224,6 +228,6 @@ Plans:
 | 10. Scaffold & Toolchain | 3/3 | Complete | 2026-05-13 |
 | 11. TypeScript Migratie | 6/6 | Complete | 2026-05-14 |
 | 12. Versleutelde Opslag | 5/5 | Complete | 2026-05-14 |
-| 13. Bestandstoegang | 0/? | Not started | - |
+| 13. Bestandstoegang | 0/2 | Ready to execute | - |
 | 14. React UI | 0/? | Not started | - |
 | 15. Packaging & Cross-platform | 0/? | Not started | - |
