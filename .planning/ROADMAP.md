@@ -39,7 +39,7 @@
 - [x] **Phase 11: TypeScript Migratie** — Alle utils en parsers zijn geporteerd naar TypeScript met identieke output; nul regressies in de test suite *(completed 2026-05-14)*
 - [x] **Phase 12: Versleutelde Opslag** — Leerlingdata wordt opgeslagen via plugin-store, versleuteld met AES-256-GCM en OS keychain sleutel; bestaande data gemigreerd; GDPR-verwijderfunctie werkt
  (completed 2026-05-14)
-- [ ] **Phase 13: Bestandstoegang** — Mentor kan PDFs, Excel-bestanden en zip-backups importeren via drag-drop én bestandsdialoog in de Tauri app
+- [x] **Phase 13: Bestandstoegang** — Mentor kan PDFs, Excel-bestanden en zip-backups importeren via drag-drop én bestandsdialoog in de Tauri app *(completed 2026-05-14)*
 - [ ] **Phase 14: React UI** — Klasoverzicht en detailweergave zijn volledig herschreven als React componenten en tonen identieke informatie als de huidige app
 - [ ] **Phase 15: Packaging & Cross-platform** — App bouwt als installeerbare .exe (Windows) en .dmg (Mac); UI ziet er identiek uit op beide platforms; eindgebruiker installeert zonder extra dependencies
 
@@ -185,10 +185,10 @@ Plans:
 Plans:
 
 **Wave 1**
-- [ ] 13-02-PLAN.md — ImportPage component: universal dropzone, batch PDF, Excel, backup restore
+- [x] 13-02-PLAN.md — ImportPage component: universal dropzone, batch PDF, Excel, backup restore
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 13-01-PLAN.md — App wiring: loadKlassen() at startup, ImportPage mount, document drop guard
+- [x] 13-01-PLAN.md — App wiring: loadKlassen() at startup, ImportPage mount, document drop guard
 
 ### Phase 14: React UI
 **Goal**: Klasoverzicht en detailweergave zijn volledig herschreven als React componenten — de mentor ziet en ervaart exact dezelfde functionaliteit als in de huidige app, inclusief zoeken, sorteren, klas wisselen en actiepunten

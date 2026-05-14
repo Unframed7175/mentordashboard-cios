@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: Phase 13 gepland (2026-05-14) — 2 plans in 2 waves. Klaar voor uitvoering.
-last_updated: "2026-05-14T00:00:00.000Z"
-last_activity: 2026-05-14 — Phase 13 Bestandstoegang gepland. 2 plans (13-01 App wiring, 13-02 ImportPage component). Verificatie passed. IMP-01, IMP-02, IMP-03 gedekt.
+status: Phase 13 volledig geverifieerd (2026-05-14) — 2/2 plans complete. 14/14 checks passed. Advancing to Phase 14.
+last_updated: "2026-05-14T20:45:00.000Z"
+last_activity: 2026-05-14 — Phase 13 uitgevoerd en geverifieerd. ImportPage.tsx (dropzone + handlers) + async main.tsx startup + App.tsx wiring. 14/14 checks. IMP-01, IMP-02, IMP-03 gedekt.
 progress:
   total_phases: 10
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 23
-  completed_plans: 21
-  percent: 91
+  completed_plans: 23
+  percent: 100
 ---
 
 # Project State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 13 — Bestandstoegang (next)
+Phase: 14 — React UI (next)
 Plan: 0/? planned
-Status: Phase 12 volledig geverifieerd (2026-05-14) — gap closure 12-05 compleet. 14/14 must-haves. Tauri runtime keychain bevestigd. Advancing to Phase 13.
-Last activity: 2026-05-14 — Phase 12 gap closure 12-05 uitgevoerd en geverifieerd. 5/5 plans complete. Verificatie passed 14/14. Tauri runtime: geen keychain-fouten.
+Status: Phase 13 volledig geverifieerd (2026-05-14) — 2/2 plans complete. 14/14 checks. IMP-01, IMP-02, IMP-03 gedekt.
+Last activity: 2026-05-14 — Phase 13 uitgevoerd en geverifieerd. ImportPage universele dropzone. Async main.tsx startup. App.tsx wiring.
 
-Progress: [██████████] 100%
+Progress: [████████░░] 80% (v2.0: 4/6 phases)
 
 ## Performance Metrics
 
@@ -85,3 +85,4 @@ v2.0 phases completed: 3/6
 - 2026-05-14: Phase 11 discussed (21 decisions, 4 areas) and planned (6 plans, 4 waves). Research + pattern mapping complete. Verification passed 12/12 dimensions (iteration 2). Ready to execute.
 - 2026-05-14: Phase 12 Plan 01 executed — Rust crypto layer. crypto.rs (AES-256-GCM encrypt_klassen/decrypt_klassen), tauri-plugin-store + tauri-plugin-secure-storage in lib.rs, store:default in capabilities. cargo check + cargo test (2 tests) passing. 3 deviations: GetItemResponse.data field, OptionsRequest struct API, non-ASCII byte string literal.
 - 2026-05-14: Phase 12 Plan 04 executed — Vitest storage tests. tests/storage.test.ts aangemaakt met STO-01 t/m STO-04. LazyStore als class mock. invoke mock met btoa encoding. 4/4 tests passing. Volledige suite 35 passed. Phase 12 volledig afgerond.
+- 2026-05-14: Phase 13 executed — Bestandstoegang. 2 plans: ImportPage.tsx (universal dropzone, sequential PDF batch via addStudent, Excel via mergeVerzuim, backup restore via applyBackupRestore+switchActiveKlas), async main.tsx IIFE startup, App.tsx document drop guard + storage-error-banner. 14/14 checks. 35 tests pass.
