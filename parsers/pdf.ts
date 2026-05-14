@@ -1,15 +1,17 @@
-// parsers/pdf.js — PDF voortgang parser
+// parsers/pdf.ts — PDF voortgang parser
 // PDF.js loaded as ESM from vendor/
 
+// @ts-ignore — vendor bundle heeft geen TypeScript declaraties; pdfjs-dist npm types gelden hier niet
 import * as pdfjsLib from '../vendor/pdf.min.mjs';
+import { DEELGEBIEDEN, normalizeScore } from '../utils/schema';
 
 // pdfjs-dist 5.x internally does: new Worker(workerSrc, {type:'module'})
 // so setting workerSrc to our .mjs file is all that's needed.
 // Do NOT use workerPort — that code path (#gr) resolves the worker promise immediately
 // before the module worker has finished bootstrapping, causing silent message loss.
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.mjs', import.meta.url).href;
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.mjs', import.meta.url).href;
 
-console.log('[pdf.js] PDF.js initialized, version:', pdfjsLib.version);
+console.log('[pdf.ts] PDF.js initialized, version:', (pdfjsLib as any).version);
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -54,14 +56,14 @@ const COLUMN_X_TOLERANCE = 8;
  * - Items are filtered (empty/whitespace removed), then sorted:
  *     page ASC → y DESC (top-to-bottom) → x ASC (left-to-right)
  *
- * @param {File} file
+ * @param file
  * @returns {Promise<Array<{str:string, x:number, y:number, width:number, height:number, fontSize:number, page:number}>>}
  */
-async function extractAllTextItems(file) {
+async function extractAllTextItems(file: File): Promise<any[]> {
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pdf = await (pdfjsLib as any).getDocument({ data: arrayBuffer }).promise;
 
-  const allItems = [];
+  const allItems: any[] = [];
 
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
     const page = await pdf.getPage(pageNum);
@@ -86,7 +88,7 @@ async function extractAllTextItems(file) {
   await pdf.destroy(); // release memory
 
   // Sort: page ASC, within page: y DESC (top first), then x ASC (left first)
-  allItems.sort((a, b) => {
+  allItems.sort((a: any, b: any) => {
     if (a.page !== b.page) return a.page - b.page;
     if (Math.abs(a.y - b.y) > Y_TOLERANCE) return b.y - a.y; // higher y = higher on page
     return a.x - b.x; // same line → left to right
@@ -105,15 +107,15 @@ async function extractAllTextItems(file) {
  * Each line is an array of text items sorted by x ascending (left to right).
  * Lines are returned in top-to-bottom order (page 1 first, then page 2, …).
  *
- * @param {Array} items - Sorted text items from extractAllTextItems()
- * @param {number} [tolerance=Y_TOLERANCE]
- * @returns {Array<Array>} Array of lines, each line is an array of items
+ * @param items - Sorted text items from extractAllTextItems()
+ * @param tolerance
+ * @returns Array of lines, each line is an array of items
  */
-function groupIntoLines(items, tolerance = Y_TOLERANCE) {
-  const lines = [];
-  let currentLine = [];
-  let currentY = null;
-  let currentPage = null;
+function groupIntoLines(items: any[], tolerance: number = Y_TOLERANCE): any[][] {
+  const lines: any[][] = [];
+  let currentLine: any[] = [];
+  let currentY: number | null = null;
+  let currentPage: number | null = null;
 
   for (const item of items) {
     const samePage = item.page === currentPage;
@@ -122,10 +124,10 @@ function groupIntoLines(items, tolerance = Y_TOLERANCE) {
     if (samePage && closeEnough) {
       currentLine.push(item);
       // Weighted average Y to handle sub-pixel baseline shifts within a line
-      currentY = (currentY * (currentLine.length - 1) + item.y) / currentLine.length;
+      currentY = (currentY! * (currentLine.length - 1) + item.y) / currentLine.length;
     } else {
       if (currentLine.length > 0) {
-        lines.push(currentLine.slice().sort((a, b) => a.x - b.x));
+        lines.push(currentLine.slice().sort((a: any, b: any) => a.x - b.x));
       }
       currentLine = [item];
       currentY = item.y;
@@ -134,7 +136,7 @@ function groupIntoLines(items, tolerance = Y_TOLERANCE) {
   }
 
   if (currentLine.length > 0) {
-    lines.push(currentLine.slice().sort((a, b) => a.x - b.x));
+    lines.push(currentLine.slice().sort((a: any, b: any) => a.x - b.x));
   }
 
   return lines;
@@ -143,11 +145,11 @@ function groupIntoLines(items, tolerance = Y_TOLERANCE) {
 /**
  * Join all text items in a line into a single space-separated string.
  *
- * @param {Array} line
+ * @param line
  * @returns {string}
  */
-function lineToText(line) {
-  return line.map(item => item.str).join(' ').replace(/\s+/g, ' ').trim();
+function lineToText(line: any[]): string {
+  return line.map((item: any) => item.str).join(' ').replace(/\s+/g, ' ').trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -158,10 +160,10 @@ function lineToText(line) {
  * Match a raw text string against the known status values.
  * Returns the canonical status string or '' if none matches.
  *
- * @param {string} text
+ * @param text
  * @returns {string}
  */
-function matchStatus(text) {
+function matchStatus(text: string): string {
   const normalized = text.replace(/\s+/g, ' ').trim().toLowerCase();
   return STATUS_STRINGS.find(s => normalized.includes(s.toLowerCase())) || '';
 }
@@ -178,10 +180,10 @@ function matchStatus(text) {
  * Handles variable spacing around colons (per D-09).
  * Returns empty strings for fields not found.
  *
- * @param {Array<Array>} lines
+ * @param lines
  * @returns {{ naam: string, leerlingId: string, periode: string, leerjaar: string }}
  */
-function extractHeader(lines) {
+function extractHeader(lines: any[][]): { naam: string; leerlingId: string; periode: string; leerjaar: string } {
   const result = { naam: '', leerlingId: '', periode: '', leerjaar: '' };
   const scanLines = lines.slice(0, 30);
 
@@ -224,11 +226,11 @@ function extractHeader(lines) {
  * (most common), then define a heading as anything noticeably larger.
  * Falls back to 14pt if detection is inconclusive.
  *
- * @param {Array<Array>} lines
+ * @param lines
  * @returns {number} minimum fontSize that counts as a section heading
  */
-function detectHeadingThreshold(lines) {
-  const sizes = [];
+function detectHeadingThreshold(lines: any[][]): number {
+  const sizes: number[] = [];
   for (const line of lines) {
     for (const item of line) {
       if (item.fontSize > 0) sizes.push(item.fontSize);
@@ -236,7 +238,7 @@ function detectHeadingThreshold(lines) {
   }
   if (sizes.length === 0) return 14;
 
-  sizes.sort((a, b) => a - b);
+  sizes.sort((a: number, b: number) => a - b);
   const median = sizes[Math.floor(sizes.length / 2)];
   // A heading is at least 20% larger than the median body font
   return median * 1.2;
@@ -253,10 +255,10 @@ function detectHeadingThreshold(lines) {
  * Does NOT match: pure status strings, "Feed Forward", "Overzicht Deelgebieden",
  * short/empty lines, pure score lines.
  *
- * @param {string} text
+ * @param text
  * @returns {boolean}
  */
-function looksLikeOpdracht(text) {
+function looksLikeOpdracht(text: string): boolean {
   if (!text || text.length < 3) return false;
   // Exclude known structural markers
   if (/^(feed\s*forward|overzicht\s*deelgebied|leerjaar|naam\s*:|leerling|periode)/i.test(text)) return false;
@@ -285,21 +287,21 @@ function looksLikeOpdracht(text) {
  *  5. Per opdracht, capture status and feed-forward text.
  *  6. Stop collecting vakken when "Overzicht Deelgebieden" is encountered.
  *
- * @param {Array<Array>} lines
+ * @param lines
  * @returns {Array<{ naam: string, opdrachten: Array<{ naam: string, status: string, feedForward: string }> }>}
  */
-function parseVakSections(lines) {
+function parseVakSections(lines: any[][]): Array<{ naam: string; opdrachten: Array<{ naam: string; status: string; feedForward: string }> }> {
   const headingThreshold = detectHeadingThreshold(lines);
 
-  const vakken = [];
-  let currentVak = null;
-  let currentOpdracht = null;
+  const vakken: Array<{ naam: string; opdrachten: Array<{ naam: string; status: string; feedForward: string }> }> = [];
+  let currentVak: { naam: string; opdrachten: Array<{ naam: string; status: string; feedForward: string }> } | null = null;
+  let currentOpdracht: { naam: string; status: string; feedForward: string } | null = null;
   let capturingFeedForward = false;
 
   /**
    * Flush a completed opdracht into the current vak.
    */
-  function flushOpdracht() {
+  function flushOpdracht(): void {
     if (currentOpdracht && currentVak) {
       // Clean up feedForward: trim + collapse spaces
       currentOpdracht.feedForward = currentOpdracht.feedForward.replace(/\s+/g, ' ').trim();
@@ -312,7 +314,7 @@ function parseVakSections(lines) {
   /**
    * Flush the current vak into vakken (includes flushing current opdracht).
    */
-  function flushVak() {
+  function flushVak(): void {
     flushOpdracht();
     if (currentVak && (currentVak.opdrachten.length > 0 || currentVak.naam)) {
       vakken.push(currentVak);
@@ -330,7 +332,7 @@ function parseVakSections(lines) {
     }
 
     // --- Check if this line is a VAK HEADING ---
-    const maxFontSize = Math.max(...line.map(i => i.fontSize));
+    const maxFontSize = Math.max(...line.map((i: any) => i.fontSize));
     const isLargeFont = maxFontSize >= headingThreshold;
 
     // Exclude known non-heading lines from being treated as vak headings
@@ -417,14 +419,11 @@ function parseVakSections(lines) {
  * Used both to FIND the header row initially and to SKIP repeated header rows
  * on subsequent pages of a multi-page table.
  *
- * NOTE: window.DEELGEBIEDEN must be available when this function is called
- * (it is loaded by utils/schema.js before parsers/pdf.js).
- *
- * @param {Array} line - Array of text items (one visual row)
+ * @param line - Array of text items (one visual row)
  * @returns {boolean}
  */
-function isHeaderRow(line) {
-  const labels = window.DEELGEBIEDEN.map(d => d.label.toUpperCase());
+function isHeaderRow(line: any[]): boolean {
+  const labels = DEELGEBIEDEN.map((d: any) => d.label.toUpperCase());
   let matches = 0;
   for (const item of line) {
     if (labels.includes(item.str.trim().toUpperCase())) {
@@ -445,10 +444,10 @@ function isHeaderRow(line) {
  *
  * Returns the index (in `lines`) of the first header row found, or -1 if not found.
  *
- * @param {Array<Array>} lines
+ * @param lines
  * @returns {number} index into lines, or -1
  */
-function findDeelgebiedSection(lines) {
+function findDeelgebiedSection(lines: any[][]): number {
   let afterSectionHeading = false;
 
   for (let i = 0; i < lines.length; i++) {
@@ -485,27 +484,27 @@ function findDeelgebiedSection(lines) {
  * label are recorded.  Logs a warning when fewer than 5 columns are detected
  * (table may be malformed or partially outside the viewport).
  *
- * @param {Array} headerLine - Array of text items from the header row
+ * @param headerLine - Array of text items from the header row
  * @returns {Object} e.g. { 'V&A': 45.2, 'M&M': 72.8, 'INS': 98.1, … }
  */
-function buildColumnMap(headerLine) {
-  const labels = window.DEELGEBIEDEN.map(d => d.label.toUpperCase());
-  const map = {};
+function buildColumnMap(headerLine: any[]): Record<string, number> {
+  const labels = DEELGEBIEDEN.map((d: any) => d.label.toUpperCase());
+  const map: Record<string, number> = {};
 
   for (const item of headerLine) {
     const upper = item.str.trim().toUpperCase();
     // Find the canonical label (preserves original casing from DEELGEBIEDEN)
     const dgIdx = labels.indexOf(upper);
     if (dgIdx !== -1) {
-      map[window.DEELGEBIEDEN[dgIdx].label] = item.x;
+      map[DEELGEBIEDEN[dgIdx].label] = item.x;
     }
   }
 
   const count = Object.keys(map).length;
   if (count < MIN_HEADER_MATCHES) {
-    console.warn(`[pdf.js] buildColumnMap: only ${count} deelgebied columns detected — table may be malformed`);
+    console.warn(`[pdf.ts] buildColumnMap: only ${count} deelgebied columns detected — table may be malformed`);
   } else {
-    console.log(`[pdf.js] buildColumnMap: detected ${count}/19 columns`, map);
+    console.log(`[pdf.ts] buildColumnMap: detected ${count}/19 columns`, map);
   }
 
   return map;
@@ -522,12 +521,12 @@ function buildColumnMap(headerLine) {
  * COLUMN_X_TOLERANCE points.  Returns the deelgebied label string or null
  * if no column is close enough.
  *
- * @param {{ str: string, x: number }} item
- * @param {Object} columnMap - { label: xPosition }
+ * @param item
+ * @param columnMap - { label: xPosition }
  * @returns {string|null} deelgebied label or null
  */
-function assignScoreToColumn(item, columnMap) {
-  let best = null;
+function assignScoreToColumn(item: { str: string; x: number }, columnMap: Record<string, number>): string | null {
+  let best: string | null = null;
   let bestDist = Infinity;
 
   for (const [label, colX] of Object.entries(columnMap)) {
@@ -564,14 +563,14 @@ function assignScoreToColumn(item, columnMap) {
  *     deelgebiedScores: { label: level|null }   // all 19 keys, aggregated
  *   }
  *
- * @param {Array<Array>} lines
- * @param {number} startIndex - index of the header row in lines
+ * @param lines
+ * @param startIndex - index of the header row in lines
  * @returns {{ datapunten: Array, deelgebiedScores: Object }}
  */
-function parseDeelgebiedTable(lines, startIndex) {
+function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten: any[]; deelgebiedScores: Record<string, string | null> } {
   const columnMap = buildColumnMap(lines[startIndex]);
 
-  const datapunten = [];
+  const datapunten: any[] = [];
 
   // Track the current vak name (rows in this table are grouped by vak)
   let currentVak = '';
@@ -586,12 +585,12 @@ function parseDeelgebiedTable(lines, startIndex) {
 
     // Skip repeated header rows (table continues on next page)
     if (isHeaderRow(line)) {
-      console.log(`[pdf.js] Skipping repeated deelgebied header row at line ${i}`);
+      console.log(`[pdf.ts] Skipping repeated deelgebied header row at line ${i}`);
       continue;
     }
 
     // Sort line items by x (left to right) — PDF.js does not guarantee order
-    const sorted = line.slice().sort((a, b) => a.x - b.x);
+    const sorted = line.slice().sort((a: any, b: any) => a.x - b.x);
 
     // The leftmost item is the row label (vak name or opdracht/datapunt name)
     const labelItem = sorted[0];
@@ -601,18 +600,18 @@ function parseDeelgebiedTable(lines, startIndex) {
     const scoreItems = sorted.slice(1);
 
     // Try to assign scores to columns
-    const scores = {};
+    const scores: Record<string, string | null> = {};
     let hasAnyScore = false;
 
     for (const item of scoreItems) {
-      const level = window.normalizeScore(item.str);
+      const level = normalizeScore(item.str);
       if (level !== null) {
         const col = assignScoreToColumn(item, columnMap);
         if (col !== null) {
           scores[col] = level;
           hasAnyScore = true;
         } else {
-          console.warn(`[pdf.js] Score "${item.str}" at x=${item.x.toFixed(1)} did not match any column`);
+          console.warn(`[pdf.ts] Score "${item.str}" at x=${item.x.toFixed(1)} did not match any column`);
         }
       }
     }
@@ -621,7 +620,7 @@ function parseDeelgebiedTable(lines, startIndex) {
       // This is a label-only line → treat as a new vak group heading
       if (labelText && labelText.length > 1) {
         currentVak = labelText;
-        console.log(`[pdf.js] Deelgebied table: vak heading → "${currentVak}"`);
+        console.log(`[pdf.ts] Deelgebied table: vak heading → "${currentVak}"`);
       }
       continue;
     }
@@ -638,21 +637,21 @@ function parseDeelgebiedTable(lines, startIndex) {
   // Aggregate deelgebiedScores: initialize all 19 as null, then apply
   // "latest non-null wins" across datapunten (document order = latest last).
   // -----------------------------------------------------------------------
-  const deelgebiedScores = {};
-  for (const dg of window.DEELGEBIEDEN) {
+  const deelgebiedScores: Record<string, string | null> = {};
+  for (const dg of DEELGEBIEDEN) {
     deelgebiedScores[dg.label] = null;
   }
 
   for (const dp of datapunten) {
     for (const [label, level] of Object.entries(dp.scores)) {
       if (level !== null) {
-        deelgebiedScores[label] = level;
+        deelgebiedScores[label] = level as string;
       }
     }
   }
 
   console.log(
-    `[pdf.js] parseDeelgebiedTable: ${datapunten.length} datapunten,`,
+    `[pdf.ts] parseDeelgebiedTable: ${datapunten.length} datapunten,`,
     `${Object.values(deelgebiedScores).filter(v => v !== null).length}/19 deelgebieden scored`
   );
 
@@ -668,10 +667,10 @@ function parseDeelgebiedTable(lines, startIndex) {
  *
  * Throws if the "Overzicht Deelgebieden" table is not found (PDF-08).
  *
- * @param {File} file
- * @returns {Promise<import('../utils/datamodel.js').StudentRecord>}
+ * @param file
+ * @returns {Promise<import('../utils/datamodel').StudentRecord>}
  */
-async function parseSinglePDF(file) {
+async function parseSinglePDF(file: File): Promise<any> {
   const items = await extractAllTextItems(file);
   const lines = groupIntoLines(items);
 
@@ -691,8 +690,8 @@ async function parseSinglePDF(file) {
 
   // --- Plan 01-03: parse Overzicht Deelgebieden table ---
   const deelgebiedStart = findDeelgebiedSection(lines);
-  let deelgebiedScores = {};
-  let datapunten = [];
+  let deelgebiedScores: Record<string, string | null> = {};
+  let datapunten: any[] = [];
 
   if (deelgebiedStart >= 0) {
     const result = parseDeelgebiedTable(lines, deelgebiedStart);
@@ -703,7 +702,6 @@ async function parseSinglePDF(file) {
     throw new Error('Overzicht Deelgebieden tabel niet gevonden');
   }
 
-  /** @type {import('../utils/datamodel.js').StudentRecord} */
   const record = {
     naam,
     leerlingId:  header.leerlingId || '',
@@ -746,16 +744,3 @@ export {
   MIN_HEADER_MATCHES,
   COLUMN_X_TOLERANCE,
 };
-
-// Window globals for browser console debugging
-window.parseSinglePDF       = parseSinglePDF;
-window.extractAllTextItems  = extractAllTextItems;
-window.groupIntoLines       = groupIntoLines;
-window.lineToText           = lineToText;
-window.extractHeader        = extractHeader;
-window.parseVakSections     = parseVakSections;
-window.isHeaderRow          = isHeaderRow;
-window.findDeelgebiedSection = findDeelgebiedSection;
-window.buildColumnMap       = buildColumnMap;
-window.assignScoreToColumn  = assignScoreToColumn;
-window.parseDeelgebiedTable = parseDeelgebiedTable;
