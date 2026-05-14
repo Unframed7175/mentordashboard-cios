@@ -139,7 +139,7 @@ export function mergeVerzuim(verzuimRecords: any[]): { matched: number; unmatche
 
     // Strategy 2: volledige genormaliseerde naam (exact)
     if (!student && v.naam) {
-      var normV = normalizeNaam(v.naam);
+      const normV = normalizeNaam(v.naam);
       student = appState.students.find(function(s: any) {
         return normalizeNaam(s.naam) === normV;
       });
@@ -151,7 +151,7 @@ export function mergeVerzuim(verzuimRecords: any[]): { matched: number; unmatche
     // Excel-formaat: "Achternaam, Voornaam" of "Voornaam Achternaam" of "Achternaam"
     // Beide kanten: deel vóór eerste komma OF eerste woord vergelijken
     if (!student && v.naam) {
-      var normV3 = normalizeNaam(v.naam);
+      const normV3 = normalizeNaam(v.naam);
       // Excel achternaam = alles vóór eerste komma, anders eerste "woord"
       var excelAchternaam = normV3.split(',')[0].trim();
       if (excelAchternaam.length >= 3) {
@@ -165,7 +165,7 @@ export function mergeVerzuim(verzuimRecords: any[]): { matched: number; unmatche
 
     // Strategy 4: PDF-achternaam is een substring van de Excel-naam of vice versa
     if (!student && v.naam) {
-      var normV4 = normalizeNaam(v.naam);
+      const normV4 = normalizeNaam(v.naam);
       student = appState.students.find(function(s: any) {
         var pdfAchternaam = normalizeNaam(s.naam).split(',')[0].trim();
         return pdfAchternaam.length >= 4 && normV4.indexOf(pdfAchternaam) !== -1;
