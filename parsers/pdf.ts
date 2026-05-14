@@ -82,7 +82,7 @@ async function extractAllTextItems(file: File): Promise<any[]> {
       });
     }
 
-    page.cleanup(); // free canvas/worker resources after each page
+    await page.cleanup(); // free canvas/worker resources after each page
   }
 
   await pdf.destroy(); // release memory
