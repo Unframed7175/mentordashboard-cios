@@ -1,11 +1,18 @@
 // Domain constants: actual school deelgebieden (BJ2) + score normalization
-// All exported as globals (no ES modules — file:// compat)
+// All exported as named ES module exports (TypeScript migration from schema.js)
 
-const SCORE_LEVELS = ['onvoldoende', 'voldoende', 'goed', 'excellent'];
+export const SCORE_LEVELS = ['onvoldoende', 'voldoende', 'goed', 'excellent'] as const;
+export type ScoreLevel = typeof SCORE_LEVELS[number];
+
+export interface Deelgebied {
+  id: string;
+  label: string;
+  group: 'lesgeven' | 'organiseren' | 'prof_handelen';
+}
 
 // 19 deelgebieden — B02 definitieve leerlijn mapping (B02_definitief.xlsx v1.0)
 // group = leerlijn: 'lesgeven' | 'organiseren' | 'prof_handelen'
-const DEELGEBIEDEN = [
+export const DEELGEBIEDEN: Deelgebied[] = [
   { id: 'va',   label: 'V&A',  group: 'lesgeven' },     // Voorbereiden en afstemmen
   { id: 'mm',   label: 'M&M',  group: 'lesgeven' },     // Materialen en middelen inzetten
   { id: 'ins',  label: 'INS',  group: 'lesgeven' },     // Presenteren en instrueren
@@ -30,8 +37,8 @@ const DEELGEBIEDEN = [
 /**
  * Map column headers to deelgebied IDs by exact abbreviation match (case-insensitive).
  */
-function detectColumnMapping(headers) {
-  const result = {};
+export function detectColumnMapping(headers: string[]): Record<string, { mappedTo: string | null; confidence: string }> {
+  const result: Record<string, { mappedTo: string | null; confidence: string }> = {};
   for (const dg of DEELGEBIEDEN) {
     const match = headers.find(h => String(h).trim().toUpperCase() === dg.label.toUpperCase());
     result[dg.id] = { mappedTo: match ?? null, confidence: match ? 'auto' : 'manual' };
@@ -43,7 +50,7 @@ function detectColumnMapping(headers) {
  * Normalize a raw score cell value to one of the four canonical levels.
  * Handles single letters (O/V/G/E) and full Dutch words.
  */
-function normalizeScore(raw) {
+export function normalizeScore(raw: unknown): string | null {
   if (raw === null || raw === undefined || raw === '') return null;
   const u = String(raw).trim().toUpperCase();
   if (u === 'O' || u === 'ONV' || u === 'ONVOLDOENDE') return 'onvoldoende';
@@ -52,8 +59,3 @@ function normalizeScore(raw) {
   if (u === 'E' || u === 'EXC' || u === 'EXCELLENT')   return 'excellent';
   return null;
 }
-
-window.SCORE_LEVELS        = SCORE_LEVELS;
-window.DEELGEBIEDEN        = DEELGEBIEDEN;
-window.detectColumnMapping = detectColumnMapping;
-window.normalizeScore      = normalizeScore;
