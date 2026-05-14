@@ -4,12 +4,16 @@
 // Depends on:
 //   utils/schema.ts — DEELGEBIEDEN
 //
-// localStorage key: 'mentordashboard_leerlijnen_v1'
+// Phase 12 Plan 03: Gemigreerd van localStorage naar plugin-store (plain JSON, onversleuteld per D-12-06)
+// Legacy key 'mentordashboard_leerlijnen_v1' wordt eenmalig gemigreerd bij eerste aanroep.
 // Mapping format: { 'va': 'lesgeven', 'mm': 'lesgeven', ... }
 
 import { DEELGEBIEDEN } from './schema';
+import { LazyStore } from '@tauri-apps/plugin-store';
 
-const STORAGE_KEY = 'mentordashboard_leerlijnen_v1';
+const store = new LazyStore('store.json', { defaults: {}, autoSave: false });
+const LEERLIJNEN_STORE_KEY = 'leerlijnen';
+const LEERLIJNEN_LEGACY_KEY = 'mentordashboard_leerlijnen_v1';
 let _cachedMapping: Record<string, string> | null = null; // in-memory cache; invalidated on save/reset
 
 // Build default mapping from schema DEELGEBIEDEN
@@ -34,58 +38,66 @@ function isValid(mapping: any): boolean {
 /**
  * getLeerlijnenMapping()
  * Returns { dgId: leerlijn, ... } for all 19 deelgebieden.
- * Reads from localStorage override if valid; falls back to schema defaults.
+ * Reads from plugin-store; falls back to legacy localStorage migration or schema defaults.
  * Result is cached until save/reset.
  */
-export function getLeerlijnenMapping(): Record<string, string> {
+export async function getLeerlijnenMapping(): Promise<Record<string, string>> {
   if (_cachedMapping !== null) return _cachedMapping;
-
   try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      var parsed = JSON.parse(raw);
+    const stored = await store.get<string>(LEERLIJNEN_STORE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (isValid(parsed)) { _cachedMapping = parsed; return _cachedMapping!; }
+    }
+    // Legacy migration
+    const legacy = localStorage.getItem(LEERLIJNEN_LEGACY_KEY);
+    if (legacy) {
+      const parsed = JSON.parse(legacy);
       if (isValid(parsed)) {
+        await saveLeerlijnenMapping(parsed);    // persist naar store
+        localStorage.removeItem(LEERLIJNEN_LEGACY_KEY);
         _cachedMapping = parsed;
         return _cachedMapping!;
       }
     }
   } catch (e: any) {
-    console.warn('[leerlijnen.ts] localStorage read error:', e);
+    console.warn('[leerlijnen.ts] read error:', e);
   }
-
   _cachedMapping = buildDefault();
   return _cachedMapping;
 }
 
 /**
  * saveLeerlijnenMapping(mapping)
- * Persists full mapping { dgId: leerlijn, ... } to localStorage.
+ * Persists full mapping { dgId: leerlijn, ... } to plugin-store.
  * Clears cache so next getLeerlijnenMapping() reads fresh.
  * Returns true on success, false on error.
  */
-export function saveLeerlijnenMapping(mapping: any): boolean {
+export async function saveLeerlijnenMapping(mapping: any): Promise<boolean> {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mapping));
-    _cachedMapping = null; // invalidate cache
+    await store.set(LEERLIJNEN_STORE_KEY, JSON.stringify(mapping));
+    await store.save();   // VERPLICHT: set() is alleen in-memory
+    _cachedMapping = null;
     return true;
   } catch (e: any) {
-    console.warn('[leerlijnen.ts] localStorage write error:', e);
+    console.warn('[leerlijnen.ts] plugin-store write error:', e);
     return false;
   }
 }
 
 /**
  * resetLeerlijnenMapping()
- * Removes the localStorage override. Next getLeerlijnenMapping() returns schema defaults.
+ * Removes the plugin-store entry. Next getLeerlijnenMapping() returns schema defaults.
  * Clears cache.
  */
-export function resetLeerlijnenMapping(): void {
+export async function resetLeerlijnenMapping(): Promise<void> {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    await store.delete(LEERLIJNEN_STORE_KEY);
+    await store.save();
   } catch (e: any) {
-    console.warn('[leerlijnen.ts] localStorage remove error:', e);
+    console.warn('[leerlijnen.ts] plugin-store remove error:', e);
   }
-  _cachedMapping = null; // invalidate cache
+  _cachedMapping = null;
 }
 
 console.log('[leerlijnen.ts] Leerlijn-toewijzing persistence geladen');
