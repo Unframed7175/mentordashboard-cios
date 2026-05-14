@@ -1,7 +1,12 @@
 // utils/aggregation.ts — Modus-berekening over datapunten per deelgebied
 // TypeScript (Phase 11, Plan 04) — directe TypeScript versie, geen .js tussenversie
 
-import { SCORE_LEVELS } from './schema';
+import { SCORE_LEVELS, DEELGEBIEDEN } from './schema';
+
+// Build a set of all valid deelgebied labels once at module load.
+// Unknown or misspelled labels (e.g., 'V & A' vs 'V&A') are silently skipped
+// during aggregation to prevent phantom keys in the returned aggregationDetail.
+const KNOWN_LABELS = new Set(DEELGEBIEDEN.map((d: any) => d.label));
 
 /**
  * Bereken de modus-score per deelgebied over alle datapunten.
@@ -20,6 +25,7 @@ export function aggregateDeelgebiedScores(
   for (const datapunt of datapunten) {
     const scores: Record<string, string | null> = datapunt.scores || {};
     for (const label of Object.keys(scores)) {
+      if (!KNOWN_LABELS.has(label)) continue; // skip unknown/misspelled deelgebied labels
       const score = scores[label];
       if (score === null || score === undefined) continue;
       if (!freqMap[label]) {
