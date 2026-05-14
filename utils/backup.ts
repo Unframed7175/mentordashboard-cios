@@ -6,6 +6,7 @@
 
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import { klassenState } from './klassen';
+import { appState } from './datamodel';
 
 const BACKUP_FILENAME = 'mentordashboard-backup.json';
 
@@ -38,9 +39,15 @@ export function applyBackupRestore(
 ): { success: boolean; message: string } {
   try {
     const extracted = unzipSync(zipData);
+    if (!extracted[BACKUP_FILENAME]) {
+      return { success: false, message: `Backup bestand ontbreekt in ZIP: ${BACKUP_FILENAME}` };
+    }
     const jsonString = strFromU8(extracted[BACKUP_FILENAME]);
     const payload: { version: number; klassen: Record<string, any>; activeKlasId: string | null } =
       JSON.parse(jsonString);
+    if (!payload || typeof payload !== 'object' || typeof payload.klassen !== 'object' || Array.isArray(payload.klassen)) {
+      return { success: false, message: 'Ongeldige backup structuur' };
+    }
 
     if (mode === 'overschrijven') {
       klassenState.klassen = payload.klassen;
@@ -48,6 +55,14 @@ export function applyBackupRestore(
     } else {
       // samenvoegen: nieuwe klassen toevoegen, bestaande updaten
       Object.assign(klassenState.klassen, payload.klassen);
+      // Also restore activeKlasId from the backup when the backup has one,
+      // and that klas is present in the merged state.
+      if (payload.activeKlasId && klassenState.klassen[payload.activeKlasId]) {
+        klassenState.activeKlasId = payload.activeKlasId;
+        // Re-establish the appState.students bridge so addStudent/mergeVerzuim
+        // write to the correct array after a merge-restore.
+        appState.students = klassenState.klassen[payload.activeKlasId].students;
+      }
     }
 
     return { success: true, message: 'Backup hersteld' };
