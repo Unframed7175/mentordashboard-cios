@@ -2,7 +2,7 @@
 phase: 14-react-ui
 reviewed: 2026-05-15T00:00:00Z
 depth: standard
-files_reviewed: 16
+files_reviewed: 20
 files_reviewed_list:
   - src/utils/status.ts
   - tests/status.test.ts
@@ -20,11 +20,15 @@ files_reviewed_list:
   - src/components/NotitiesTextarea.tsx
   - src/components/SpiderChartCard.tsx
   - src/components/DeelgebiedenMatrix.tsx
+  - src/components/AanvullendSection.tsx
+  - src/components/StageSection.tsx
+  - src/components/LeerlijnenSection.tsx
+  - src/components/DetailWeergave.tsx
 findings:
-  critical: 5
-  warning: 7
-  info: 4
-  total: 16
+  critical: 7
+  warning: 9
+  info: 5
+  total: 21
 status: issues_found
 ---
 
@@ -32,20 +36,17 @@ status: issues_found
 
 **Reviewed:** 2026-05-15T00:00:00Z
 **Depth:** standard
-**Files Reviewed:** 16
+**Files Reviewed:** 20
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the full React UI layer for phase 14: status utilities, test file, App orchestrator, and all 13 component files. The implementation covers import/export handling, class management, tile grid, and detail view (prognose, feedback, spider charts, matrix, verzuim, vakken, notities).
+Reviewed the full React UI layer for phase 14 (original 16 files) plus the three gap-closure components added in plan 06 (`AanvullendSection`, `StageSection`, `LeerlijnenSection`) and the updated `DetailWeergave` orchestrator.
 
-Key concerns are:
+Key concerns inherited from the original review remain (direct prop mutation, `dangerouslySetInnerHTML`, concurrent saves, stale singleton reads). The gap-closure files introduce two new critical issues:
 
-1. **Direct mutation of props/external objects in multiple components** — `NotitiesTextarea` and `DetailWeergave` mutate their `student` prop in-place, which violates React data-flow rules and can produce stale or corrupted state when React reuses object references.
-2. **`dangerouslySetInnerHTML` in `SpiderChartCard`** — raw SVG string from a utility function is injected without sanitization. If `SpiderChart.buildSpiderSVG` ever includes user-derived content (e.g., deelgebied labels from PDF text), this is an XSS vector.
-3. **Concurrent async operations without any coordination in `ImportPage`** — PDFs, Excel, and ZIP files dropped simultaneously each fire independent async chains that all call `saveKlassen()` concurrently, risking data races on the persisted store.
-4. **`schooljaar` state collected but never passed to `createKlas`** — the field is silently discarded.
-5. **`KlasTabStrip` reads singleton state directly without subscribing** — renders stale data after external mutations.
+1. **`AanvullendSection` mutates a merged copy that is disconnected from the persisted data array.** When `DetailWeergave` creates a spread-merged student object (verzuim inheritance path), `AanvullendSection` mutates that copy's fields and calls `saveKlassen()`. Because `klassenState.klassen` holds the original array reference — not the merged copy — the mutation is silently lost after the next load.
+2. **`StageSection` reads `klassenState` singleton without subscribing**, showing data from the previously active class after a class switch if the component is not fully remounted.
 
 ---
 
@@ -99,13 +100,22 @@ The legacy migration code in the `useState` initializer should be moved into a o
 ### CR-03: Direct prop mutation in `DetailWeergave` (verzuim inheritance)
 
 **File:** `src/components/DetailWeergave.tsx:34`
-**Issue:** When the most-recent student record lacks verzuim data, the component uses `Object.assign({}, student, { verzuim: records[i].verzuim })` — which does create a new object and is fine — but the result is assigned to `let student` which is a local variable. This part is safe. However, note that `berekenStatus(student)` is called on line 40 using this potentially-merged local, but the merged object is never written back to the data layer. If `NotitiesTextarea` later calls `student.notitie = v` (see CR-02), it will mutate this merged local copy, not the underlying record, silently discarding the mutation or double-saving to the wrong object.
+**Issue:** When the most-recent student record lacks verzuim data, the component uses `{ ...student, verzuim: { ...records[i].verzuim } }` — which creates a new object and is safe for the verzuim field itself. However, the resulting merged object is passed to `AanvullendSection` (and other child components). If `AanvullendSection` or `NotitiesTextarea` mutate this merged copy (both do — see CR-02 and CR-06), those mutations land on the merged local variable, not on the underlying record inside `klassenState.klassen[id].students`. When `saveKlassen()` is subsequently called, it serializes the original array, silently discarding the taalniveau/rekenniveau/notitie changes written to the merged copy.
 
-More critically: if `records[i].verzuim` is a reference to an object inside `records[i]`, then `Object.assign({}, student, { verzuim: records[i].verzuim })` shares the `verzuim` reference between `student` (the merged copy) and `records[i]`. Any downstream code modifying `student.verzuim` fields in-place would corrupt the historical record.
-
-**Fix:** Deep-clone the inherited verzuim object:
+This means: any student whose most-recent record lacks a `verzuim` block will silently lose `taalniveau`, `rekenniveau`, and notitie edits after a page reload.
+**Fix:** Either (a) avoid creating a merged copy and instead fix the verzuim fallback to not break the reference chain, or (b) write mutations directly into the underlying array element rather than into the merged copy:
 ```tsx
-student = { ...student, verzuim: { ...records[i].verzuim } };
+// Option A: find the index and update the array element in-place instead of creating a new object
+const idx = records.length - 1;
+if (!records[idx].verzuim) {
+  for (let i = idx - 1; i >= 0; i--) {
+    if (records[i].verzuim) {
+      records[idx].verzuim = { ...records[i].verzuim };
+      break;
+    }
+  }
+}
+const student = records[idx]; // still the original array reference
 ```
 
 ---
@@ -136,6 +146,47 @@ Also add a guard: if `status === 'processing'`, reject new drops.
 const result = await createKlas(naam.trim(), schooljaar.trim() || undefined);
 ```
 If `createKlas` does not yet accept a `schooljaar` parameter, remove the input until the data model supports it.
+
+---
+
+### CR-06: `AanvullendSection` mutates prop object directly — data lost when student is a merged copy
+
+**File:** `src/components/AanvullendSection.tsx:13`
+**Issue:** `student[field] = value` mutates the `student` prop directly before calling `saveKlassen()`. This is intended to work because `student` is normally the same reference as the object inside `klassenState.klassen[id].students`, so the mutation reaches the array that `saveKlassen()` serializes.
+
+However, when `DetailWeergave` creates a merged copy (`{ ...student, verzuim: ... }`) for the verzuim-inheritance path (lines 34–41 of `DetailWeergave`), the prop received by `AanvullendSection` is that copied object — not the original array element. Mutating `copied.taalniveau` does not update `klassenState.klassen[id].students[n].taalniveau`. When `saveKlassen()` runs it serializes the unchanged original, silently discarding the edit. On the next app reload the user's taalniveau/rekenniveau change is gone.
+
+Even in the non-merge path, direct prop mutation is an anti-pattern: React's reconciler can call components with stale prop references, and concurrent rendering in React 18 can interleave renders.
+**Fix:** Perform the mutation on the underlying array element, not on the prop reference, or use a dedicated setter:
+```tsx
+async function handleChange(field: 'taalniveau' | 'rekenniveau', value: string) {
+  // Mutate the source record in the data store, not the local prop copy
+  const klas = klassenState.klassen[klassenState.activeKlasId!];
+  const rec = klas?.students?.find((s: any) => s.leerlingId === student.leerlingId);
+  if (!rec) return;
+  rec[field] = value;
+  const saved = await saveKlassen();
+  if (saved === false) return;
+  if (timerRef.current) clearTimeout(timerRef.current);
+  setHint('saved');
+  timerRef.current = setTimeout(() => setHint('idle'), 1500);
+}
+```
+
+---
+
+### CR-07: `AanvullendSection` timeout not cleared on unmount — `setHint` called on unmounted component
+
+**File:** `src/components/AanvullendSection.tsx:10-18`
+**Issue:** `timerRef.current` is set via `setTimeout(() => setHint('idle'), 1500)` but there is no `useEffect` cleanup that cancels the timer when the component unmounts. If the user navigates to a different student (unmounting `DetailWeergave` and its children, or reusing the instance with a new student) within 1.5 seconds of saving, the timeout fires and calls `setHint('idle')` on a component that is either unmounted or now showing a different student. In React 18 strict mode, calling a state setter on an unmounted functional component produces a warning; in production it is a silent no-op but indicates a resource leak pattern.
+**Fix:** Add a cleanup effect:
+```tsx
+useEffect(() => {
+  return () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  };
+}, []);
+```
 
 ---
 
@@ -258,6 +309,42 @@ useEffect(() => {
 
 ---
 
+### WR-08: `StageSection` reads `klassenState` singleton without subscribing — shows stale class data
+
+**File:** `src/components/StageSection.tsx:16`
+**Issue:** `klassenState.activeKlasId` and `klassenState.klassen[...]` are read directly from the module-level singleton on every render. There is no subscription or prop-driven re-render trigger. If the active class is switched (e.g., user clicks a different tab in `KlasTabStrip`), and React does not fully unmount/remount `DetailWeergave` and its children, `StageSection` will continue reading `stageData` from the previously active class. The student whose detail view is open may not even exist in the newly active class, but `stageData[student.leerlingId]` could coincidentally resolve to a different student's stage data if `leerlingId` values overlap across classes.
+**Fix:** Pass `stageData` as an explicit prop from `DetailWeergave` (which already has `student` and can look up the active klas), eliminating the singleton dependency inside `StageSection`:
+```tsx
+// In DetailWeergave:
+const klas = klassenState.activeKlasId ? klassenState.klassen[klassenState.activeKlasId] : null;
+const stageData = klas?.stageData?.[leerlingId] ?? null;
+// …
+<StageSection student={student} stageData={stageData} />
+
+// StageSection receives stageData as a prop, no singleton read needed
+```
+
+---
+
+### WR-09: `LeerlijnenSection` renders `NaN` or `null` when leerlijn fields are undefined
+
+**File:** `src/components/LeerlijnenSection.tsx:21-39`
+**Issue:** `ll.voldoendeOfHoger`, `ll.onvoldoende`, `ll.onbeoordeeld`, and `ll.totaal` are read from `any`-typed objects without null/undefined guards. The `pct` calculation on line 21 uses `ll.totaal > 0` as a guard for the percentage, but the raw values `ll.voldoendeOfHoger`, `ll.onvoldoende`, and `ll.onbeoordeeld` are rendered directly in JSX (lines 33–39) without any fallback. If `berekenPrognose` ever returns a leerlijn object with a missing field (e.g., `onbeoordeeld` is `undefined` because the prognose path changed), the DOM will render the literal text `undefined`. The `{ll.voldoendeOfHoger}/{ll.totaal}` pattern will render `undefined/undefined` in the tile.
+**Fix:** Apply nullish coalescing when rendering:
+```tsx
+<span className="leerlijn-stat">
+  {ll.voldoendeOfHoger ?? 0}/{ll.totaal ?? 0} &ge;V
+</span>
+<span className="leerlijn-stat" style={onvoldoendeStyle}>
+  {ll.onvoldoende ?? 0} O
+</span>
+<span className="leerlijn-stat" style={{ color: 'var(--text-faint)' }}>
+  {ll.onbeoordeeld ?? 0} ?
+</span>
+```
+
+---
+
 ## Info
 
 ### IN-01: `normalizeScore` imported but never used in `DeelgebiedenMatrix`
@@ -293,13 +380,27 @@ const [schooljaar, setSchooljaar] = useState('');
 ### IN-04: `prognose: any` type in `StatusResult` interface
 
 **File:** `src/utils/status.ts:50`
-**Issue:** The `prognose` field is typed as `any`, losing all type-checking benefits for the object returned by `berekenPrognose`. Downstream components (e.g., `DoortstroomPrognoseSection`) access `p.totaalVoldoendeOfHoger`, `p.gaps.nodigSBL`, etc. — none of these accesses are type-checked.
+**Issue:** The `prognose` field is typed as `any`, losing all type-checking benefits for the object returned by `berekenPrognose`. Downstream components (e.g., `DoortstroomPrognoseSection`, `LeerlijnenSection`) access `p.totaalVoldoendeOfHoger`, `p.gaps.nodigSBL`, `p.leerlijnen`, etc. — none of these accesses are type-checked. This is a contributing factor to the `LeerlijnenSection` undefined-field risk flagged in WR-09.
 **Fix:** Define a `PrognoseResult` interface in `utils/prognosis.ts` (or in `status.ts`) and use it:
 ```ts
 export interface StatusResult {
   kleur:    StatusKleur;
   label:    string;
   prognose: PrognoseResult;  // typed, not any
+}
+```
+
+---
+
+### IN-05: `AanvullendSection` and `StageSection` prop typed as `any`
+
+**File:** `src/components/AanvullendSection.tsx:5`, `src/components/StageSection.tsx:4`
+**Issue:** Both components declare `student: any` in their props interface, discarding all compile-time safety for student field access. `AanvullendSection` accesses `student.taalniveau`, `student.rekenniveau`, and `student.leerlingId`; `StageSection` accesses `student.leerlingId`. These fields should be typed via the shared `StudentRecord` interface (or equivalent) from the data model.
+**Fix:** Import and use the shared student type:
+```tsx
+import type { StudentRecord } from '../../utils/schema';
+interface AanvullendSectionProps {
+  student: StudentRecord;
 }
 ```
 
