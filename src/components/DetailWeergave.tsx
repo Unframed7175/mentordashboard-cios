@@ -31,7 +31,7 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
   if (!student.verzuim) {
     for (let i = records.length - 2; i >= 0; i--) {
       if (records[i].verzuim) {
-        student = Object.assign({}, student, { verzuim: records[i].verzuim });
+        student = { ...student, verzuim: { ...records[i].verzuim } };
         break;
       }
     }
