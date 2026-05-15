@@ -199,7 +199,14 @@ Plans:
   2. Zoeken op naam, sorteren op status en wisselen tussen klassen werken zonder pagina-reload in de React versie
   3. Detailweergave toont voortgang per deelgebied, verzuim, doorstroomprognose en notities — identiek aan de huidige app
   4. Actiepunten en feed forward zijn bewerkbaar en worden opgeslagen via de versleutelde store
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 14-01-PLAN.md --- Wave 0: status.ts helper (berekenStatus, detectTraject) + status.test.ts
+- [ ] 14-02-PLAN.md --- Wave 1: App.tsx routing + ImportPage onImportComplete prop + KlasTabStrip + KlasModal
+- [ ] 14-03-PLAN.md --- Wave 2a: KlasOverzicht (grid, search, sort, KPI strip) + LeerlingTegel
+- [ ] 14-04-PLAN.md --- Wave 2b: DetailWeergave wrapper + header + DoortstroomPrognoseSection + VerzuimSection + VakkenSection
+- [ ] 14-05-PLAN.md --- Wave 2c: FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea
 **UI hint**: yes
 
 ### Phase 15: Packaging & Cross-platform
@@ -229,5 +236,5 @@ Plans:
 | 11. TypeScript Migratie | 6/6 | Complete | 2026-05-14 |
 | 12. Versleutelde Opslag | 5/5 | Complete | 2026-05-14 |
 | 13. Bestandstoegang | 0/2 | Ready to execute | - |
-| 14. React UI | 0/? | Not started | - |
+| 14. React UI | 0/5 | Not started | - |
 | 15. Packaging & Cross-platform | 0/? | Not started | - |
