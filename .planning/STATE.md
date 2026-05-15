@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: Phase 14 voltooid (2026-05-15) — 6/6 plans uitgevoerd. Verificatie passed 4/4. Ready for Phase 15.
+status: Phase 15 gepland (2026-05-15) — 2 plans in 2 waves. Ready to execute.
 last_updated: "2026-05-15T00:00:00.000Z"
-last_activity: 2026-05-15 — Phase 14 uitgevoerd en geverifieerd. 6 plans (gap closure incl.): AanvullendSection + StageSection + LeerlijnenSection live. Alle 10 DetailWeergave secties renderen echte data. DET-V2-01 SC-3 gesloten.
+last_activity: 2026-05-15 — Phase 15 planning voltooid. 2 plans: 15-01 (Wave 0, autonomous — Cargo.toml + entitlements.plist + tauri.conf.json config), 15-02 (Wave 1, human-checkpoint — GitHub push + release.yml CI workflow). Verificatie passed 12/12.
 progress:
   total_phases: 10
   completed_phases: 9
-  total_plans: 29
+  total_plans: 31
   completed_plans: 29
   percent: 90
 ---
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 15 — Packaging & Cross-platform (next up)
-Plan: 0/? planned
-Status: Phase 14 voltooid (2026-05-15) — verificatie passed 4/4. Ready to plan Phase 15.
-Last activity: 2026-05-15 — Phase 14 uitgevoerd en geverifieerd. AanvullendSection + StageSection + LeerlijnenSection live. DET-V2-01 gesloten.
+Phase: 15 — Packaging & Cross-platform
+Plan: 0/2 executed (2 plans planned, ready to execute)
+Status: Phase 15 gepland (2026-05-15) — 2 plans in 2 waves. Ready to execute.
+Last activity: 2026-05-15 — Phase 15 planning voltooid. Plan 15-01 (Wave 0, autonomous): Cargo.toml metadata + entitlements.plist + tauri.conf.json bundle config. Plan 15-02 (Wave 1, human-checkpoint): GitHub push + release.yml CI workflow. Verificatie passed 12/12.
 
 Progress: [█████████░] 90% (v2.0: 5/6 phases)
 

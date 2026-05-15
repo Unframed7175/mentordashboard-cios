@@ -236,8 +236,19 @@ Cross-cutting constraints:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 15-01-PLAN.md — Wave 0: Local config (Cargo.toml metadata, entitlements.plist, tauri.conf.json bundle section)
-- [ ] 15-02-PLAN.md — Wave 1: GitHub push (human step) + release.yml CI workflow + release trigger verification
+
+**Wave 0**
+- [ ] 15-01-PLAN.md — Wave 0: Cargo.toml metadata + entitlements.plist + tauri.conf.json bundle config (NSIS, macOS ad-hoc signing)
+
+**Wave 1** *(blocked on Wave 0 completion)*
+- [ ] 15-02-PLAN.md — Wave 1: Push repo to GitHub (human-action) + create .github/workflows/release.yml CI pipeline
+
+Cross-cutting constraints:
+- `npm test exits 0` required after Wave 0 config changes (43-test regression guard)
+- `keychain-access-groups` must be ABSENT from entitlements.plist (ad-hoc signing — errSecMissingEntitlement risk)
+- `permissions: contents: write` must be present at workflow level in release.yml (mandatory for GitHub Release creation)
+- `APPLE_SIGNING_IDENTITY: '-'` must be in release.yml env block (prevents "app is damaged" on Apple Silicon)
+- `ubuntu-latest` must NOT appear in CI matrix (Linux build not needed)
 
 ## Progress
 
