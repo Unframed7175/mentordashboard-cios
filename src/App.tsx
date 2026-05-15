@@ -3,6 +3,7 @@ import ImportPage from './components/ImportPage';
 import KlasTabStrip from './components/KlasTabStrip';
 import KlasModal from './components/KlasModal';
 import KlasOverzicht from './components/KlasOverzicht';
+import DetailWeergave from './components/DetailWeergave';
 import { klassenState, switchActiveKlas, getActiveStudents } from '../utils/klassen';
 
 function App() {
@@ -80,8 +81,14 @@ function App() {
           onKlasDeleted={handleBack}
         />
       )}
-      {view === 'detail' && (
-        <div>{/* DetailWeergave goes here — Wave 2 */}</div>
+      {view === 'detail' && activeStudentId && (
+        <DetailWeergave
+          leerlingId={activeStudentId}
+          prevId={detailStudentList[detailStudentList.indexOf(activeStudentId) - 1] ?? null}
+          nextId={detailStudentList[detailStudentList.indexOf(activeStudentId) + 1] ?? null}
+          onNavigate={setActiveStudentId}
+          onBack={handleBack}
+        />
       )}
     </>
   );
