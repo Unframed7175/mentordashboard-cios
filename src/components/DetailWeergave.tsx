@@ -8,6 +8,9 @@ import DeelgebiedenMatrix from './DeelgebiedenMatrix';
 import VerzuimSection from './VerzuimSection';
 import VakkenSection from './VakkenSection';
 import NotitiesTextarea from './NotitiesTextarea';
+import AanvullendSection from './AanvullendSection';
+import StageSection from './StageSection';
+import LeerlijnenSection from './LeerlijnenSection';
 
 interface DetailWeergaveProps {
   leerlingId: string;
@@ -93,26 +96,17 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       {/* Section 1: DoortstroomPrognoseSection */}
       <DoortstroomPrognoseSection student={student} status={status} />
 
-      {/* Section 2: AanvullendSection — stub (not in Plan 04 scope) */}
-      <div className="detail-section">
-        <p className="detail-section-title">Aanvullende gegevens</p>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-faint)' }}>Komt in Plan 05</p>
-      </div>
+      {/* Section 2: AanvullendSection */}
+      <AanvullendSection student={student} />
 
-      {/* Section 3: StageSection — stub (not in Plan 04 scope) */}
-      <div className="detail-section">
-        <p className="detail-section-title">Stage</p>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-faint)' }}>Komt in Plan 05</p>
-      </div>
+      {/* Section 3: StageSection */}
+      <StageSection student={student} />
 
       {/* Section 4: FeedbackActiepuntenSection */}
       <FeedbackActiepuntenSection leerlingId={leerlingId} />
 
-      {/* Section 5: LeerlijnenSection — stub (not in Plan 04 scope) */}
-      <div className="detail-section">
-        <p className="detail-section-title">Per leerlijn</p>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-faint)' }}>Komt in Plan 05</p>
-      </div>
+      {/* Section 5: LeerlijnenSection */}
+      <LeerlijnenSection prognose={status.prognose} />
 
       {/* Section 6: SpiderChartCard row */}
       <div className="detail-section">
