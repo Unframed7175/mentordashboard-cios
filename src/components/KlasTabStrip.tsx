@@ -1,15 +1,16 @@
 import React from 'react';
-import { klassenState } from '../../utils/klassen';
 
 interface KlasTabStripProps {
+  klassen: Array<{ id: string; naam: string }>;
   activeKlasId: string | null;
   onSwitch: (klasId: string) => void;
   onCreateKlas: () => void;
 }
 
-export default function KlasTabStrip({ activeKlasId, onSwitch, onCreateKlas }: KlasTabStripProps) {
-  const klassen = Object.values(klassenState.klassen) as Array<{ id: string; naam: string }>;
-
+// WR-01: klassen passed as explicit prop from App.tsx (derived from klassenState.klassen at
+// the point where refreshKey is consumed) instead of read from the singleton inside the component.
+// This removes the implicit coupling and ensures the tab strip always reflects the current state.
+export default function KlasTabStrip({ klassen, activeKlasId, onSwitch, onCreateKlas }: KlasTabStripProps) {
   if (klassen.length === 0) {
     return null;
   }
