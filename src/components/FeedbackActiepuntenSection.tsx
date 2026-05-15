@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { actiepuntenStore } from '../../utils/actiepunten';
 import { saveKlassen } from '../../utils/klassen';
 
@@ -22,6 +22,14 @@ export default function FeedbackActiepuntenSection({ leerlingId }: FeedbackActie
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formState, setFormState] = useState<FormState>(EMPTY_FORM);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // WR-07: re-sync actiepunten when leerlingId changes. useState initializer does not
+  // re-run when the parent reuses the same mounted instance with a new leerlingId prop.
+  useEffect(() => {
+    setActiepunten(actiepuntenStore.list(leerlingId));
+    setEditingId(null);
+    setFormState(EMPTY_FORM);
+  }, [leerlingId]);
 
   function reloadList() {
     setActiepunten(actiepuntenStore.list(leerlingId));
