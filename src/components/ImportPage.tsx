@@ -19,7 +19,11 @@ const initialState: ImportState = {
   errors: [],
 };
 
-export default function ImportPage() {
+interface ImportPageProps {
+  onImportComplete?: () => void;
+}
+
+export default function ImportPage({ onImportComplete }: ImportPageProps) {
   const [importState, setImportState] = useState<ImportState>(initialState);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +81,7 @@ export default function ImportPage() {
         status: 'done',
         messages: [...prev.messages, `${succeeded} PDF(s) verwerkt, ${skipped} overgeslagen`],
       }));
+      onImportComplete?.();
     }
   }
 
@@ -111,6 +116,7 @@ export default function ImportPage() {
             `Verzuim verwerkt: ${matched} gekoppeld, ${unmatched.length} niet gevonden`,
           ],
         }));
+        onImportComplete?.();
       }
     } catch (err: any) {
       setImportState(prev => ({
@@ -140,6 +146,7 @@ export default function ImportPage() {
           status: 'done',
           messages: [...prev.messages, 'Backup hersteld'],
         }));
+        onImportComplete?.();
       } else {
         setImportState(prev => ({
           ...prev,
