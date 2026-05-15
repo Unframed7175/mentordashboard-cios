@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: Phase 14 gepland (2026-05-15) — 5/5 plans gereed in 3 waves. Ready to execute.
+status: Phase 14 voltooid (2026-05-15) — 6/6 plans uitgevoerd. Verificatie passed 4/4. Ready for Phase 15.
 last_updated: "2026-05-15T00:00:00.000Z"
-last_activity: 2026-05-15 — Phase 14 gepland. 5 plans (3 waves): Wave 0 status.ts helper, Wave 1 App routing + KlasTabStrip + KlasModal, Wave 2 KlasOverzicht + DetailWeergave (3 parallel plans). KOV-01, KOV-02, DET-V2-01, DET-V2-02 gedekt.
+last_activity: 2026-05-15 — Phase 14 uitgevoerd en geverifieerd. 6 plans (gap closure incl.): AanvullendSection + StageSection + LeerlijnenSection live. Alle 10 DetailWeergave secties renderen echte data. DET-V2-01 SC-3 gesloten.
 progress:
   total_phases: 10
-  completed_phases: 8
-  total_plans: 23
-  completed_plans: 23
-  percent: 100
+  completed_phases: 9
+  total_plans: 29
+  completed_plans: 29
+  percent: 90
 ---
 
 # Project State
@@ -24,19 +24,19 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 14 — React UI (ready to execute)
-Plan: 0/5 executed
-Status: Phase 14 gepland (2026-05-15) — 5 plans, 3 waves. Ready to execute.
-Last activity: 2026-05-14 — Phase 13 uitgevoerd en geverifieerd. ImportPage universele dropzone. Async main.tsx startup. App.tsx wiring.
+Phase: 15 — Packaging & Cross-platform (next up)
+Plan: 0/? planned
+Status: Phase 14 voltooid (2026-05-15) — verificatie passed 4/4. Ready to plan Phase 15.
+Last activity: 2026-05-15 — Phase 14 uitgevoerd en geverifieerd. AanvullendSection + StageSection + LeerlijnenSection live. DET-V2-01 gesloten.
 
-Progress: [████████░░] 80% (v2.0: 4/6 phases)
+Progress: [█████████░] 90% (v2.0: 5/6 phases)
 
 ## Performance Metrics
 
 v1.0 phases completed: 5/5
 v1.1 phases completed: 3/3
 v1.2 phases completed: 1/1
-v2.0 phases completed: 3/6
+v2.0 phases completed: 5/6
 
 ## Accumulated Context
 
@@ -86,3 +86,4 @@ v2.0 phases completed: 3/6
 - 2026-05-14: Phase 12 Plan 01 executed — Rust crypto layer. crypto.rs (AES-256-GCM encrypt_klassen/decrypt_klassen), tauri-plugin-store + tauri-plugin-secure-storage in lib.rs, store:default in capabilities. cargo check + cargo test (2 tests) passing. 3 deviations: GetItemResponse.data field, OptionsRequest struct API, non-ASCII byte string literal.
 - 2026-05-14: Phase 12 Plan 04 executed — Vitest storage tests. tests/storage.test.ts aangemaakt met STO-01 t/m STO-04. LazyStore als class mock. invoke mock met btoa encoding. 4/4 tests passing. Volledige suite 35 passed. Phase 12 volledig afgerond.
 - 2026-05-14: Phase 13 executed — Bestandstoegang. 2 plans: ImportPage.tsx (universal dropzone, sequential PDF batch via addStudent, Excel via mergeVerzuim, backup restore via applyBackupRestore+switchActiveKlas), async main.tsx IIFE startup, App.tsx document drop guard + storage-error-banner. 14/14 checks. 35 tests pass.
+- 2026-05-15: Phase 14 executed — React UI. 6 plans (5 original + 1 gap closure): status.ts helper, App.tsx routing + KlasTabStrip + KlasModal, KlasOverzicht + LeerlingTegel, DetailWeergave (7 sections), FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea, AanvullendSection + StageSection + LeerlijnenSection. Verification passed 4/4 (SC-3 closed via gap closure plan 14-06). 43 tests, 0 failures.

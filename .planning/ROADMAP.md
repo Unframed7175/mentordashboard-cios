@@ -40,7 +40,7 @@
 - [x] **Phase 12: Versleutelde Opslag** — Leerlingdata wordt opgeslagen via plugin-store, versleuteld met AES-256-GCM en OS keychain sleutel; bestaande data gemigreerd; GDPR-verwijderfunctie werkt
  (completed 2026-05-14)
 - [x] **Phase 13: Bestandstoegang** — Mentor kan PDFs, Excel-bestanden en zip-backups importeren via drag-drop én bestandsdialoog in de Tauri app *(completed 2026-05-14)*
-- [ ] **Phase 14: React UI** — Klasoverzicht en detailweergave zijn volledig herschreven als React componenten en tonen identieke informatie als de huidige app
+- [x] **Phase 14: React UI** — Klasoverzicht en detailweergave zijn volledig herschreven als React componenten en tonen identieke informatie als de huidige app *(completed 2026-05-15)*
 - [ ] **Phase 15: Packaging & Cross-platform** — App bouwt als installeerbare .exe (Windows) en .dmg (Mac); UI ziet er identiek uit op beide platforms; eindgebruiker installeert zonder extra dependencies
 
 ## Phase Details
@@ -204,18 +204,18 @@ Plans:
 Plans:
 
 **Wave 0**
-- [ ] 14-01-PLAN.md — Wave 0: status.ts helper (berekenStatus, detectTraject) + status.test.ts
+- [x] 14-01-PLAN.md — Wave 0: status.ts helper (berekenStatus, detectTraject) + status.test.ts
 
 **Wave 1** *(blocked on Wave 0 completion)*
-- [ ] 14-02-PLAN.md — Wave 1: App.tsx routing + ImportPage onImportComplete prop + KlasTabStrip + KlasModal
+- [x] 14-02-PLAN.md — Wave 1: App.tsx routing + ImportPage onImportComplete prop + KlasTabStrip + KlasModal
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 14-03-PLAN.md — Wave 2a: KlasOverzicht (grid, search, sort, KPI strip) + LeerlingTegel
-- [ ] 14-04-PLAN.md — Wave 2b: DetailWeergave wrapper + header + DoortstroomPrognoseSection + VerzuimSection + VakkenSection
-- [ ] 14-05-PLAN.md — Wave 2c: FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea
+- [x] 14-03-PLAN.md — Wave 2a: KlasOverzicht (grid, search, sort, KPI strip) + LeerlingTegel
+- [x] 14-04-PLAN.md — Wave 2b: DetailWeergave wrapper + header + DoortstroomPrognoseSection + VerzuimSection + VakkenSection
+- [x] 14-05-PLAN.md — Wave 2c: FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea
 
 **Gap Closure** *(depends on 14-04 + 14-05)*
-- [ ] 14-06-PLAN.md — Gap closure: AanvullendSection + StageSection + LeerlijnenSection (closes DET-V2-01 SC-3 gap)
+- [x] 14-06-PLAN.md — Gap closure: AanvullendSection + StageSection + LeerlijnenSection (closes DET-V2-01 SC-3 gap)
 
 Cross-cutting constraints:
 - `npm test exits 0` required after every task
