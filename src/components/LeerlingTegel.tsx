@@ -39,7 +39,8 @@ export default function LeerlingTegel({ student, status, onClick }: LeerlingTege
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); // prevent page scroll on Space
       onClick();
     }
   }
