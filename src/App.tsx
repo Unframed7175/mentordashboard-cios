@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ImportPage from './components/ImportPage';
 import KlasTabStrip from './components/KlasTabStrip';
 import KlasModal from './components/KlasModal';
+import KlasOverzicht from './components/KlasOverzicht';
 import { klassenState, switchActiveKlas, getActiveStudents } from '../utils/klassen';
 
 function App() {
@@ -73,7 +74,11 @@ function App() {
         <ImportPage onImportComplete={handleImportComplete} />
       )}
       {view === 'klas' && (
-        <div>{/* KlasOverzicht goes here — Wave 2 */}</div>
+        <KlasOverzicht
+          refreshKey={refreshKey}
+          onSelectStudent={handleStudentSelect}
+          onKlasDeleted={handleBack}
+        />
       )}
       {view === 'detail' && (
         <div>{/* DetailWeergave goes here — Wave 2 */}</div>
