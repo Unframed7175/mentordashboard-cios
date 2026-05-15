@@ -202,11 +202,24 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 14-01-PLAN.md --- Wave 0: status.ts helper (berekenStatus, detectTraject) + status.test.ts
-- [ ] 14-02-PLAN.md --- Wave 1: App.tsx routing + ImportPage onImportComplete prop + KlasTabStrip + KlasModal
-- [ ] 14-03-PLAN.md --- Wave 2a: KlasOverzicht (grid, search, sort, KPI strip) + LeerlingTegel
-- [ ] 14-04-PLAN.md --- Wave 2b: DetailWeergave wrapper + header + DoortstroomPrognoseSection + VerzuimSection + VakkenSection
-- [ ] 14-05-PLAN.md --- Wave 2c: FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea
+
+**Wave 0**
+- [ ] 14-01-PLAN.md — Wave 0: status.ts helper (berekenStatus, detectTraject) + status.test.ts
+
+**Wave 1** *(blocked on Wave 0 completion)*
+- [ ] 14-02-PLAN.md — Wave 1: App.tsx routing + ImportPage onImportComplete prop + KlasTabStrip + KlasModal
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 14-03-PLAN.md — Wave 2a: KlasOverzicht (grid, search, sort, KPI strip) + LeerlingTegel
+- [ ] 14-04-PLAN.md — Wave 2b: DetailWeergave wrapper + header + DoortstroomPrognoseSection + VerzuimSection + VakkenSection
+- [ ] 14-05-PLAN.md — Wave 2c: FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea
+
+Cross-cutting constraints:
+- `npm test exits 0` required after every task
+- `actiepuntenStore.add/update/remove()` must always be followed by `await saveKlassen()` (saveState() is a no-op since Phase 12)
+- Spider chart axes must use `dg.label` as key (not `dg.id`) to match `student.deelgebiedScores` format
+- Plans 14-03 and 14-04 both modify `src/App.tsx` — executor must apply 14-03 before 14-04
+
 **UI hint**: yes
 
 ### Phase 15: Packaging & Cross-platform

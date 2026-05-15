@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: Phase 13 volledig geverifieerd (2026-05-14) — 2/2 plans complete. 14/14 checks passed. Advancing to Phase 14.
-last_updated: "2026-05-14T20:45:00.000Z"
-last_activity: 2026-05-14 — Phase 13 uitgevoerd en geverifieerd. ImportPage.tsx (dropzone + handlers) + async main.tsx startup + App.tsx wiring. 14/14 checks. IMP-01, IMP-02, IMP-03 gedekt.
+status: Phase 14 gepland (2026-05-15) — 5/5 plans gereed in 3 waves. Ready to execute.
+last_updated: "2026-05-15T00:00:00.000Z"
+last_activity: 2026-05-15 — Phase 14 gepland. 5 plans (3 waves): Wave 0 status.ts helper, Wave 1 App routing + KlasTabStrip + KlasModal, Wave 2 KlasOverzicht + DetailWeergave (3 parallel plans). KOV-01, KOV-02, DET-V2-01, DET-V2-02 gedekt.
 progress:
   total_phases: 10
   completed_phases: 8
@@ -24,9 +24,9 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 14 — React UI (next)
-Plan: 0/? planned
-Status: Phase 13 volledig geverifieerd (2026-05-14) — 2/2 plans complete. 14/14 checks. IMP-01, IMP-02, IMP-03 gedekt.
+Phase: 14 — React UI (ready to execute)
+Plan: 0/5 executed
+Status: Phase 14 gepland (2026-05-15) — 5 plans, 3 waves. Ready to execute.
 Last activity: 2026-05-14 — Phase 13 uitgevoerd en geverifieerd. ImportPage universele dropzone. Async main.tsx startup. App.tsx wiring.
 
 Progress: [████████░░] 80% (v2.0: 4/6 phases)
