@@ -2,8 +2,12 @@ import React from 'react';
 import { getAllRecordsForStudent } from '../../utils/klassen';
 import { berekenStatus } from '../utils/status';
 import DoortstroomPrognoseSection from './DoortstroomPrognoseSection';
+import FeedbackActiepuntenSection from './FeedbackActiepuntenSection';
+import SpiderChartCard from './SpiderChartCard';
+import DeelgebiedenMatrix from './DeelgebiedenMatrix';
 import VerzuimSection from './VerzuimSection';
 import VakkenSection from './VakkenSection';
+import NotitiesTextarea from './NotitiesTextarea';
 
 interface DetailWeergaveProps {
   leerlingId: string;
@@ -101,11 +105,8 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
         <p style={{ fontSize: '0.875rem', color: 'var(--text-faint)' }}>Komt in Plan 05</p>
       </div>
 
-      {/* Section 4: FeedbackActiepuntenSection — stub (Plan 05) */}
-      <div className="detail-section">
-        <p className="detail-section-title">Feedback &amp; actiepunten</p>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-faint)' }}>Beschikbaar na Plan 05</p>
-      </div>
+      {/* Section 4: FeedbackActiepuntenSection */}
+      <FeedbackActiepuntenSection leerlingId={leerlingId} />
 
       {/* Section 5: LeerlijnenSection — stub (not in Plan 04 scope) */}
       <div className="detail-section">
@@ -113,17 +114,36 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
         <p style={{ fontSize: '0.875rem', color: 'var(--text-faint)' }}>Komt in Plan 05</p>
       </div>
 
-      {/* Section 6: SpiderChartCard row — stub (Plan 05) */}
+      {/* Section 6: SpiderChartCard row */}
       <div className="detail-section">
         <p className="detail-section-title">Spiderweb overzicht</p>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-faint)' }}>Beschikbaar na Plan 05</p>
+        <div className="spider-charts-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'flex-start' }}>
+          <SpiderChartCard
+            group="lesgeven"
+            scores={student.deelgebiedScores || {}}
+            fillVar="--spider-lesgeven"
+            strokeVar="--spider-lesgeven-stroke"
+            title="Lesgeven"
+          />
+          <SpiderChartCard
+            group="organiseren"
+            scores={student.deelgebiedScores || {}}
+            fillVar="--spider-organiseren"
+            strokeVar="--spider-organiseren-stroke"
+            title="Organiseren"
+          />
+          <SpiderChartCard
+            group="prof_handelen"
+            scores={student.deelgebiedScores || {}}
+            fillVar="--spider-prof-handelen"
+            strokeVar="--spider-prof-handelen-stroke"
+            title="Prof. handelen"
+          />
+        </div>
       </div>
 
-      {/* Section 7: DeelgebiedenMatrix — stub (Plan 05) */}
-      <div className="detail-section">
-        <p className="detail-section-title">Beoordelingen per datapunt × deelgebied</p>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-faint)' }}>Beschikbaar na Plan 05</p>
-      </div>
+      {/* Section 7: DeelgebiedenMatrix */}
+      <DeelgebiedenMatrix student={student} leerlingId={leerlingId} />
 
       {/* Section 8: VerzuimSection */}
       <VerzuimSection student={student} />
@@ -131,11 +151,8 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       {/* Section 9: VakkenSection */}
       <VakkenSection student={student} />
 
-      {/* Section 10: NotitiesTextarea — stub (Plan 05) */}
-      <div className="detail-section">
-        <p className="detail-section-title">Notities mentorgesprek</p>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-faint)' }}>Beschikbaar na Plan 05</p>
-      </div>
+      {/* Section 10: NotitiesTextarea */}
+      <NotitiesTextarea student={student} leerlingId={leerlingId} />
     </div>
   );
 }
