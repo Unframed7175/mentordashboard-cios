@@ -1,5 +1,5 @@
 import React from 'react';
-import { getAllRecordsForStudent } from '../../utils/klassen';
+import { getAllRecordsForStudent, klassenState } from '../../utils/klassen';
 import { berekenStatus } from '../utils/status';
 import DoortstroomPrognoseSection from './DoortstroomPrognoseSection';
 import FeedbackActiepuntenSection from './FeedbackActiepuntenSection';
@@ -28,20 +28,31 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
   }
 
   // Most-recent record (app.js lines 1515-1521 pattern)
-  let student = records[records.length - 1];
-
-  // Pitfall 4 mitigation: inherit verzuim from any other record if most-recent lacks it
-  if (!student.verzuim) {
-    for (let i = records.length - 2; i >= 0; i--) {
+  const idx = records.length - 1;
+  // CR-03: Pitfall 4 mitigation — inherit verzuim from an older record if most-recent lacks it.
+  // Mutate the array element in-place so all child components receive the real reference that
+  // saveKlassen() will serialize. Creating a spread-merged copy (the old pattern) caused
+  // taalniveau/rekenniveau/notitie edits by AanvullendSection and NotitiesTextarea to land on
+  // a disconnected object and be silently discarded on the next reload.
+  if (!records[idx].verzuim) {
+    for (let i = idx - 1; i >= 0; i--) {
       if (records[i].verzuim) {
-        student = { ...student, verzuim: { ...records[i].verzuim } };
+        records[idx].verzuim = { ...records[i].verzuim };
         break;
       }
     }
   }
+  const student = records[idx]; // original array reference — not a copy
 
   const status = berekenStatus(student);
   const meta = [student.periode, student.leerjaar].filter(Boolean).join(' · ');
+
+  // WR-08: Look up stageData here and pass it as a prop to StageSection so that
+  // StageSection does not need to read the klassenState singleton directly. This
+  // ensures StageSection always shows data for the current active class as
+  // observed by DetailWeergave, not a potentially stale singleton snapshot.
+  const klas = klassenState.activeKlasId ? klassenState.klassen[klassenState.activeKlasId] : null;
+  const stageData = klas?.stageData?.[leerlingId] ?? null;
 
   return (
     <div style={{ maxWidth: '980px', margin: '0 auto', padding: '2rem 1rem' }}>
@@ -99,8 +110,8 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       {/* Section 2: AanvullendSection */}
       <AanvullendSection student={student} />
 
-      {/* Section 3: StageSection */}
-      <StageSection student={student} />
+      {/* Section 3: StageSection — stageData passed as prop (WR-08) */}
+      <StageSection student={student} stageData={stageData} />
 
       {/* Section 4: FeedbackActiepuntenSection */}
       <FeedbackActiepuntenSection leerlingId={leerlingId} />

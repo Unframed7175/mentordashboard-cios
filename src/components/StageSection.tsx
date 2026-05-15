@@ -1,8 +1,11 @@
 import React from 'react';
-import { klassenState } from '../../utils/klassen';
 
 interface StageSectionProps {
   student: any;
+  // WR-08: stageData passed as an explicit prop from DetailWeergave so this component
+  // never reads the klassenState singleton directly. Reading the singleton without a
+  // subscription can show data from the previously active class after a class switch.
+  stageData: any | null;
 }
 
 function formatDutchDate(iso: string | null | undefined): string {
@@ -12,9 +15,8 @@ function formatDutchDate(iso: string | null | undefined): string {
   return iso;
 }
 
-export default function StageSection({ student }: StageSectionProps) {
-  const klas = klassenState.activeKlasId ? klassenState.klassen[klassenState.activeKlasId] : null;
-  const sd = klas?.stageData?.[student.leerlingId];
+export default function StageSection({ student: _student, stageData }: StageSectionProps) {
+  const sd = stageData;
 
   if (!sd) {
     return (
