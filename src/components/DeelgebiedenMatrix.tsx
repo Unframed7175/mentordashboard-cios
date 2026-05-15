@@ -49,10 +49,10 @@ function scoreRank(score: string | null | undefined): number {
 }
 
 function GrowthBadge({ score1, score2 }: { score1: string | null | undefined; score2: string | null | undefined }) {
-  if (score1 === null || score1 === undefined) return null;
+  // WR-05: unified guard — no badge if either score is unknown (avoids asymmetric null checks)
   const r1 = scoreRank(score1);
   const r2 = scoreRank(score2);
-  if (r2 < 0) return null;
+  if (r1 < 0 || r2 < 0) return null;
   if (r2 > r1) return <span className="growth-up" aria-label="gestegen" style={{ color: '#16a34a' }}>↑</span>;
   if (r2 < r1) return <span className="growth-down" aria-label="gedaald" style={{ color: '#dc2626' }}>↓</span>;
   return <span className="growth-same" aria-label="gelijk" style={{ color: '#9ca3af' }}>=</span>;
