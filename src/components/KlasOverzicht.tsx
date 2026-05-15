@@ -4,7 +4,7 @@
 // KPI computed over ALL active students; filter only affects grid display.
 // ---------------------------------------------------------------------------
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { getActiveStudents, klassenState, deleteKlas } from '../../utils/klassen';
 import { berekenStatus, STATUS_VOLGORDE } from '../utils/status';
 import LeerlingTegel from './LeerlingTegel';
@@ -23,11 +23,14 @@ export default function KlasOverzicht({ refreshKey: _refreshKey, onSelectStudent
   // Read singleton directly — refreshKey causes re-render when data changes
   const allStudents = getActiveStudents();
 
-  // Compute per-student statuses map
-  const statusMap = new Map<string, ReturnType<typeof berekenStatus>>();
-  for (const s of allStudents) {
-    statusMap.set(s.leerlingId, berekenStatus(s));
-  }
+  // WR-04: Wrap status computation in useMemo keyed on allStudents to avoid
+  // recomputing berekenStatus for every render triggered by zoekTerm changes.
+  const statusMap = useMemo(() => {
+    const m = new Map<string, ReturnType<typeof berekenStatus>>();
+    for (const s of allStudents) m.set(s.leerlingId, berekenStatus(s));
+    return m;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allStudents]);
 
   // KPI computation over ALL students (not filtered subset) — per plan spec
   const kpiStatuses = allStudents.map(s => statusMap.get(s.leerlingId)!);
