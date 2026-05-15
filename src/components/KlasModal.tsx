@@ -8,7 +8,6 @@ interface KlasModalProps {
 
 export default function KlasModal({ onCreated, onCancel }: KlasModalProps) {
   const [naam, setNaam] = useState('');
-  const [schooljaar, setSchoolyear] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -86,17 +85,8 @@ export default function KlasModal({ onCreated, onCancel }: KlasModalProps) {
               autoFocus
             />
           </div>
-          <div style={{ marginBottom: '0.75rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem' }}>
-              Schooljaar (optioneel)
-            </label>
-            <input
-              type="text"
-              value={schooljaar}
-              onChange={e => setSchoolyear(e.target.value)}
-              style={{ width: '100%', boxSizing: 'border-box' }}
-            />
-          </div>
+          {/* CR-05: schooljaar field removed — createKlas() does not accept schooljaar yet.
+              Re-add when the data model supports it to avoid silently discarding user input. */}
           {error && (
             <p
               style={{
