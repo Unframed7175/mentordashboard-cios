@@ -233,7 +233,11 @@ Cross-cutting constraints:
   1. Windows .exe installer installeert de app op een schone Windows 10/11 machine — mentor kan direct starten zonder Rust, Node of Python te installeren
   2. macOS .dmg installeert de app op macOS 12+ — identiek werkend als op Windows
   3. UI-rendering is visueel equivalent op Windows (WebView2) en macOS (WebKit) — geen layout-breuken of kleurverschillen
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Wave 0: Local config (Cargo.toml metadata, entitlements.plist, tauri.conf.json bundle section)
+- [ ] 15-02-PLAN.md — Wave 1: GitHub push (human step) + release.yml CI workflow + release trigger verification
 
 ## Progress
 
@@ -253,4 +257,4 @@ Cross-cutting constraints:
 | 12. Versleutelde Opslag | 5/5 | Complete | 2026-05-14 |
 | 13. Bestandstoegang | 0/2 | Ready to execute | - |
 | 14. React UI | 0/6 | Not started | - |
-| 15. Packaging & Cross-platform | 0/? | Not started | - |
+| 15. Packaging & Cross-platform | 0/2 | In progress | - |
