@@ -20,11 +20,17 @@ export default function SpiderChartCard({ group, scores, fillVar, strokeVar, tit
     return <div className="spider-empty">Geen scores beschikbaar</div>;
   }
 
-  const svg = SpiderChart.buildSpiderSVG(axes, scores, fillVar, strokeVar);
+  const rawSvg = SpiderChart.buildSpiderSVG(axes, scores, fillVar, strokeVar);
 
-  if (!svg) {
+  if (!rawSvg) {
     return <div className="spider-empty">Geen scores beschikbaar</div>;
   }
+
+  // Security: buildSpiderSVG embeds only math-computed coordinates and sanitized CSS
+  // variable names (see utils/spider.ts sanitizeCssVar). Axis labels are NOT embedded
+  // in the SVG string — only their numeric polygon coordinates appear. As a defence-in-depth
+  // measure we strip any script tags that could appear if the utility ever changes.
+  const svg = rawSvg.replace(/<script[\s\S]*?<\/script>/gi, '');
 
   return (
     <div className="spider-card" style={{ maxWidth: '180px' }}>
