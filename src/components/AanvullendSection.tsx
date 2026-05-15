@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { saveKlassen } from '../../utils/klassen';
+import React, { useState, useRef, useEffect } from 'react';
+import { saveKlassen, klassenState } from '../../utils/klassen';
 
 interface AanvullendSectionProps {
   student: any;
@@ -9,8 +9,24 @@ export default function AanvullendSection({ student }: AanvullendSectionProps) {
   const [hint, setHint] = useState<'idle' | 'saved'>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // CR-07: Clear the hint timer when the component unmounts to avoid calling
+  // setHint('idle') on an unmounted component (resource leak in React 18 strict mode).
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   async function handleChange(field: 'taalniveau' | 'rekenniveau', value: string) {
-    student[field] = value;
+    // CR-06: Mutate the source record in klassenState directly, not the local prop copy.
+    // When DetailWeergave passes student as records[idx] (the real array reference), this
+    // is equivalent. The explicit lookup below also handles the edge case where student
+    // is a different reference (e.g., a merged copy from an older code path) by finding
+    // the canonical record by leerlingId.
+    const klas = klassenState.klassen[klassenState.activeKlasId!];
+    const rec = klas?.students?.find((s: any) => s.leerlingId === student.leerlingId);
+    if (!rec) return;
+    rec[field] = value;
     const saved = await saveKlassen();
     if (saved === false) return;
     if (timerRef.current) clearTimeout(timerRef.current);
