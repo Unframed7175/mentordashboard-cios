@@ -199,7 +199,7 @@ Plans:
   2. Zoeken op naam, sorteren op status en wisselen tussen klassen werken zonder pagina-reload in de React versie
   3. Detailweergave toont voortgang per deelgebied, verzuim, doorstroomprognose en notities — identiek aan de huidige app
   4. Actiepunten en feed forward zijn bewerkbaar en worden opgeslagen via de versleutelde store
-**Plans**: 5 plans
+**Plans**: 6 plans
 
 Plans:
 
@@ -213,6 +213,9 @@ Plans:
 - [ ] 14-03-PLAN.md — Wave 2a: KlasOverzicht (grid, search, sort, KPI strip) + LeerlingTegel
 - [ ] 14-04-PLAN.md — Wave 2b: DetailWeergave wrapper + header + DoortstroomPrognoseSection + VerzuimSection + VakkenSection
 - [ ] 14-05-PLAN.md — Wave 2c: FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea
+
+**Gap Closure** *(depends on 14-04 + 14-05)*
+- [ ] 14-06-PLAN.md — Gap closure: AanvullendSection + StageSection + LeerlijnenSection (closes DET-V2-01 SC-3 gap)
 
 Cross-cutting constraints:
 - `npm test exits 0` required after every task
@@ -249,5 +252,5 @@ Cross-cutting constraints:
 | 11. TypeScript Migratie | 6/6 | Complete | 2026-05-14 |
 | 12. Versleutelde Opslag | 5/5 | Complete | 2026-05-14 |
 | 13. Bestandstoegang | 0/2 | Ready to execute | - |
-| 14. React UI | 0/5 | Not started | - |
+| 14. React UI | 0/6 | Not started | - |
 | 15. Packaging & Cross-platform | 0/? | Not started | - |
