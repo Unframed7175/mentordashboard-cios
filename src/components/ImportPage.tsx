@@ -81,7 +81,10 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
         status: 'done',
         messages: [...prev.messages, `${succeeded} PDF(s) verwerkt, ${skipped} overgeslagen`],
       }));
-      onImportComplete?.();
+      // WR-06: only switch view when at least one PDF was successfully imported
+      if (succeeded > 0) {
+        onImportComplete?.();
+      }
     }
   }
 
@@ -166,7 +169,15 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
     }
   }
 
-  function handleFiles(fileList: FileList) {
+  // CR-04: Serialize handlers to prevent concurrent saveKlassen() calls that can
+  // interleave writes. Backup is exclusive (return early). PDFs then Excel run in sequence.
+  // Guard: reject new drops while processing is in progress.
+  async function handleFiles(fileList: FileList) {
+    // Guard: reject new drops while a previous import is still running
+    if (importState.status === 'processing') {
+      return;
+    }
+
     const files = Array.from(fileList);
 
     const pdfs: File[] = [];
@@ -206,9 +217,13 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
       }));
     }
 
-    if (pdfs.length > 0) handlePDFs(pdfs);
-    if (excel) handleExcel(excel);
-    if (backup) handleBackup(backup);
+    // Serialize: backup is exclusive (return after restore), then PDFs, then Excel
+    if (backup) {
+      await handleBackup(backup);
+      return;
+    }
+    if (pdfs.length > 0) await handlePDFs(pdfs);
+    if (excel) await handleExcel(excel);
   }
 
   function onDragOver(e: React.DragEvent<HTMLDivElement>) {
@@ -277,14 +292,8 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
           onChange={onInputChange}
         />
       </div>
-      {errors.length > 0 && status !== 'error' && (
-        <ul>
-          {errors.map((err, i) => (
-            <li key={i} style={{ color: 'red' }}>{err}</li>
-          ))}
-        </ul>
-      )}
-      {status === 'error' && (
+      {/* WR-03: single error list rendered whenever errors exist */}
+      {errors.length > 0 && (
         <ul>
           {errors.map((err, i) => (
             <li key={i} style={{ color: 'red' }}>{err}</li>
