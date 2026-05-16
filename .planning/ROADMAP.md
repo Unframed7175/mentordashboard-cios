@@ -5,7 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1–5 (shipped 2026-03-25) · [archive](.planning/milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Klasbeheer & Export** — Phases 6–8 (shipped 2026-04-23)
 - ✅ **v1.2 Dashboard Redesign** — Phase 9 (shipped 2026-04-24)
-- 🔄 **v2.0 Stack Modernisering** — Phases 10–15 (in progress)
+- ✅ **v2.0 Stack Modernisering** — Phases 10–15 (shipped 2026-05-16)
 
 ## Phases
 
@@ -41,7 +41,7 @@
  (completed 2026-05-14)
 - [x] **Phase 13: Bestandstoegang** — Mentor kan PDFs, Excel-bestanden en zip-backups importeren via drag-drop én bestandsdialoog in de Tauri app *(completed 2026-05-14)*
 - [x] **Phase 14: React UI** — Klasoverzicht en detailweergave zijn volledig herschreven als React componenten en tonen identieke informatie als de huidige app *(completed 2026-05-15)*
-- 🔄 **Phase 15: Packaging & Cross-platform** — App bouwt als installeerbare .exe (Windows) en .dmg (Mac); UI ziet er identiek uit op beide platforms; eindgebruiker installeert zonder extra dependencies *(Plan 01/02 complete 2026-05-16 — Plan 02 next: GitHub push + release.yml)*
+- [x] **Phase 15: Packaging & Cross-platform** — App bouwt als installeerbare .exe (Windows) en .dmg (Mac); UI ziet er identiek uit op beide platforms; eindgebruiker installeert zonder extra dependencies *(completed 2026-05-16)*
 
 ## Phase Details
 

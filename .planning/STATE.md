@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: executing
-last_updated: "2026-05-16T06:22:29.483Z"
-last_activity: "2026-05-15 — Phase 15 planning voltooid. Plan 15-01 (Wave 0, autonomous): Cargo.toml metadata + entitlements.plist + tauri.conf.json bundle config. Plan 15-02 (Wave 1, human-checkpoint): GitHub push + release.yml CI workflow. Verificatie passed 12/12."
+status: Phase 15 complete (2026-05-16) — v2.0 Stack Modernisering volledig afgerond
+last_updated: "2026-05-16T00:00:00.000Z"
+last_activity: "2026-05-16 — Phase 15 complete. Plan 15-01: Cargo.toml + entitlements.plist + tauri.conf.json. Plan 15-02: GitHub push + release.yml CI workflow. Alle 3 CI-jobs groen. GitHub Release v2.0.1 met aarch64 DMG + x64 DMG + NSIS .exe. v2.0 milestone volledig."
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 32
-  completed_plans: 31
-  percent: 97
+  completed_plans: 32
+  percent: 100
 ---
 
 # Project State
