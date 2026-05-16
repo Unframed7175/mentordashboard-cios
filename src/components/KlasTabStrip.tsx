@@ -11,10 +11,6 @@ interface KlasTabStripProps {
 // the point where refreshKey is consumed) instead of read from the singleton inside the component.
 // This removes the implicit coupling and ensures the tab strip always reflects the current state.
 export default function KlasTabStrip({ klassen, activeKlasId, onSwitch, onCreateKlas }: KlasTabStripProps) {
-  if (klassen.length === 0) {
-    return null;
-  }
-
   return (
     <nav id="main-nav">
       {klassen.map(klas => (
