@@ -58,14 +58,12 @@ function App() {
   return (
     <>
       <div id="storage-error-banner" style={{ display: 'none' }} />
-      {Object.keys(klassenState.klassen).length > 0 && (
-        <KlasTabStrip
-          klassen={Object.values(klassenState.klassen) as Array<{ id: string; naam: string }>}
-          activeKlasId={klassenState.activeKlasId}
-          onSwitch={handleKlasSwitch}
-          onCreateKlas={() => setShowModal(true)}
-        />
-      )}
+      <KlasTabStrip
+        klassen={Object.values(klassenState.klassen) as Array<{ id: string; naam: string }>}
+        activeKlasId={klassenState.activeKlasId}
+        onSwitch={handleKlasSwitch}
+        onCreateKlas={() => setShowModal(true)}
+      />
       {showModal && (
         <KlasModal
           onCreated={handleKlasCreated}
