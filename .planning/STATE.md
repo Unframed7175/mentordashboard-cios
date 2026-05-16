@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Stack Modernisering
-status: Phase 15 gepland (2026-05-15) — 2 plans in 2 waves. Ready to execute.
-last_updated: "2026-05-15T00:00:00.000Z"
-last_activity: 2026-05-15 — Phase 15 planning voltooid. 2 plans: 15-01 (Wave 0, autonomous — Cargo.toml + entitlements.plist + tauri.conf.json config), 15-02 (Wave 1, human-checkpoint — GitHub push + release.yml CI workflow). Verificatie passed 12/12.
+status: executing
+last_updated: "2026-05-16T06:22:29.483Z"
+last_activity: "2026-05-15 — Phase 15 planning voltooid. Plan 15-01 (Wave 0, autonomous): Cargo.toml metadata + entitlements.plist + tauri.conf.json bundle config. Plan 15-02 (Wave 1, human-checkpoint): GitHub push + release.yml CI workflow. Verificatie passed 12/12."
 progress:
   total_phases: 10
   completed_phases: 9
-  total_plans: 31
-  completed_plans: 29
-  percent: 90
+  total_plans: 32
+  completed_plans: 31
+  percent: 97
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 ## Current Position
 
 Phase: 15 — Packaging & Cross-platform
-Plan: 0/2 executed (2 plans planned, ready to execute)
-Status: Phase 15 gepland (2026-05-15) — 2 plans in 2 waves. Ready to execute.
-Last activity: 2026-05-15 — Phase 15 planning voltooid. Plan 15-01 (Wave 0, autonomous): Cargo.toml metadata + entitlements.plist + tauri.conf.json bundle config. Plan 15-02 (Wave 1, human-checkpoint): GitHub push + release.yml CI workflow. Verificatie passed 12/12.
+Plan: 1/2 executed (2 plans planned, 1 complete)
+Status: Phase 15 Plan 01 complete (2026-05-16) — Cargo.toml + entitlements.plist + tauri.conf.json bundle config done. Plan 15-02 (Wave 1, human-checkpoint) is next: GitHub push + release.yml CI workflow.
+Last activity: 2026-05-16 — Phase 15 Plan 01 executed. Cargo.toml metadata updated (D-09), entitlements.plist created (D-04 — JIT only, no keychain-access-groups), tauri.conf.json bundle updated (targets stays "all", windows.nsis.installMode: "currentUser", macOS.signingIdentity: "-"). npm run build exits 0 (NSIS + MSI produced). npm test 43/43 passed.
 
 Progress: [█████████░] 90% (v2.0: 5/6 phases)
 
@@ -58,6 +58,9 @@ v2.0 phases completed: 5/6
 - [12-01] No explicit rand crate needed — aes_gcm::aead::OsRng re-export works correctly (A4 confirmed)
 - [12-04] LazyStore mock must be ES6 class (not vi.fn()) — required for new LazyStore() constructor call in utils/klassen.ts
 - [12-04] invoke mock uses btoa encoding for STO-02 ciphertext opacity — plain prefix fails not.toContain assertion
+- [15-01] bundle.targets stays "all" — NSIS-only enforced per-runner via CI args in Plan 02 (Codex peer review finding)
+- [15-01] keychain-access-groups omitted from entitlements.plist — ad-hoc signing does not expand $(AppIdentifierPrefix), causes errSecMissingEntitlement (-34018)
+- [15-01] macOS ad-hoc signing: signingIdentity "-" in tauri.conf.json — required for Apple Silicon compatibility without Developer cert
 
 ### Pending Todos
 
@@ -87,3 +90,4 @@ v2.0 phases completed: 5/6
 - 2026-05-14: Phase 12 Plan 04 executed — Vitest storage tests. tests/storage.test.ts aangemaakt met STO-01 t/m STO-04. LazyStore als class mock. invoke mock met btoa encoding. 4/4 tests passing. Volledige suite 35 passed. Phase 12 volledig afgerond.
 - 2026-05-14: Phase 13 executed — Bestandstoegang. 2 plans: ImportPage.tsx (universal dropzone, sequential PDF batch via addStudent, Excel via mergeVerzuim, backup restore via applyBackupRestore+switchActiveKlas), async main.tsx IIFE startup, App.tsx document drop guard + storage-error-banner. 14/14 checks. 35 tests pass.
 - 2026-05-15: Phase 14 executed — React UI. 6 plans (5 original + 1 gap closure): status.ts helper, App.tsx routing + KlasTabStrip + KlasModal, KlasOverzicht + LeerlingTegel, DetailWeergave (7 sections), FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea, AanvullendSection + StageSection + LeerlijnenSection. Verification passed 4/4 (SC-3 closed via gap closure plan 14-06). 43 tests, 0 failures.
+- 2026-05-16: Phase 15 Plan 01 executed — Bundle config. Cargo.toml: description + authors updated (D-09). entitlements.plist created: JIT entitlements only (com.apple.security.cs.allow-jit + allow-unsigned-executable-memory; no keychain-access-groups). tauri.conf.json: targets stays "all", bundle.windows.nsis.installMode: "currentUser", bundle.macOS.entitlements + signingIdentity: "-". npm run build 0 (NSIS + MSI). npm test 43/43 passed. 0 deviations.
