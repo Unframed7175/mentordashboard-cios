@@ -6,6 +6,7 @@
 - ✅ **v1.1 Klasbeheer & Export** — Phases 6–8 (shipped 2026-04-23)
 - ✅ **v1.2 Dashboard Redesign** — Phase 9 (shipped 2026-04-24)
 - ✅ **v2.0 Stack Modernisering** — Phases 10–15 (shipped 2026-05-16)
+- 🔄 **v2.1 Settings, Polish & Auto-class Detection** — Phases 16–19 (active)
 
 ## Phases
 
@@ -42,6 +43,13 @@
 - [x] **Phase 13: Bestandstoegang** — Mentor kan PDFs, Excel-bestanden en zip-backups importeren via drag-drop én bestandsdialoog in de Tauri app *(completed 2026-05-14)*
 - [x] **Phase 14: React UI** — Klasoverzicht en detailweergave zijn volledig herschreven als React componenten en tonen identieke informatie als de huidige app *(completed 2026-05-15)*
 - [x] **Phase 15: Packaging & Cross-platform** — App bouwt als installeerbare .exe (Windows) en .dmg (Mac); UI ziet er identiek uit op beide platforms; eindgebruiker installeert zonder extra dependencies *(completed 2026-05-16)*
+
+### v2.1 Settings, Polish & Auto-class Detection
+
+- [ ] **Phase 16: Auto-class Detection** — Bij eerste import detecteert de app automatisch de klasnaam uit de PDF-header en maakt de klas aan zonder handmatige stap
+- [ ] **Phase 17: Settings Panel Foundation** — Mentor kan via een settings-icoon dark mode activeren (volledig gestyled) en nieuwe bestanden toevoegen aan een bestaande klas
+- [ ] **Phase 18: Settings Panel Advanced** — Mentor kan deelgebieden hernoemen/deactiveren, leerlijn-toewijzing aanpassen, verzuim-drempelwaarden en BPV-uren configureren
+- [ ] **Phase 19: UI Polish** — Spiderweb chart tooltips, responsive layout en consistente hover-animaties zijn afgerond
 
 ## Phase Details
 
@@ -250,6 +258,56 @@ Cross-cutting constraints:
 - `APPLE_SIGNING_IDENTITY: '-'` must be in release.yml env block (prevents "app is damaged" on Apple Silicon)
 - `ubuntu-latest` must NOT appear in CI matrix (Linux build not needed)
 
+---
+
+### Phase 16: Auto-class Detection
+**Goal**: Mentor hoeft geen klas handmatig aan te maken voordat bestanden worden geïmporteerd — de app detecteert de klasnaam uit de PDF-header en maakt de klas automatisch aan bij de eerste import
+**Depends on**: Phase 15
+**Requirements**: ACD-01
+**Success Criteria** (what must be TRUE):
+  1. Wanneer geen klassen bestaan en de mentor een PDF importeert, verschijnt er geen foutmelding over een ontbrekende klas — de import slaagt direct
+  2. Na de auto-detectie import staat de nieuwe klas als actief tabblad in de KlasTabStrip met de naam uit de PDF-header
+  3. Als de PDF-header geen herkenbare klasnaam bevat, valt de app terug op een generieke naam (bijv. "Nieuwe klas") in plaats van te crashen
+  4. Wanneer al klassen bestaan, verandert het import-gedrag niet — mentor kiest nog steeds de klas handmatig
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 17: Settings Panel Foundation
+**Goal**: Mentor kan via een settings-icoon een settings-pagina openen, dark mode activeren met een toggle (volledig gestyled in alle componenten), en nieuwe PDFs of een verzuim-Excel toevoegen aan een bestaande klas zonder de klas opnieuw aan te maken
+**Depends on**: Phase 16
+**Requirements**: SET-01, SET-02, POL-01
+**Success Criteria** (what must be TRUE):
+  1. Een settings-icoon is zichtbaar in de navigatiebalk; klikken opent de settings-pagina zonder verlies van de huidige klas-context
+  2. De dark mode toggle in settings schakelt het dark theme in en uit — alle componenten (tegels, detailweergave, modal, spiderweb chart, deelgebieden matrix) zijn consistent gestyled via CSS-variabelen
+  3. De gekozen dark/light voorkeur wordt persistent opgeslagen en hersteld bij herstart van de app
+  4. Vanuit settings kan de mentor voor de actieve klas nieuwe PDFs en/of een verzuim-Excel uploaden — de bestaande klasdata blijft intact en wordt aangevuld
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 18: Settings Panel Advanced
+**Goal**: Mentor kan via de settings-pagina de deelgebieden, leerlijnen, verzuim-drempelwaarden en BPV-uren aanpassen aan de eigen klassituatie — wijzigingen zijn direct zichtbaar in het dashboard
+**Depends on**: Phase 17
+**Requirements**: SET-03, SET-04, SET-05, SET-06
+**Success Criteria** (what must be TRUE):
+  1. Mentor kan een deelgebied hernoemen — de nieuwe naam verschijnt direct in de deelgebieden-matrix en het spiderweb chart
+  2. Mentor kan een deelgebied inactief zetten — het verdwijnt uit de matrix, het spiderweb chart en de prognose-berekening zonder dataverlies
+  3. Mentor kan per deelgebied de leerlijn-toewijzing (lesgeven / organiseren / professioneel handelen) aanpassen — de doorstroomprognose herberekent direct
+  4. Mentor kan aparte drempelwaarden instellen voor geoorloofd en ongeoorloofd verzuim — de RAG-status in klasoverzicht-tegels reflecteert de nieuwe grenswaarden
+  5. Mentor kan het verwachte aantal BPV-uren configureren — de voortgangsindicatie voor stage past zich aan
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 19: UI Polish
+**Goal**: De visuele afwerking van het dashboard is professioneel en consistent — spiderweb chart is leesbaar met tooltips, het layout schaalt correct op kleinere schermen en hover-interacties animeren vloeiend
+**Depends on**: Phase 18
+**Requirements**: POL-02, POL-03, POL-04
+**Success Criteria** (what must be TRUE):
+  1. Hover over een punt in het spiderweb chart toont een tooltip met de naam van het deelgebied en de score — as-labels zijn leesbaar zonder overlap
+  2. Dashboard (klasoverzicht + detailweergave) werkt correct op vensterbreedtes vanaf 1024px — geen horizontale scroll, geen afgekapte inhoud
+  3. KPI tiles, leerling-tegels en nav-tabs hebben een subtiele hover-animatie (150–200ms ease) die consistent is door de hele app
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -269,3 +327,7 @@ Cross-cutting constraints:
 | 13. Bestandstoegang | 0/2 | Ready to execute | - |
 | 14. React UI | 0/6 | Not started | - |
 | 15. Packaging & Cross-platform | 0/2 | In progress | - |
+| 16. Auto-class Detection | 0/TBD | Not started | - |
+| 17. Settings Panel Foundation | 0/TBD | Not started | - |
+| 18. Settings Panel Advanced | 0/TBD | Not started | - |
+| 19. UI Polish | 0/TBD | Not started | - |

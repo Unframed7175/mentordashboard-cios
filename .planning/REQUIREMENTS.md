@@ -79,14 +79,14 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| SET-01 | TBD   | Active |
-| SET-02 | TBD   | Active |
-| SET-03 | TBD   | Active |
-| SET-04 | TBD   | Active |
-| SET-05 | TBD   | Active |
-| SET-06 | TBD   | Active |
-| ACD-01 | TBD   | Active |
-| POL-01 | TBD   | Active |
-| POL-02 | TBD   | Active |
-| POL-03 | TBD   | Active |
-| POL-04 | TBD   | Active |
+| SET-01 | Phase 17 | Active |
+| SET-02 | Phase 17 | Active |
+| SET-03 | Phase 18 | Active |
+| SET-04 | Phase 18 | Active |
+| SET-05 | Phase 18 | Active |
+| SET-06 | Phase 18 | Active |
+| ACD-01 | Phase 16 | Active |
+| POL-01 | Phase 17 | Active |
+| POL-02 | Phase 19 | Active |
+| POL-03 | Phase 19 | Active |
+| POL-04 | Phase 19 | Active |

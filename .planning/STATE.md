@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Settings, Polish & Auto-class Detection
-status: planning
-last_updated: "2026-05-17T06:56:11.543Z"
+status: ready
+last_updated: "2026-05-17T00:00:00.000Z"
 last_activity: 2026-05-17
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,23 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-12)
+See: .planning/PROJECT.md (updated 2026-05-17)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** v2.0 — Stack Modernisering (TypeScript + React + Tauri + AVG)
+**Current focus:** v2.1 — Settings, Polish & Auto-class Detection
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 16 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-17 — Milestone v2.1 started
+Status: Roadmap complete — ready to plan Phase 16
+Last activity: 2026-05-17 — v2.1 roadmap created (Phases 16–19)
+
+## Progress Bar
+
+```
+v2.1: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases)
+```
 
 ## Performance Metrics
 
@@ -35,6 +41,7 @@ v1.0 phases completed: 5/5
 v1.1 phases completed: 3/3
 v1.2 phases completed: 1/1
 v2.0 phases completed: 5/6
+v2.1 phases completed: 0/4
 
 ## Accumulated Context
 
@@ -65,10 +72,20 @@ v2.0 phases completed: 5/6
 - Verify SheetJS CDN tarball (0.20.3) license compliance for school distribution (before Phase 15)
 - Confirm SomToday export format is still .xls (not .xlsx) against a real file in Phase 11
 
+### v2.1 Design Notes
+
+- Phase 16 (ACD-01): PDF-header parsing logic is already in parsers/pdf.ts — auto-detect must extract klas-name from existing parsed fields, not re-parse the file
+- Phase 17 (SET-01 + POL-01): Dark mode CSS must use the existing CSS custom property pattern (`:root` / `body.dark`) from Phase 9; extend, do not replace
+- Phase 17 (SET-02): Import flow already exists in ImportPage.tsx — settings should reuse the same dropzone component or trigger the same Tauri dialog, scoped to the active klas
+- Phase 18 (SET-03/04): Deelgebieden config lives in utils/leerlijnen.ts — edits must go through the async save path (plugin-store) established in Phase 12
+- Phase 18 (SET-05/06): Thresholds and BPV-uren are new configurable fields — need schema extension in utils/schema.ts (or a separate settings store key)
+- Phase 19 (POL-02): SpiderChartCard is in src/components/SpiderChartCard — tooltip layer must be SVG-native or an absolutely-positioned React element, not a browser tooltip
+- ui-ux-pro-max skill available: use `python .claude/skills/ui-ux-pro-max/scripts/search.py` for animation, color, and UX guidance during UI phases
+
 ### Blockers/Concerns
 
 - [RESOLVED] Rust toolchain not installed — Rust 1.95.0 confirmed installed (D-09 superseded)
-- [RESOLVED → Phase 11] 7 test files + 3 util files lost in scaffold --force — recreated as .ts in Phase 11 plans (aggregation.ts, backup.ts, spider.ts + 6 .test.ts files). fflate replaces vendor/zip.min.js.
+- [RESOLVED → Phase 11] 7 test files + 3 util files lost in scaffold --force — recreated as .ts in Phase 11 plans
 - [Phase 11] @types/pdfjs-dist deprecated — vendor bundle has no .d.ts; use @ts-ignore + as any for pdfjs API calls
 - [Phase 11] tsconfig.migrated.json (noImplicitAny:true, includes utils/**, parsers/**) satisfies D-11-05 without touching global tsconfig
 - [Phase 11] parseStageFile = parseSinglePDF (RESEARCH confirmed; no separate parser/parseStage.js exists)
@@ -89,3 +106,4 @@ v2.0 phases completed: 5/6
 - 2026-05-14: Phase 13 executed — Bestandstoegang. 2 plans: ImportPage.tsx (universal dropzone, sequential PDF batch via addStudent, Excel via mergeVerzuim, backup restore via applyBackupRestore+switchActiveKlas), async main.tsx IIFE startup, App.tsx document drop guard + storage-error-banner. 14/14 checks. 35 tests pass.
 - 2026-05-15: Phase 14 executed — React UI. 6 plans (5 original + 1 gap closure): status.ts helper, App.tsx routing + KlasTabStrip + KlasModal, KlasOverzicht + LeerlingTegel, DetailWeergave (7 sections), FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea, AanvullendSection + StageSection + LeerlijnenSection. Verification passed 4/4 (SC-3 closed via gap closure plan 14-06). 43 tests, 0 failures.
 - 2026-05-16: Phase 15 Plan 01 executed — Bundle config. Cargo.toml: description + authors updated (D-09). entitlements.plist created: JIT entitlements only (com.apple.security.cs.allow-jit + allow-unsigned-executable-memory; no keychain-access-groups). tauri.conf.json: targets stays "all", bundle.windows.nsis.installMode: "currentUser", bundle.macOS.entitlements + signingIdentity: "-". npm run build 0 (NSIS + MSI). npm test 43/43 passed. 0 deviations.
+- 2026-05-17: v2.1 milestone started. Roadmap created — Phases 16–19 defined, all 11 requirements mapped. Next: /gsd-plan-phase 16
