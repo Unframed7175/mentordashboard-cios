@@ -47,6 +47,8 @@ Exceptions:
 - `.detail-section` padding already declared: `1.375rem 1.625rem` (22px 26px) — reused as-is, no override
 - Settings page max-width: 640px, centered with `margin: 0 auto`
 
+Minimum viewport: 900px — mobile breakpoints not in scope for this phase (Tauri desktop app). Do not add media queries.
+
 ---
 
 ## Typography
@@ -57,12 +59,12 @@ All values from existing `index.css` — no new type scales introduced.
 |------|------|--------|-------------|
 | Body | 16px (1rem) | 400 | 1.6 |
 | Label (section title, toggle label) | 11px (0.6875rem) | 700 | 1.4 |
-| Setting row text | 14px (0.875rem) | 500 | 1.4 |
-| Placeholder subtext (Phase 18 cards) | 13px (0.8125rem) | 400 | 1.5 |
+| Setting row text | 14px (0.875rem) | 400 | 1.4 |
+| H1 page title | 20px (1.25rem) | 700 | 1.2 |
 
 Section title style: uppercase, letter-spacing 0.07em, `var(--text-faint)` — identical to existing `.detail-section-title` rule. Do not create a new class.
 
-Back button (← Terug): 13px (0.8125rem), weight 500, color `var(--text-secondary)` — uses `.detail-nav-btn` class already defined in index.css.
+Back button (← Terug): uses `.detail-nav-btn` class already defined in index.css — inherits size and weight from that class, no separate scale entry.
 
 ---
 
@@ -98,7 +100,7 @@ Tokens requiring `body.dark { }` override (complete list from existing media que
 --status-grijs-bg, --status-grijs-text
 ```
 
-Implementation rule: Remove (or comment out) the `@media (prefers-color-scheme: dark)` wrapper. Replace with `body.dark { }` using identical token values. The `:root` block remains unchanged as the light-mode default.
+Implementation rule: Remove (or comment out) the `@media (prefers-color-scheme: dark) { :root { ... } }` block. Replace with `body.dark { }` using identical token values. The `:root` block remains unchanged as the light-mode default.
 
 ---
 
@@ -126,7 +128,7 @@ Implementation rule: Remove (or comment out) the `@media (prefers-color-scheme: 
 **Settings Page Header:**
 - `<div className="settings-header">` with flexbox, align-items center, gap 12px, margin-bottom 24px
 - Back button: `<button className="detail-nav-btn">← Terug</button>` — reuses existing class
-- Page title: `<h1>` text "Instellingen", font-size 20px (1.25rem), weight 600, color `var(--text-primary)`, margin 0
+- Page title: `<h1>` text "Instellingen", font-size 20px (1.25rem), weight 700, color `var(--text-primary)`, margin 0
 
 **Section Order:**
 1. Weergave (dark mode toggle)
@@ -150,7 +152,7 @@ Pure CSS toggle switch, no library. Visual specification:
   - OFF position: `translateX(2px)`
   - ON position: `translateX(22px)` (track-width 44 - thumb-width 18 - 2px gap = 24px; adjusted to 22px for 1px inner gap each side)
   - Transition: `transform var(--transition-base)` (200ms ease)
-- Label text: `<span>Donkere modus</span>` — font-size 14px (0.875rem), weight 500, color `var(--text-primary)`
+- Label text: `<span>Donkere modus</span>` — font-size 14px (0.875rem), weight 400, color `var(--text-primary)`
 - Keyboard: `:focus-visible` on the `<input>` must show outline via the `.sr-only` pattern — use `input:focus-visible + .toggle-track` with `outline: 2.5px solid var(--accent); outline-offset: 2px`
 
 Toggle row layout within "Weergave" section:
@@ -168,14 +170,14 @@ Row: `display: flex; align-items: center; justify-content: space-between`
 - Position: in the "Bestanden" section body, no extra wrapper needed
 - Width: `width: fit-content` (default btn behavior)
 
-Section body hint text below button: `<p>` with font-size 13px (0.8125rem), color `var(--text-muted)`, margin-top 8px: "Voeg PDFs of een verzuim-Excel toe aan de actieve klas."
+Section body hint text below button: `<p>` with font-size 14px (0.875rem), color `var(--text-muted)`, margin-top 8px: "Voeg PDFs of een verzuim-Excel toe aan de actieve klas."
 
 ### 5. Phase 18 Placeholder Section Cards
 
 Two cards, structurally identical:
 - Same `.detail-section` + `.detail-section-title` as active sections
 - Placeholder body: `<p className="settings-placeholder-text">Komt in een volgende versie.</p>`
-  - Font-size: 13px (0.8125rem)
+  - Font-size: 14px (0.875rem)
   - Color: `var(--text-faint)`
   - Font-style: italic
   - margin: 0
