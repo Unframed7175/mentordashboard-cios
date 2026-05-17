@@ -272,7 +272,7 @@ Cross-cutting constraints:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 16-01-PLAN.md — Auto-detect + auto-create klas from PDF header, toast notification
+- [x] 16-01-PLAN.md — Auto-detect + auto-create klas from PDF header, toast notification
 
 **UI hint**: yes
 
@@ -331,7 +331,7 @@ Plans:
 | 13. Bestandstoegang | 0/2 | Ready to execute | - |
 | 14. React UI | 0/6 | Not started | - |
 | 15. Packaging & Cross-platform | 0/2 | In progress | - |
-| 16. Auto-class Detection | 0/TBD | Not started | - |
+| 16. Auto-class Detection | 1/1 | In progress | - |
 | 17. Settings Panel Foundation | 0/TBD | Not started | - |
 | 18. Settings Panel Advanced | 0/TBD | Not started | - |
 | 19. UI Polish | 0/TBD | Not started | - |
