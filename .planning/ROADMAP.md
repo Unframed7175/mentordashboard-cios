@@ -285,7 +285,7 @@ Plans:
   2. De dark mode toggle in settings schakelt het dark theme in en uit — alle componenten (tegels, detailweergave, modal, spiderweb chart, deelgebieden matrix) zijn consistent gestyled via CSS-variabelen
   3. De gekozen dark/light voorkeur wordt persistent opgeslagen en hersteld bij herstart van de app
   4. Vanuit settings kan de mentor voor de actieve klas nieuwe PDFs en/of een verzuim-Excel uploaden — de bestaande klasdata blijft intact en wordt aangevuld
-**Plans**: 3 plans
+**Plans**: 4 plans
 **UI hint**: yes
 
 Plans:
@@ -295,6 +295,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 17-03-PLAN.md — App.tsx 4th view wiring + main.tsx startup hydration + KlasTabStrip gear icon + KlasTabStrip.test.tsx (SET-01, SET-02)
+**Gap Closure** *(depends on 17-03)*
+- [ ] 17-04-PLAN.md — Gap closure: dark mode coverage for DeelgebiedenMatrix headers, score chips, gap badges (POL-01)
 
 ### Phase 18: Settings Panel Advanced
 **Goal**: Mentor kan via de settings-pagina de deelgebieden, leerlijnen, verzuim-drempelwaarden en BPV-uren aanpassen aan de eigen klassituatie — wijzigingen zijn direct zichtbaar in het dashboard
