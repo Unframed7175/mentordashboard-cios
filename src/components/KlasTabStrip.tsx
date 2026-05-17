@@ -24,7 +24,7 @@ export default function KlasTabStrip({ klassen, activeKlasId, onSwitch, onCreate
       ))}
       <button
         className="nav-tab"
-        style={{ color: '#3b82f6' }}
+        style={{ color: 'var(--accent)' }}
         title="Nieuwe klas aanmaken"
         onClick={onCreateKlas}
       >

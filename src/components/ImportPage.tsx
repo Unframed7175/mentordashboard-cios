@@ -272,7 +272,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
         onDrop={onDrop}
         onDragLeave={onDragLeave}
         style={{
-          border: isDragging ? '2px dashed #0055cc' : '2px dashed #aaa',
+          border: isDragging ? '2px dashed var(--accent)' : '2px dashed var(--border-default)',
           borderRadius: '8px',
           padding: '2rem',
           textAlign: 'center',
@@ -296,7 +296,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
       {errors.length > 0 && (
         <ul>
           {errors.map((err, i) => (
-            <li key={i} style={{ color: 'red' }}>{err}</li>
+            <li key={i} style={{ color: 'var(--status-rood-text)' }}>{err}</li>
           ))}
         </ul>
       )}
