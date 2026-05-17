@@ -54,8 +54,18 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
   const klas = klassenState.activeKlasId ? klassenState.klassen[klassenState.activeKlasId] : null;
   const stageData = klas?.stageData?.[leerlingId] ?? null;
 
+  // Aggregate deelgebiedScores across ALL periods: latest non-null wins.
+  // Most-recent record alone only covers one period — when 2+ PDFs are imported,
+  // the spider chart would otherwise show zeroes for deelgebieden only scored in older periods.
+  const aggregatedScores: Record<string, string | null> = {};
+  for (const rec of records) {
+    for (const [label, score] of Object.entries(rec.deelgebiedScores || {})) {
+      if (score !== null) aggregatedScores[label] = score as string;
+    }
+  }
+
   return (
-    <div style={{ maxWidth: '980px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1rem' }}>
       {/* Detail header */}
       <div
         className="detail-header"
@@ -125,21 +135,21 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
         <div className="spider-charts-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'flex-start' }}>
           <SpiderChartCard
             group="lesgeven"
-            scores={student.deelgebiedScores || {}}
+            scores={aggregatedScores}
             fillVar="--spider-lesgeven"
             strokeVar="--spider-lesgeven-stroke"
             title="Lesgeven"
           />
           <SpiderChartCard
             group="organiseren"
-            scores={student.deelgebiedScores || {}}
+            scores={aggregatedScores}
             fillVar="--spider-organiseren"
             strokeVar="--spider-organiseren-stroke"
             title="Organiseren"
           />
           <SpiderChartCard
             group="prof_handelen"
-            scores={student.deelgebiedScores || {}}
+            scores={aggregatedScores}
             fillVar="--spider-prof-handelen"
             strokeVar="--spider-prof-handelen-stroke"
             title="Prof. handelen"

@@ -174,13 +174,18 @@ export function mergeVerzuim(verzuimRecords: any[]): { matched: number; unmatche
     }
 
     if (student) {
-      student.verzuim = {
+      const verzuimData = {
         aanwezigheid:  v.aanwezigheid,
         geoorloofd:    v.geoorloofd,
         ongeoorloofd:  v.ongeoorloofd,
         totaal:        v.totaal,
         laatsteMelding: v.laatsteMelding,
       };
+      // Apply verzuim to ALL records for this student so the klas overview
+      // tile shows the bar without requiring a detail-view click first.
+      appState.students
+        .filter(function(s: any) { return s.leerlingId === student.leerlingId; })
+        .forEach(function(s: any) { s.verzuim = verzuimData; });
       console.log('[mergeVerzuim] ✓ ' + v.naam + ' → ' + student.naam + ' [via ' + matchedStrategy + ']');
       result.matched++;
     } else {

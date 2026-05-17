@@ -45,10 +45,12 @@ export default function LeerlingTegel({ student, status, onClick }: LeerlingTege
     }
   }
 
+  const ragVar = `var(--rag-${status.kleur}, var(--rag-grijs))`;
+
   return (
     <div
       className="klas-tile"
-      style={{ borderLeft: `4px solid ${RAG_BORDER[status.kleur] || RAG_BORDER.grijs}` }}
+      style={{ '--tile-accent': ragVar } as React.CSSProperties}
       onClick={onClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}

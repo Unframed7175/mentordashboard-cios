@@ -30,6 +30,10 @@ function App() {
     setView('klas');
   }
 
+  function handleImportOpen() {
+    setView('import');
+  }
+
   async function handleKlasSwitch(id: string) {
     await switchActiveKlas(id);
     setRefreshKey(k => k + 1);
@@ -63,6 +67,7 @@ function App() {
         activeKlasId={klassenState.activeKlasId}
         onSwitch={handleKlasSwitch}
         onCreateKlas={() => setShowModal(true)}
+        onImport={handleImportOpen}
       />
       {showModal && (
         <KlasModal

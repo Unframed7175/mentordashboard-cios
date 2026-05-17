@@ -15,7 +15,7 @@ interface KlasOverzichtProps {
   onKlasDeleted: () => void;
 }
 
-export default function KlasOverzicht({ refreshKey: _refreshKey, onSelectStudent, onKlasDeleted }: KlasOverzichtProps) {
+export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDeleted }: KlasOverzichtProps) {
   const [zoekTerm, setZoekTerm] = useState('');
   const [sortKey, setSortKey] = useState<'naam' | 'status' | 'verzuim'>('naam');
   const [sortAsc, setSortAsc] = useState(true);
@@ -23,21 +23,34 @@ export default function KlasOverzicht({ refreshKey: _refreshKey, onSelectStudent
   // Read singleton directly — refreshKey causes re-render when data changes
   const allStudents = getActiveStudents();
 
-  // WR-04: Wrap status computation in useMemo keyed on allStudents to avoid
-  // recomputing berekenStatus for every render triggered by zoekTerm changes.
+  // WR-04: Wrap status computation in useMemo keyed on refreshKey + student count
+  // to avoid recomputing berekenStatus for every render triggered by zoekTerm changes.
+  // Using refreshKey (import/switch trigger) + student count as stable cache key;
+  // getActiveStudents() returns a new array reference each call so we cannot use
+  // the array reference directly as a dependency — that would rebuild every render.
   const statusMap = useMemo(() => {
+    const students = getActiveStudents();
     const m = new Map<string, ReturnType<typeof berekenStatus>>();
-    for (const s of allStudents) m.set(s.leerlingId, berekenStatus(s));
+    for (const s of students) m.set(s.leerlingId, berekenStatus(s));
     return m;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allStudents]);
+  }, [refreshKey, allStudents.length]);
 
   // KPI computation over ALL students (not filtered subset) — per plan spec
-  const kpiStatuses = allStudents.map(s => statusMap.get(s.leerlingId)!);
-  const opSchemaCount = kpiStatuses.filter(st => st.kleur === 'groen' || st.kleur === 'blauw').length;
-  const risicoCount = kpiStatuses.filter(st => st.kleur === 'rood').length;
-  const verzuimCount = kpiStatuses.filter(st => st.kleur === 'oranje' && st.label === 'Verzuim').length;
-  const pctOpSchema = allStudents.length > 0 ? Math.round((opSchemaCount / allStudents.length) * 100) : 0;
+  // Fix: use statusMap values directly rather than re-mapping via allStudents
+  // to ensure we count from the same dataset the map was built from.
+  const allStatuses = Array.from(statusMap.values());
+  const opSchemaCount = allStatuses.filter(st => st.kleur === 'groen' || st.kleur === 'blauw').length;
+  const risicoCount   = allStatuses.filter(st => st.kleur === 'rood').length;
+  const letOpCount    = allStatuses.filter(st => st.kleur === 'oranje' && st.label === 'Let op').length;
+  const verzuimCount  = allStatuses.filter(st => st.kleur === 'oranje' && st.label === 'Verzuim').length;
+  const grijsCount    = allStatuses.filter(st => st.kleur === 'grijs').length;
+
+  // pctOpSchema denominator excludes grijs (unscored) students so the percentage
+  // reflects only students whose status is actually known (rood/oranje/groen/blauw).
+  // Shows "--" when no scored students exist yet.
+  const scoredCount = allStudents.length - grijsCount;
+  const pctOpSchema = scoredCount > 0 ? Math.round((opSchemaCount / scoredCount) * 100) : null;
 
   // Filter by zoekTerm (case-insensitive naam match, no debounce)
   let filtered = allStudents;
@@ -130,8 +143,12 @@ export default function KlasOverzicht({ refreshKey: _refreshKey, onSelectStudent
       {allStudents.length > 0 && (
         <div id="kpi-strip">
           <div className="kpi-tile">
-            <div className="kpi-value">{pctOpSchema}%</div>
+            <div className="kpi-value">{pctOpSchema !== null ? `${pctOpSchema}%` : '--'}</div>
             <div className="kpi-label">Op schema</div>
+          </div>
+          <div className="kpi-tile">
+            <div className="kpi-value">{letOpCount}</div>
+            <div className="kpi-label">Let op</div>
           </div>
           <div className="kpi-tile">
             <div className="kpi-value">{risicoCount}</div>
@@ -141,6 +158,12 @@ export default function KlasOverzicht({ refreshKey: _refreshKey, onSelectStudent
             <div className="kpi-value">{verzuimCount}</div>
             <div className="kpi-label">Verzuim</div>
           </div>
+          {grijsCount > 0 && (
+            <div className="kpi-tile">
+              <div className="kpi-value">{grijsCount}</div>
+              <div className="kpi-label">Onbekend</div>
+            </div>
+          )}
         </div>
       )}
 

@@ -6,7 +6,15 @@ import * as XLSX from 'xlsx';
 import * as cpexcel from 'xlsx/dist/cpexcel.full.mjs';
 
 // Registreer cpexcel bij module load voor correcte Nederlandse tekens (cp1252)
-XLSX.set_cptable((cpexcel as any).cptable);
+//
+// Bug A fix: cpexcel.full.mjs exports `cptable` (numeric-keyed codepage dict) and
+// `utils` as separate named exports. XLSX.set_cptable stores its argument as $cptable
+// and later calls $cptable.utils.decode(...) — so the argument must have BOTH the
+// numeric codepage keys AND a `utils` property. Passing `cpexcel.cptable` alone
+// omits `utils`, causing a runtime TypeError: Cannot read properties of undefined
+// (reading 'decode'). Merging utils into a shallow copy of cptable fixes this.
+const _cptableWithUtils = Object.assign({}, (cpexcel as any).cptable, { utils: (cpexcel as any).utils });
+XLSX.set_cptable(_cptableWithUtils);
 
 /**
  * Parse a Dutch time string in the format "107u24m" to total minutes.

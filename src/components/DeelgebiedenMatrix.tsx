@@ -63,7 +63,10 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
   const hasTwoPeriods = allRecords.length >= 2
     && allRecords[0].periode !== allRecords[allRecords.length - 1].periode;
 
-  const datapunten: any[] = student.datapunten || [];
+  // Bug B fix: collect datapunten from ALL periods (oldest-first), not just the
+  // most-recent record. Previously `student.datapunten` only contained the newest
+  // period's rows, so ~half the rows were invisible when 2 PDFs were imported.
+  const datapunten: any[] = allRecords.flatMap((r: any) => r.datapunten || []);
 
   // Group deelgebieden per leerlijn
   const groepDG: Record<string, typeof DEELGEBIEDEN> = {};
@@ -87,7 +90,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
       <div className="detail-section">
         <p className="detail-section-title">Beoordelingen per datapunt × deelgebied</p>
         <div className="dg-matrix-wrap" style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
-          <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '860px' }}>
+          <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '1100px' }}>
             <tbody>
               <tr>
                 <td colSpan={allDG.length + 1} style={{ color: '#9ca3af', padding: '0.75rem 1rem', fontSize: '0.85rem' }}>
@@ -105,7 +108,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
     <div className="detail-section">
       <p className="detail-section-title">Beoordelingen per datapunt × deelgebied</p>
       <div className="dg-matrix-wrap" style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
-        <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '860px' }}>
+        <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '1100px' }}>
           <thead>
             <tr>
               <th className="col-naam" rowSpan={2} style={{ padding: '0.5rem 0.75rem', textAlign: 'left', whiteSpace: 'nowrap' }}>

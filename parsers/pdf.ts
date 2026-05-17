@@ -32,6 +32,14 @@ const STATUS_STRINGS = [
 ];
 
 /**
+ * Known vak group heading strings as they appear in SomToday PDFs.
+ * Only rows whose label exactly matches one of these (case-insensitive) are
+ * treated as group separators in the Overzicht Deelgebieden table.
+ * All other no-score rows are datapunten with blank scores (not yet graded).
+ */
+const VAK_HEADINGS = new Set(['lesgeven', 'organiseren', 'prof. handelen', 'professioneel handelen']);
+
+/**
  * Minimum number of deelgebied label matches in a line for it to be
  * considered the "Overzicht Deelgebieden" header row.
  */
@@ -553,8 +561,9 @@ function assignScoreToColumn(item: { str: string; x: number }, columnMap: Record
  *       · All other items are candidate score cells.
  *       · Each score cell is assigned to a column via assignScoreToColumn(),
  *         then normalised with normalizeScore().
- *     - Vak grouping: when we see a line that contains NO score cells but a
- *       non-empty label, treat it as a new vak heading.
+ *     - Vak grouping: rows whose label exactly matches a known VAK_HEADINGS
+ *       string are treated as group separators.  All other no-score rows are
+ *       datapunten with blank scores (not yet graded).
  *  3. "Latest non-null wins" aggregation for deelgebiedScores.
  *
  * Returns:
@@ -617,10 +626,20 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     }
 
     if (!hasAnyScore) {
-      // This is a label-only line → treat as a new vak group heading
-      if (labelText && labelText.length > 1) {
+      // Rows with score-area cells that didn't match O/V/G/E are still datapunten (not yet graded).
+      // Rows with NO cells in the score area at all may be vak group headings OR blank-scored datapunten.
+      // Use VAK_HEADINGS to distinguish: only exact matches (case-insensitive) are group separators.
+      if (scoreItems.length > 0) {
+        // Has cells but none matched a score — include as datapunt with empty scores
+        datapunten.push({ vak: currentVak, datapunt: labelText, scores: {} });
+      } else if (labelText && VAK_HEADINGS.has(labelText.toLowerCase())) {
+        // Known vak group heading
         currentVak = labelText;
         console.log(`[pdf.ts] Deelgebied table: vak heading → "${currentVak}"`);
+      } else if (labelText && labelText.length > 1) {
+        // No score cells, not a known heading — treat as blank-scored datapunt
+        console.log(`[pdf.ts] Deelgebied table: blank datapunt (no scores yet) → "${labelText}" under vak "${currentVak}"`);
+        datapunten.push({ vak: currentVak, datapunt: labelText, scores: {} });
       }
       continue;
     }
@@ -749,6 +768,7 @@ export {
   // Constants
   Y_TOLERANCE,
   STATUS_STRINGS,
+  VAK_HEADINGS,
   MIN_HEADER_MATCHES,
   COLUMN_X_TOLERANCE,
 };
