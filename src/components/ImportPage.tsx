@@ -39,7 +39,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
   // Auto-detect helper: parse first PDF to derive class name and create the class.
   // Called when activeKlasId is null OR the active class has zero students.
   // T-16-01: naam is capped at 255 chars to prevent excessively long storage keys.
-  async function autoDetectKlas(files: File[]): Promise<{ naam: string } | null> {
+  async function autoDetectKlas(files: File[]): Promise<{ naam: string; reused: boolean } | null> {
     if (files.length === 0) return null;
 
     // Parse only the first file — let errors bubble to handlePDFs error handler (T-16-03)
@@ -59,12 +59,19 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
       ) as any | undefined;
       if (existingKlas) {
         await switchActiveKlas(existingKlas.id);
+        return { naam, reused: true };
       }
-      return { naam };
+      // WR-01: existingKlas vanished between createKlas duplicate check and our lookup — treat as error
+      throw new Error(`Klas met naam "${naam}" bestond niet meer na duplicaat-melding`);
+    }
+
+    // CR-01: guard against invalid return (defensive — should not occur with current name composition)
+    if (!createResult || createResult.error) {
+      throw new Error(`Klas aanmaken mislukt: ongeldig resultaat (${createResult?.error ?? 'unknown'})`);
     }
 
     // createResult is the newly created klas object: { id, naam, students }
-    return { naam: createResult.naam };
+    return { naam: createResult.naam, reused: false };
   }
 
   async function handlePDFs(files: File[]) {
