@@ -7,7 +7,7 @@ last_updated: "2026-05-17T00:00:00.000Z"
 last_activity: 2026-05-17
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
   completed_plans: 1
   percent: 0
@@ -24,15 +24,15 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 
 ## Current Position
 
-Phase: 16
-Plan: 01
-Status: All plans executed — awaiting verification
-Last activity: 2026-05-17 — Phase 16 plan 01 complete (autoDetectKlas + toast)
+Phase: 17
+Plan: —
+Status: Ready to discuss — Phase 16 complete
+Last activity: 2026-05-17 — Phase 16 complete (ACD-01 shipped; 2 out-of-scope bugs noted)
 
 ## Progress Bar
 
 ```
-v2.1: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases)
+v2.1: [█████░░░░░░░░░░░░░░░] 25% (1/4 phases)
 ```
 
 ## Performance Metrics
@@ -108,3 +108,4 @@ v2.1 phases completed: 0/4
 - 2026-05-16: Phase 15 Plan 01 executed — Bundle config. Cargo.toml: description + authors updated (D-09). entitlements.plist created: JIT entitlements only (com.apple.security.cs.allow-jit + allow-unsigned-executable-memory; no keychain-access-groups). tauri.conf.json: targets stays "all", bundle.windows.nsis.installMode: "currentUser", bundle.macOS.entitlements + signingIdentity: "-". npm run build 0 (NSIS + MSI). npm test 43/43 passed. 0 deviations.
 - 2026-05-17: v2.1 milestone started. Roadmap created — Phases 16–19 defined, all 11 requirements mapped. Next: /gsd-plan-phase 16
 - 2026-05-17: Phase 16 planned — 1 plan (auto-detect klas from PDF header + toast notification). ACD-01 covered. Verification passed 12 dimensions.
+- 2026-05-17: Phase 16 complete — autoDetectKlas() in ImportPage.tsx; ACD-01 shipped. UAT passed (2/3 tests; test 2 skipped). 2 out-of-scope bugs noted: drag-and-drop not working, stage Excel not parsing.

@@ -46,7 +46,7 @@
 
 ### v2.1 Settings, Polish & Auto-class Detection
 
-- [ ] **Phase 16: Auto-class Detection** — Bij eerste import detecteert de app automatisch de klasnaam uit de PDF-header en maakt de klas aan zonder handmatige stap
+- [x] **Phase 16: Auto-class Detection** — Bij eerste import detecteert de app automatisch de klasnaam uit de PDF-header en maakt de klas aan zonder handmatige stap *(completed 2026-05-17)*
 - [ ] **Phase 17: Settings Panel Foundation** — Mentor kan via een settings-icoon dark mode activeren (volledig gestyled) en nieuwe bestanden toevoegen aan een bestaande klas
 - [ ] **Phase 18: Settings Panel Advanced** — Mentor kan deelgebieden hernoemen/deactiveren, leerlijn-toewijzing aanpassen, verzuim-drempelwaarden en BPV-uren configureren
 - [ ] **Phase 19: UI Polish** — Spiderweb chart tooltips, responsive layout en consistente hover-animaties zijn afgerond
@@ -331,7 +331,7 @@ Plans:
 | 13. Bestandstoegang | 0/2 | Ready to execute | - |
 | 14. React UI | 0/6 | Not started | - |
 | 15. Packaging & Cross-platform | 0/2 | In progress | - |
-| 16. Auto-class Detection | 1/1 | In progress | - |
+| 16. Auto-class Detection | 1/1 | Complete | 2026-05-17 |
 | 17. Settings Panel Foundation | 0/TBD | Not started | - |
 | 18. Settings Panel Advanced | 0/TBD | Not started | - |
 | 19. UI Polish | 0/TBD | Not started | - |
