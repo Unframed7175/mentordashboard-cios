@@ -2,7 +2,7 @@
 phase: 17-settings-panel-foundation
 reviewed: 2026-05-17T00:00:00Z
 depth: standard
-files_reviewed: 12
+files_reviewed: 14
 files_reviewed_list:
   - src/index.css
   - src/App.css
@@ -11,6 +11,7 @@ files_reviewed_list:
   - src/components/KlasTabStrip.tsx
   - src/components/ImportPage.tsx
   - src/components/SettingsPage.tsx
+  - src/components/DeelgebiedenMatrix.tsx
   - utils/settings.ts
   - tests/SettingsPage.test.tsx
   - tests/KlasTabStrip.test.tsx
@@ -18,9 +19,9 @@ files_reviewed_list:
   - vitest.config.ts
 findings:
   critical: 2
-  warning: 5
-  info: 2
-  total: 9
+  warning: 7
+  info: 5
+  total: 14
 status: issues_found
 ---
 
@@ -28,12 +29,14 @@ status: issues_found
 
 **Reviewed:** 2026-05-17
 **Depth:** standard
-**Files Reviewed:** 12
+**Files Reviewed:** 14
 **Status:** issues_found
 
 ## Summary
 
-Phase 17 delivers a settings panel (dark-mode toggle, file import shortcut), a refactored `KlasTabStrip` that receives data as props, and a `utils/settings.ts` persistence helper. The core logic in `utils/settings.ts` and `SettingsPage.tsx` is structurally sound. Two blockers were found: a type-cast bug in `App.tsx` that can trap the user in the settings view with no way back, and a dead `App.css` file whose `:root` block and `input/button { outline: none }` rule actively conflict with the design system (the file is never imported, which hides the hazard but also means it is wasted scaffolding that could be imported by mistake in the future). Five quality warnings cover silent async errors, concurrent toggle saves, duplicated startup logic, a test coverage gap, and an emoji icon that violates the project's own UI skill rules.
+Phase 17 delivers a settings panel (dark-mode toggle, file import shortcut), a refactored `KlasTabStrip` that receives data as props, a `utils/settings.ts` persistence helper, and gap-closure plan 17-04 which added dark-mode CSS overrides for `DeelgebiedenMatrix` category headers, score chips, and gap badges, plus a partial refactor of `DeelgebiedenMatrix.tsx` to use CSS classes instead of inline styles.
+
+The two existing blockers (CR-01, CR-02) remain valid. Gap-closure 17-04 introduces no new critical issues, but the CSS class refactor in `DmChip` is incomplete — inline styles on the component still override the new CSS class values, meaning the refactor has no practical effect on rendering. Two additional warnings and three info items are added from the new files.
 
 ---
 
@@ -231,6 +234,52 @@ coverage: {
 
 ---
 
+### WR-06: `DmChip` inline styles override `.dm-chip` CSS class — refactor is incomplete
+
+**File:** `src/components/DeelgebiedenMatrix.tsx:30`
+
+**Issue:** The gap-closure refactor added `.dm-chip` as a CSS class (with `width: 1.625rem`, `height: 1.625rem`, `border-radius: 6px`, etc.) but the `DmChip` component's JSX still carries a `style={{...}}` prop that sets conflicting values: `width: '1.5rem'`, `lineHeight: '1.6rem'`, `borderRadius: '4px'`, `fontWeight: 700`, `fontSize: '0.72rem'`, `textAlign: 'center'`. Inline styles always win over class styles in CSS cascade, so the CSS class values for `width` and `border-radius` are silently overridden. The refactor has no practical effect on rendered output.
+
+The chip height (1.625rem from `.dm-chip`) is also not enforced because the inline styles do not set `height`, leaving a mixed sizing model: height from CSS class, width from inline style.
+
+**Fix:** Remove all inline styles from the chip `<span>` and rely entirely on the `.dm-chip` class:
+
+```tsx
+function DmChip({ score }: { score: string | null | undefined }) {
+  if (!score) {
+    return <span className="dm-chip score-none">—</span>;
+  }
+  const c = SCORE_CHIP_MAP[score];
+  return c
+    ? <span className={`dm-chip ${c.css}`}>{c.kort}</span>
+    : <span className="dm-chip score-none">?</span>;
+}
+```
+
+Ensure the `.dm-chip` CSS class in `index.css` is complete (it already defines `display`, `align-items`, `justify-content`, `width`, `height`, `border-radius`, `font-weight`, `font-size`, `letter-spacing`). Add `line-height: 1` if centering is needed without the explicit `lineHeight` inline value.
+
+---
+
+### WR-07: `student` prop is declared and destructured but never used
+
+**File:** `src/components/DeelgebiedenMatrix.tsx:7, 49`
+
+**Issue:** After the 17-04 refactor, `student` is listed in the `DeelgebiedenMatrixProps` interface (typed as `any`) and destructured in the function signature, but it is never referenced anywhere in the component body. All data is now sourced from `getAllRecordsForStudent(leerlingId)`. The dead `any`-typed prop adds confusion about what data the component actually requires, and callers must supply a value they do not need.
+
+**Fix:** Remove the `student` prop from the interface and the destructuring:
+
+```tsx
+interface DeelgebiedenMatrixProps {
+  leerlingId: string;
+}
+
+export default function DeelgebiedenMatrix({ leerlingId }: DeelgebiedenMatrixProps) {
+```
+
+Update all call sites to stop passing `student`.
+
+---
+
 ## Info
 
 ### IN-01: `SettingsPage.tsx` re-runs full `loadSettings` on every mount even though `main.tsx` already hydrated the theme
@@ -265,6 +314,70 @@ if (saved?.theme) {
 ```css
 /* DEAD FILE — do not import. Vite/Tauri template scaffold; all styles
    are in src/index.css. This file is retained only for git history. */
+```
+
+---
+
+### IN-03: `!datapunten` null-guard in early return is dead code
+
+**File:** `src/components/DeelgebiedenMatrix.tsx:76`
+
+**Issue:** The condition `if (!datapunten || datapunten.length === 0)` checks `!datapunten` first, but `datapunten` is initialized on line 57 as:
+
+```ts
+const datapunten: any[] = allRecords.flatMap((r: any) => r.datapunten || []);
+```
+
+`Array.prototype.flatMap` always returns an array; `datapunten` is therefore never `null`, `undefined`, or any other falsy value. The `!datapunten` branch can never be true and is dead code. It is harmless but misleads readers into thinking the variable could be nullish.
+
+**Suggestion:** Simplify to:
+
+```ts
+if (datapunten.length === 0) {
+```
+
+---
+
+### IN-04: Split `body.dark` block creates maintenance hazard in `index.css`
+
+**File:** `src/index.css:111-141` and `143-155`
+
+**Issue:** Gap-closure 17-04 appended a second `body.dark { ... }` block (lines 143–155) immediately after the first one (lines 111–141) rather than merging the new token overrides into the existing block. Both blocks apply correctly (later declarations win for conflicting properties), but the split layout means the dark-mode token overrides for `DeelgebiedenMatrix` are separated from the rest of the dark-mode palette. Future developers searching for dark-mode token values may not realise there is a second block and miss it.
+
+**Suggestion:** Merge lines 143–155 into the existing `body.dark` block at line 111:
+
+```css
+body.dark {
+  /* ... all existing tokens ... */
+
+  /* DeelgebiedenMatrix category header tokens */
+  --dm-lesgeven-bg:        #1e3a5f;
+  --dm-lesgeven-text:      #93c5fd;
+  --dm-lesgeven-border:    #1d4ed8;
+  /* ... etc. */
+}
+```
+
+---
+
+### IN-05: `GrowthBadge` and `gap-ok/danger/warn/info` dark overrides use hardcoded hex instead of design tokens
+
+**File:** `src/components/DeelgebiedenMatrix.tsx:44-46`, `src/index.css:162-165`
+
+**Issue:** `GrowthBadge` renders growth indicators with hardcoded hex colors (`#16a34a`, `#dc2626`, `#9ca3af`) that do not adapt to dark mode. In dark mode these greens and reds will appear on a dark background — the contrast may be acceptable, but they bypass the token system entirely. Similarly, the dark overrides for `.gap-ok`, `.gap-danger`, `.gap-warn`, `.gap-info` (index.css lines 162–165) hardcode hex values that duplicate values already present in `--status-*` tokens (e.g., `#14532d` duplicates what would be `--status-groen-bg` in dark mode). If the palette tokens change, these hardcoded values will not update.
+
+**Suggestion:** Use CSS variables in the dark override rules, and add CSS classes for `GrowthBadge` instead of inline styles:
+
+```css
+/* index.css — dark overrides using tokens */
+body.dark .gap-ok     { background: var(--status-groen-bg);  color: var(--status-groen-text);  }
+body.dark .gap-danger { background: var(--status-rood-bg);   color: var(--status-rood-text);   }
+body.dark .gap-warn   { background: var(--status-oranje-bg); color: var(--status-oranje-text); }
+body.dark .gap-info   { background: var(--status-blauw-bg);  color: var(--status-blauw-text);  }
+
+.growth-up   { color: var(--status-groen-text); }
+.growth-down { color: var(--status-rood-text);  }
+.growth-same { color: var(--text-muted);        }
 ```
 
 ---

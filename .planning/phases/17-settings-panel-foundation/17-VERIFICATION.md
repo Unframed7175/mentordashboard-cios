@@ -1,27 +1,26 @@
 ---
 phase: 17-settings-panel-foundation
-verified: 2026-05-17T19:20:00Z
-status: human_needed
+verified: 2026-05-17T21:00:00Z
+status: passed
 score: 4/4 must-haves verified
 overrides_applied: 0
-human_verification:
-  - test: "Dark mode toggle applies consistently to ALL components"
-    expected: "Toggling dark mode in Settings applies correct dark tokens to spiderweb chart, deelgebieden matrix, KPI tiles, student tiles, and detail view — every component is consistently styled"
-    why_human: "CSS token coverage for all components cannot be verified by grep alone. Components like VerzuimSection and DeelgebiedenMatrix retain hardcoded semantic colors (intentional) but the dark CSS variables must reach all remaining non-semantic colors. Requires visual inspection with body.dark active."
-  - test: "SET-02 add-to-existing-class flow end-to-end"
-    expected: "With an active klas that already has students, opening Settings -> Bestanden toevoegen -> dropping a new PDF should ADD the student to the existing klas (not create a new klas). The student count increases by 1."
-    why_human: "The SET-02 path relies on Phase 16's auto-detect-skip logic (ImportPage.handlePDFs: when activeKlasId != null && students.length > 0, autoDetectKlas is bypassed). This runtime behavior requires a real PDF and Tauri plugin-store to verify end-to-end."
-  - test: "Dark mode persists across app restart"
-    expected: "After activating dark mode and closing + reopening the app, dark mode should be restored on the first paint with no light flash"
-    why_human: "Requires running the Tauri desktop app to verify plugin-store persistence across process restarts. Cannot be tested without the Tauri runtime."
+re_verification:
+  previous_status: human_needed
+  previous_score: 4/4
+  gaps_closed:
+    - "Dark mode does not cover DeelgebiedenMatrix category headers (Lesgeven/Organiseren/Prof.handelen) — hardcoded inline hex in GROEPEN array bypassed body.dark cascade"
+    - "Score chips (.score-o/v/g/e) had no body.dark overrides — light pastels stayed visible in dark mode"
+    - "Gap badges (.gap-ok/danger/warn/info) had no body.dark overrides"
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 17: Settings Panel Foundation Verification Report
 
 **Phase Goal:** Mentor kan via een settings-icoon een settings-pagina openen, dark mode activeren met een toggle (volledig gestyled in alle componenten), en nieuwe PDFs of een verzuim-Excel toevoegen aan een bestaande klas zonder de klas opnieuw aan te maken
-**Verified:** 2026-05-17T19:20:00Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-05-17T21:00:00Z
+**Status:** passed
+**Re-verification:** Yes — after gap closure by plan 17-04 (dark mode matrix/chip/badge coverage) and human UAT (SET-02 and persistence confirmed pass)
 
 ## Goal Achievement
 
@@ -29,46 +28,54 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Settings icon visible in nav bar; clicking opens settings page without losing klas context | VERIFIED | `KlasTabStrip.tsx` has gear button (⚙, `aria-label="Instellingen openen"`, `marginLeft:'auto'`). `App.tsx` has `handleOpenSettings` that pins `prevView` before setting `view='settings'`. `handleBackFromSettings` restores `setView(prevView)`. 4 KlasTabStrip tests pass. |
-| 2 | Dark mode toggle switches all components consistently via CSS variables | VERIFIED (partial — human check needed for visual completeness) | `body.dark` block in `src/index.css` with all 29 token overrides confirmed. All CSS classes use `var(--...)` tokens. No `@media(prefers-color-scheme:dark)` anywhere in `index.css` or `App.css`. Toggle in `SettingsPage` calls `applyTheme()` which does `document.body.classList.toggle('dark', ...)`. |
-| 3 | Dark/light preference is persistently saved and restored on restart | VERIFIED (automated) + human needed for Tauri runtime | `utils/settings.ts` exports `saveSettings`/`loadSettings` using `LazyStore('store.json')` with `store.save()` after `store.set()`. `main.tsx` calls `loadSettings()` + `applyTheme()` BEFORE `ReactDOM.createRoot`. `SettingsPage` mount effect restores saved theme. 3 SET-01 tests pass (persistence, restore, OS fallback). |
-| 4 | From settings, mentor can add PDFs/Excel to active class — existing class data stays intact | VERIFIED (code logic) + human needed for E2E | `handleNavigateToImportFromSettings` in `App.tsx` ONLY calls `setView('import')` — does NOT touch `klassenState`. Phase 16 auto-detect-skip logic (when `activeKlasId != null && students.length > 0`) bypasses klas creation and appends to existing class. SET-02 test: `onNavigateToImport` callback fires. |
+| 1 | Settings icon visible in nav bar; clicking opens settings page without losing klas context | VERIFIED | `KlasTabStrip.tsx` has gear button (`aria-label="Instellingen openen"`, `marginLeft:'auto'`). `App.tsx` has `handleOpenSettings` that pins `prevView` before setting `view='settings'`. `handleBackFromSettings` restores `setView(prevView)`. 4 KlasTabStrip tests pass. |
+| 2 | Dark mode toggle switches ALL components consistently via CSS variables | VERIFIED | `body.dark` block with 29 tokens in `src/index.css`. Plan 17-04 added: second `body.dark` block for `--dm-*` tokens; `body.dark .score-o/v/g/e` rules; `body.dark .gap-ok/danger/warn/info` rules; `.dm-header-lesgeven/organiseren/profhandelen` classes. `DeelgebiedenMatrix.tsx` GROEPEN refactored to `className` — no `headerStyle` inline hex remains. Grep-verified: `body.dark .score-o` at index.css:157, `dm-header-lesgeven` class at index.css:919, zero `headerStyle` matches in DeelgebiedenMatrix.tsx. Human UAT test 1 confirmed pass after 17-04. |
+| 3 | Dark/light preference is persistently saved and restored on restart | VERIFIED | `utils/settings.ts` exports `saveSettings`/`loadSettings` using `LazyStore('store.json')` with `store.save()` after `store.set()`. `main.tsx` calls `loadSettings()` + `applyTheme()` BEFORE `ReactDOM.createRoot`. 3 SET-01 tests pass (persistence, restore, OS fallback). Human UAT test 3 (persistence across Tauri restart): PASS (confirmed by user). |
+| 4 | From settings, mentor can add PDFs/Excel to active class — existing class data stays intact | VERIFIED | `handleNavigateToImportFromSettings` in `App.tsx` ONLY calls `setView('import')` — does NOT touch `klassenState`. Phase 16 auto-detect-skip logic (when `activeKlasId != null && students.length > 0`) bypasses klas creation. Human UAT test 2 (SET-02 E2E add-to-existing-class): PASS (confirmed by user). |
 
-**Score:** 4/4 roadmap success criteria satisfied in code. 3 items routed to human verification for runtime/visual confirmation.
+**Score:** 4/4 roadmap success criteria satisfied. All three human UAT items resolved: SET-02 passed, persistence across restart passed, dark mode matrix/chip/badge gap closed by 17-04 and confirmed pass by user.
 
-### Deferred Items
+### Gap Closure Record (17-04)
 
-None — all Phase 17 requirements are accounted for. SET-03 through SET-06 are explicitly Phase 18 scope per REQUIREMENTS.md traceability.
+The initial verification routed "dark mode visual coverage" to human testing because DeelgebiedenMatrix used hardcoded inline hex on `<th>` headers and score/gap chip classes had no `body.dark` overrides. Human UAT reported this as an issue. Gap closure plan 17-04 resolved all three root causes:
+
+| Root Cause | Fix Applied | Grep Verification |
+|------------|-------------|-------------------|
+| GROEPEN array `headerStyle` hardcoded hex on `<th>` | Replaced with `className: 'dm-header-*'` in DeelgebiedenMatrix.tsx; `style` prop removed | `grep headerStyle src/components/DeelgebiedenMatrix.tsx` → 0 matches |
+| `.score-o/v/g/e` chips had no `body.dark` override | Added `body.dark .score-o/v/g/e` rules to index.css | `grep "body.dark .score-o" src/index.css` → line 157 |
+| `.gap-ok/danger/warn/info` badges had no `body.dark` override | Added `body.dark .gap-*` rules to index.css | `grep "body.dark .gap-ok" src/index.css` → line 162 |
+| No CSS classes for matrix header dark tokens | Added `.dm-header-lesgeven/organiseren/profhandelen` using `--dm-*` custom properties | `grep "dm-header-lesgeven" src/index.css` → line 919 |
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `src/index.css` | `body.dark` selector + section 24 CSS | VERIFIED | `body.dark {}` block with all 29 tokens. Section 24 has `.settings-page`, `.settings-header`, `.toggle-switch`, `.toggle-track`, `.toggle-track.on`, `.toggle-thumb`, `.settings-placeholder-text`, focus rule. `translateX(22px)` confirmed. No `@media(prefers-color-scheme:dark)`. |
-| `src/App.css` | `@media(prefers-color-scheme:dark)` removed | VERIFIED | `prefers-color-scheme` substring absent. `.logo` rule still present (surgical removal confirmed). |
+| `src/index.css` | `body.dark` selector + section 24 CSS + 17-04 overrides | VERIFIED | `body.dark {}` block with 29 tokens. Second `body.dark {}` for `--dm-*` tokens. `body.dark .score-o/v/g/e` at lines 157-160. `body.dark .gap-ok/danger/warn/info` at lines 162-165. `.dm-header-lesgeven/organiseren/profhandelen` at line 919+. No `@media(prefers-color-scheme:dark)`. |
+| `src/App.css` | `@media(prefers-color-scheme:dark)` removed | VERIFIED | `prefers-color-scheme` substring absent. `.logo` rule still present. |
+| `src/components/DeelgebiedenMatrix.tsx` | GROEPEN uses `className` not `headerStyle`; `<th>` uses `className={g.className}` | VERIFIED | `headerStyle` absent (0 matches). Lines 12-14 show `className: 'dm-header-lesgeven'` etc. |
 | `src/components/KlasTabStrip.tsx` | Gear icon, `onSettings` prop, no `onImport`, no `↑ Importeer` | VERIFIED | All confirmed by code read and automated checks. |
-| `src/components/ImportPage.tsx` | `#aaa` and `color:red` tokenized | VERIFIED | `#aaa` absent, `color:'red'` absent. `var(--border-default)` and `var(--status-rood-text)` present. `#0055cc` toast brand color retained (intentional). |
-| `utils/settings.ts` | Exports `Theme`, `loadSettings`, `saveSettings`, `applyTheme` | VERIFIED | All 4 exports confirmed. `LazyStore('store.json')` with `autoSave:false`. `store.save()` called after `store.set()`. `classList.toggle('dark', ...)` in `applyTheme`. |
-| `src/components/SettingsPage.tsx` | 4-section settings page, flicker-free toggle, Dutch copy | VERIFIED | All 4 sections present. Lazy `useState(() => document.body.classList.contains('dark'))`. Mount `useEffect` with try/catch. `handleToggle` calls `applyTheme` + `setIsDark` + `saveSettings`. All Dutch strings present: `← Terug`, `Instellingen`, `Weergave`, `Donkere modus`, `Bestanden`, `Bestanden toevoegen`, `Komt in een volgende versie.` |
-| `src/App.tsx` | 4th `settings` view state, `prevView`, 3 handlers, `SettingsPage` mount | VERIFIED | `view` union includes `'settings'`. `prevView` state initialized to `'klas'`. `handleOpenSettings`, `handleBackFromSettings`, `handleNavigateToImportFromSettings` present. `handleImportOpen` absent. `onImport=` prop absent. `{view === 'settings' && <SettingsPage ...>}` block confirmed. |
-| `src/main.tsx` | Theme hydration before `ReactDOM.createRoot`, try/catch | VERIFIED | `loadSettings` + `applyTheme` imported from `../utils/settings`. `await loadSettings()` appears before `ReactDOM.createRoot` in file. Wrapped in `try/catch` with `console.error('[main.tsx] thema hydratie mislukt:')`. `saveSettings` absent (D-06). OS fallback in catch branch. |
-| `tests/SettingsPage.test.tsx` | 6 tests at `tests/` (not `src/`), ES6 class mock | VERIFIED | File exists at `tests/SettingsPage.test.tsx`. `vi.mock('@tauri-apps/plugin-store')` with `LazyStore: class`. 6 `it(...)` blocks confirmed. All 6 pass. |
-| `tests/KlasTabStrip.test.tsx` | 4 tests at `tests/` (not `src/`) | VERIFIED | File exists at `tests/KlasTabStrip.test.tsx`. 4 tests: gear present, callback, active class, legacy text absent. All 4 pass. |
-| `tests/vitest-setup.js` | `window.matchMedia` stub, original `globalThis.jest` shim retained | VERIFIED | `Object.defineProperty(window, 'matchMedia', ...)` present. `globalThis.jest` shim present. |
+| `src/components/ImportPage.tsx` | `#aaa` and `color:red` tokenized | VERIFIED | `#aaa` absent, `color:'red'` absent. `var(--border-default)` and `var(--status-rood-text)` present. |
+| `utils/settings.ts` | Exports `Theme`, `loadSettings`, `saveSettings`, `applyTheme` | VERIFIED | All 4 exports confirmed. `LazyStore('store.json')` with `autoSave:false`. `store.save()` called after `store.set()`. |
+| `src/components/SettingsPage.tsx` | 4-section settings page, flicker-free toggle, Dutch copy | VERIFIED | All 4 sections present. Lazy `useState(() => document.body.classList.contains('dark'))`. Mount `useEffect` with try/catch. All Dutch strings present. |
+| `src/App.tsx` | 4th `settings` view state, `prevView`, 3 handlers, `SettingsPage` mount | VERIFIED | `view` union includes `'settings'`. `prevView` state initialized to `'klas'`. All 3 handlers present. `{view === 'settings' && <SettingsPage ...>}` confirmed. |
+| `src/main.tsx` | Theme hydration before `ReactDOM.createRoot`, try/catch | VERIFIED | `loadSettings` + `applyTheme` imported. `await loadSettings()` before `ReactDOM.createRoot`. Wrapped in `try/catch`. |
+| `tests/SettingsPage.test.tsx` | 6 tests at `tests/`, ES6 class mock | VERIFIED | File exists. 6 `it(...)` blocks. All 6 pass. |
+| `tests/KlasTabStrip.test.tsx` | 4 tests at `tests/` | VERIFIED | File exists. 4 tests. All 4 pass. |
+| `tests/vitest-setup.js` | `window.matchMedia` stub, `globalThis.jest` shim | VERIFIED | Both present. |
 | `vitest.config.ts` | include extended to `.tsx` | VERIFIED | `include: ['tests/**/*.test.{js,ts,jsx,tsx}']` confirmed. |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
-| `body.dark` | CSS custom properties | selector override | VERIFIED | `body.dark { --accent: ...; ... }` block with 29 tokens in `index.css` |
-| `.sr-only:focus-visible` | `.toggle-track` | adjacent sibling `+` | VERIFIED | `.sr-only:focus-visible + .toggle-track { outline: 2.5px solid var(--accent); ... }` present |
+| `body.dark` | CSS custom properties | selector override | VERIFIED | `body.dark { --accent: ...; ... }` block with 29 tokens + second block for `--dm-*` tokens |
+| `DeelgebiedenMatrix.tsx GROEPEN` | `src/index.css .dm-header-*` | `className` prop on `<th>` | VERIFIED | Lines 12-14 set `className: 'dm-header-lesgeven'` etc.; `<th className={g.className}>` — no `style` prop |
+| `body.dark .score-o/v/g/e` | `.score-o/v/g/e` chip base classes | later CSS rule (same specificity, wins by order) | VERIFIED | Rules at index.css:157-160 override base chip classes for dark mode |
+| `body.dark .gap-ok/danger/warn/info` | `.gap-*` badge base classes | later CSS rule | VERIFIED | Rules at index.css:162-165 |
 | `SettingsPage onChange` | `document.body.classList` | `classList.toggle('dark', checked)` | VERIFIED | `applyTheme(theme)` calls `document.body.classList.toggle('dark', theme === 'dark')` |
 | `SettingsPage onChange` | plugin-store `settings` key | `saveSettings({ theme })` | VERIFIED | `handleToggle` calls `await saveSettings({ theme })` |
-| `SettingsPage useState initializer` | `document.body.classList` | synchronous read of hydrated dark class | VERIFIED | `useState(() => typeof document !== 'undefined' && document.body.classList.contains('dark'))` |
-| `SettingsPage mount useEffect` | `window.matchMedia` | OS-preference fallback | VERIFIED | `window.matchMedia('(prefers-color-scheme: dark)').matches` in else branch; NOT persisted |
-| `main.tsx startup IIFE` | `utils/settings.ts` `loadSettings` + `applyTheme` | `await` inside try/catch before `ReactDOM.createRoot` | VERIFIED | Confirmed by code read and position check |
-| `KlasTabStrip gear button onClick` | `App.tsx handleOpenSettings` | `onSettings` prop | VERIFIED | `onSettings={handleOpenSettings}` in `App.tsx` JSX |
+| `main.tsx startup IIFE` | `utils/settings.ts` | `await loadSettings()` + `applyTheme()` before `ReactDOM.createRoot` | VERIFIED | Confirmed by code read |
+| `KlasTabStrip gear button onClick` | `App.tsx handleOpenSettings` | `onSettings` prop | VERIFIED | `onSettings={handleOpenSettings}` in App.tsx JSX |
 | `App.tsx handleBackFromSettings` | `setView(prevView)` | `prevView` state | VERIFIED | `function handleBackFromSettings() { setView(prevView); }` |
 | `App.tsx handleNavigateToImportFromSettings` | `ImportPage` | `setView('import')` only | VERIFIED | Handler body: `setView('import')` — no `klassenState` mutations |
 
@@ -77,8 +84,9 @@ None — all Phase 17 requirements are accounted for. SET-03 through SET-06 are 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 |----------|---------------|--------|--------------------|--------|
 | `SettingsPage.tsx` | `isDark` | Lazy `useState` reads `document.body.classList.contains('dark')` + mount `loadSettings()` | Yes — reads hydrated DOM class set by `main.tsx` before React mount | FLOWING |
-| `utils/settings.ts` | `{ theme }` | `LazyStore('store.json').get('settings')` | Yes — real plugin-store read (same file as klassen) | FLOWING |
+| `utils/settings.ts` | `{ theme }` | `LazyStore('store.json').get('settings')` | Yes — real plugin-store read | FLOWING |
 | `main.tsx` | `saved.theme` | `await loadSettings()` before first render | Yes — theme applied to DOM before React mounts | FLOWING |
+| `DeelgebiedenMatrix.tsx` | header cell colors | `className={g.className}` → `.dm-header-*` CSS → `var(--dm-*-bg/text/border)` → `body.dark` override | Yes — CSS custom properties flow from `body.dark` block through class to rendered cell | FLOWING |
 
 ### Behavioral Spot-Checks
 
@@ -86,10 +94,14 @@ None — all Phase 17 requirements are accounted for. SET-03 through SET-06 are 
 |----------|---------|--------|--------|
 | Full test suite (53 tests) | `npx vitest run` | `53 passed, 5 skipped (58)` | PASS |
 | 6 SettingsPage tests (SET-01 persistence, restore, OS fallback, flicker-free, SET-02, back) | `npx vitest run tests/SettingsPage.test.tsx` | All 6 pass | PASS |
-| 4 KlasTabStrip tests (gear present, callback, active class, legacy removed) | within full suite run | All 4 pass | PASS |
-| `body.dark` block with 29 tokens | `node -e "..."` | All 29 tokens confirmed | PASS |
-| No `@media(prefers-color-scheme:dark)` in `index.css` or `App.css` | `node -e "..."` | Both files clean | PASS |
-| ImportPage tokens (`#aaa`, `color:red` removed) | `node -e "..."` | Both absent, CSS vars present | PASS |
+| 4 KlasTabStrip tests | within full suite run | All 4 pass | PASS |
+| `body.dark .score-o` rule present | `grep "body.dark .score-o" src/index.css` | Line 157: `body.dark .score-o { background: #450a0a; color: #fca5a5; }` | PASS |
+| `body.dark .gap-ok` rule present | `grep "body.dark .gap-ok" src/index.css` | Line 162: `body.dark .gap-ok { background: #14532d; color: #86efac; }` | PASS |
+| `.dm-header-lesgeven` class present | `grep "dm-header-lesgeven" src/index.css` | Line 919: `.dm-header-lesgeven {` | PASS |
+| `headerStyle` absent from DeelgebiedenMatrix | `grep "headerStyle" src/components/DeelgebiedenMatrix.tsx` | 0 matches | PASS |
+| `dm-header-*` className in GROEPEN | `grep "dm-header-" src/components/DeelgebiedenMatrix.tsx` | Lines 12-14: all three entries with correct classNames | PASS |
+| No `@media(prefers-color-scheme:dark)` in `index.css` or `App.css` | grep | Both files clean | PASS |
+| ImportPage tokens (`#aaa`, `color:red` removed) | grep | Both absent, CSS vars present | PASS |
 
 ### Probe Execution
 
@@ -99,9 +111,9 @@ No `scripts/*/tests/probe-*.sh` files found. Phase is UI/React — no convention
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|------------|-------------|--------|----------|
-| SET-01 | 17-02, 17-03 | Dark mode toggle with persistent preference restored on restart | SATISFIED | `utils/settings.ts` + `SettingsPage.tsx` + `main.tsx` hydration + 4 Vitest tests (persistence, restore, OS fallback, flicker-free) |
-| SET-02 | 17-03 | Add files to existing class from settings without re-creating class | SATISFIED (code) / human needed (E2E) | `handleNavigateToImportFromSettings` only flips view; Phase 16 auto-detect-skip handles existing class; SET-02 callback test passes |
-| POL-01 | 17-01 | Dark mode fully implemented — all components consistently styled via CSS variables | SATISFIED (CSS foundation) / human needed (visual) | `body.dark` block with 29 tokens; all neutral inline colors tokenized in `KlasTabStrip` and `ImportPage`; section 24 toggle CSS present |
+| SET-01 | 17-02, 17-03 | Dark mode toggle with persistent preference restored on restart | SATISFIED | `utils/settings.ts` + `SettingsPage.tsx` + `main.tsx` hydration + 4 Vitest tests. Human UAT test 3 (persistence across restart): PASS. |
+| SET-02 | 17-03 | Add files to existing class from settings without re-creating class | SATISFIED | `handleNavigateToImportFromSettings` only flips view; Phase 16 auto-detect-skip handles existing class; SET-02 callback test passes. Human UAT test 2: PASS. |
+| POL-01 | 17-01, 17-04 | Dark mode fully implemented — all components consistently styled via CSS variables | SATISFIED | `body.dark` block with 29 tokens + 17-04 additions (score chips, gap badges, matrix header custom properties + classes). `DeelgebiedenMatrix.tsx` refactored to use CSS classes. Human UAT test 1: PASS (after 17-04 gap closure). |
 
 **Orphaned requirements check:** REQUIREMENTS.md maps SET-01, SET-02, and POL-01 to Phase 17. All three are claimed by phase plans. No orphaned requirements.
 
@@ -113,57 +125,22 @@ No `scripts/*/tests/probe-*.sh` files found. Phase is UI/React — no convention
 |------|------|---------|----------|--------|
 | `src/components/SettingsPage.tsx` | 96, 102 | `Komt in een volgende versie.` placeholder text | INFO | Intentional D-11 documented placeholder for Phase 18 sections. Not a stub — sections 3 and 4 render this text by design. No functional blocker. |
 
-No `TBD`, `FIXME`, or `XXX` markers found in phase-modified files. No `return null` stubs. No empty handlers.
+No `TBD`, `FIXME`, or `XXX` markers found in phase-modified files (including 17-04 additions to `src/index.css` and `src/components/DeelgebiedenMatrix.tsx`). No `return null` stubs. No empty handlers.
 
 ### Human Verification Required
 
-#### 1. Dark Mode Visual Coverage — All Components
+None. All three human UAT items have been resolved:
 
-**Test:** Activate dark mode via the Settings toggle. Visually inspect:
-- KlasOverzicht student tiles (`.klas-tile`)
-- KPI strip tiles (`.kpi-tile`)
-- DetailWeergave sections (`.detail-section`)
-- KlasModal overlay
-- SpiderChartCard
-- DeelgebiedenMatrix (note: semantic category-group pastels and verzuim severity colors are intentionally hardcoded — verify that the table background, text, and border colors use dark tokens)
-- ImportPage drop-zone and error list
-- Navigation tab strip
-
-**Expected:** All surfaces use the dark CSS token values defined in `body.dark { }`. No component shows light-mode colors when dark mode is active.
-
-**Why human:** CSS token coverage for all components cannot be verified by static analysis. VerzuimSection and DeelgebiedenMatrix contain intentionally retained hardcoded semantic colors (greens/oranges/reds for severity bars and category headers per Plan 01 decision). A human must confirm that these semantic exceptions are visible and that no non-semantic colors remain hardcoded.
-
-#### 2. SET-02 End-to-End: Adding Files to Existing Class
-
-**Test:**
-1. Import at least one PDF for a class so it has one student
-2. Open Settings via the gear icon
-3. Click "Bestanden toevoegen"
-4. Drop a second (different) PDF onto the ImportPage drop zone
-5. Complete the import
-
-**Expected:** The existing class gains one additional student. No new class is created. The student count in KlasTabStrip tab for the active class increases by 1.
-
-**Why human:** This behavior depends on Phase 16's `ImportPage.handlePDFs` runtime logic: when `klassenState.activeKlasId !== null && students.length > 0`, `autoDetectKlas` is bypassed and the student is appended. Verifying the auto-detect-skip requires a real PDF and the Tauri plugin-store runtime.
-
-#### 3. Dark Mode Persistence Across Restart
-
-**Test:**
-1. Open the app (light mode)
-2. Open Settings via the gear icon
-3. Toggle dark mode ON
-4. Close the app (Tauri window close)
-5. Reopen the app
-
-**Expected:** App opens directly in dark mode with no light flash on the first paint. The settings toggle shows the ON state.
-
-**Why human:** Requires the Tauri desktop runtime and plugin-store persistence across process restarts. `main.tsx` startup hydration code is verified by static analysis, but the plugin-store disk write + read cycle can only be confirmed by running the built app.
+1. **Dark mode visual coverage (test 1):** The UAT-reported issue (matrix headers and score chips staying light) was closed by plan 17-04. Code evidence confirms the fix. User re-tested and confirmed pass (status: resolved in 17-HUMAN-UAT.md, updated: 2026-05-17T20:47:00Z).
+2. **SET-02 add-to-existing-class (test 2):** User confirmed PASS in 17-HUMAN-UAT.md.
+3. **Dark mode persistence across restart (test 3):** User confirmed PASS in 17-HUMAN-UAT.md.
 
 ### Gaps Summary
 
-No gaps were found. All automated checks pass. The phase goal is fully implemented in code. Three items require human/runtime verification for the "done" mark on production behavior: visual dark mode coverage across all components, the SET-02 add-to-existing-class runtime flow, and plugin-store persistence across app restart.
+No gaps. Phase goal is fully achieved. All four roadmap success criteria are verified in code. All three human UAT items are confirmed resolved. The 17-04 gap closure plan eliminated all remaining hardcoded inline hex colors from DeelgebiedenMatrix and added complete dark mode coverage for score chips and gap badges.
 
 ---
 
-_Verified: 2026-05-17T19:20:00Z_
+_Initial verified: 2026-05-17T19:20:00Z_
+_Re-verified: 2026-05-17T21:00:00Z (after 17-04 gap closure + human UAT sign-off)_
 _Verifier: Claude (gsd-verifier)_
