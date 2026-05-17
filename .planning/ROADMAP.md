@@ -269,7 +269,11 @@ Cross-cutting constraints:
   2. Na de auto-detectie import staat de nieuwe klas als actief tabblad in de KlasTabStrip met de naam uit de PDF-header
   3. Als de PDF-header geen herkenbare klasnaam bevat, valt de app terug op een generieke naam (bijv. "Nieuwe klas") in plaats van te crashen
   4. Wanneer al klassen bestaan, verandert het import-gedrag niet — mentor kiest nog steeds de klas handmatig
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 16-01-PLAN.md — Auto-detect + auto-create klas from PDF header, toast notification
+
 **UI hint**: yes
 
 ### Phase 17: Settings Panel Foundation
