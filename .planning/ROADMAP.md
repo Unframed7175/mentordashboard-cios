@@ -47,7 +47,7 @@
 ### v2.1 Settings, Polish & Auto-class Detection
 
 - [x] **Phase 16: Auto-class Detection** — Bij eerste import detecteert de app automatisch de klasnaam uit de PDF-header en maakt de klas aan zonder handmatige stap *(completed 2026-05-17)*
-- [ ] **Phase 17: Settings Panel Foundation** — Mentor kan via een settings-icoon dark mode activeren (volledig gestyled) en nieuwe bestanden toevoegen aan een bestaande klas
+- [x] **Phase 17: Settings Panel Foundation** — Mentor kan via een settings-icoon dark mode activeren (volledig gestyled) en nieuwe bestanden toevoegen aan een bestaande klas (completed: 2026-05-17)
 - [ ] **Phase 18: Settings Panel Advanced** — Mentor kan deelgebieden hernoemen/deactiveren, leerlijn-toewijzing aanpassen, verzuim-drempelwaarden en BPV-uren configureren
 - [ ] **Phase 19: UI Polish** — Spiderweb chart tooltips, responsive layout en consistente hover-animaties zijn afgerond
 
@@ -290,13 +290,13 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 17-01-PLAN.md — CSS foundation: body.dark selector swap + section 24 (SettingsPage layout, toggle switch styles)
-- [ ] 17-02-PLAN.md — utils/settings.ts helper + SettingsPage component + SettingsPage.test.tsx (SET-01, POL-01)
+- [x] 17-01-PLAN.md — CSS foundation: body.dark selector swap + section 24 (SettingsPage layout, toggle switch styles)
+- [x] 17-02-PLAN.md — utils/settings.ts helper + SettingsPage component + SettingsPage.test.tsx (SET-01, POL-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 17-03-PLAN.md — App.tsx 4th view wiring + main.tsx startup hydration + KlasTabStrip gear icon + KlasTabStrip.test.tsx (SET-01, SET-02)
+- [x] 17-03-PLAN.md — App.tsx 4th view wiring + main.tsx startup hydration + KlasTabStrip gear icon + KlasTabStrip.test.tsx (SET-01, SET-02)
 **Gap Closure** *(depends on 17-03)*
-- [ ] 17-04-PLAN.md — Gap closure: dark mode coverage for DeelgebiedenMatrix headers, score chips, gap badges (POL-01)
+- [x] 17-04-PLAN.md — Gap closure: dark mode coverage for DeelgebiedenMatrix headers, score chips, gap badges (POL-01)
 
 ### Phase 18: Settings Panel Advanced
 **Goal**: Mentor kan via de settings-pagina de deelgebieden, leerlijnen, verzuim-drempelwaarden en BPV-uren aanpassen aan de eigen klassituatie — wijzigingen zijn direct zichtbaar in het dashboard
