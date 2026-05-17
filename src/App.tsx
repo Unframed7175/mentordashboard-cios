@@ -4,10 +4,12 @@ import KlasTabStrip from './components/KlasTabStrip';
 import KlasModal from './components/KlasModal';
 import KlasOverzicht from './components/KlasOverzicht';
 import DetailWeergave from './components/DetailWeergave';
+import SettingsPage from './components/SettingsPage';
 import { klassenState, switchActiveKlas, getActiveStudents } from '../utils/klassen';
 
 function App() {
-  const [view, setView] = useState<'import' | 'klas' | 'detail'>('import');
+  const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings'>('import');
+  const [prevView, setPrevView] = useState<'import' | 'klas' | 'detail'>('klas');
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null);
   const [detailStudentList, setDetailStudentList] = useState<string[]>([]);
@@ -30,7 +32,16 @@ function App() {
     setView('klas');
   }
 
-  function handleImportOpen() {
+  function handleOpenSettings() {
+    setPrevView(view as 'import' | 'klas' | 'detail');
+    setView('settings');
+  }
+
+  function handleBackFromSettings() {
+    setView(prevView);
+  }
+
+  function handleNavigateToImportFromSettings() {
     setView('import');
   }
 
@@ -67,7 +78,8 @@ function App() {
         activeKlasId={klassenState.activeKlasId}
         onSwitch={handleKlasSwitch}
         onCreateKlas={() => setShowModal(true)}
-        onImport={handleImportOpen}
+        onSettings={handleOpenSettings}
+        isSettingsActive={view === 'settings'}
       />
       {showModal && (
         <KlasModal
@@ -92,6 +104,12 @@ function App() {
           nextId={detailStudentList[detailStudentList.indexOf(activeStudentId) + 1] ?? null}
           onNavigate={setActiveStudentId}
           onBack={handleBack}
+        />
+      )}
+      {view === 'settings' && (
+        <SettingsPage
+          onBack={handleBackFromSettings}
+          onNavigateToImport={handleNavigateToImportFromSettings}
         />
       )}
     </>

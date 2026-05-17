@@ -5,13 +5,14 @@ interface KlasTabStripProps {
   activeKlasId: string | null;
   onSwitch: (klasId: string) => void;
   onCreateKlas: () => void;
-  onImport: () => void;
+  onSettings: () => void;
+  isSettingsActive: boolean;
 }
 
 // WR-01: klassen passed as explicit prop from App.tsx (derived from klassenState.klassen at
 // the point where refreshKey is consumed) instead of read from the singleton inside the component.
 // This removes the implicit coupling and ensures the tab strip always reflects the current state.
-export default function KlasTabStrip({ klassen, activeKlasId, onSwitch, onCreateKlas, onImport }: KlasTabStripProps) {
+export default function KlasTabStrip({ klassen, activeKlasId, onSwitch, onCreateKlas, onSettings, isSettingsActive }: KlasTabStripProps) {
   return (
     <nav id="main-nav">
       {klassen.map(klas => (
@@ -32,12 +33,13 @@ export default function KlasTabStrip({ klassen, activeKlasId, onSwitch, onCreate
         +
       </button>
       <button
-        className="nav-tab"
-        style={{ marginLeft: 'auto', color: '#6b7280' }}
-        title="Bestanden importeren"
-        onClick={onImport}
+        className={`nav-tab${isSettingsActive ? ' active' : ''}`}
+        style={{ marginLeft: 'auto', fontSize: '18px' }}
+        title="Instellingen"
+        aria-label="Instellingen openen"
+        onClick={onSettings}
       >
-        ↑ Importeer
+        ⚙
       </button>
     </nav>
   );
