@@ -123,16 +123,32 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
     let skipped = 0;
 
     for (const file of files) {
+      let parseResult: any;
       try {
-        const result = await parseSinglePDF(file);
-        addStudent(result);
-        succeeded++;
+        parseResult = await parseSinglePDF(file);
       } catch (err: any) {
         console.warn('[ImportPage] PDF overgeslagen: ' + file.name + ':', err);
         skipped++;
         setImportState(prev => ({
           ...prev,
           errors: [...prev.errors, `${file.name}: parseerfout`],
+        }));
+        setImportState(prev => ({
+          ...prev,
+          progress: { ...prev.progress, current: prev.progress.current + 1 },
+        }));
+        continue;
+      }
+      try {
+        addStudent(parseResult);
+        succeeded++;
+      } catch (err: any) {
+        // WR-04: addStudent failure is distinct from parse failure
+        console.warn('[ImportPage] addStudent mislukt voor: ' + file.name + ':', err);
+        skipped++;
+        setImportState(prev => ({
+          ...prev,
+          errors: [...prev.errors, `${file.name}: verwerking mislukt`],
         }));
       }
       setImportState(prev => ({
