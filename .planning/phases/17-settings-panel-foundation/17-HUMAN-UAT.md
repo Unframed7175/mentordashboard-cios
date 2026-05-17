@@ -1,9 +1,9 @@
 ---
-status: complete
+status: resolved
 phase: 17-settings-panel-foundation
 source: [17-VERIFICATION.md]
 started: 2026-05-17T19:15:00Z
-updated: 2026-05-17T20:05:00Z
+updated: 2026-05-17T20:47:00Z
 ---
 
 ## Current Test
@@ -38,9 +38,19 @@ blocked: 0
 ## Gaps
 
 - truth: "When body.dark is active, ALL components paint with dark tokens including DeelgebiedenMatrix and leerlijnen header"
-  status: failed
+  status: resolved
   reason: "User reported: only the colours in th matrix are still on the bright side , same goes for the header with the leerlijnen."
   severity: minor
   test: 1
-  artifacts: []
-  missing: []
+  artifacts:
+    - src/components/DeelgebiedenMatrix.tsx
+    - src/index.css
+  missing:
+    - body.dark overrides for .score-o, .score-v, .score-g, .score-e (index.css:877-880)
+    - body.dark overrides for .gap-ok, .gap-danger, .gap-warn, .gap-info (index.css:509-512)
+    - DeelgebiedenMatrix GROEPEN array uses hardcoded inline styles on <th> headers (DeelgebiedenMatrix.tsx:15,20,25) — needs CSS variables or dark-aware classes
+  root_cause: >
+    Three distinct sources: (1) DeelgebiedenMatrix.tsx GROEPEN array has hardcoded hex inline styles
+    for category headers (Lesgeven/Organiseren/Prof.handelen) that bypass body.dark CSS cascade.
+    (2) Score chips .score-o/v/g/e in index.css have no body.dark overrides — light pastels stay
+    visible in dark mode. (3) Gap badge classes .gap-ok/danger/warn/info similarly lack body.dark rules.
