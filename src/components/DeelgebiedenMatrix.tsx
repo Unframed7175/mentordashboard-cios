@@ -9,21 +9,9 @@ interface DeelgebiedenMatrixProps {
 }
 
 const GROEPEN = [
-  {
-    key: 'lesgeven' as const,
-    label: 'Lesgeven',
-    headerStyle: { background: '#eff6ff', color: '#1e40af', borderBottom: '2px solid #bfdbfe' },
-  },
-  {
-    key: 'organiseren' as const,
-    label: 'Organiseren',
-    headerStyle: { background: '#f0fdf4', color: '#166534', borderBottom: '2px solid #bbf7d0' },
-  },
-  {
-    key: 'prof_handelen' as const,
-    label: 'Prof. handelen',
-    headerStyle: { background: '#faf5ff', color: '#6b21a8', borderBottom: '2px solid #e9d5ff' },
-  },
+  { key: 'lesgeven' as const,    label: 'Lesgeven',      className: 'dm-header-lesgeven'    },
+  { key: 'organiseren' as const, label: 'Organiseren',   className: 'dm-header-organiseren' },
+  { key: 'prof_handelen' as const, label: 'Prof. handelen', className: 'dm-header-profhandelen' },
 ];
 
 const SCORE_CHIP_MAP: Record<string, { css: string; kort: string }> = {
@@ -118,7 +106,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                 <th
                   key={g.key}
                   colSpan={groepDG[g.key].length}
-                  style={{ ...g.headerStyle, padding: '0.4rem 0.5rem', textAlign: 'center' }}
+                  className={g.className}
                 >
                   {g.label}
                 </th>

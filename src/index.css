@@ -92,6 +92,19 @@
   --gap-positief-bg:   #DCFCE7; --gap-positief-text: #15803D;
   --gap-negatief-bg:   #FEE2E2; --gap-negatief-text: #991B1B;
   --gap-neutraal-bg:   #FEF3C7; --gap-neutraal-text: #B45309;
+
+  /* DeelgebiedenMatrix category header tokens */
+  --dm-lesgeven-bg:        #eff6ff;
+  --dm-lesgeven-text:      #1e40af;
+  --dm-lesgeven-border:    #bfdbfe;
+
+  --dm-organiseren-bg:     #f0fdf4;
+  --dm-organiseren-text:   #166534;
+  --dm-organiseren-border: #bbf7d0;
+
+  --dm-profhandelen-bg:    #faf5ff;
+  --dm-profhandelen-text:  #6b21a8;
+  --dm-profhandelen-border:#e9d5ff;
 }
 
 /* Dark mode — JS-controlled via body.dark class (Plan 17-01) */
@@ -126,6 +139,30 @@ body.dark {
   --status-blauw-bg:    #1E3A5F; --status-blauw-text:  #93C5FD;
   --status-grijs-bg:    #1E293B; --status-grijs-text:  #94A3B8;
 }
+
+body.dark {
+  --dm-lesgeven-bg:        #1e3a5f;
+  --dm-lesgeven-text:      #93c5fd;
+  --dm-lesgeven-border:    #1d4ed8;
+
+  --dm-organiseren-bg:     #14532d;
+  --dm-organiseren-text:   #86efac;
+  --dm-organiseren-border: #15803d;
+
+  --dm-profhandelen-bg:    #3b0764;
+  --dm-profhandelen-text:  #d8b4fe;
+  --dm-profhandelen-border:#7e22ce;
+}
+
+body.dark .score-o { background: #450a0a; color: #fca5a5; }
+body.dark .score-v { background: #451a03; color: #fcd34d; }
+body.dark .score-g { background: #14532d; color: #86efac; }
+body.dark .score-e { background: #1e1b4b; color: #c7d2fe; }
+
+body.dark .gap-ok     { background: #14532d; color: #86efac; }
+body.dark .gap-danger { background: #450a0a; color: #fca5a5; }
+body.dark .gap-warn   { background: #451a03; color: #fcd34d; }
+body.dark .gap-info   { background: #1e3a5f; color: #93c5fd; }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -878,6 +915,30 @@ a:hover { text-decoration: underline; }
 .score-v    { background: #FEF3C7; color: #92400E; }
 .score-g    { background: #DCFCE7; color: #14532D; }
 .score-e    { background: #EEF2FF; color: #3730A3; }
+
+.dm-header-lesgeven {
+  background:    var(--dm-lesgeven-bg);
+  color:         var(--dm-lesgeven-text);
+  border-bottom: 2px solid var(--dm-lesgeven-border);
+  padding: 0.4rem 0.5rem;
+  text-align: center;
+}
+
+.dm-header-organiseren {
+  background:    var(--dm-organiseren-bg);
+  color:         var(--dm-organiseren-text);
+  border-bottom: 2px solid var(--dm-organiseren-border);
+  padding: 0.4rem 0.5rem;
+  text-align: center;
+}
+
+.dm-header-profhandelen {
+  background:    var(--dm-profhandelen-bg);
+  color:         var(--dm-profhandelen-text);
+  border-bottom: 2px solid var(--dm-profhandelen-border);
+  padding: 0.4rem 0.5rem;
+  text-align: center;
+}
 
 .vote-count-cell { text-align: center; font-size: 0.75rem; }
 
