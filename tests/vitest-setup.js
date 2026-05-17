@@ -13,3 +13,21 @@ globalThis.jest = {
   resetAllMocks: vi.resetAllMocks.bind(vi),
   restoreAllMocks: vi.restoreAllMocks.bind(vi),
 }
+
+// window.matchMedia stub — jsdom does not provide window.matchMedia.
+// SettingsPage reads it during OS-preference fallback; without this stub the
+// component would throw in tests.  Default matches:false = "light mode" OS pref.
+// Individual tests can override via: window.matchMedia.mockImplementation(...)
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+})
