@@ -1,10 +1,11 @@
 ---
 phase: 18
 slug: settings-panel-advanced
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-17
+reviewed_at: 2026-05-17
 ---
 
 # Phase 18 — UI Design Contract
@@ -37,8 +38,8 @@ Inherited from Phase 17. No new tokens introduced.
 | Token | Value | Usage in Phase 18 |
 |-------|-------|-------------------|
 | xs | 4px | Icon gaps, toggle column gap in table |
-| sm | 8px | Row internal padding (0.625rem ≈ 10px used in `.ap-row` — keep consistent) |
-| md | 16px | Section internal padding, input group spacing |
+| sm | 8px | Row internal padding, threshold row gap, button margins |
+| md | 16px | Section internal padding, input group spacing, margin-bottom on threshold group |
 | lg | 24px | Gap between section cards |
 | xl | 32px | Settings page top/bottom padding |
 | 2xl | 48px | Not used in this phase |
@@ -82,13 +83,21 @@ Fully inherited from Phase 17. No new color tokens introduced.
 Accent reserved for in this phase:
 - Active toggle thumb/track in the Actief column (same pattern as dark mode toggle)
 - BPV progress bar fill (progress over expected uren)
-- Focus ring on all interactive elements (`outline: 2.5px solid var(--accent); outline-offset: 2px`)
+- Focus ring on: `.dg-naam-input`, `.dg-leerlijn-select`, `.dg-toggle` input, `.settings-number-input`, `.btn-ghost` (Herstel standaard + BPV-uren importeren), `.btn-primary` (Ja, herstel), inline confirmation dismiss button — `outline: 2.5px solid var(--accent); outline-offset: 2px`
 
 "Herstel standaard" button uses `.btn-ghost` styling (not `.btn-primary`) to avoid high-emphasis for a destructive-adjacent reset action. Its destructive intent is communicated via the confirmation dialog, not the button color.
 
 ---
 
 ## Component Inventory
+
+### Visual Anchors
+
+- **Section 3 focal point:** the 19-row deelgebieden table — the dominant interactive element occupying the majority of the section's vertical space.
+- **Section 4 focal point:** the threshold number inputs — the two compact `settings-number-input` fields are the primary targets of interaction in the Drempelwaarden subsection.
+- **DetailWeergave BPV section focal point:** the progress bar track and the percentage label to its right — these communicate attainment at a glance before the user reads the stats row.
+
+---
 
 ### 1. Deelgebieden & Leerlijnen Section (SET-03 + SET-04)
 
@@ -103,7 +112,7 @@ Accent reserved for in this phase:
 
 **Table header row (`<thead>`):**
 - 4 columns: **Naam** | **Leerlijn** | **Actief** | (empty — reserved for future)
-- Header cells: `<th>` using the label style — font-size 11px, weight 700, uppercase, `letter-spacing: 0.07em`, color `var(--text-faint)`, background `var(--bg-surface-alt)`, padding `6px 10px`, `border-bottom: 1.5px solid var(--border-default)`, `position: sticky; top: 0; z-index: 1`
+- Header cells: `<th>` using the label style — font-size 11px, weight 700, uppercase, `letter-spacing: 0.07em`, color `var(--text-faint)`, background `var(--bg-surface-alt)`, padding `8px`, `border-bottom: 1.5px solid var(--border-default)`, `position: sticky; top: 0; z-index: 1`
 - Column widths: Naam auto (flex), Leerlijn 160px, Actief 68px
 
 **Table rows (`<tbody>`, 19 rows):**
@@ -117,7 +126,7 @@ Accent reserved for in this phase:
 **Naam column (`<td>`, first column):**
 - Contains `<input type="text" className="dg-naam-input">`
 - CSS for `.dg-naam-input`:
-  - `width: 100%; padding: 5px 8px; background: transparent; border: 1.5px solid transparent; border-radius: var(--radius-sm); font-size: 0.875rem; color: var(--text-primary); transition: border-color var(--transition-base), background var(--transition-base)`
+  - `width: 100%; padding: 4px 8px; background: transparent; border: 1.5px solid transparent; border-radius: var(--radius-sm); font-size: 0.875rem; color: var(--text-primary); transition: border-color var(--transition-base), background var(--transition-base)`
   - Default (no focus): `border-color: transparent; background: transparent` — reads like plain text
   - Hover (row hover passes through): cursor text
   - Focus: `border-color: var(--border-focus); background: var(--bg-surface); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12)` — same focus ring as `.aanvullend-veld select:focus`
@@ -127,7 +136,7 @@ Accent reserved for in this phase:
 **Leerlijn column (`<td>`, second column):**
 - Contains `<select className="dg-leerlijn-select">`
 - CSS for `.dg-leerlijn-select`: reuse `.aanvullend-veld select` visual spec exactly:
-  - `padding: 0.4375rem 0.75rem; border: 1.5px solid var(--border-default); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-primary); font-size: 0.875rem; outline: none; cursor: pointer; transition: border-color var(--transition-base), box-shadow var(--transition-base); box-shadow: var(--shadow-xs)`
+  - `padding: 0.5rem 0.75rem; border: 1.5px solid var(--border-default); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-primary); font-size: 0.875rem; outline: none; cursor: pointer; transition: border-color var(--transition-base), box-shadow var(--transition-base); box-shadow: var(--shadow-xs)`
   - Focus: `border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12)`
   - Width: fit-content within the 160px column
 - Options (in this order): `Lesgeven` | `Organiseren` | `Prof. handelen`
@@ -145,7 +154,7 @@ Accent reserved for in this phase:
 - Apply: `onChange` — immediate
 
 **"Herstel standaard" reset button:**
-- Position: below the table, `margin-top: 12px`
+- Position: below the table, `margin-top: 8px`
 - Class: `btn btn-ghost`
 - Text: `Herstel standaard`
 - Width: `fit-content`
@@ -161,13 +170,13 @@ Accent reserved for in this phase:
 
 **Subsection: Verzuim drempelwaarden (SET-05)**
 
-Layout: `<div className="settings-threshold-group">` — `display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px`
+Layout: `<div className="settings-threshold-group">` — `display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px`
 
-Each threshold row: `<div className="settings-threshold-row">` — `display: flex; align-items: center; gap: 10px`
+Each threshold row: `<div className="settings-threshold-row">` — `display: flex; align-items: center; gap: 8px`
 
 - `<label>` text at 14px / 400 / `var(--text-primary)`, min-width 160px
 - `<input type="number" className="settings-number-input">`:
-  - CSS: `width: 80px; padding: 0.4375rem 0.625rem; border: 1.5px solid var(--border-default); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-primary); font-size: 0.875rem; text-align: right; box-shadow: var(--shadow-xs); outline: none; transition: border-color var(--transition-base), box-shadow var(--transition-base)`
+  - CSS: `width: 80px; padding: 0.5rem; border: 1.5px solid var(--border-default); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-primary); font-size: 0.875rem; text-align: right; box-shadow: var(--shadow-xs); outline: none; transition: border-color var(--transition-base), box-shadow var(--transition-base)`
   - Focus: `border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12)`
   - Attributes: `min="0" max="200" step="1"` (integer hours)
   - Default value: geoorloofd = `15`, ongeoorloofd = `10`
@@ -190,7 +199,7 @@ BPV expected hours row (same `.settings-threshold-row` layout):
 BPV Excel import button:
 - Class: `btn btn-ghost`
 - Text: `BPV-uren importeren`
-- Position: below the BPV row, `margin-top: 12px`
+- Position: below the BPV row, `margin-top: 8px`
 - Action: triggers file selection for BPV Excel (separate from verzuim Excel)
 - Helper text below button: `<p>` at 14px / `var(--text-muted)` / margin-top 8px: `"Importeer de BPV Excel om gerealiseerde uren per leerling bij te houden."`
 
@@ -216,10 +225,10 @@ BPV Excel import button:
 
 Section title: `.detail-section-title` text `"BPV-uren"`
 
-Progress display layout: `<div className="bpv-progress-wrap">` — `display: flex; flex-direction: column; gap: 12px`
+Progress display layout: `<div className="bpv-progress-wrap">` — `display: flex; flex-direction: column; gap: 8px`
 
 Progress bar row:
-- Container: `display: flex; align-items: center; gap: 12px`
+- Container: `display: flex; align-items: center; gap: 8px`
 - Track: `<div className="bpv-bar-track">` — `flex: 1; height: 8px; border-radius: 4px; background: var(--border-light); overflow: hidden`
 - Fill: `<div className="bpv-bar-fill">` — `height: 100%; border-radius: 4px; background: var(--accent); transition: width 300ms ease`
   - Width: `min(100%, Math.round((actual / expected) * 100))%`
@@ -227,8 +236,8 @@ Progress bar row:
 - Percentage label: `<span>` at 14px / 700 / `var(--text-primary)` — e.g. `"68%"`
 
 Stats row below bar:
-- Layout: `display: flex; gap: 20px; flex-wrap: wrap`
-- Each stat: `<div>` at 14px / 400 / `var(--text-secondary)`: label in `var(--text-muted)` 11px / 600 uppercase, value in `var(--text-primary)` 14px / 700
+- Layout: `display: flex; gap: 16px; flex-wrap: wrap`
+- Each stat: `<div>` at 14px / 400 / `var(--text-secondary)`: label in `var(--text-muted)` 11px / 700 uppercase, value in `var(--text-primary)` 14px / 700
 - Stats: `Gerealiseerd` (actual hours) | `Verwacht` (configured expected hours) | `Verschil` (expected − actual, prefixed `+` or `−`)
 
 ---
@@ -277,12 +286,12 @@ Stats row below bar:
 <span style="font-size: 0.875rem; color: var(--text-secondary);">
   Alles terugzetten naar standaard?
 </span>
-<button className="btn btn-ghost" style="font-size: 0.8125rem; padding: 4px 10px;">Annuleren</button>
-<button className="btn btn-primary" style="font-size: 0.8125rem; padding: 4px 10px;">Ja, herstel</button>
+<button className="btn btn-ghost" style="font-size: 0.875rem; padding: 4px 8px;">Niet herstellen</button>
+<button className="btn btn-primary" style="font-size: 0.875rem; padding: 4px 8px;">Ja, herstel</button>
 ```
-Layout: `display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px`
+Layout: `display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px`
 
-"Annuleren" restores the original "Herstel standaard" button.
+"Niet herstellen" restores the original "Herstel standaard" button.
 "Ja, herstel" resets all deelgebied config to defaults, then restores the original button.
 
 ### Threshold Number Inputs (`.settings-number-input`)
@@ -355,7 +364,7 @@ All strings in Dutch. No English copy anywhere in this phase.
 | Dropdown option 3 | `Prof. handelen` |
 | Reset button | `Herstel standaard` |
 | Confirmation prompt | `Alles terugzetten naar standaard?` |
-| Confirmation cancel | `Annuleren` |
+| Confirmation cancel | `Niet herstellen` |
 | Confirmation confirm | `Ja, herstel` |
 
 ### Drempelwaarden & BPV-uren Section
@@ -393,7 +402,7 @@ All strings in Dutch. No English copy anywhere in this phase.
 
 | Action | Element | Confirmation approach |
 |--------|---------|----------------------|
-| Herstel standaard | `.btn-ghost` below deelgebieden table | Inline confirmation in-place (no modal): `"Alles terugzetten naar standaard?"` + `Annuleren` / `Ja, herstel` buttons |
+| Herstel standaard | `.btn-ghost` below deelgebieden table | Inline confirmation in-place (no modal): `"Alles terugzetten naar standaard?"` + `Niet herstellen` / `Ja, herstel` buttons |
 
 No other destructive actions in this phase. Marking a deelgebied inactive (Actief toggle OFF) is not destructive — scores are preserved, reactivation restores them (D-04).
 
