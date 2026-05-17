@@ -171,7 +171,8 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
       return;
     }
 
-    setImportState(prev => ({ ...prev, status: 'processing', messages: [], errors: [] }));
+    // WR-03: don't wipe previous messages/errors — accumulate so PDF batch results remain visible
+    setImportState(prev => ({ ...prev, status: 'processing' }));
 
     try {
       const verzuimRecords = await parseExcelFile(file);
