@@ -117,3 +117,18 @@ None — no external service configuration required. All changes are CSS and TSX
 ---
 *Phase: 17-settings-panel-foundation*
 *Completed: 2026-05-17*
+
+## Self-Check: PASSED
+
+All created files found on disk. All commits verified in git log.
+
+| Item | Status |
+|------|--------|
+| src/index.css | FOUND |
+| src/App.css | FOUND |
+| src/components/KlasTabStrip.tsx | FOUND |
+| src/components/ImportPage.tsx | FOUND |
+| .planning/phases/17-settings-panel-foundation/17-01-SUMMARY.md | FOUND |
+| Commit ab47fa6 (Task 1+2) | FOUND |
+| Commit 7617a69 (Task 3) | FOUND |
+| Commit 1e7c2da (SUMMARY docs) | FOUND |
