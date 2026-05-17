@@ -87,10 +87,12 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
       // autoDetectKlas errors bubble to the outer catch (Task 1 spec: "let them bubble")
       // but handlePDFs has no outer try/catch, so we catch here to set error state
       let detectedNaam: string | null = null;
+      let klasReused = false;
       try {
         const detected = await autoDetectKlas(files);
         if (detected) {
           detectedNaam = detected.naam;
+          klasReused = detected.reused;
         }
       } catch (err: any) {
         setImportState(prev => ({
@@ -101,7 +103,11 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
         return;
       }
       if (detectedNaam !== null) {
-        setToastMessage('Klas aangemaakt: ' + detectedNaam);
+        // WR-02: show correct toast — "gevonden" when reusing existing class, "aangemaakt" when creating new
+        const toastMsg = klasReused
+          ? 'Klas gevonden: ' + detectedNaam
+          : 'Klas aangemaakt: ' + detectedNaam;
+        setToastMessage(toastMsg);
       }
     }
 
