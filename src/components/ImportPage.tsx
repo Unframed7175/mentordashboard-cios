@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { parseSinglePDF } from '../../parsers/pdf';
 import { parseExcelFile } from '../../parsers/excel';
 import { applyBackupRestore } from '../../utils/backup';
-import { saveKlassen, klassenState, switchActiveKlas } from '../../utils/klassen';
+import { saveKlassen, klassenState, switchActiveKlas, createKlas } from '../../utils/klassen';
 import { addStudent, mergeVerzuim } from '../../utils/datamodel';
 
 interface ImportState {
@@ -26,16 +26,76 @@ interface ImportPageProps {
 export default function ImportPage({ onImportComplete }: ImportPageProps) {
   const [importState, setImportState] = useState<ImportState>(initialState);
   const [isDragging, setIsDragging] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-clear toast after 3500ms; cleanup prevents stale timer on unmount
+  useEffect(() => {
+    if (toastMessage === null) return;
+    const timer = setTimeout(() => setToastMessage(null), 3500);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  // Auto-detect helper: parse first PDF to derive class name and create the class.
+  // Called when activeKlasId is null OR the active class has zero students.
+  // T-16-01: naam is capped at 255 chars to prevent excessively long storage keys.
+  async function autoDetectKlas(files: File[]): Promise<{ naam: string } | null> {
+    if (files.length === 0) return null;
+
+    // Parse only the first file — let errors bubble to handlePDFs error handler (T-16-03)
+    const result = await parseSinglePDF(files[0]);
+
+    // D-01: compose naam from leerjaar + periode; fall back to 'Nieuwe klas'
+    const rawNaam = [result.leerjaar, result.periode].filter(Boolean).join(' ').trim() || 'Nieuwe klas';
+    // T-16-01: cap at 255 chars
+    const naam = rawNaam.slice(0, 255);
+
+    const createResult = await createKlas(naam);
+
+    if (createResult && createResult.error === 'duplicate') {
+      // D-04: find existing class with same name and switch to it
+      const existingKlas = Object.values(klassenState.klassen).find(
+        (k: any) => k.naam.toLowerCase() === naam.toLowerCase()
+      ) as any | undefined;
+      if (existingKlas) {
+        await switchActiveKlas(existingKlas.id);
+      }
+      return { naam };
+    }
+
+    // createResult is the newly created klas object: { id, naam, students }
+    return { naam: createResult.naam };
+  }
+
   async function handlePDFs(files: File[]) {
-    if (klassenState.activeKlasId === null) {
-      setImportState(prev => ({
-        ...prev,
-        status: 'error',
-        errors: [...prev.errors, 'Geen actieve klas — maak eerst een klas aan'],
-      }));
-      return;
+    const activeId = klassenState.activeKlasId;
+    const hasStudents = activeId !== null && (klassenState.klassen[activeId]?.students?.length ?? 0) > 0;
+
+    if (!hasStudents) {
+      // No active class or active class is empty — auto-detect from first PDF
+      if (files.length === 0) {
+        // Nothing to import; silent return
+        return;
+      }
+      // autoDetectKlas errors bubble to the outer catch (Task 1 spec: "let them bubble")
+      // but handlePDFs has no outer try/catch, so we catch here to set error state
+      let detectedNaam: string | null = null;
+      try {
+        const detected = await autoDetectKlas(files);
+        if (detected) {
+          detectedNaam = detected.naam;
+        }
+      } catch (err: any) {
+        setImportState(prev => ({
+          ...prev,
+          status: 'error',
+          errors: [...prev.errors, `Klas aanmaken mislukt: ${err.message || String(err)}`],
+        }));
+        return;
+      }
+      if (detectedNaam !== null) {
+        setToastMessage('Klas aangemaakt: ' + detectedNaam);
+      }
     }
 
     setImportState(prev => ({
@@ -93,7 +153,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
       setImportState(prev => ({
         ...prev,
         status: 'error',
-        errors: [...prev.errors, 'Geen actieve klas — maak eerst een klas aan'],
+        errors: [...prev.errors, 'Geen actieve klas — importeer eerst een PDF om een klas aan te maken'],
       }));
       return;
     }
@@ -267,6 +327,24 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
 
   return (
     <div>
+      {toastMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '1.5rem',
+            right: '1.5rem',
+            background: '#0055cc',
+            color: '#fff',
+            padding: '0.75rem 1.25rem',
+            borderRadius: '6px',
+            fontSize: '0.9rem',
+            zIndex: 1000,
+            pointerEvents: 'none',
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
       <div
         onDragOver={onDragOver}
         onDrop={onDrop}
