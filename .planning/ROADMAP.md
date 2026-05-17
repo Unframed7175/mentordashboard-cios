@@ -289,8 +289,11 @@ Plans:
 **UI hint**: yes
 
 Plans:
+**Wave 1**
 - [ ] 17-01-PLAN.md — CSS foundation: body.dark selector swap + section 24 (SettingsPage layout, toggle switch styles)
 - [ ] 17-02-PLAN.md — utils/settings.ts helper + SettingsPage component + SettingsPage.test.tsx (SET-01, POL-01)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 17-03-PLAN.md — App.tsx 4th view wiring + main.tsx startup hydration + KlasTabStrip gear icon + KlasTabStrip.test.tsx (SET-01, SET-02)
 
 ### Phase 18: Settings Panel Advanced

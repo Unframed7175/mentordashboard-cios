@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Settings, Polish & Auto-class Detection
-status: planned
-last_updated: "2026-05-17T00:00:00.000Z"
-last_activity: 2026-05-17
+status: executing
+last_updated: "2026-05-17T12:45:30.602Z"
+last_activity: 2026-05-17 -- Phase 17 planning complete
 progress:
-  total_phases: 4
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 0
+  total_phases: 14
+  completed_phases: 11
+  total_plans: 36
+  completed_plans: 33
+  percent: 79
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 
 Phase: 17
 Plan: —
-Status: Ready to discuss — Phase 16 complete
-Last activity: 2026-05-17 — Phase 16 complete (ACD-01 shipped; 2 out-of-scope bugs noted)
+Status: Ready to execute
+Last activity: 2026-05-17 -- Phase 17 planning complete
 
 ## Progress Bar
 

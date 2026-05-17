@@ -630,17 +630,19 @@ function handleNavigateToImportFromSettings() {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Import button in nav bar (KlasTabStrip)**
    - What we know: CONTEXT.md says "Bestanden toevoegen" is in SettingsPage; UI-SPEC shows gear icon at `marginLeft: 'auto'` position
    - What's unclear: Whether the existing "↑ Importeer" button in KlasTabStrip is removed or kept alongside the gear icon
    - Recommendation: Remove it — the gear icon takes the right-edge slot; import via Settings is the new flow. Planner should make this explicit in the plan.
+   - **RESOLVED: Plan 03 Task 1 removes the legacy `↑ Importeer` button from `src/components/KlasTabStrip.tsx` entirely (interface drops `onImport`, JSX drops the button) and replaces it with the ⚙ gear icon at `marginLeft: 'auto'`. Plan 03 Task 1 acceptance criteria include a regression guard that the literal string `↑ Importeer` is absent. Plan 03 Task 2 removes `onImport={handleImportOpen}` from the `<KlasTabStrip>` JSX in `src/App.tsx` and removes the now-unused `handleImportOpen` function entirely.**
 
 2. **Dark mode applied on main.tsx startup vs. SettingsPage mount**
    - What we know: Theme must be restored at startup. SettingsPage only mounts when `view === 'settings'`.
    - What's unclear: If the user last used dark mode and opens the app to the `'klas'` view, the `body.dark` class is never applied until they open Settings.
    - Recommendation: Load theme in `main.tsx` or App.tsx `useEffect` on startup, independent of SettingsPage mounting. SettingsPage reads the same persisted value for its toggle state. The planner must explicitly handle this startup hydration.
+   - **RESOLVED: Plan 03 Task 3 adds startup theme hydration to `src/main.tsx`. The new code imports `loadSettings` and `applyTheme` from `utils/settings.ts` (created in Plan 02) and awaits `loadSettings()` BEFORE `ReactDOM.createRoot(...).render(...)`. If a saved theme exists, it is applied; otherwise the OS preference (`window.matchMedia('(prefers-color-scheme: dark)')`) is applied without persisting (per D-06). This eliminates the light-to-dark flash on restart.**
 
 ---
 
@@ -666,7 +668,7 @@ Step 2.6: SKIPPED — This phase makes no changes to build configuration, Rust, 
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| SET-01 (theme persist) | `saveSettings` writes `{ theme }` to store and `loadSettings` restores it | unit | `npm test -- --reporter=verbose tests/settings.test.ts` | ❌ Wave 0 |
+| SET-01 (theme persist) | `saveSettings` writes `{ theme }` to store and `loadSettings` restores it | unit | `npx vitest run src/components/SettingsPage.test.tsx` | ❌ Wave 0 |
 | SET-01 (OS fallback) | When no saved theme, OS preference is applied and NOT persisted | unit | same | ❌ Wave 0 |
 | SET-01 (body.dark) | Toggle adds/removes `body.dark` class | unit (jsdom) | same | ❌ Wave 0 |
 | SET-02 (import nav) | Clicking "Bestanden toevoegen" triggers `onNavigateToImport` callback | unit | same | ❌ Wave 0 |
@@ -680,7 +682,8 @@ Step 2.6: SKIPPED — This phase makes no changes to build configuration, Rust, 
 - **Phase gate:** Full suite green (currently 43 tests) before `/gsd-verify-work`
 
 ### Wave 0 Gaps
-- [ ] `tests/settings.test.ts` — covers SET-01 (theme persist/restore/OS fallback/body.dark) and SET-02 (import navigation callback)
+- [ ] `src/components/SettingsPage.test.tsx` — covers SET-01 (theme persist/restore/OS fallback/body.dark) and SET-02 (import navigation callback). Created inline in Plan 02 Task 3.
+- [ ] `src/components/KlasTabStrip.test.tsx` — covers gear icon presence + onSettings callback + active class + legacy '↑ Importeer' regression guard. Created inline in Plan 03 Task 1.
 - [ ] LazyStore mock for `'settings'` key (can reuse/extend existing mock pattern from `tests/storage.test.ts`)
 
 ---
