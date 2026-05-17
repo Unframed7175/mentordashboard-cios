@@ -8,16 +8,26 @@ Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL die voortgang-PDFs p
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
-## Current Milestone: v2.0 Stack Modernisering
+## Current Milestone: v2.1 Settings, Polish & Auto-class Detection
+
+**Goal:** Geef mentoren controle over app-instellingen en verwijder de handmatige workflow-wrijving bij eerste gebruik en terugkerende imports.
+
+**Target features:**
+- Settings panel — dark mode toggle, bestandsbeheer voor bestaande klassen (nieuwe PDFs/Excel toevoegen), configuratie van deelgebieden en leerlijnen
+- Auto class detection — bij eerste import automatisch klas-naam afleiden uit geïmporteerde bestanden
+- UI polish — overgebleven visuele verbeteringen uit v2.0 UAT
+
+## Milestone: v2.0 Stack Modernisering — COMPLETE (2026-05-16)
 
 **Goal:** Herbouw het mentordashboard op een professionele, toekomstbestendige stack die meerdere developers ondersteunt, native draait op Mac én Windows, en AVG-compliant leerlingdata opslaat.
 
-**Target features:**
-- TypeScript + React + Vite — professionele DX, type-veiligheid, herkende stack voor NL-developers
-- Tauri desktop wrapper — installeerbare .exe/.dmg app, capability-based security, ~10MB bundle
-- AES-256 versleutelde lokale opslag — vervangt plaintext localStorage; vereist voor AVG-compliance
-- Per-leerling verwijderfunctie — Artikel 17 AVG (recht op vergetelheid)
-- React componentenstructuur — UI opgesplitst in herbruikbare componenten
+**Delivered:**
+- ✓ TypeScript + React + Vite — professionele DX, type-veiligheid (Phases 10–11)
+- ✓ Tauri desktop wrapper — installeerbare .exe/.dmg app, capability-based security (Phases 10, 15)
+- ✓ AES-256 versleutelde lokale opslag — AVG-compliant vervanging van plaintext localStorage (Phase 12)
+- ✓ Bestandstoegang via drag-drop + dialoog — PDF, Excel, zip-backup (Phase 13)
+- ✓ React componentenstructuur — UI volledig herschreven als herbruikbare componenten (Phase 14)
+- ✓ Packaging & cross-platform — .exe (Windows) + .dmg (Mac) installers via CI/CD (Phase 15)
 
 ## Milestone: v1.2 Dashboard Redesign — COMPLETE (2026-04-24)
 
@@ -67,15 +77,21 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ Aanwezigheidspercentage in klasoverzicht-tegels (i.p.v. uren ongeoorloofd) — Validated in Phase 9
 - ✓ Algeheel UI redesign in CIOS Zuidwest huisstijl (cyaan, navy, bold sans-serif) — Validated in Phase 9
 
-### Active (v2.0 milestone)
+### Validated (v2.0 milestone — completed 2026-05-16)
 
-- [ ] TypeScript + React + Vite — professionele codebase voor developer-contributors
-- [ ] Tauri desktop wrapper — cross-platform .exe/.dmg, capability-based AVG-posture
-- [ ] AES-256 versleutelde lokale opslag — AVG-compliant vervanging van plaintext localStorage
-- [ ] Per-leerling verwijderfunctie — Artikel 17 AVG compliance
-- [ ] React componentenstructuur — UI herschreven als herbruikbare componenten
+- ✓ TypeScript + React + Vite — professionele codebase voor developer-contributors — Phases 10–11
+- ✓ Tauri desktop wrapper — cross-platform .exe/.dmg, capability-based AVG-posture — Phases 10, 15
+- ✓ AES-256 versleutelde lokale opslag — AVG-compliant vervanging van plaintext localStorage — Phase 12
+- ✓ Per-leerling verwijderfunctie — Artikel 17 AVG compliance — Phase 12
+- ✓ React componentenstructuur — UI herschreven als herbruikbare componenten — Phase 14
 
-### Future (post-v2.0)
+### Active (v2.1 milestone)
+
+- [ ] Settings panel (dark mode, bestandsbeheer, deelgebieden/leerlijnen configuratie)
+- [ ] Auto class detection bij eerste import
+- [ ] UI polish — dark mode implementatie, overige visuele verbeteringen
+
+### Future (post-v2.1)
 
 - [ ] Rekenen en Nederlands voortgang apart bijhouden met eigen norm
 - [ ] Print-to-PDF export voor mentorgesprekverslag (EXP-01–04, uitgesteld uit v1.1)
@@ -132,4 +148,4 @@ This document evolves at phase transitions and milestone boundaries.
 **After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
 
 ---
-*Last updated: 2026-05-12 — v2.0 Stack Modernisering milestone started*
+*Last updated: 2026-05-17 — v2.1 Settings, Polish & Auto-class Detection milestone started*

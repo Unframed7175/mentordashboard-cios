@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Stack Modernisering
-status: Phase 15 complete (2026-05-16) — v2.0 Stack Modernisering volledig afgerond
-last_updated: "2026-05-16T00:00:00.000Z"
-last_activity: "2026-05-16 — Phase 15 complete. Plan 15-01: Cargo.toml + entitlements.plist + tauri.conf.json. Plan 15-02: GitHub push + release.yml CI workflow. Alle 3 CI-jobs groen. GitHub Release v2.0.1 met aarch64 DMG + x64 DMG + NSIS .exe. v2.0 milestone volledig."
+milestone: v2.1
+milestone_name: Settings, Polish & Auto-class Detection
+status: planning
+last_updated: "2026-05-17T06:56:11.543Z"
+last_activity: 2026-05-17
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 32
-  completed_plans: 32
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -24,12 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-12)
 
 ## Current Position
 
-Phase: 15 — Packaging & Cross-platform
-Plan: 1/2 executed (2 plans planned, 1 complete)
-Status: Phase 15 Plan 01 complete (2026-05-16) — Cargo.toml + entitlements.plist + tauri.conf.json bundle config done. Plan 15-02 (Wave 1, human-checkpoint) is next: GitHub push + release.yml CI workflow.
-Last activity: 2026-05-16 — Phase 15 Plan 01 executed. Cargo.toml metadata updated (D-09), entitlements.plist created (D-04 — JIT only, no keychain-access-groups), tauri.conf.json bundle updated (targets stays "all", windows.nsis.installMode: "currentUser", macOS.signingIdentity: "-"). npm run build exits 0 (NSIS + MSI produced). npm test 43/43 passed.
-
-Progress: [█████████░] 90% (v2.0: 5/6 phases)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-17 — Milestone v2.1 started
 
 ## Performance Metrics
 
