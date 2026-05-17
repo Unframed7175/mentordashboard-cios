@@ -285,8 +285,13 @@ Plans:
   2. De dark mode toggle in settings schakelt het dark theme in en uit — alle componenten (tegels, detailweergave, modal, spiderweb chart, deelgebieden matrix) zijn consistent gestyled via CSS-variabelen
   3. De gekozen dark/light voorkeur wordt persistent opgeslagen en hersteld bij herstart van de app
   4. Vanuit settings kan de mentor voor de actieve klas nieuwe PDFs en/of een verzuim-Excel uploaden — de bestaande klasdata blijft intact en wordt aangevuld
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 17-01-PLAN.md — CSS foundation: body.dark selector swap + section 24 (SettingsPage layout, toggle switch styles)
+- [ ] 17-02-PLAN.md — utils/settings.ts helper + SettingsPage component + SettingsPage.test.tsx (SET-01, POL-01)
+- [ ] 17-03-PLAN.md — App.tsx 4th view wiring + main.tsx startup hydration + KlasTabStrip gear icon + KlasTabStrip.test.tsx (SET-01, SET-02)
 
 ### Phase 18: Settings Panel Advanced
 **Goal**: Mentor kan via de settings-pagina de deelgebieden, leerlijnen, verzuim-drempelwaarden en BPV-uren aanpassen aan de eigen klassituatie — wijzigingen zijn direct zichtbaar in het dashboard
@@ -332,6 +337,6 @@ Plans:
 | 14. React UI | 0/6 | Not started | - |
 | 15. Packaging & Cross-platform | 0/2 | In progress | - |
 | 16. Auto-class Detection | 1/1 | Complete | 2026-05-17 |
-| 17. Settings Panel Foundation | 0/TBD | Not started | - |
+| 17. Settings Panel Foundation | 0/3 | Ready to execute | - |
 | 18. Settings Panel Advanced | 0/TBD | Not started | - |
 | 19. UI Polish | 0/TBD | Not started | - |
