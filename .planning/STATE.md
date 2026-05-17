@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Settings, Polish & Auto-class Detection
-status: ready
+status: planned
 last_updated: "2026-05-17T00:00:00.000Z"
 last_activity: 2026-05-17
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 1
   completed_plans: 0
   percent: 0
 ---
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 
 ## Current Position
 
-Phase: 16 (not started)
+Phase: 16
 Plan: —
-Status: Roadmap complete — ready to plan Phase 16
-Last activity: 2026-05-17 — v2.1 roadmap created (Phases 16–19)
+Status: Ready to execute — 1 plan in 1 wave
+Last activity: 2026-05-17 — Phase 16 planned (1 plan, verification passed)
 
 ## Progress Bar
 
@@ -107,3 +107,4 @@ v2.1 phases completed: 0/4
 - 2026-05-15: Phase 14 executed — React UI. 6 plans (5 original + 1 gap closure): status.ts helper, App.tsx routing + KlasTabStrip + KlasModal, KlasOverzicht + LeerlingTegel, DetailWeergave (7 sections), FeedbackActiepuntenSection + SpiderChartCard + DeelgebiedenMatrix + NotitiesTextarea, AanvullendSection + StageSection + LeerlijnenSection. Verification passed 4/4 (SC-3 closed via gap closure plan 14-06). 43 tests, 0 failures.
 - 2026-05-16: Phase 15 Plan 01 executed — Bundle config. Cargo.toml: description + authors updated (D-09). entitlements.plist created: JIT entitlements only (com.apple.security.cs.allow-jit + allow-unsigned-executable-memory; no keychain-access-groups). tauri.conf.json: targets stays "all", bundle.windows.nsis.installMode: "currentUser", bundle.macOS.entitlements + signingIdentity: "-". npm run build 0 (NSIS + MSI). npm test 43/43 passed. 0 deviations.
 - 2026-05-17: v2.1 milestone started. Roadmap created — Phases 16–19 defined, all 11 requirements mapped. Next: /gsd-plan-phase 16
+- 2026-05-17: Phase 16 planned — 1 plan (auto-detect klas from PDF header + toast notification). ACD-01 covered. Verification passed 12 dimensions.
