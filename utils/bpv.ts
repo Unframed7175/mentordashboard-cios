@@ -154,7 +154,13 @@ export function berekenBpvPct(gerealiseerd: number, verwacht: number): number {
  */
 export function parseBpvExcel(buffer: ArrayBuffer): BpvData {
   // D-13: BPV Excel parser stubbed — replace when user supplies sample BPV Excel file
-  void buffer; // avoid unused-arg warning
+  // Magic-byte guard: reject files that are clearly not XLSX (PK\x03\x04) or XLS (D0 CF 11 E0)
+  const bytes = new Uint8Array(buffer.slice(0, 8));
+  const isXlsx = bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04;
+  const isXls  = bytes[0] === 0xD0 && bytes[1] === 0xCF && bytes[2] === 0x11 && bytes[3] === 0xE0;
+  if (!isXlsx && !isXls) {
+    throw new Error('Onbekend BPV-bestandsformaat');
+  }
   return {};
 }
 

@@ -105,22 +105,24 @@ describe('bpv utility (Phase 18)', () => {
     expect(berekenBpvPct(67, 200)).toBe(34);
   });
 
-  it('parseBpvExcel STUB returns empty object', async () => {
+  it('parseBpvExcel STUB returns empty object for valid XLSX magic bytes', async () => {
     const { parseBpvExcel } = await import('../utils/bpv');
 
     // D-13: parser stubbed — replace when user supplies sample BPV Excel
-    let result: Record<string, unknown> | undefined;
-    let threw = false;
-    try {
-      result = parseBpvExcel(new ArrayBuffer(0));
-    } catch {
-      threw = true;
-    }
+    // Use XLSX magic bytes (PK\x03\x04) so the format check passes
+    const buf = new ArrayBuffer(8);
+    new Uint8Array(buf).set([0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00]);
+    const result = parseBpvExcel(buf);
+    expect(Object.keys(result).length).toBe(0);
+  });
 
-    // Must not throw
-    expect(threw).toBe(false);
-    // Must return empty object (stub)
-    expect(Object.keys(result ?? {}).length).toBe(0);
+  it('parseBpvExcel throws for non-Excel files (magic-byte guard)', async () => {
+    const { parseBpvExcel } = await import('../utils/bpv');
+
+    // PDF header (%PDF) — not a valid Excel file
+    const buf = new ArrayBuffer(8);
+    new Uint8Array(buf).set([0x25, 0x50, 0x44, 0x46, 0x00, 0x00, 0x00, 0x00]);
+    expect(() => parseBpvExcel(buf)).toThrow('Onbekend BPV-bestandsformaat');
   });
 
 });
