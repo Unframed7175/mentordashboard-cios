@@ -22,10 +22,10 @@ created: 2026-05-18
 | Preset | not applicable | No shadcn; no component registry |
 | Component library | none | Custom components only (Phase 14) |
 | Icon library | Unicode symbols (⚙ gear) | `KlasTabStrip.tsx` — no external icon library |
-| Font | Industry (replaces Inter) | D-07, D-08 — user provides licensed font files |
+| Font | Industry (replaces Inter) | D-07, D-08 — OTF files confirmed at `C:\Users\rafae\Desktop\bestanden voor dashboard testing\design\industry font\` |
 | Font fallback stack | -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif | Preserve existing fallback chain from `index.css` line 181 |
 
-> PENDING USER HAND-OFF — Font: User must provide Industry font files (Regular + Bold minimum) for `@font-face` bundling. See Assets section below.
+> ✓ Font files confirmed: IndustryTest-Book.otf (400), IndustryTest-Bold.otf (700), IndustryTest-Demi.otf (600). Copy to `src/assets/fonts/` before implementing typography.
 
 ---
 
@@ -83,18 +83,23 @@ Font loading implementation:
 
 ## Color
 
-Current codebase uses `--accent: #4F46E5` (indigo) and legacy aliases `--accent-blue: var(--accent)`. Phase 19 replaces with CIOS brand colors.
+Current codebase uses `--accent: #4F46E5` (indigo) and legacy aliases `--accent-blue: var(--accent)`. Phase 19 replaces with confirmed CIOS brand colors.
+
+**Confirmed CIOS brand blue:** `#009FE3` (RGB 0, 159, 227). A second value `#0BA1E2` (RGB 11, 161, 226) was also provided — these are near-identical and likely represent the same brand color across different color profiles. Use `#009FE3` as the canonical value.
 
 | Role | Current Value | Phase 19 Target | Usage |
 |------|---------------|-----------------|-------|
 | Dominant (60%) | `--bg-page: #F1F5F9` | Preserve (slate-100) | Page background |
 | Dominant surface | `--bg-surface: #FFFFFF` | Preserve | Cards, sections, tiles |
 | Secondary (30%) | `--bg-surface-alt: #F8FAFC` | Preserve | Alternate rows, form backgrounds |
-| Nav background | `--nav-bg: #FFFFFF` | Update to CIOS brand primary (D-03) | KlasTabStrip background |
-| Accent (10%) | `--accent: #4F46E5` | Update to CIOS brand accent (D-05) | Reserved elements listed below |
+| Nav background | `--nav-bg: #FFFFFF` | **Keep WHITE** — see nav design note below | KlasTabStrip background |
+| Accent (10%) | `--accent: #4F46E5` | `#009FE3` (confirmed CIOS blue) | Reserved elements listed below |
+| `--accent-hover` | `#4338CA` | `#007DBF` (accent at ~85% brightness) | Button hover, interactive element hover |
+| `--accent-light` | `#EEF2FF` | `#E0F5FD` (accent at 8% opacity on white) | Row hover bg, accent-tinted backgrounds |
+| `--accent-border` | `#C7D2FE` | `#99D9F4` (accent at 40% opacity on white) | Input focus borders, dividers |
+| `--accent-text` | `#3730A3` | `#00547A` (dark blue, WCAG AA on `--accent-light`) | Text on accent-light backgrounds |
+| `--border-focus` | `#4F46E5` | `#009FE3` (match new accent) | Focus ring color |
 | Destructive | `--status-rood-text: #991B1B` / `--status-rood-bg: #FEE2E2` | Preserve | Error banner, delete confirmations |
-
-> PENDING USER HAND-OFF — Colors: User must provide the exact CIOS Zuidwest brand color file before implementing color tokens. Existing `#00AEEF` (light blue) and `#003057` (dark navy) are baseline guesses from prior Phase 9; the brand file may override them. Both light and dark mode variants of `--nav-bg` and `--accent` must be updated in the same edit.
 
 Accent (10%) reserved for:
 - Active nav tab indicator (`.nav-tab.active` background + border)
@@ -104,18 +109,43 @@ Accent (10%) reserved for:
 - Active toggle track (`.toggle-track.on`)
 - Spider chart fill polygon opacity fill (via `--spider-*` tokens — category colors preserved)
 - Leerlijn progress bar gradient (`--accent` component of linear-gradient)
-- Input focus ring: `0 0 0 3px rgba(accent-rgb, 0.12)`
+- Input focus ring: `0 0 0 3px rgba(0, 159, 227, 0.12)`
+- Nav diagonal accent element (decorative stripe, see nav design below)
 
-Nav header color:
-- `--nav-bg` updated to CIOS brand primary color (likely dark navy `#003057` or similar).
-- Nav tab text color (`--text-muted`) must provide WCAG AA contrast against the new nav background. If nav background is dark, override `.nav-tab` color to `rgba(255,255,255,0.75)` and `.nav-tab.active` to `#fff`.
-- Border-bottom of `#main-nav` changes from `var(--border-default)` to `transparent` or a matching brand border.
+**Nav header design — confirmed from reference image (D-03):**
 
-> PENDING USER HAND-OFF — Nav header: User has a reference image showing desired nav/header design. Do not implement nav background color until image is reviewed.
+The reference image shows a **white background** nav with:
+- CIOS logo (small, "ZUIDWEST-NL" variant) in the **top-left**
+- A **blue diagonal accent stripe** (decorative) in the **top-right corner** — thin triangular wedge tapering from roughly ⅔-right to the far-right edge
+- No colored nav background — CIOS brand expression is through logo + diagonal element
+
+Implementation:
+- `--nav-bg` stays `#FFFFFF` (white) — no background color change
+- Add logo `<img>` in `KlasTabStrip.tsx` left side (see Corporate Identity section)
+- Add a CSS `::after` pseudo-element or SVG to `#main-nav` for the blue diagonal accent:
+  ```css
+  #main-nav::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 120px; height: 52px;
+    background: linear-gradient(
+      to bottom-left,
+      #009FE3 0%,
+      transparent 65%
+    );
+    pointer-events: none;
+  }
+  ```
+- The diagonal stripe should not overlap nav tabs or interactive elements (`z-index: 0`; tabs at `z-index: 1`)
+- `#main-nav`: add `position: relative; overflow: hidden` to contain the pseudo-element
+
+Dark mode nav: same white background → switch to dark surface. Blue diagonal accent stays (brand consistent).
 
 Dark mode color extensions:
-- `body.dark { --nav-bg: ... }` — dark variant of branded nav background (provide in same brand file)
-- All new brand tokens must have `body.dark` counterparts added to `src/index.css`
+- `body.dark { --accent: #009FE3; --accent-hover: #007DBF; }` — preserve brand blue in dark mode (blue is visible on dark bg)
+- `body.dark { --accent-light: #003B57; --accent-border: #005F8E; }` — dark-mode tints derived from brand blue
+- All 6 updated accent tokens must have `body.dark` counterparts added to `src/index.css`
 
 Shadow / Elevation (D-04):
 
@@ -297,52 +327,69 @@ All interactive elements must have explicit hover and focus states. Timing follo
 
 ### Corporate Identity Refresh
 
-**Tokens to update in `src/index.css` `:root` block:**
+**Tokens to update in `src/index.css` `:root` block — all values CONFIRMED:**
 
-| Token | Current | Update | Condition |
-|-------|---------|--------|-----------|
-| `--accent` | `#4F46E5` | CIOS brand accent color | After user provides brand file |
-| `--accent-hover` | `#4338CA` | Darker variant of CIOS accent | Derive: darken accent by ~10% |
-| `--accent-light` | `#EEF2FF` | Tinted background of CIOS accent | Derive: accent at 8–10% opacity on white |
-| `--accent-border` | `#C7D2FE` | Mid-tint of CIOS accent | Derive: accent at 40% opacity on white |
-| `--accent-text` | `#3730A3` | Dark variant for text-on-light | Must pass WCAG AA on `--accent-light` |
-| `--nav-bg` | `#FFFFFF` | CIOS brand primary color (dark navy) | After user provides brand file + nav reference image |
-| `--border-focus` | `#4F46E5` | Match new `--accent` | Update simultaneously |
+| Token | Current | Phase 19 Value | Status |
+|-------|---------|---------------|--------|
+| `--accent` | `#4F46E5` | `#009FE3` | ✓ Confirmed |
+| `--accent-hover` | `#4338CA` | `#007DBF` | ✓ Derived |
+| `--accent-light` | `#EEF2FF` | `#E0F5FD` | ✓ Derived |
+| `--accent-border` | `#C7D2FE` | `#99D9F4` | ✓ Derived |
+| `--accent-text` | `#3730A3` | `#00547A` | ✓ Derived |
+| `--nav-bg` | `#FFFFFF` | `#FFFFFF` (keep white) | ✓ Confirmed from reference |
+| `--border-focus` | `#4F46E5` | `#009FE3` | ✓ Confirmed |
 
 **Dark mode token extensions (new additions to `body.dark` block):**
 
-```
+```css
 body.dark {
-  --nav-bg: {dark variant of CIOS brand primary};
-  /* accent tokens already have dark variants — update all 5 */
+  --accent: #009FE3;          /* brand blue visible on dark bg */
+  --accent-hover: #007DBF;
+  --accent-light: #003B57;    /* dark-mode tint of brand blue */
+  --accent-border: #005F8E;
+  --accent-text: #7DD4F5;     /* light variant for text on dark */
+  --border-focus: #009FE3;
 }
 ```
 
-**Logo integration:**
+**Logo integration — assets confirmed (provided as images in design session):**
+- **Light mode logo:** Full "cios ZUIDWEST-NL" — blue "cios" italic text + bold black "ZUIDWEST-NL" on white background
+- **Dark mode logo:** "cios" mark only — blue text on dark/transparent background (no ZUIDWEST-NL text visible)
+- Logo files must be exported as SVG or PNG from the provided images. Source files exist at user's design folder.
 - Add `<img>` to `KlasTabStrip.tsx` nav — left side, before klas tabs.
-- Two separate `<img>` elements, conditionally rendered based on dark mode state (read `body.classList.contains('dark')` via a React state or context).
-- Alternatively: CSS `filter: brightness(0) invert(1)` to adapt single logo — only if user approves this approach; otherwise use separate files.
-- Logo dimensions: constrain to nav height. Max-height: `36px`. Width: `auto`.
+- Use dark mode state (`isDark` prop or CSS class check) to switch between light/dark logo.
+- Logo dimensions: max-height `36px`, width `auto`. Keep vertical centering within 52px nav height.
 - Alt text: "CIOS Zuidwest logo" (see Copywriting Contract).
+- Logo placement: `margin-right: 16px` before the first klas tab.
 
-> PENDING USER HAND-OFF — Logo: User must provide two logo files (light mode + dark mode) before implementing the header.
-
-> PENDING USER HAND-OFF — Nav reference image: User has a design reference for the nav header. Request this image before implementing nav background color and logo placement.
+> ASSETS LOCATED — Logo images provided by user in design session. Implementer must export as SVG/PNG and place in `src/assets/`. Light: full CIOS ZUIDWEST-NL. Dark: cios mark only.
 
 ---
 
 ### Typography System (Industry Font)
 
+**Font files CONFIRMED — located at:**
+`C:\Users\rafae\Desktop\bestanden voor dashboard testing\design\industry font\`
+
+Available OTF files:
+- `IndustryTest-Book.otf` — **Regular (400)** — use for body, labels, nav, tables
+- `IndustryTest-Bold.otf` — **Bold (700)** — use for headings, KPI values, buttons
+- `IndustryTest-Demi.otf` — Demi (~600) — available if 600-weight elements need a true mid weight
+- `IndustryTest-Medium.otf` — Medium (~500) — available for medium-weight uses
+- (Italic variants available if needed)
+
+Note: Files are OTF format ("IndustryTest" variant). These are test/licensed font files; they load correctly as OTF in Tauri's WebView.
+
 **Implementation steps:**
 
-1. Place font files in `src/assets/fonts/` (exact filenames TBD after user hand-off).
-2. Declare `@font-face` in `src/index.css` before existing `:root` block:
+1. Copy `IndustryTest-Book.otf` and `IndustryTest-Bold.otf` (minimum) to `src/assets/fonts/` from the source path above.
+2. Optionally copy `IndustryTest-Demi.otf` if weight-600 elements should use a true demi (see font-weight note below).
+3. Declare `@font-face` in `src/index.css` before existing `:root` block:
 
 ```css
 @font-face {
   font-family: 'Industry';
-  src: url('./assets/fonts/Industry-Regular.woff2') format('woff2'),
-       url('./assets/fonts/Industry-Regular.woff') format('woff');
+  src: url('./assets/fonts/IndustryTest-Book.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -350,25 +397,30 @@ body.dark {
 
 @font-face {
   font-family: 'Industry';
-  src: url('./assets/fonts/Industry-Bold.woff2') format('woff2'),
-       url('./assets/fonts/Industry-Bold.woff') format('woff');
+  src: url('./assets/fonts/IndustryTest-Bold.otf') format('opentype');
   font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Optional — only if keeping weight-600 elements distinct */
+@font-face {
+  font-family: 'Industry';
+  src: url('./assets/fonts/IndustryTest-Demi.otf') format('opentype');
+  font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 ```
 
-3. Replace the Google Fonts `@import` (line 9 of `src/index.css`) with the `@font-face` declarations above.
-4. Update `font-family` on `html, body, #root` (line 181) from `'Inter', ...` to `'Industry', ...`.
-5. No changes to individual component font-family declarations — inherit from `body`.
+4. Replace the Google Fonts `@import` (line 9 of `src/index.css`) with the `@font-face` declarations above.
+5. Update `font-family` on `html, body, #root` (line 181) from `'Inter', ...` to `'Industry', ...`.
+6. No changes to individual component font-family declarations — inherit from `body`.
 
 **Font weight usage:**
-- Weight 400 (Regular): body text, labels, nav tabs, table cells, input text, section descriptions.
-- Weight 700 (Bold): headings, KPI values, button labels (`.btn` has `font-weight: 600` — update to 700 if Industry lacks 600), section-title uppercase labels, status badge text.
-
-Note: If Industry provides only 400 and 700 (no 600), update `.btn`, `.nav-tab.active`, `.kpi-label`, `.detail-section-title` from `font-weight: 600` to `font-weight: 700`.
-
-> PENDING USER HAND-OFF — Font files: User must provide licensed Industry font files (`.woff2` and `.woff` minimum) in Regular (400) and Bold (700) weights. If Italic or other weights exist and are needed, request them. Tauri bundles `src/` — files placed in `src/assets/fonts/` will be included in the app bundle.
+- Weight 400 (Book/Regular): body text, labels, nav tabs, table cells, input text, section descriptions.
+- Weight 700 (Bold): headings, KPI values, section-title uppercase labels, status badge text.
+- Weight 600 (Demi — optional): `.btn`, `.nav-tab.active`, `.kpi-label` currently use `font-weight: 600`. Either remap to 700 (Bold) or include Demi. Recommend: include Demi for visual fidelity since the font file is available.
 
 ---
 
@@ -418,15 +470,15 @@ Note: If Industry provides only 400 and 700 (no 600), update `.btn`, `.nav-tab.a
 
 ## Assets Hand-Off Checklist
 
-The following assets are NOT in the codebase. The implementer MUST request them from the user before starting the indicated tasks.
+| # | Asset | Status | Location / Value |
+|---|-------|--------|-----------------|
+| 1 | CIOS brand color | ✓ **CONFIRMED** | Primary: `#009FE3` (RGB 0,159,227). Derived tokens computed in Color section. |
+| 2 | Logo — light mode | ✓ **PROVIDED** (as image) | Full "cios ZUIDWEST-NL" logo. Export as SVG/PNG → `src/assets/logo-light.svg` |
+| 3 | Logo — dark mode | ✓ **PROVIDED** (as image) | "cios" mark only on dark bg. Export as SVG/PNG → `src/assets/logo-dark.svg` |
+| 4 | Industry font files (OTF) | ✓ **LOCATED** | `C:\Users\rafae\Desktop\bestanden voor dashboard testing\design\industry font\` — IndustryTest-Book.otf, IndustryTest-Bold.otf, IndustryTest-Demi.otf. Copy to `src/assets/fonts/`. |
+| 5 | Nav header reference image | ✓ **CONFIRMED** | White background + diagonal blue accent top-right. `--nav-bg` stays white. See Color section for diagonal CSS implementation. |
 
-| # | Asset | Required for | Current placeholder |
-|---|-------|-------------|---------------------|
-| 1 | CIOS Zuidwest brand color file | Corporate identity token update | `#00AEEF` / `#003057` (Phase 9 guesses) |
-| 2 | Logo file — light mode | Nav header logo integration | None |
-| 3 | Logo file — dark mode | Nav header logo integration | None |
-| 4 | Industry font files (Regular + Bold, .woff2/.woff) | Typography system | Google Fonts Inter (current) |
-| 5 | Nav header reference image | Nav background color + logo layout | None |
+**All 5 assets are now resolved.** No blocking hand-offs remain. Implementer can proceed.
 
 ---
 
