@@ -27,12 +27,12 @@ Additionally the user requested a **full visual refresh** incorporating the CIOS
 - **D-04:** Card elevation: Claude decides whether to update `--shadow-sm`/`--shadow-md` to Material-style values or add a new elevation token scale. Decision must be consistent across all card components.
 - **D-05:** Brand colors: the user has the **exact brand file** with official CIOS Zuidwest colors. The implementer must ask for it at implementation time. The existing `#00AEEF` + `#003057` may be updated.
 - **D-06:** Logo: two separate logo files exist for light and dark modes. The user will provide them at implementation — they may need minor adjustments. The researcher must note: "Ask user for logo files (light + dark) before implementing the header."
-- **D-07:** Typography — Helvetica Neue family (user will provide licensed font files for bundling in Tauri):
-  - **Page title**: Helvetica Neue Light, font size varies (context-dependent), line spacing 37
-  - **Sub header**: Helvetica Neue Regular, font size 12, line spacing 14
-  - **Intro text**: Helvetica Neue Regular, font size 12, line spacing 16
-  - **Flat/body text**: Helvetica Neue Regular, font size 9, line spacing 14
-- **D-08:** Font loading strategy: bundle Helvetica Neue font files inside the Tauri app (user provides licensed files). Use `@font-face` in `index.css`. Researcher must note: "Ask user for Helvetica Neue font files before implementing typography."
+- **D-07:** Typography — **Industry font** family. Apply the same size/line-spacing spec as originally designed (user will provide font files for bundling in Tauri):
+  - **Page title**: Industry, font size varies (context-dependent), line spacing 37
+  - **Sub header**: Industry Regular, font size 12, line spacing 14
+  - **Intro text**: Industry Regular, font size 12, line spacing 16
+  - **Flat/body text**: Industry Regular, font size 9, line spacing 14
+- **D-08:** Font loading strategy: bundle Industry font files inside the Tauri app (user provides licensed files). Use `@font-face` in `index.css`. Researcher must note: "Ask user for Industry font files before implementing typography."
 
 ### Spider Chart — Tooltips & Axis Labels (D-09 – D-11)
 
@@ -99,7 +99,7 @@ Additionally the user requested a **full visual refresh** incorporating the CIOS
 The following assets are NOT in the codebase — implementer MUST request them from the user before starting the relevant tasks:
 1. **CIOS brand color file** — exact brand colors (may update #00AEEF / #003057)
 2. **Logo files** — two files: light mode and dark mode variant (may need adjusting)
-3. **Helvetica Neue font files** — licensed copies for bundling in Tauri (for `@font-face`)
+3. **Industry font files** — licensed copies for bundling in Tauri (for `@font-face`)
 4. **Nav header reference image** — user's design reference for the colored nav/header
 
 </canonical_refs>
@@ -134,7 +134,7 @@ The following assets are NOT in the codebase — implementer MUST request them f
 ## Specific Ideas
 
 - **Nav header reference image**: user has a specific design in mind — researcher/implementer must ask for this image before designing the nav header. Do not guess.
-- **Brand asset hand-off**: user will provide brand color file, logo files (light + dark), and Helvetica Neue font files at implementation time. Create a hand-off checklist item in the plan.
+- **Brand asset hand-off**: user will provide brand color file, logo files (light + dark), and Industry font files at implementation time. Create a hand-off checklist item in the plan.
 - **Typography mapping needed**: the typography spec uses print units (pt) and line spacing values that need conversion to CSS `px`/`rem` and `line-height` ratios. Planner should propose a conversion table for review.
 - **Helvetica Neue font size note**: "font size varies" for page title means context-dependent (h1 vs h2 vs page-level title). Planner proposes a specific size-per-context table.
 - **Spider chart refactor security note**: the existing `SpiderChartCard.tsx` contains a comment noting the SVG string injection as a security choice. When removing `dangerouslySetInnerHTML`, update or remove this comment.

@@ -82,20 +82,20 @@
 
 ### Typography
 
-**User's response (free text):** Full CIOS Helvetica Neue spec:
-- Page title: Helvetica Neue Light, font size varies, line spacing 37
-- Sub header: Helvetica Neue Regular, font size 12, line spacing 14
-- Intro text: Helvetica Neue Regular, font size 12, line spacing 16
-- Flat text: Helvetica Neue Regular, font size 9, line spacing 14
+**User's response (free text):** Full CIOS Industry spec:
+- Page title: Industry Light, font size varies, line spacing 37
+- Sub header: Industry Regular, font size 12, line spacing 14
+- Intro text: Industry Regular, font size 12, line spacing 16
+- Flat text: Industry Regular, font size 9, line spacing 14
 
 ### Font loading strategy
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Bundle Helvetica Neue as a web font | Include font files in the app — requires licensed copy | |
-| Use CSS font-family fallback stack | Mac gets real Helvetica Neue, Windows falls back to Arial | |
-| Use Inter as a free substitute | Similar metrics to Helvetica Neue, free | |
-| I'll provide the font files | Has licensed Helvetica Neue files to include in Tauri bundle | ✓ |
+| Bundle Industry as a web font | Include font files in the app — requires licensed copy | |
+| Use CSS font-family fallback stack | Mac gets real Industry, Windows falls back to Arial | |
+| Use Inter as a free substitute | Similar metrics to Industry, free | |
+| I'll provide the font files | Has licensed Industry files to include in Tauri bundle | ✓ |
 
 **User's choice:** Will provide licensed font files for Tauri bundle.
 
