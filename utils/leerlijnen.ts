@@ -102,4 +102,16 @@ export async function resetLeerlijnenMapping(): Promise<void> {
   _cachedMapping = null;
 }
 
+/**
+ * getLeerlijnenMappingSync()
+ * Synchronous cache accessor. Returns cached mapping if present, otherwise schema defaults.
+ * Use in berekenPrognose() and other sync call sites instead of the async version.
+ * Pre-warm by calling getLeerlijnenMapping() at app startup.
+ */
+export function getLeerlijnenMappingSync(): Record<string, string> {
+  if (_cachedMapping !== null) return _cachedMapping;
+  // Cache cold: return schema defaults (same as buildDefault())
+  return buildDefault();
+}
+
 console.log('[leerlijnen.ts] Leerlijn-toewijzing persistence geladen');
