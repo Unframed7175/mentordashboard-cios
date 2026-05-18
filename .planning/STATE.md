@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Settings, Polish & Auto-class Detection
 status: executing
-last_updated: "2026-05-18T17:13:00.000Z"
-last_activity: 2026-05-18 -- Phase 18 Plan 02 complete (Wave 1 utility implementations)
+last_updated: "2026-05-18T15:29:02.836Z"
+last_activity: "2026-05-18 -- Phase 18 Plans 03+04 complete (Wave 2: backend logic refactor + deelgebieden UI)"
 progress:
   total_phases: 14
-  completed_phases: 12
+  completed_phases: 13
   total_plans: 42
-  completed_plans: 40
-  percent: 95
+  completed_plans: 42
+  percent: 100
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 ## Current Position
 
 Phase: 18
-Plan: 04 (complete)
+Plan: 05 (complete)
 Status: Executing
-Last activity: 2026-05-18 -- Phase 18 Plans 03+04 complete (Wave 2: backend logic refactor + deelgebieden UI)
+Last activity: 2026-05-18 -- Phase 18 Plan 05 complete (Wave 3: section 4 thresholds+BPV, BpvProgressSection, active-DG filter, CSS completion)
 
 ## Progress Bar
 
@@ -111,3 +111,4 @@ v2.1 phases completed: 0/4
 - 2026-05-17: Phase 16 complete — autoDetectKlas() in ImportPage.tsx; ACD-01 shipped. UAT passed (2/3 tests; test 2 skipped). 2 out-of-scope bugs noted: drag-and-drop not working, stage Excel not parsing.
 - 2026-05-18: Phase 18 Plan 01 executed — Wave 0 RED test scaffolds. 4 new test files (deelgebieden, verzuimDrempels, bpv, leerlijnen) + 2 extended (status, prognosis). 28 new RED tests gate Wave 1 GREEN. 3 tasks completed, 0 deviations.
 - 2026-05-18: Phase 18 Plan 02 executed — Wave 1 utility implementations. 3 new files (deelgebieden.ts, verzuimDrempels.ts, bpv.ts) + getLeerlijnenMappingSync added + main.tsx pre-warm. 20/20 Wave 0 utility tests GREEN. 1 deviation: getLeerlijnenMapping async bug fixed early in prognosis.ts.
+- 2026-05-18: Phase 18 Plan 05 executed — Wave 3 UI completion. SettingsPage section 4 (threshold inputs + BPV config + import button), BpvProgressSection (new), DeelgebiedenMatrix + SpiderChartCard active-DG filter (Invariant I1 preserved), DetailWeergave BPV mount (D-12), CSS section 25 completed. 89/89 tests pass. 0 deviations.
