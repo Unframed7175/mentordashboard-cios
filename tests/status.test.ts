@@ -133,3 +133,71 @@ test('STATUS_VOLGORDE: rood < oranje < groen < blauw < grijs', () => {
   expect(STATUS_VOLGORDE['groen']).toBeLessThan(STATUS_VOLGORDE['blauw']);
   expect(STATUS_VOLGORDE['blauw']).toBeLessThan(STATUS_VOLGORDE['grijs']);
 });
+
+// ---------------------------------------------------------------------------
+// berekenStatus thresholds — Phase 18 RED tests
+// These tests FAIL until 18-03 adds the thresholds parameter and geoorloofd check.
+// ---------------------------------------------------------------------------
+
+describe('berekenStatus thresholds (Phase 18)', () => {
+
+  // Helper: 13 voldoende scores → positive prognose (sbl label for bj2)
+  function makePositiveStudent(verzuim?: { aanwezigheid: number; geoorloofd: number; ongeoorloofd: number }): any {
+    const scores = allScores(null);
+    const keys = Object.keys(scores).slice(0, 13);
+    for (const k of keys) scores[k] = 'voldoende';
+    return makeStudent({ deelgebiedScores: scores, verzuim: verzuim ?? null });
+  }
+
+  it('returns oranje/Verzuim when ongeoorloofd exceeds custom threshold', () => {
+    // ongeoorloofd = 700 > threshold of 600 → Verzuim
+    // Prognose is positive (sbl) so without verzuim check it would be groen/Op koers
+    const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 700 });
+
+    const result = berekenStatus(student, undefined, { geoorloofd: 1500, ongeoorloofd: 600 });
+
+    expect(result.kleur).toBe('oranje');
+    expect(result.label).toBe('Verzuim');
+  });
+
+  it('returns oranje/Verzuim when geoorloofd exceeds custom geoorloofd threshold', () => {
+    // geoorloofd = 1000 > threshold of 900 → Verzuim (new check added in Phase 18)
+    // ongeoorloofd = 0 → would not trigger the ongeoorloofd check
+    const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 1000, ongeoorloofd: 0 });
+
+    const result = berekenStatus(student, undefined, { geoorloofd: 900, ongeoorloofd: 600 });
+
+    expect(result.kleur).toBe('oranje');
+    expect(result.label).toBe('Verzuim');
+  });
+
+  it('uses runtime thresholds via getVerzuimDrempelsSync when arg omitted', async () => {
+    // Mock utils/verzuimDrempels to return very low thresholds (50 minutes ongeoorloofd)
+    // so a student with ongeoorloofd=51 triggers Verzuim without passing explicit thresholds
+    vi.mock('../utils/verzuimDrempels', () => ({
+      getVerzuimDrempelsSync: () => ({ geoorloofd: 100, ongeoorloofd: 50 }),
+    }));
+
+    const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 51 });
+
+    // Call WITHOUT third arg — must use getVerzuimDrempelsSync() internally
+    const result = berekenStatus(student);
+
+    expect(result.kleur).toBe('oranje');
+    expect(result.label).toBe('Verzuim');
+
+    vi.unmock('../utils/verzuimDrempels');
+  });
+
+  it('returns prognose-driven status when both verzuim values stay under thresholds', () => {
+    // Both ongeoorloofd=10 and geoorloofd=10 are well below thresholds → no Verzuim
+    // 13 voldoende → sbl → groen/Op koers
+    const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 10, ongeoorloofd: 10 });
+
+    const result = berekenStatus(student, undefined, { geoorloofd: 900, ongeoorloofd: 600 });
+
+    expect(result.kleur).toBe('groen');
+    expect(result.label).toBe('Op koers');
+  });
+
+});

@@ -84,3 +84,73 @@ test('berekenAllePrognoses met lege students array geeft lege array', () => {
   expect(Array.isArray(result)).toBe(true);
   expect(result.length).toBe(0);
 });
+
+// ---------------------------------------------------------------------------
+// berekenPrognose activeDeelgebiedenIds filter — Phase 18 RED tests
+// These tests FAIL until 18-03 adds the activeDeelgebiedenIds parameter.
+// ---------------------------------------------------------------------------
+
+describe('berekenPrognose activeDeelgebiedenIds filter (Phase 18)', () => {
+
+  it('without activeDeelgebiedenIds counts all 19 deelgebieden', () => {
+    // All 19 scored 'voldoende' — should produce totaalVoldoendeOfHoger === 19
+    const scores = allScores('voldoende');
+    const student = makeStudent(scores);
+
+    const result = berekenPrognose(student);
+
+    expect(result.totaalVoldoendeOfHoger).toBe(DEELGEBIEDEN.length); // 19
+  });
+
+  it('with activeDeelgebiedenIds filters out inactive deelgebieden', () => {
+    // All 19 scored 'voldoende', but only 3 are active → only 3 count
+    const scores = allScores('voldoende');
+    const student = makeStudent(scores);
+
+    const activeIds = [DEELGEBIEDEN[0].id, DEELGEBIEDEN[1].id, DEELGEBIEDEN[2].id];
+    const result = berekenPrognose(student, undefined, activeIds);
+
+    expect(result.totaalVoldoendeOfHoger).toBe(3);
+  });
+
+  it('with empty activeDeelgebiedenIds array yields zero counts', () => {
+    // Empty array → no deelgebieden active → nothing counted
+    const scores = allScores('voldoende');
+    const student = makeStudent(scores);
+
+    const result = berekenPrognose(student, undefined, []);
+
+    expect(result.totaalVoldoendeOfHoger).toBe(0);
+    expect(result.totaalOnvoldoende).toBe(0);
+  });
+
+  it('uses getLeerlijnenMappingSync (no Promise leak)', () => {
+    // Mock leerlijnen so getLeerlijnenMappingSync returns a known sync mapping
+    // All DEELGEBIEDEN ids mapped to 'lesgeven' for simplicity
+    const knownMapping = Object.fromEntries(
+      DEELGEBIEDEN.map(dg => [dg.id, 'lesgeven'])
+    );
+    vi.mock('../utils/leerlijnen', () => ({
+      getLeerlijnenMappingSync: () => knownMapping,
+      getLeerlijnenMapping: async () => knownMapping,
+    }));
+
+    // 4 deelgebieden scored 'goed' (which is goedOfHoger for SBC check)
+    const activeIds = DEELGEBIEDEN.slice(0, 4).map(dg => dg.id);
+    const scores: Record<string, string | null> = {};
+    for (const dg of DEELGEBIEDEN) {
+      scores[dg.label] = activeIds.includes(dg.id) ? 'goed' : null;
+    }
+    const student = makeStudent(scores);
+
+    const result = berekenPrognose(student, undefined, activeIds);
+
+    // Result label must be a valid string (proves mapping was a real object, not a Promise)
+    const validLabels = ['sbc', 'sbl', 'negatief', 'neutraal'];
+    expect(validLabels).toContain(result.label);
+    expect(result.label).not.toBeUndefined();
+
+    vi.unmock('../utils/leerlijnen');
+  });
+
+});
