@@ -320,8 +320,8 @@ Plans:
 - [x] 18-02-PLAN.md — Utility layer: utils/deelgebieden.ts + utils/verzuimDrempels.ts + utils/bpv.ts + getLeerlijnenMappingSync + main.tsx pre-warm
 
 **Wave 2** *(blocked on Wave 1)*
-- [ ] 18-03-PLAN.md — Backend logic refactor: berekenPrognose activeDeelgebiedenIds + sync mapping fix + berekenStatus internal sync threshold + VerzuimSection runtime threshold
-- [ ] 18-04-PLAN.md — SettingsPage section 3 (Deelgebieden & Leerlijnen table + inline confirmation) + CSS section 25 (deelgebieden subset)
+- [x] 18-03-PLAN.md — Backend logic refactor: berekenPrognose activeDeelgebiedenIds + sync mapping fix + berekenStatus internal sync threshold + VerzuimSection runtime threshold
+- [x] 18-04-PLAN.md — SettingsPage section 3 (Deelgebieden & Leerlijnen table + inline confirmation) + CSS section 25 (deelgebieden subset)
 
 **Wave 3** *(blocked on Wave 2 — shared files: SettingsPage.tsx + index.css)*
 - [ ] 18-05-PLAN.md — SettingsPage section 4 (thresholds + BPV) + CSS section 25 (remaining) + DeelgebiedenMatrix/SpiderChartCard active filter + BpvProgressSection + DetailWeergave wiring

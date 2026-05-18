@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 ## Current Position
 
 Phase: 18
-Plan: 02 (complete)
+Plan: 04 (complete)
 Status: Executing
-Last activity: 2026-05-18 -- Phase 18 Plan 02 complete (Wave 1 utility implementations)
+Last activity: 2026-05-18 -- Phase 18 Plans 03+04 complete (Wave 2: backend logic refactor + deelgebieden UI)
 
 ## Progress Bar
 
