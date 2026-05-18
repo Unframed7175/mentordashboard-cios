@@ -19,6 +19,8 @@ import {
   saveLeerlijnenMapping,
   resetLeerlijnenMapping,
 } from '../../utils/leerlijnen';
+import { loadVerzuimDrempels, saveVerzuimDrempels } from '../../utils/verzuimDrempels';
+import { getBpvConfig, saveBpvConfig, parseBpvExcel, saveBpvData, getBpvData, type BpvConfig, type BpvData } from '../../utils/bpv';
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -87,6 +89,13 @@ export default function SettingsPage({ onBack, onNavigateToImport }: SettingsPag
   const [leerlijnenMapping, setLeerlijnenMapping] = useState<Record<string, string>>({});
   const [confirmingReset, setConfirmingReset] = useState(false);
 
+  // Section 4 state — verzuim thresholds (in hours) + BPV config
+  const [geoorloofdHours, setGeoorloofdHours] = useState<number>(15);
+  const [ongeoorloofdHours, setOngeoorloofdHours] = useState<number>(10);
+  const [bpvUren, setBpvUren] = useState<number>(200);
+  const [bpvImportError, setBpvImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // On mount: restore saved theme preference
   useEffect(() => {
     (async () => {
@@ -118,6 +127,17 @@ export default function SettingsPage({ onBack, onNavigateToImport }: SettingsPag
         setLeerlijnenMapping(mapping);
       })
       .catch(err => console.warn('[SettingsPage] section 3 load failed:', err));
+  }, []);
+
+  // On mount: load section 4 config — verzuim drempels + BPV config (separate concern)
+  useEffect(() => {
+    Promise.all([loadVerzuimDrempels(), getBpvConfig()])
+      .then(([drempels, bpvConfig]) => {
+        setGeoorloofdHours(Math.round(drempels.geoorloofd / 60));
+        setOngeoorloofdHours(Math.round(drempels.ongeoorloofd / 60));
+        setBpvUren(bpvConfig.verwachteUren);
+      })
+      .catch(err => console.warn('[SettingsPage] section 4 load failed:', err));
   }, []);
 
   // Toggle handler: update DOM + React state + persist (Pitfall 6: must update both atomically)
@@ -156,6 +176,47 @@ export default function SettingsPage({ onBack, onNavigateToImport }: SettingsPag
     setDgConfig(cfg);
     setLeerlijnenMapping(mapping);
     setConfirmingReset(false);
+  }
+
+  // Section 4 handlers — instant-apply thresholds and BPV config (I2: hours → minutes × 60)
+
+  async function handleGeoorloofdChange(hours: number) {
+    const clamped = Math.max(0, Math.min(200, isNaN(hours) ? geoorloofdHours : hours));
+    setGeoorloofdHours(clamped);
+    await saveVerzuimDrempels({ geoorloofd: clamped * 60, ongeoorloofd: ongeoorloofdHours * 60 });
+  }
+
+  async function handleOngeoorloofdChange(hours: number) {
+    const clamped = Math.max(0, Math.min(200, isNaN(hours) ? ongeoorloofdHours : hours));
+    setOngeoorloofdHours(clamped);
+    await saveVerzuimDrempels({ geoorloofd: geoorloofdHours * 60, ongeoorloofd: clamped * 60 });
+  }
+
+  async function handleBpvUrenChange(uren: number) {
+    const clamped = Math.max(0, Math.min(9999, isNaN(uren) ? bpvUren : uren));
+    setBpvUren(clamped);
+    await saveBpvConfig({ verwachteUren: clamped });
+  }
+
+  async function handleBpvImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so same file can be re-selected
+    e.target.value = '';
+    try {
+      const buffer = await file.arrayBuffer();
+      const records = parseBpvExcel(buffer);
+      if (records === null || typeof records !== 'object') {
+        setBpvImportError('Onbekend BPV-bestandsformaat. Probeer een ander bestand.');
+        return;
+      }
+      const existing = await getBpvData();
+      const merged: BpvData = { ...existing, ...records };
+      await saveBpvData(merged);
+      setBpvImportError(null);
+    } catch {
+      setBpvImportError('Onbekend BPV-bestandsformaat. Probeer een ander bestand.');
+    }
   }
 
   // Helper: get schema-default leerlijn group for a deelgebied (fallback when not in mapping)
@@ -273,10 +334,78 @@ export default function SettingsPage({ onBack, onNavigateToImport }: SettingsPag
         )}
       </section>
 
-      {/* Section 4: Drempelwaarden & BPV-uren — Phase 18 placeholder (handled by Plan 18-05) */}
+      {/* Section 4: Drempelwaarden & BPV-uren (Phase 18 — SET-05 + SET-06) */}
       <section className="detail-section">
         <h2 className="detail-section-title">Drempelwaarden &amp; BPV-uren</h2>
-        <p className="settings-placeholder-text">Komt in een volgende versie.</p>
+
+        {/* Verzuim drempelwaarden subsection */}
+        <div className="settings-threshold-group">
+          <div className="settings-threshold-row">
+            <label style={{ minWidth: 160 }}>Geoorloofd verzuim waarschuwing</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              min={0}
+              max={200}
+              step={1}
+              value={geoorloofdHours}
+              onChange={e => handleGeoorloofdChange(Number(e.target.value))}
+            />
+            <span style={{ color: 'var(--text-muted)' }}>uur</span>
+          </div>
+          <div className="settings-threshold-row">
+            <label style={{ minWidth: 160 }}>Ongeoorloofd verzuim waarschuwing</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              min={0}
+              max={200}
+              step={1}
+              value={ongeoorloofdHours}
+              onChange={e => handleOngeoorloofdChange(Number(e.target.value))}
+            />
+            <span style={{ color: 'var(--text-muted)' }}>uur</span>
+          </div>
+        </div>
+
+        <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)', margin: '16px 0' }} />
+
+        {/* BPV subsection */}
+        <div className="settings-threshold-row">
+          <label style={{ minWidth: 160 }}>Verwachte BPV-uren per periode</label>
+          <input
+            type="number"
+            className="settings-number-input"
+            min={0}
+            max={9999}
+            step={1}
+            value={bpvUren}
+            onChange={e => handleBpvUrenChange(Number(e.target.value))}
+          />
+          <span style={{ color: 'var(--text-muted)' }}>uur</span>
+        </div>
+
+        {/* Hidden file input for BPV Excel import */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".xlsx,.xls"
+          style={{ display: 'none' }}
+          onChange={handleBpvImportFile}
+        />
+        <button
+          className="btn btn-ghost"
+          style={{ marginTop: 8 }}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          BPV-uren importeren
+        </button>
+        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: 8 }}>
+          Importeer de BPV Excel om gerealiseerde uren per leerling bij te houden.
+        </p>
+        {bpvImportError && (
+          <p style={{ fontSize: '0.875rem', color: '#EF4444', marginTop: 8 }}>{bpvImportError}</p>
+        )}
       </section>
     </main>
   );
