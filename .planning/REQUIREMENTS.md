@@ -10,10 +10,10 @@
 
 - [ ] **SET-01**: Mentor kan schakelen tussen light en dark mode via een settings-icoon; de voorkeur wordt persistent opgeslagen en hersteld bij herstart
 - [ ] **SET-02**: Mentor kan vanuit de settings-pagina nieuwe PDFs en/of een verzuim-Excel toevoegen aan een bestaande klas, zonder de klas opnieuw aan te maken
-- [ ] **SET-03**: Mentor kan in de settings de 19 deelgebieden hernoemen of individueel inactief zetten (inactieve deelgebieden worden verborgen in matrix en prognose)
-- [ ] **SET-04**: Mentor kan in de settings de leerlijn-toewijzing aanpassen — welk deelgebied valt onder lesgeven / organiseren / professioneel handelen
-- [ ] **SET-05**: Mentor kan aparte drempelwaarden instellen voor verzuim-signalering: apart voor geoorloofd en ongeoorloofd verzuim (bijv. "waarschuw bij >10u geoorloofd of >4u ongeoorloofd")
-- [ ] **SET-06**: Mentor kan het verwachte aantal BPV-uren per periode configureren (gebruikt voor voortgangsindicatie)
+- [x] **SET-03**: Mentor kan in de settings de 19 deelgebieden hernoemen of individueel inactief zetten (inactieve deelgebieden worden verborgen in matrix en prognose)
+- [x] **SET-04**: Mentor kan in de settings de leerlijn-toewijzing aanpassen — welk deelgebied valt onder lesgeven / organiseren / professioneel handelen
+- [x] **SET-05**: Mentor kan aparte drempelwaarden instellen voor verzuim-signalering: apart voor geoorloofd en ongeoorloofd verzuim (bijv. "waarschuw bij >10u geoorloofd of >4u ongeoorloofd")
+- [x] **SET-06**: Mentor kan het verwachte aantal BPV-uren per periode configureren (gebruikt voor voortgangsindicatie)
 
 ### Auto-class Detection (ACD)
 

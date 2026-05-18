@@ -314,7 +314,7 @@ Plans:
 Plans:
 
 **Wave 0**
-- [ ] 18-01-PLAN.md — Failing test scaffolds for SET-03/04/05/06 (deelgebieden, verzuimDrempels, bpv, leerlijnen sync, status/prognosis extensions)
+- [x] 18-01-PLAN.md — Failing test scaffolds for SET-03/04/05/06 (deelgebieden, verzuimDrempels, bpv, leerlijnen sync, status/prognosis extensions)
 
 **Wave 1** *(blocked on Wave 0)*
 - [ ] 18-02-PLAN.md — Utility layer: utils/deelgebieden.ts + utils/verzuimDrempels.ts + utils/bpv.ts + getLeerlijnenMappingSync + main.tsx pre-warm
@@ -364,5 +364,5 @@ Cross-cutting constraints:
 | 15. Packaging & Cross-platform | 0/2 | In progress | - |
 | 16. Auto-class Detection | 1/1 | Complete | 2026-05-17 |
 | 17. Settings Panel Foundation | 0/3 | Ready to execute | - |
-| 18. Settings Panel Advanced | 0/5 | Ready to execute | - |
+| 18. Settings Panel Advanced | 1/5 | In Progress|  |
 | 19. UI Polish | 0/TBD | Not started | - |
