@@ -2,6 +2,8 @@ import React from 'react';
 import { aggregateDeelgebiedScores } from '../../utils/aggregation';
 import { getAllRecordsForStudent } from '../../utils/klassen';
 import { DEELGEBIEDEN, SCORE_LEVELS, normalizeScore } from '../../utils/schema';
+import { getDeelgebiedenConfigSync, type DeelgebiedConfig } from '../../utils/deelgebieden';
+import { getLeerlijnenMappingSync } from '../../utils/leerlijnen';
 
 interface DeelgebiedenMatrixProps {
   student: any;
@@ -56,10 +58,21 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
   // period's rows, so ~half the rows were invisible when 2 PDFs were imported.
   const datapunten: any[] = allRecords.flatMap((r: any) => r.datapunten || []);
 
-  // Group deelgebieden per leerlijn
+  // Active-deelgebied filter + runtime leerlijn-mapping group assignment (Phase 18 SET-03/SET-04)
+  // Uses sync accessors — pre-warm in main.tsx guarantees populated caches at render time.
+  const dgConfig = getDeelgebiedenConfigSync();
+  const mapping = getLeerlijnenMappingSync();
+  const activeIds = new Set(dgConfig.filter((c: DeelgebiedConfig) => c.active).map((c: DeelgebiedConfig) => c.id));
+  const labelById = new Map(dgConfig.map((c: DeelgebiedConfig) => [c.id, c.label])); // display labels only
+
+  // Group deelgebieden per leerlijn — filter inactive and respect runtime leerlijn-mapping
   const groepDG: Record<string, typeof DEELGEBIEDEN> = {};
   for (const g of GROEPEN) {
-    groepDG[g.key] = DEELGEBIEDEN.filter(dg => dg.group === g.key);
+    groepDG[g.key] = DEELGEBIEDEN.filter(dg => {
+      if (!activeIds.has(dg.id)) return false;
+      const dgLeerlijn = mapping[dg.id] || dg.group;
+      return dgLeerlijn === g.key;
+    });
   }
 
   const allDG = GROEPEN.flatMap(g => groepDG[g.key]);
@@ -115,7 +128,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
             <tr>
               {allDG.map(dg => (
                 <th key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 600 }}>
-                  {dg.label}
+                  {labelById.get(dg.id) ?? dg.label}
                 </th>
               ))}
             </tr>
