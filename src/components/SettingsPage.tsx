@@ -289,7 +289,7 @@ export default function SettingsPage({ onBack, onNavigateToImport }: SettingsPag
                     >
                       <option value="lesgeven">Lesgeven</option>
                       <option value="organiseren">Organiseren</option>
-                      <option value="profHandelen">Prof. handelen</option>
+                      <option value="prof_handelen">Prof. handelen</option>
                     </select>
                   </td>
                   <td>

@@ -77,9 +77,9 @@ export async function getLeerlijnenMapping(): Promise<Record<string, string>> {
  */
 export async function saveLeerlijnenMapping(mapping: any): Promise<boolean> {
   try {
+    _cachedMapping = mapping;  // instant-apply: sync accessor reflects new value immediately
     await store.set(LEERLIJNEN_STORE_KEY, JSON.stringify(mapping));
     await store.save();   // VERPLICHT: set() is alleen in-memory
-    _cachedMapping = null;
     return true;
   } catch (e: any) {
     console.warn('[leerlijnen.ts] plugin-store write error:', e);
