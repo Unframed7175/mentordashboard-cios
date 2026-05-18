@@ -48,7 +48,7 @@
 
 - [x] **Phase 16: Auto-class Detection** — Bij eerste import detecteert de app automatisch de klasnaam uit de PDF-header en maakt de klas aan zonder handmatige stap *(completed 2026-05-17)*
 - [x] **Phase 17: Settings Panel Foundation** — Mentor kan via een settings-icoon dark mode activeren (volledig gestyled) en nieuwe bestanden toevoegen aan een bestaande klas (completed: 2026-05-17)
-- [ ] **Phase 18: Settings Panel Advanced** — Mentor kan deelgebieden hernoemen/deactiveren, leerlijn-toewijzing aanpassen, verzuim-drempelwaarden en BPV-uren configureren
+- [x] **Phase 18: Settings Panel Advanced** — Mentor kan deelgebieden hernoemen/deactiveren, leerlijn-toewijzing aanpassen, verzuim-drempelwaarden en BPV-uren configureren *(completed 2026-05-18)*
 - [ ] **Phase 19: UI Polish** — Spiderweb chart tooltips, responsive layout en consistente hover-animaties zijn afgerond
 
 ## Phase Details
@@ -324,7 +324,7 @@ Plans:
 - [x] 18-04-PLAN.md — SettingsPage section 3 (Deelgebieden & Leerlijnen table + inline confirmation) + CSS section 25 (deelgebieden subset)
 
 **Wave 3** *(blocked on Wave 2 — shared files: SettingsPage.tsx + index.css)*
-- [ ] 18-05-PLAN.md — SettingsPage section 4 (thresholds + BPV) + CSS section 25 (remaining) + DeelgebiedenMatrix/SpiderChartCard active filter + BpvProgressSection + DetailWeergave wiring
+- [x] 18-05-PLAN.md — SettingsPage section 4 (thresholds + BPV) + CSS section 25 (remaining) + DeelgebiedenMatrix/SpiderChartCard active filter + BpvProgressSection + DetailWeergave wiring
 
 Cross-cutting constraints:
 - Every save handler MUST pair store.set + store.save (Phase 12 pitfall)
