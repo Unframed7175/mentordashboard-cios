@@ -308,8 +308,29 @@ Plans:
   3. Mentor kan per deelgebied de leerlijn-toewijzing (lesgeven / organiseren / professioneel handelen) aanpassen — de doorstroomprognose herberekent direct
   4. Mentor kan aparte drempelwaarden instellen voor geoorloofd en ongeoorloofd verzuim — de RAG-status in klasoverzicht-tegels reflecteert de nieuwe grenswaarden
   5. Mentor kan het verwachte aantal BPV-uren configureren — de voortgangsindicatie voor stage past zich aan
-**Plans**: TBD
+**Plans**: 5 plans
 **UI hint**: yes
+
+Plans:
+
+**Wave 0**
+- [ ] 18-01-PLAN.md — Failing test scaffolds for SET-03/04/05/06 (deelgebieden, verzuimDrempels, bpv, leerlijnen sync, status/prognosis extensions)
+
+**Wave 1** *(blocked on Wave 0)*
+- [ ] 18-02-PLAN.md — Utility layer: utils/deelgebieden.ts + utils/verzuimDrempels.ts + utils/bpv.ts + getLeerlijnenMappingSync + main.tsx pre-warm
+- [ ] 18-03-PLAN.md — Backend logic refactor: berekenPrognose activeDeelgebiedenIds + sync mapping fix + berekenStatus thresholds + VerzuimSection runtime threshold
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 18-04-PLAN.md — SettingsPage section 3 (Deelgebieden & Leerlijnen table + inline confirmation) + CSS section 25 (deelgebieden subset)
+
+**Wave 3** *(blocked on Wave 2 — shared files: SettingsPage.tsx + index.css)*
+- [ ] 18-05-PLAN.md — SettingsPage section 4 (thresholds + BPV) + CSS section 25 (remaining) + DeelgebiedenMatrix/SpiderChartCard active filter + BpvProgressSection + DetailWeergave wiring
+
+Cross-cutting constraints:
+- Every save handler MUST pair store.set + store.save (Phase 12 pitfall)
+- prognosis.ts MUST use getLeerlijnenMappingSync (never call getLeerlijnenMapping without await — RESEARCH Critical Discovery §1)
+- Score key in DeelgebiedenMatrix + SpiderChartCard MUST remain original dg.label (Pitfall 3)
+- BPV Excel parser is STUBBED (D-13 unresolved — user must provide sample file before real parser implementation)
 
 ### Phase 19: UI Polish
 **Goal**: De visuele afwerking van het dashboard is professioneel en consistent — spiderweb chart is leesbaar met tooltips, het layout schaalt correct op kleinere schermen en hover-interacties animeren vloeiend
@@ -343,5 +364,5 @@ Plans:
 | 15. Packaging & Cross-platform | 0/2 | In progress | - |
 | 16. Auto-class Detection | 1/1 | Complete | 2026-05-17 |
 | 17. Settings Panel Foundation | 0/3 | Ready to execute | - |
-| 18. Settings Panel Advanced | 0/TBD | Not started | - |
+| 18. Settings Panel Advanced | 0/5 | Ready to execute | - |
 | 19. UI Polish | 0/TBD | Not started | - |
