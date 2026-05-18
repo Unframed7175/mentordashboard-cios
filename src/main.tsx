@@ -2,8 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { getBpvConfig, getBpvData } from "../utils/bpv";
+import { getDeelgebiedenConfig } from "../utils/deelgebieden";
 import { loadKlassen } from "../utils/klassen";
+import { getLeerlijnenMapping } from "../utils/leerlijnen";
 import { loadSettings, applyTheme } from "../utils/settings";
+import { loadVerzuimDrempels } from "../utils/verzuimDrempels";
 
 (async () => {
   try {
@@ -33,6 +37,20 @@ import { loadSettings, applyTheme } from "../utils/settings";
     } catch {
       // Light mode (the default) — no further action needed.
     }
+  }
+
+  // Phase 18: pre-warm sync caches (D-15, D-16, D-17) before React mounts so sync accessors are populated
+  try {
+    await Promise.all([
+      getDeelgebiedenConfig(),
+      loadVerzuimDrempels(),
+      getBpvConfig(),
+      getBpvData(),
+      getLeerlijnenMapping(),
+    ]);
+  } catch (err) {
+    console.warn('[main.tsx] Phase 18 cache pre-warm mislukt:', err);
+    // Each module has its own fallback — app still renders with defaults
   }
 
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

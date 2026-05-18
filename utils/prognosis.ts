@@ -12,7 +12,7 @@
 //   utils/datamodel.ts — appState (voor berekenAllePrognoses)
 
 import { DEELGEBIEDEN } from './schema';
-import { getLeerlijnenMapping } from './leerlijnen';
+import { getLeerlijnenMappingSync } from './leerlijnen';
 import { appState } from './datamodel';
 
 // ---------------------------------------------------------------------------
@@ -56,7 +56,7 @@ function telLeerlijnen(scores: any): any {
   const deelgebieden = DEELGEBIEDEN;
   var leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
   var telling: Record<string, any> = {};
-  const mapping = getLeerlijnenMapping();
+  const mapping = getLeerlijnenMappingSync();
 
   for (var i = 0; i < leerlijnen.length; i++) {
     var ll = leerlijnen[i];
