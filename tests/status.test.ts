@@ -171,22 +171,18 @@ describe('berekenStatus thresholds (Phase 18)', () => {
     expect(result.label).toBe('Verzuim');
   });
 
-  it('uses runtime thresholds via getVerzuimDrempelsSync when arg omitted', async () => {
-    // Mock utils/verzuimDrempels to return very low thresholds (50 minutes ongeoorloofd)
-    // so a student with ongeoorloofd=51 triggers Verzuim without passing explicit thresholds
-    vi.mock('../utils/verzuimDrempels', () => ({
-      getVerzuimDrempelsSync: () => ({ geoorloofd: 100, ongeoorloofd: 50 }),
-    }));
-
-    const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 51 });
+  it('uses runtime thresholds via getVerzuimDrempelsSync when arg omitted', () => {
+    // getVerzuimDrempelsSync() returns DEFAULT_VERZUIM_DREMPELS = { geoorloofd: 900, ongeoorloofd: 600 }
+    // when cache is cold (no store write has occurred). A student with ongeoorloofd=601
+    // exceeds the default ongeoorloofd threshold of 600 and should trigger Verzuim
+    // even without an explicit thresholds argument — proving the internal sync fallback works.
+    const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 601 });
 
     // Call WITHOUT third arg — must use getVerzuimDrempelsSync() internally
     const result = berekenStatus(student);
 
     expect(result.kleur).toBe('oranje');
     expect(result.label).toBe('Verzuim');
-
-    vi.unmock('../utils/verzuimDrempels');
   });
 
   it('returns prognose-driven status when both verzuim values stay under thresholds', () => {
