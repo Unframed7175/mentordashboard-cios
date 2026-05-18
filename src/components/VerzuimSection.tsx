@@ -1,4 +1,5 @@
 import React from 'react';
+import { getVerzuimDrempelsSync } from '../../utils/verzuimDrempels';
 
 interface VerzuimSectionProps {
   student: any;
@@ -40,7 +41,7 @@ export default function VerzuimSection({ student }: VerzuimSectionProps) {
   const pG = pct(v.geoorloofd || 0);
   const pO = pct(v.ongeoorloofd || 0);
 
-  const ongeoorloofdhoogVerzuim = (v.ongeoorloofd || 0) > 600;
+  const ongeoorloofdhoogVerzuim = (v.ongeoorloofd || 0) > getVerzuimDrempelsSync().ongeoorloofd;
 
   return (
     <div className="detail-section">

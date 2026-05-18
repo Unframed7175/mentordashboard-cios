@@ -52,8 +52,8 @@ function isOnvoldoende(score: string | null): boolean {
 // Interne hulpfunctie: tellingen per leerlijn
 // ---------------------------------------------------------------------------
 
-function telLeerlijnen(scores: any): any {
-  const deelgebieden = DEELGEBIEDEN;
+function telLeerlijnen(scores: any, activeDeelgebiedenIds?: string[]): any {
+  const deelgebieden = activeDeelgebiedenIds ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id)) : DEELGEBIEDEN;
   var leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
   var telling: Record<string, any> = {};
   const mapping = getLeerlijnenMappingSync();
@@ -107,12 +107,12 @@ function telLeerlijnen(scores: any): any {
 //   bj1: 'negatief' | 'versneld_sbc' | 'naar_bj2' | 'neutraal'
 //   bj2: 'negatief' | 'sbc'          | 'sbl'       | 'neutraal'
 // ---------------------------------------------------------------------------
-export function berekenPrognose(student: any, traject?: string): any {
+export function berekenPrognose(student: any, traject?: string, activeDeelgebiedenIds?: string[]): any {
   traject = traject || 'bj2';
   var scores = student.deelgebiedScores || {};
   var leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
 
-  var telling = telLeerlijnen(scores);
+  var telling = telLeerlijnen(scores, activeDeelgebiedenIds);
 
   // Totalen
   var totaalVoldoendeOfHoger = leerlijnen.reduce(function(s: number, ll: string) {

@@ -6,13 +6,11 @@
 // ---------------------------------------------------------------------------
 
 import { berekenPrognose } from '../../utils/prognosis';
+import { getVerzuimDrempelsSync } from '../../utils/verzuimDrempels';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-/** Minimum ongeoorloofde verzuim in minutes to trigger oranje/Verzuim status. */
-const VERZUIM_DREMPEL_MIN = 600; // 10 uur ongeoorloofd (app.js line 1039)
 
 /**
  * Sort priority for STATUS_VOLGORDE: lower number = shown first.
@@ -112,16 +110,18 @@ export function detectTraject(student: any): string {
  * @param student  Student record (from klassenState)
  * @param traject  Optional traject override; if not provided, detectTraject() is used
  */
-export function berekenStatus(student: any, traject?: string): StatusResult {
+export function berekenStatus(student: any, traject?: string, thresholds?: { geoorloofd: number; ongeoorloofd: number }): StatusResult {
   const effectiveTraject = traject ?? detectTraject(student);
   const p = berekenPrognose(student, effectiveTraject);
   const ongeoorloofd = student.verzuim?.ongeoorloofd ?? 0;
+  const geoorloofd   = student.verzuim?.geoorloofd ?? 0;
   const heeftScores  = p.totaalVoldoendeOfHoger + p.totaalOnvoldoende > 0;
+  const resolvedThresholds = thresholds ?? getVerzuimDrempelsSync();
 
   if (!heeftScores)                return { kleur: 'grijs',  label: 'Onbekend',        prognose: p };
   if (p.label === 'negatief')      return { kleur: 'rood',   label: 'Risico',          prognose: p };
   if (p.label === 'neutraal')      return { kleur: 'oranje', label: 'Let op',          prognose: p };
-  if (ongeoorloofd > VERZUIM_DREMPEL_MIN)
+  if (ongeoorloofd > resolvedThresholds.ongeoorloofd || geoorloofd > resolvedThresholds.geoorloofd)
                                    return { kleur: 'oranje', label: 'Verzuim',         prognose: p };
   // BJ2 outcomes
   if (p.label === 'sbc')           return { kleur: 'blauw',  label: 'Profieljaar SBC', prognose: p };
