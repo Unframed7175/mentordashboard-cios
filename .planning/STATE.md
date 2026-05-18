@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Settings, Polish & Auto-class Detection
 status: executing
-last_updated: "2026-05-18T15:08:01.337Z"
-last_activity: 2026-05-18 -- Phase 18 planned (5 plans, 4 waves)
+last_updated: "2026-05-18T17:13:00.000Z"
+last_activity: 2026-05-18 -- Phase 18 Plan 02 complete (Wave 1 utility implementations)
 progress:
   total_phases: 14
   completed_phases: 12
   total_plans: 42
-  completed_plans: 38
-  percent: 90
+  completed_plans: 40
+  percent: 95
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 ## Current Position
 
 Phase: 18
-Plan: 01 (complete)
+Plan: 02 (complete)
 Status: Executing
-Last activity: 2026-05-18 -- Phase 18 Plan 01 complete (Wave 0 RED scaffolds)
+Last activity: 2026-05-18 -- Phase 18 Plan 02 complete (Wave 1 utility implementations)
 
 ## Progress Bar
 
@@ -110,3 +110,4 @@ v2.1 phases completed: 0/4
 - 2026-05-17: Phase 16 planned — 1 plan (auto-detect klas from PDF header + toast notification). ACD-01 covered. Verification passed 12 dimensions.
 - 2026-05-17: Phase 16 complete — autoDetectKlas() in ImportPage.tsx; ACD-01 shipped. UAT passed (2/3 tests; test 2 skipped). 2 out-of-scope bugs noted: drag-and-drop not working, stage Excel not parsing.
 - 2026-05-18: Phase 18 Plan 01 executed — Wave 0 RED test scaffolds. 4 new test files (deelgebieden, verzuimDrempels, bpv, leerlijnen) + 2 extended (status, prognosis). 28 new RED tests gate Wave 1 GREEN. 3 tasks completed, 0 deviations.
+- 2026-05-18: Phase 18 Plan 02 executed — Wave 1 utility implementations. 3 new files (deelgebieden.ts, verzuimDrempels.ts, bpv.ts) + getLeerlijnenMappingSync added + main.tsx pre-warm. 20/20 Wave 0 utility tests GREEN. 1 deviation: getLeerlijnenMapping async bug fixed early in prognosis.ts.
