@@ -8,21 +8,37 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 
-// ── Module-level mocks for utils/deelgebieden and utils/leerlijnen ────────────
-// These are used by section 3 tests to isolate SettingsPage behavior.
-const mockDgConfig = [
-  { id: 'va', label: 'V&A', active: true },
-  { id: 'mm', label: 'M&M', active: true },
-];
-const mockGetDeelgebiedenConfig = vi.fn().mockResolvedValue(mockDgConfig);
-const mockSaveDeelgebiedenConfig = vi.fn().mockResolvedValue(true);
-const mockResetDeelgebiedenConfig = vi.fn().mockResolvedValue(undefined);
+// vi.hoisted() runs before vi.mock() — use it to expose shared state without TDZ errors.
+// This provides both the LazyStore map AND the section 3 utility mocks.
+const {
+  getStoreMap,
+  setStoreMap,
+  mockGetDeelgebiedenConfig,
+  mockSaveDeelgebiedenConfig,
+  mockResetDeelgebiedenConfig,
+  mockGetLeerlijnenMapping,
+  mockSaveLeerlijnenMapping,
+  mockResetLeerlijnenMapping,
+} = vi.hoisted(() => {
+  let _map = new Map<string, unknown>();
+  const defaultDgConfig = [
+    { id: 'va', label: 'V&A', active: true },
+    { id: 'mm', label: 'M&M', active: true },
+  ];
+  const defaultMapping: Record<string, string> = { va: 'lesgeven', mm: 'lesgeven' };
+  return {
+    getStoreMap: () => _map,
+    setStoreMap: (m: Map<string, unknown>) => { _map = m; },
+    mockGetDeelgebiedenConfig: vi.fn().mockResolvedValue(defaultDgConfig),
+    mockSaveDeelgebiedenConfig: vi.fn().mockResolvedValue(true),
+    mockResetDeelgebiedenConfig: vi.fn().mockResolvedValue(undefined),
+    mockGetLeerlijnenMapping: vi.fn().mockResolvedValue(defaultMapping),
+    mockSaveLeerlijnenMapping: vi.fn().mockResolvedValue(true),
+    mockResetLeerlijnenMapping: vi.fn().mockResolvedValue(undefined),
+  };
+});
 
-const mockLeerlijnenMapping: Record<string, string> = { va: 'lesgeven', mm: 'lesgeven' };
-const mockGetLeerlijnenMapping = vi.fn().mockResolvedValue(mockLeerlijnenMapping);
-const mockSaveLeerlijnenMapping = vi.fn().mockResolvedValue(true);
-const mockResetLeerlijnenMapping = vi.fn().mockResolvedValue(undefined);
-
+// ── Module mocks for utils/deelgebieden and utils/leerlijnen ──────────────────
 vi.mock('../utils/deelgebieden', () => ({
   getDeelgebiedenConfig: mockGetDeelgebiedenConfig,
   saveDeelgebiedenConfig: mockSaveDeelgebiedenConfig,
@@ -34,16 +50,6 @@ vi.mock('../utils/leerlijnen', () => ({
   saveLeerlijnenMapping: mockSaveLeerlijnenMapping,
   resetLeerlijnenMapping: mockResetLeerlijnenMapping,
 }));
-
-// vi.hoisted() runs before vi.mock() — use it to expose the shared store map
-// so the LazyStore mock constructor can reference it without TDZ errors.
-const { getStoreMap, setStoreMap } = vi.hoisted(() => {
-  let _map = new Map<string, unknown>();
-  return {
-    getStoreMap: () => _map,
-    setStoreMap: (m: Map<string, unknown>) => { _map = m; },
-  };
-});
 
 vi.mock('@tauri-apps/plugin-store', () => {
   // ES6 class mock — required for `new LazyStore()` constructor call (STATE.md line 64)
@@ -238,6 +244,7 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Re-initialize mock return values after clearAllMocks wipes them
     mockGetDeelgebiedenConfig.mockResolvedValue([
       { id: 'va', label: 'V&A', active: true },
       { id: 'mm', label: 'M&M', active: true },
