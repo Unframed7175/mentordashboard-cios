@@ -6,6 +6,7 @@ import FeedbackActiepuntenSection from './FeedbackActiepuntenSection';
 import SpiderChartCard from './SpiderChartCard';
 import DeelgebiedenMatrix from './DeelgebiedenMatrix';
 import VerzuimSection from './VerzuimSection';
+import BpvProgressSection from './BpvProgressSection';
 import VakkenSection from './VakkenSection';
 import NotitiesTextarea from './NotitiesTextarea';
 import AanvullendSection from './AanvullendSection';
@@ -162,6 +163,9 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
 
       {/* Section 8: VerzuimSection */}
       <VerzuimSection student={student} />
+
+      {/* Section 8b: BpvProgressSection — per D-12, rendered between VerzuimSection and VakkenSection */}
+      <BpvProgressSection leerlingId={leerlingId} />
 
       {/* Section 9: VakkenSection */}
       <VakkenSection student={student} />
