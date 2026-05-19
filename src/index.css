@@ -1273,3 +1273,49 @@ a:hover { text-decoration: underline; }
   from { transform: translateX(100%); opacity: 0.7; }
   to   { transform: translateX(0);    opacity: 1;   }
 }
+
+/* ==========================================================================
+   Print / PDF Export (Phase 21 — EXP-01..04)
+   ========================================================================== */
+
+@page {
+  size: A4;
+  margin: 2cm;
+}
+
+.print-header {
+  display: none;
+}
+
+@media print {
+  #root > * {
+    display: none;
+  }
+
+  .print-target {
+    display: block !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-header {
+    display: block;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1.5px solid #009FE3;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .detail-section {
+    break-inside: avoid;
+  }
+
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

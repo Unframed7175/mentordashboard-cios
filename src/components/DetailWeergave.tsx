@@ -66,10 +66,18 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
   }
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div className="print-target" style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1rem' }}>
+      {/* Print-only header — hidden in browser, visible in print (EXP-02) */}
+      <div className="print-header">
+        <h2 style={{ margin: 0 }}>{student.naam}</h2>
+        <p style={{ margin: '0.25rem 0 0', fontSize: '0.9rem', color: '#475569' }}>
+          Klas: {klas?.naam ?? '—'} &nbsp;|&nbsp; Datum: {new Date().toLocaleDateString('nl-NL')} &nbsp;|&nbsp; {meta || 'Geen periode'}
+        </p>
+      </div>
+
       {/* Detail header */}
       <div
-        className="detail-header"
+        className="detail-header no-print"
         style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}
       >
         <button
@@ -113,6 +121,13 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
             Volgende ›
           </button>
         </div>
+        <button
+          className="detail-nav-btn no-print"
+          onClick={() => window.print()}
+          style={{ cursor: 'pointer' }}
+        >
+          Afdrukken
+        </button>
       </div>
 
       {/* Section 1: DoortstroomPrognoseSection */}
