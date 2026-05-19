@@ -55,7 +55,7 @@
 ### v2.2 Onboarding, Export & Data Completeness
 
 - [x] **Phase 20: Drag-and-Drop Fix** — Bestanden slepen op het importveld werkt correct voor PDF, .xls en zip-bestanden *(completed 2026-05-19)*
-- [ ] **Phase 21: Print-to-PDF Export** — Mentor kan een mentorgesprekverslag afdrukken als A4-PDF vanuit de detailweergave
+- [x] **Phase 21: Print-to-PDF Export** — Mentor kan een mentorgesprekverslag afdrukken als A4-PDF vanuit de detailweergave (completed 2026-05-19)
 - [ ] **Phase 22: BPV Stage Excel Parser** — App leest echte BPV-uren uit het stage Excel bestand per leerling
 - [ ] **Phase 23: Rekenen & Nederlands** — Mentor kan Rekenen en Nederlands voortgang apart bijhouden met eigen doorstroomnorm
 - [ ] **Phase 24: Onboarding Wizard** — Eerste-keer mentor doorloopt een stap-voor-stap wizard om de app volledig in te stellen
@@ -389,7 +389,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 21-01-PLAN.md — Print-only header + Afdrukken button + A4 print CSS
+- [x] 21-01-PLAN.md — Print-only header + Afdrukken button + A4 print CSS
 
 **UI hint**: yes
 
@@ -456,7 +456,7 @@ Plans:
 | 18. Settings Panel Advanced | 5/5 | Complete | 2026-05-18 |
 | 19. UI Polish | 4/4 | Complete | 2026-05-19 |
 | 20. Drag-and-Drop Fix | 1/1 | Complete | 2026-05-19 |
-| 21. Print-to-PDF Export | 0/TBD | Not started | - |
+| 21. Print-to-PDF Export | 1/1 | Complete   | 2026-05-19 |
 | 22. BPV Stage Excel Parser | 0/TBD | Not started | - |
 | 23. Rekenen & Nederlands | 0/TBD | Not started | - |
 | 24. Onboarding Wizard | 0/TBD | Not started | - |

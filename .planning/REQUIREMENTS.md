@@ -20,10 +20,10 @@
 
 ### Print-to-PDF Export (EXP)
 
-- [ ] **EXP-01**: Mentor kan vanuit de detailweergave een mentorgesprekverslag afdrukken als PDF via de browser print-dialoog
-- [ ] **EXP-02**: Het verslag bevat: leerlingnaam, datum, klasnaam, doorstroomprognose, voortgang per deelgebied (scores + status), verzuimcijfers en actiepunten
-- [ ] **EXP-03**: Het verslag is opgemaakt voor A4 papier — geen afgekapte inhoud, correcte paginering
-- [ ] **EXP-04**: Een print-knop is zichtbaar in de detailweergave (niet alleen via Ctrl+P)
+- [x] **EXP-01**: Mentor kan vanuit de detailweergave een mentorgesprekverslag afdrukken als PDF via de browser print-dialoog
+- [x] **EXP-02**: Het verslag bevat: leerlingnaam, datum, klasnaam, doorstroomprognose, voortgang per deelgebied (scores + status), verzuimcijfers en actiepunten
+- [x] **EXP-03**: Het verslag is opgemaakt voor A4 papier — geen afgekapte inhoud, correcte paginering
+- [x] **EXP-04**: Een print-knop is zichtbaar in de detailweergave (niet alleen via Ctrl+P)
 
 ### BPV Stage Excel Parser (BPV)
 
@@ -68,10 +68,10 @@
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
 | BUG-01 | Phase 20 | Pending |
-| EXP-01 | Phase 21 | Pending |
-| EXP-02 | Phase 21 | Pending |
-| EXP-03 | Phase 21 | Pending |
-| EXP-04 | Phase 21 | Pending |
+| EXP-01 | Phase 21 | Complete |
+| EXP-02 | Phase 21 | Complete |
+| EXP-03 | Phase 21 | Complete |
+| EXP-04 | Phase 21 | Complete |
 | BPV-01 | Phase 22 | Pending |
 | BPV-02 | Phase 22 | Pending |
 | BPV-03 | Phase 22 | Pending |
