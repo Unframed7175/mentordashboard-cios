@@ -1,77 +1,65 @@
-# Requirements — Mentordashboard CIOS
+# Requirements — v2.2 Onboarding, Export & Data Completeness
 
-**Core Value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-
----
-
-## Milestone v2.1 — Settings, Polish & Auto-class Detection (Active)
-
-### Settings Panel (SET)
-
-- [ ] **SET-01**: Mentor kan schakelen tussen light en dark mode via een settings-icoon; de voorkeur wordt persistent opgeslagen en hersteld bij herstart
-- [ ] **SET-02**: Mentor kan vanuit de settings-pagina nieuwe PDFs en/of een verzuim-Excel toevoegen aan een bestaande klas, zonder de klas opnieuw aan te maken
-- [x] **SET-03**: Mentor kan in de settings de 19 deelgebieden hernoemen of individueel inactief zetten (inactieve deelgebieden worden verborgen in matrix en prognose)
-- [x] **SET-04**: Mentor kan in de settings de leerlijn-toewijzing aanpassen — welk deelgebied valt onder lesgeven / organiseren / professioneel handelen
-- [x] **SET-05**: Mentor kan aparte drempelwaarden instellen voor verzuim-signalering: apart voor geoorloofd en ongeoorloofd verzuim (bijv. "waarschuw bij >10u geoorloofd of >4u ongeoorloofd")
-- [x] **SET-06**: Mentor kan het verwachte aantal BPV-uren per periode configureren (gebruikt voor voortgangsindicatie)
-
-### Auto-class Detection (ACD)
-
-- [ ] **ACD-01**: Wanneer geen klas bestaat en de mentor bestanden importeert, detecteert de app automatisch de klas-naam uit de PDF-header en maakt de klas aan zonder extra handmatige stap
-
-### UI Polish (POL)
-
-- [ ] **POL-01**: Dark mode volledig geïmplementeerd — alle componenten consistent gestyled met dark theme CSS-variabelen
-- [x] **POL-02**: Spiderweb chart heeft leesbare as-labels en toont hover-tooltips met deelgebied-naam en score
-- [x] **POL-03**: Tile grid en detailweergave schalen correct op kleinere vensterbreedtes (≥1024px) zonder horizontale scroll
-- [x] **POL-04**: Hover-effecten en transitions zijn consistent — KPI tiles, student-tegels en nav-tabs animeren subtiel (150–200ms ease)
+**Milestone:** v2.2
+**Status:** Draft — 2026-05-19
 
 ---
 
-## Milestone v2.0 — Stack Modernisering (Validated — 2026-05-16)
+## Active Requirements
 
-- ✓ TypeScript + React + Vite — professionele codebase — Phases 10–11
-- ✓ Tauri desktop wrapper — cross-platform .exe/.dmg — Phases 10, 15
-- ✓ AES-256 versleutelde lokale opslag — AVG-compliant — Phase 12
-- ✓ Per-leerling verwijderfunctie — Artikel 17 AVG — Phase 12
-- ✓ React componentenstructuur — herbruikbare componenten — Phase 14
+### Onboarding Wizard (ONB)
 
-## Milestone v1.2 — Dashboard Redesign (Validated — 2026-04-24)
+- [ ] **ONB-01**: Mentor ziet een stap-voor-stap onboarding wizard bij eerste start van de app (geen klassen aanwezig)
+- [ ] **ONB-02**: Stap 1 — mentor voert een klasnaam in en maakt de klas aan
+- [ ] **ONB-03**: Stap 2 — mentor uploadt één of meerdere voortgang PDFs voor de klas
+- [ ] **ONB-04**: Stap 3 — mentor uploadt het verzuim Excel bestand (.xls)
+- [ ] **ONB-05**: Stap 4 — mentor uploadt het stage Excel bestand (BPV-uren); stap is optioneel en kan worden overgeslagen
+- [ ] **ONB-06**: Stap 5 — mentor configureert instellingen (drempelwaarden, deelgebieden/leerlijnen mapping); optioneel, kan worden overgeslagen
+- [ ] **ONB-07**: Na voltooiing van de wizard opent het dashboard direct met de nieuwe klas geladen
+- [ ] **ONB-08**: Wanneer al klassen bestaan, toont de app geen wizard meer bij opstarten
 
-- ✓ Aanwezigheidspercentage in klasoverzicht-tegels — Phase 9
-- ✓ Algeheel UI redesign in CIOS Zuidwest huisstijl — Phase 9
+### Print-to-PDF Export (EXP)
 
-## Milestone v1.1 — Klasbeheer & Export (Validated — 2026-04-23)
+- [ ] **EXP-01**: Mentor kan vanuit de detailweergave een mentorgesprekverslag afdrukken als PDF via de browser print-dialoog
+- [ ] **EXP-02**: Het verslag bevat: leerlingnaam, datum, klasnaam, doorstroomprognose, voortgang per deelgebied (scores + status), verzuimcijfers en actiepunten
+- [ ] **EXP-03**: Het verslag is opgemaakt voor A4 papier — geen afgekapte inhoud, correcte paginering
+- [ ] **EXP-04**: Een print-knop is zichtbaar in de detailweergave (niet alleen via Ctrl+P)
 
-- ✓ Meerdere klassen beheren in één dashboard (tabbladen) — Phase 6
-- ✓ Vergelijking tussen periodes (fase 1 vs fase 2) in detailweergave — Phase 7
-- ✓ Codebase hersteld naar schone staat — Phase 8
+### BPV Stage Excel Parser (BPV)
 
-## Milestone v1.0 — MVP (Validated — 2026-03-25)
+- [ ] **BPV-01**: App leest echte BPV-uren uit het stage Excel bestand per leerling
+- [ ] **BPV-02**: BPV voortgangsindicatie toont werkelijke uren t.o.v. geconfigureerd doelurenaantal
+- [ ] **BPV-03**: Stage Excel kan worden geïmporteerd via de bestaande importpagina (dropzone + dialoog)
+- [ ] **BPV-04**: Als geen stage Excel is geïmporteerd, toont de BPV-sectie "Nog geen stage-data" (geen crash)
 
-- ✓ Voortgang PDF per leerling betrouwbaar inlezen
-- ✓ Verzuim Excel (.xls) inlezen: geoorloofd, ongeoorloofd, totaal
-- ✓ Doorstroomnorm calculatie (BJ2/SBC/Negatief)
-- ✓ Klasoverzicht: RAG status per leerling
-- ✓ Detailweergave per leerling: voortgang + verzuim + prognose
-- ✓ Leerlijn-mapping: deelgebieden → leerlijnen configureerbaar
+### Rekenen & Nederlands (RNL)
+
+- [ ] **RNL-01**: Mentor kan Rekenen voortgang bijhouden — scores apart weergegeven in de detailweergave
+- [ ] **RNL-02**: Mentor kan Nederlands voortgang bijhouden — scores apart weergegeven in de detailweergave
+- [ ] **RNL-03**: Rekenen en Nederlands hebben elk een eigen doorstroomnorm los van de deelgebieden-prognose
+- [ ] **RNL-04**: Rekenen/Nederlands scores worden ingelezen uit de bestaande voortgang PDFs (geen apart bestand)
+
+### Bug Fix (BUG)
+
+- [ ] **BUG-01**: Bestanden slepen en neerzetten op het importveld werkt correct — PDF, .xls en zip-bestanden worden herkend en verwerkt
 
 ---
 
-## Future (post-v2.1)
+## Future Requirements (deferred)
 
-- Rekenen en Nederlands voortgang apart bijhouden met eigen norm
-- Print-to-PDF export voor mentorgesprekverslag (EXP-01–04)
-- Multi-mentor support
+- Nav diagonal stripe (cosmetic CSS `::after` issue in Tauri WebView)
+- Rekenen en Nederlands ook in klasoverzicht-tegels tonen
+- Mobiele/tablet lay-out
+
+---
 
 ## Out of Scope
 
-- API-koppeling met schoolsystemen (bewust bestandsimport)
-- Authenticatie / login (lokale tool voor één mentor)
-- Mobiele app (gebruik via laptop/desktop)
-- Automatische PDF-download vanuit SomToday
-- Toetsplan-configuratie (complexiteit vs. waarde niet in balans voor v2.1)
-- Word/docx export (browser print-to-PDF voldoet)
+- API-koppeling met SomToday of andere systemen — bewust bestandsimport gehouden
+- Inloggen / authenticatie — lokale single-user tool
+- Cloudopslag of synchronisatie — data blijft lokaal (AVG)
+- Word/docx export — browser print-to-PDF voldoet
+- Automatische PDF-download vanuit schoolsysteem
 
 ---
 
@@ -79,14 +67,24 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| SET-01 | Phase 17 | Active |
-| SET-02 | Phase 17 | Active |
-| SET-03 | Phase 18 | Active |
-| SET-04 | Phase 18 | Active |
-| SET-05 | Phase 18 | Active |
-| SET-06 | Phase 18 | Active |
-| ACD-01 | Phase 16 | Active |
-| POL-01 | Phase 17 | Active |
-| POL-02 | Phase 19 | Active |
-| POL-03 | Phase 19 | Active |
-| POL-04 | Phase 19 | Active |
+| BUG-01 | Phase 20 | Pending |
+| EXP-01 | Phase 21 | Pending |
+| EXP-02 | Phase 21 | Pending |
+| EXP-03 | Phase 21 | Pending |
+| EXP-04 | Phase 21 | Pending |
+| BPV-01 | Phase 22 | Pending |
+| BPV-02 | Phase 22 | Pending |
+| BPV-03 | Phase 22 | Pending |
+| BPV-04 | Phase 22 | Pending |
+| RNL-01 | Phase 23 | Pending |
+| RNL-02 | Phase 23 | Pending |
+| RNL-03 | Phase 23 | Pending |
+| RNL-04 | Phase 23 | Pending |
+| ONB-01 | Phase 24 | Pending |
+| ONB-02 | Phase 24 | Pending |
+| ONB-03 | Phase 24 | Pending |
+| ONB-04 | Phase 24 | Pending |
+| ONB-05 | Phase 24 | Pending |
+| ONB-06 | Phase 24 | Pending |
+| ONB-07 | Phase 24 | Pending |
+| ONB-08 | Phase 24 | Pending |

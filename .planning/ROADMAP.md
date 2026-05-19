@@ -7,6 +7,7 @@
 - ✅ **v1.2 Dashboard Redesign** — Phase 9 (shipped 2026-04-24)
 - ✅ **v2.0 Stack Modernisering** — Phases 10–15 (shipped 2026-05-16)
 - ✅ **v2.1 Settings, Polish & Auto-class Detection** — Phases 16–19 (shipped 2026-05-19)
+- 🔄 **v2.2 Onboarding, Export & Data Completeness** — Phases 20–24 (active)
 
 ## Phases
 
@@ -50,6 +51,14 @@
 - [x] **Phase 17: Settings Panel Foundation** — Mentor kan via een settings-icoon dark mode activeren (volledig gestyled) en nieuwe bestanden toevoegen aan een bestaande klas (completed: 2026-05-17)
 - [x] **Phase 18: Settings Panel Advanced** — Mentor kan deelgebieden hernoemen/deactiveren, leerlijn-toewijzing aanpassen, verzuim-drempelwaarden en BPV-uren configureren *(completed 2026-05-18)*
 - [x] **Phase 19: UI Polish** — Spiderweb chart tooltips, responsive layout en consistente hover-animaties zijn afgerond (completed 2026-05-19)
+
+### v2.2 Onboarding, Export & Data Completeness
+
+- [ ] **Phase 20: Drag-and-Drop Fix** — Bestanden slepen op het importveld werkt correct voor PDF, .xls en zip-bestanden
+- [ ] **Phase 21: Print-to-PDF Export** — Mentor kan een mentorgesprekverslag afdrukken als A4-PDF vanuit de detailweergave
+- [ ] **Phase 22: BPV Stage Excel Parser** — App leest echte BPV-uren uit het stage Excel bestand per leerling
+- [ ] **Phase 23: Rekenen & Nederlands** — Mentor kan Rekenen en Nederlands voortgang apart bijhouden met eigen doorstroomnorm
+- [ ] **Phase 24: Onboarding Wizard** — Eerste-keer mentor doorloopt een stap-voor-stap wizard om de app volledig in te stellen
 
 ## Phase Details
 
@@ -355,6 +364,70 @@ Plans:
 **Wave 3** *(blocked on 19-02 + 19-03; has user checkpoints)*
 - [x] 19-04-PLAN.md — Dark mode lift to App.tsx, settings slide-in animation, KlasTabStrip logo + nav diagonal stripe, .aanvullend-grid responsive fix (POL-03, POL-04)
 
+---
+
+### Phase 20: Drag-and-Drop Fix
+**Goal**: Mentor kan bestanden slepen op het importveld en de app verwerkt ze correct — PDF, .xls en zip worden allemaal herkend zonder dat de browser navigeert weg van de pagina
+**Depends on**: Phase 19
+**Requirements**: BUG-01
+**Success Criteria** (what must be TRUE):
+  1. Mentor sleept een voortgang PDF op het importveld — de leerling verschijnt in de klasoverzicht zonder foutmelding
+  2. Mentor sleept een .xls verzuim-Excel op het importveld — verzuimdata verschijnt correct in de tegels
+  3. Mentor sleept een zip-backup op het importveld — de klasdata wordt hersteld zonder browse-navigatie
+  4. Per ongeluk slepen buiten het importveld navigeert de browser niet weg van de app
+**Plans**: TBD
+
+### Phase 21: Print-to-PDF Export
+**Goal**: Mentor kan vanuit de detailweergave van een leerling een mentorgesprekverslag afdrukken als A4-PDF via de browser print-dialoog — het verslag is compleet, correct opgemaakt en bevat alle gespreksrelevante informatie
+**Depends on**: Phase 20
+**Requirements**: EXP-01, EXP-02, EXP-03, EXP-04
+**Success Criteria** (what must be TRUE):
+  1. Een "Afdrukken" knop is zichtbaar in de detailweergave — klikken opent de browser print-dialoog zonder extra stappen
+  2. Het afgedrukte verslag bevat leerlingnaam, datum, klasnaam, doorstroomprognose (rood/oranje/groen), voortgang per deelgebied, verzuimcijfers en actiepunten
+  3. Het verslag past op A4 papier — geen afgekapte inhoud, geen horizontale scroll, correcte paginering bij meerdere pagina's
+  4. RAG-kleuren (rood/oranje/groen) van de doorstroomprognose zijn zichtbaar in het afgedrukte verslag
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 22: BPV Stage Excel Parser
+**Goal**: App leest werkelijke BPV-uren per leerling uit het stage Excel bestand en toont de voortgang t.o.v. het geconfigureerde doelaantal uren — zonder crash als geen stage-bestand is geïmporteerd
+**Depends on**: Phase 20
+**Requirements**: BPV-01, BPV-02, BPV-03, BPV-04
+**Success Criteria** (what must be TRUE):
+  1. Mentor importeert het stage Excel bestand via de importpagina — de BPV-sectie in de detailweergave toont werkelijke uren voor die leerling
+  2. De BPV voortgangsindicatie toont gerealiseerde uren t.o.v. het geconfigureerde doelurenaantal (bijv. "120 / 200 uren")
+  3. Wanneer geen stage-bestand is geïmporteerd, toont de BPV-sectie "Nog geen stage-data" — de app crasht niet
+  4. Het stage Excel bestand wordt herkend en apart gerouteerd van het verzuim-Excel bestand op basis van bestandsnaam
+**Plans**: TBD
+
+**Note**: Column matchers for BPV-01 are partially blocked — scaffold and routing proceed, but exact column names require a real BPV Excel export file. `gerealiseerdeUren` will show 0 until the sample file is provided and `debugBpvExcel()` is run.
+
+### Phase 23: Rekenen & Nederlands
+**Goal**: Mentor kan per leerling de Rekenen en Nederlands voortgang inzien in de detailweergave, elk met een eigen doorstroomnorm los van de deelgebieden-prognose
+**Depends on**: Phase 20
+**Requirements**: RNL-01, RNL-02, RNL-03, RNL-04
+**Success Criteria** (what must be TRUE):
+  1. De detailweergave toont een aparte sectie voor Rekenen met de score van die leerling en een groen/rood status op basis van de MBO-3 norm (2F voldoende)
+  2. De detailweergave toont een aparte sectie voor Nederlands met de score van die leerling en een groen/rood status op basis van de MBO-3 norm (2F voldoende)
+  3. Rekenen en Nederlands scores worden automatisch ingelezen uit de bestaande voortgang PDFs — geen apart bestand vereist
+  4. Als een PDF geen Rekenen/Nederlands sectie bevat, toont de sectie "Geen data" — de rest van de detailweergave blijft intact
+**Plans**: TBD
+
+**Note**: RNL-04 (PDF extraction) is partially blocked — the data model and manual-entry UI path proceed without a sample PDF. Extraction is additive: `rekenResultaat` and `nederlandsResultaat` default to `null` if the PDF section is absent.
+
+### Phase 24: Onboarding Wizard
+**Goal**: Een mentor die de app voor het eerst opent doorloopt een stap-voor-stap wizard die alle benodigde data compleet aanlevert — daarna opent het dashboard direct met de nieuwe klas geladen
+**Depends on**: Phase 20 (drag-drop fix required); Phase 21, 22, 23 recommended but not hard-blocked
+**Requirements**: ONB-01, ONB-02, ONB-03, ONB-04, ONB-05, ONB-06, ONB-07, ONB-08
+**Success Criteria** (what must be TRUE):
+  1. Bij eerste start zonder klassen opent de app in de onboarding wizard — het dashboard is niet toegankelijk tot de wizard is voltooid of afgebroken
+  2. Mentor voltooit stap 1 (klasnaam) en stap 2 (PDFs) — daarna is het dashboard direct bruikbaar met de geïmporteerde leerlingen
+  3. Stappen 3 (verzuim Excel), 4 (stage Excel) en 5 (instellingen) kunnen elk worden overgeslagen — de wizard blokkeert niet op optionele data
+  4. Na voltooiing van de wizard opent het dashboard met de nieuwe klas als actief tabblad en alle geïmporteerde data zichtbaar
+  5. Bij een tweede start (klassen aanwezig) toont de app geen wizard — de mentor komt direct in het dashboard
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -378,3 +451,8 @@ Plans:
 | 17. Settings Panel Foundation | 4/4 | Complete | 2026-05-17 |
 | 18. Settings Panel Advanced | 5/5 | Complete | 2026-05-18 |
 | 19. UI Polish | 4/4 | Complete | 2026-05-19 |
+| 20. Drag-and-Drop Fix | 0/TBD | Not started | - |
+| 21. Print-to-PDF Export | 0/TBD | Not started | - |
+| 22. BPV Stage Excel Parser | 0/TBD | Not started | - |
+| 23. Rekenen & Nederlands | 0/TBD | Not started | - |
+| 24. Onboarding Wizard | 0/TBD | Not started | - |

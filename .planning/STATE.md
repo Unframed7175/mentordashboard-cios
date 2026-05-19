@@ -1,38 +1,38 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Settings, Polish & Auto-class Detection
-status: complete
+milestone: v2.2
+milestone_name: Onboarding, Export & Data Completeness
+status: planning
 last_updated: "2026-05-19T00:00:00.000Z"
-last_activity: 2026-05-19 -- Phase 19 complete (UI Polish — brand refresh, spider tooltips, responsive, hover). v2.1 SHIPPED.
+last_activity: 2026-05-19 -- Roadmap created. Phases 20–24 defined. 21 requirements mapped. Ready for /gsd-plan-phase 20.
 progress:
-  total_phases: 19
-  completed_phases: 19
-  total_plans: 50
-  completed_plans: 50
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-17)
+See: .planning/PROJECT.md (updated 2026-05-19)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** v2.1 SHIPPED — awaiting v2.2 planning
+**Current focus:** v2.2 — Onboarding, Export & Data Completeness
 
 ## Current Position
 
-Phase: 19 (complete)
-Plan: 04 (complete)
-Status: v2.1 milestone complete — all 4 phases (16–19) shipped
-Last activity: 2026-05-19 -- v2.1 shipped. Open cosmetic: nav diagonal stripe (::after not rendering in Tauri WebView, logged as background task)
+Phase: 20 — Drag-and-Drop Fix (not started)
+Plan: —
+Status: Roadmap complete, ready to plan Phase 20
+Last activity: 2026-05-19 — v2.2 roadmap created (Phases 20–24)
 
 ## Progress Bar
 
 ```
-v2.1: [████████████████████] 100% (4/4 phases) ✅ SHIPPED 2026-05-19
+v2.2: [░░░░░░░░░░░░░░░░░░░░] 0% (0/5 phases)
 ```
 
 ## Performance Metrics
@@ -42,6 +42,7 @@ v1.1 phases completed: 3/3
 v1.2 phases completed: 1/1
 v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
+v2.2 phases completed: 0/5
 
 ## Accumulated Context
 
@@ -67,20 +68,23 @@ v2.1 phases completed: 4/4
 - [15-01] keychain-access-groups omitted from entitlements.plist — ad-hoc signing does not expand $(AppIdentifierPrefix), causes errSecMissingEntitlement (-34018)
 - [15-01] macOS ad-hoc signing: signingIdentity "-" in tauri.conf.json — required for Apple Silicon compatibility without Developer cert
 
+### v2.2 Design Notes
+
+- Phase 20 (BUG-01): Fix is one config line — `"dragDropEnabled": false` in `app.windows[0]` in `tauri.conf.json`. Document-level `preventDefault` listeners in `App.tsx` must be PRESERVED (they prevent browser navigation on accidental drops — unrelated to the bug).
+- Phase 21 (EXP): `window.print()` works in Tauri 2 WebView2. Use `.print-target` wrapper + `@media print { body > * { display: none; } }`. `@page { size: A4; margin: 2cm; }` suppresses Chromium URL header/footer. `print-color-adjust: exact` preserves RAG badge colors.
+- Phase 22 (BPV): Separate `parseBpvExcel()` in `utils/bpv.ts` — do NOT reuse `parseExcelFile`. Separate sheet-scorer keywords: `bpv` (+4), `stage` (+3), `uren` (+2). `debugBpvExcel()` helper must run on real file before writing column matchers. `XLSX.read({ cellDates: true })` for date columns. Graceful fallback: `gerealiseerdeUren = 0` if column not found.
+- Phase 22 (BPV) PARTIAL BLOCK: Column matchers for BPV-01 require a real BPV Excel export file. Scaffold and routing proceed without it; `gerealiseerdeUren` shows 0 until sample file is provided.
+- Phase 23 (RNL): New optional fields on `StudentRecord`: `rekenResultaat?: string | null`, `nederlandsResultaat?: string | null`. `normalizeRekenScore()` separate from `normalizeScore()` — score format may differ from V/G/E. `?? null` fallback required on all deserialized old records.
+- Phase 23 (RNL) PARTIAL BLOCK: RNL-04 PDF extraction requires a real PDF with Rekenen/Nederlands section. Manual entry and data model proceed without it; extraction is additive.
+- Phase 24 (ONB): Add `'onboarding'` to `view` union in `App.tsx`. First-run detection: `Object.keys(klassenState.klassen).length === 0` in startup `useEffect`. All wizard state lifted to parent — step components are purely presentational. Do NOT mount full `<ImportPage />` inside wizard steps — use stripped-down inline dropzones. `onboardingComplete: true` persisted to store after final step.
+- Phase 24 (ONB): Depends on Phase 20 (drag-drop). BPV wizard step (Step 4) improves with Phase 22 complete but is not a hard dependency.
+
 ### Pending Todos
 
 - Verify SheetJS CDN tarball (0.20.3) license compliance for school distribution (before Phase 15)
 - Confirm SomToday export format is still .xls (not .xlsx) against a real file in Phase 11
-
-### v2.1 Design Notes
-
-- Phase 16 (ACD-01): PDF-header parsing logic is already in parsers/pdf.ts — auto-detect must extract klas-name from existing parsed fields, not re-parse the file
-- Phase 17 (SET-01 + POL-01): Dark mode CSS must use the existing CSS custom property pattern (`:root` / `body.dark`) from Phase 9; extend, do not replace
-- Phase 17 (SET-02): Import flow already exists in ImportPage.tsx — settings should reuse the same dropzone component or trigger the same Tauri dialog, scoped to the active klas
-- Phase 18 (SET-03/04): Deelgebieden config lives in utils/leerlijnen.ts — edits must go through the async save path (plugin-store) established in Phase 12
-- Phase 18 (SET-05/06): Thresholds and BPV-uren are new configurable fields — need schema extension in utils/schema.ts (or a separate settings store key)
-- Phase 19 (POL-02): SpiderChartCard is in src/components/SpiderChartCard — tooltip layer must be SVG-native or an absolutely-positioned React element, not a browser tooltip
-- ui-ux-pro-max skill available: use `python .claude/skills/ui-ux-pro-max/scripts/search.py` for animation, color, and UX guidance during UI phases
+- Provide real BPV Excel export file to unblock Phase 22 column matchers (BPV-01)
+- Provide real voortgang PDF with Rekenen/Nederlands section to unblock Phase 23 PDF extraction (RNL-04)
 
 ### Blockers/Concerns
 
@@ -90,6 +94,8 @@ v2.1 phases completed: 4/4
 - [Phase 11] tsconfig.migrated.json (noImplicitAny:true, includes utils/**, parsers/**) satisfies D-11-05 without touching global tsconfig
 - [Phase 11] parseStageFile = parseSinglePDF (RESEARCH confirmed; no separate parser/parseStage.js exists)
 - [Phase 11] SheetJS cpexcel: import cpexcel from 'xlsx/dist/cpexcel.full.mjs'; XLSX.set_cptable(cpexcel.cptable)
+- [Phase 22 — OPEN] BPV column matchers blocked on real BPV Excel file. Scaffold proceeds; BPV-01 partially delivered until file provided.
+- [Phase 23 — OPEN] RNL PDF extraction blocked on real PDF with R&N section. Data model + UI proceeds; RNL-04 partially delivered until file provided.
 
 ## Session Log
 
@@ -114,3 +120,4 @@ v2.1 phases completed: 4/4
 - 2026-05-18: Phase 18 Plan 05 executed — Wave 3 UI completion. SettingsPage section 4 (threshold inputs + BPV config + import button), BpvProgressSection (new), DeelgebiedenMatrix + SpiderChartCard active-DG filter (Invariant I1 preserved), DetailWeergave BPV mount (D-12), CSS section 25 completed. 89/89 tests pass. 0 deviations.
 - 2026-05-19: Phase 19 Plan 01 executed — RED spider test scaffold. tests/spider.test.ts rewritten with 7 JSX-aware tests (React.isValidElement, renderToStaticMarkup, onHover callback contract). 5/7 tests RED until Plan 03 ships JSX refactor. 88 non-spider tests green. 0 deviations.
 - 2026-05-19: Phase 19 Plans 02–04 executed — CIOS brand refresh (Industry font, #009FE3 accent, Material shadows), spider chart JSX refactor + tooltips, dark mode lift to App.tsx, settings slide-in animation, logo swap, responsive grid fix. 7/8 UAT items passed. 1 cosmetic open: nav ::after diagonal stripe not visible in Tauri WebView (background task logged). v2.1 SHIPPED.
+- 2026-05-19: v2.2 milestone started. Roadmap created — Phases 20–24 defined, all 21 requirements mapped. Next: /gsd-plan-phase 20

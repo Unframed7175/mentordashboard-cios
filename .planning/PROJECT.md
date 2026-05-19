@@ -8,14 +8,25 @@ Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL die voortgang-PDFs p
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
-## Current Milestone: v2.1 Settings, Polish & Auto-class Detection
+## Current Milestone: v2.2 Onboarding, Export & Data Completeness
+
+**Goal:** Mentoren kunnen de app in één gestructureerde flow instellen en alle benodigde data compleet aanleveren — inclusief BPV-stage uren en Rekenen/Nederlands — en een mentorgesprekverslag afdrukken als PDF.
+
+**Target features:**
+- Onboarding wizard — first-run stap-voor-stap: klas aanmaken → voortgang PDFs → verzuim Excel → stage Excel → instellingen
+- Print-to-PDF export — mentorgesprekverslag afdrukken vanuit de detailweergave (EXP-01–04)
+- BPV stage Excel parser — echte BPV-uren inlezen (nu gestubbed; vereist echt voorbeeldbestand)
+- Rekenen & Nederlands — voortgang apart bijhouden met eigen doorstroomnorm
+- Fix drag-and-drop — bestanden slepen op importveld werkt niet (bug Phase 16 UAT)
+
+## Milestone: v2.1 Settings, Polish & Auto-class Detection — COMPLETE (2026-05-19)
 
 **Goal:** Geef mentoren controle over app-instellingen en verwijder de handmatige workflow-wrijving bij eerste gebruik en terugkerende imports.
 
-**Target features:**
-- Settings panel — dark mode toggle, bestandsbeheer voor bestaande klassen (nieuwe PDFs/Excel toevoegen), configuratie van deelgebieden en leerlijnen
-- Auto class detection — bij eerste import automatisch klas-naam afleiden uit geïmporteerde bestanden
-- UI polish — overgebleven visuele verbeteringen uit v2.0 UAT
+**Delivered:**
+- ✓ Settings panel — dark mode toggle, bestandsbeheer, deelgebieden/leerlijnen config, drempelwaarden, BPV config (Phases 17–18)
+- ✓ Auto class detection — klasnaam afleiden uit PDF-header bij eerste import (Phase 16)
+- ✓ UI polish — Industry font, CIOS blue #009FE3, Material shadows, spider tooltips, responsive layout (Phase 19)
 
 ## Milestone: v2.0 Stack Modernisering — COMPLETE (2026-05-16)
 
@@ -85,16 +96,19 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ Per-leerling verwijderfunctie — Artikel 17 AVG compliance — Phase 12
 - ✓ React componentenstructuur — UI herschreven als herbruikbare componenten — Phase 14
 
-### Active (v2.1 milestone)
+### Validated (v2.1 milestone — completed 2026-05-19)
 
-- [ ] Settings panel (dark mode, bestandsbeheer, deelgebieden/leerlijnen configuratie)
-- [ ] Auto class detection bij eerste import
-- [ ] UI polish — dark mode implementatie, overige visuele verbeteringen
+- ✓ Settings panel (dark mode, bestandsbeheer, deelgebieden/leerlijnen configuratie, drempelwaarden, BPV config) — Phases 17–18
+- ✓ Auto class detection bij eerste import — Phase 16
+- ✓ UI polish (Industry font, CIOS blue, spider tooltips, responsive) — Phase 19
 
-### Future (post-v2.1)
+### Active (v2.2 milestone)
 
-- [ ] Rekenen en Nederlands voortgang apart bijhouden met eigen norm
-- [ ] Print-to-PDF export voor mentorgesprekverslag (EXP-01–04, uitgesteld uit v1.1)
+- [ ] Onboarding wizard — first-run stap-voor-stap klas + bestanden instellen
+- [ ] Print-to-PDF export voor mentorgesprekverslag (EXP-01–04)
+- [ ] BPV stage Excel parser — echte uren inlezen (vereist voorbeeldbestand)
+- [ ] Rekenen & Nederlands voortgang apart bijhouden met eigen doorstroomnorm
+- [ ] Fix drag-and-drop import (bug)
 
 ### Out of Scope
 
@@ -148,4 +162,4 @@ This document evolves at phase transitions and milestone boundaries.
 **After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
 
 ---
-*Last updated: 2026-05-17 — v2.1 Settings, Polish & Auto-class Detection milestone started*
+*Last updated: 2026-05-19 — v2.2 Onboarding, Export & Data Completeness milestone started*

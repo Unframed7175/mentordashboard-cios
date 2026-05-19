@@ -1,81 +1,130 @@
-# Research Summary — v2.0 Stack Modernisering
+# Research Summary: v2.2 Onboarding, Export & Data Completeness
 
-**Project:** Mentordashboard CIOS — v2.0 Stack Modernisering
-**Domain:** Vanilla JS desktop migration → TypeScript + React 19 + Vite + Tauri 2
-**Researched:** 2026-05-12
-**Confidence:** HIGH (stack versions npm-verified; Tauri patterns docs-verified)
+**Project:** Mentordashboard CIOS
+**Researched:** 2026-05-19
+**Confidence:** HIGH (stack/architecture/pitfalls); MEDIUM (BPV column names, RNL PDF format — missing sample files)
+
+---
+
+## Executive Summary
+
+v2.2 adds five deliverables to the existing Tauri 2 + React + TypeScript app. **Zero new dependencies** — no new npm packages, no new Cargo crates. The only config change is one line in `tauri.conf.json` which resolves the drag-and-drop bug entirely.
+
+Build order is driven by hard dependencies and risk: drag-drop fix first (unblocks all import paths), print-to-PDF second (zero-dependency quick win), BPV parser and RNL section third/fourth (both partially blocked on sample files), onboarding wizard last (wraps all other flows).
 
 ---
 
 ## 1. Stack Additions
 
-New additions only — pdfjs-dist and SheetJS are already vendored.
+**Verdict: No new dependencies.**
 
-| Library | Version | Role |
-|---------|---------|------|
-| `@tauri-apps/cli` | 2.11.1 | Desktop build + bundler |
-| `@tauri-apps/api` | 2.11.0 | JS ↔ Rust IPC bindings |
-| `@tauri-apps/plugin-store` | 2.4.3 | Persistent KV store (replaces localStorage) |
-| `@tauri-apps/plugin-fs` | 2.5.1 | Native file read after dialog/drag-drop |
-| `@tauri-apps/plugin-dialog` | 2.7.1 | OS file picker (replaces `<input type=file>`) |
-| `vite` | 8.0.12 | Bundler + dev server |
-| `@vitejs/plugin-react` | 6.0.1 | JSX transform + HMR |
-| `react` + `react-dom` | 19.2.6 | UI framework |
-| `typescript` | ~5.8 | Type safety (skip 6.x for now) |
-| `zustand` | 5.x | State management (replaces `window.*` globals) |
-| `vitest` + `@vitest/coverage-v8` | 4.1.6 | Test runner (replaces Jest) |
+| Feature | npm | Cargo.toml | tauri.conf.json |
+|---------|-----|-----------|----------------|
+| Drag-and-drop fix | None | None | `"dragDropEnabled": false` |
+| Print-to-PDF | None | None | None |
+| BPV Excel parser | None | None | None |
+| Rekenen & Nederlands | None | None | None |
+| Onboarding wizard | None | None | None |
 
-**Do NOT add:** UI component library, Redux, React Router, Tailwind, Stronghold (deprecated), SQLite.
+Explicitly rejected: `@tauri-apps/plugin-printer` (Windows-only, unstable), `react-to-print` (documented unreliable in WebViews), `react-step-wizard` (abandoned 4 years), `framer-motion` (130 KB overkill).
 
 ---
 
-## 2. Build Order
+## 2. Feature Table Stakes
 
-| Wave | Focus | Rationale |
-|------|-------|-----------|
-| **Wave 0** | Scaffold + Vitest | Nothing else runs without toolchain; existing 8 tests must stay green |
-| **Wave 1** | TypeScript port of all `utils/` + `parsers/` | Pure logic, zero UI risk; tests are the regression gate |
-| **Wave 2** | Zustand store + encrypted persistence | All UI depends on the store; AVG compliance is a blocker, not stretch goal |
-| **Wave 3** | File import (drag-drop + dialog) | Core data entry workflow; parsers must exist first |
-| **Wave 4** | Klasoverzicht UI | Primary view; depends on store + import |
-| **Wave 5** | Detail view + all sub-sections | Most complex render; depends on klasoverzicht nav |
-| **Wave 6** | Polish + Tauri packaging | `.exe` / `.dmg` build; CSS cross-platform fixes |
+### BUG-01 — Drag-and-Drop
+- `"dragDropEnabled": false` in `app.windows[0]` in `tauri.conf.json`
+- Document-level `preventDefault` listeners in `App.tsx` must be **preserved** (prevent browser navigation on accidental drops — not the bug)
+- Requires `npm run tauri dev` restart after config change
 
----
+### EXP — Print-to-PDF
+- `window.print()` works in Tauri 2 WebView2 (confirmed: docs.rs/tauri)
+- Print-only `<header>` showing leerlingnaam, klas, datum
+- `@media print { body > * { display: none; } .print-target { display: block !important; } }`
+- `@page { size: A4; margin: 2cm; }` — suppresses Chromium URL header/footer
+- `break-inside: avoid` on `.detail-section`
+- `print-color-adjust: exact` — preserves RAG badge colors
+- "Afdrukken" button in `DetailWeergave.tsx` header
 
-## 3. Critical Decisions (Before Planning)
+### BPV — Stage Excel Parser
+- Separate `parseBpvExcel()` in `utils/bpv.ts` — do NOT reuse `parseExcelFile`
+- Separate sheet-scoring keywords: `bpv` (+4), `stage` (+3), `uren` (+2)
+- `debugBpvExcel()` helper must run on real file before writing column matchers
+- `XLSX.read({ cellDates: true })` for date columns
+- Graceful fallback: `gerealiseerdeUren = 0` if column not found
 
-1. **Encryption UX:** OS keychain (seamless, recommended) vs PBKDF2 password prompt on every launch. Must decide before Wave 2.
-2. **AES key location:** Key must live in OS keychain via `tauri-plugin-secure-storage`, never co-located with ciphertext in `plugin-store`. Stronghold is off-limits (deprecated for v3).
-3. **Backup backward-compatibility:** Old backups use zip.js AES format. Decide now: keep zip.js as a read-only import, or document that old backups require a one-time migration.
-4. **Rust experience:** The encryption layer requires ~60 lines of Rust (`aes-gcm` + PBKDF2 crates). If Rust is new to the developer, add 1–2 days buffer to Wave 2.
-5. **TypeScript migration strategy:** Enforce `noImplicitAny` per-module incrementally; do not enable full `strict` on all files simultaneously — it produces hundreds of cascade errors on the first pass.
+### RNL — Rekenen & Nederlands
+- MBO-3 national norms: Rekenen 2F voldoende, Nederlands 2F voldoende (rijksoverheid.nl confirmed)
+- New optional fields on `StudentRecord`: `rekenResultaat?: string | null`, `nederlandsResultaat?: string | null`
+- `AanvullendSection` manual dropdowns preserved unchanged
+- PDF extraction is best-effort (section absent from many PDFs) — `null` fallback, no throw
+- `normalizeRekenScore()` separate from `normalizeScore()` — score format may differ from V/G/E
 
----
-
-## 4. Watch Out For
-
-| # | Pitfall | One-line prevention |
-|---|---------|---------------------|
-| P-01 | pdfjs worker 404 in production (Vite hashes filename) | Copy `pdf.worker.min.mjs` to `public/`; set `workerSrc = '/pdf.worker.min.mjs'` |
-| P-02 | CSP blocks blob: worker in Tauri WebView | Add `script-src blob:` + `worker-src blob:` + `wasm-unsafe-eval` to `tauri.conf.json` CSP |
-| P-03 | SheetJS ESM silently drops XLS codepage — garbled Dutch names | Import and register `xlsx/dist/cpexcel.full.mjs` before any `XLSX.read()` call |
-| P-07 | localStorage wiped on Windows prod (HTTP vs HTTPS scheme) | Set `useHttpsScheme: true` in tauri.conf.json — or migrate to `plugin-store` before first prod deploy |
-| P-09 | `window.XLSX`, `window.parseSinglePDF`, etc. are `undefined` in React ESM | Convert all `window.*` assignments to named ES module exports before touching React |
-
-**Pre-flight blocker:** Rust toolchain (`rustc`) is NOT installed on this machine. Install via `winget install Rustlang.Rustup` + Visual Studio 2022 "C++ build tools" workload before Wave 0.
-
----
-
-## 5. Open Questions
-
-1. **Rust experience level?** Determines Wave 2 time estimate for the AES-GCM encryption command.
-2. **OS keychain vs password prompt?** UX decision for encrypted store unlock — affects Wave 2 design.
-3. **Old backup files?** Are there real user backups in the zip.js format that must remain importable after migration?
-4. **SheetJS license?** CDN tarball (0.20.3) is used for `.xls` read — verify license compliance for school distribution before Wave 6.
-5. **SomToday export format?** Assumed `.xls` (legacy binary). If it exports `.xlsx` only, the cpexcel import is unnecessary. Verify against a real file in Wave 1.
+### ONB — Onboarding Wizard
+- 5 steps: klas aanmaken (required) → PDFs (required) → verzuim Excel (optional) → stage Excel (optional) → instellingen (optional)
+- Add `'onboarding'` to `view` union in `App.tsx`
+- First-run detection: `Object.keys(klassenState.klassen).length === 0` in startup `useEffect`
+- All wizard state lifted to parent `OnboardingWizard` — step components are purely presentational
+- "Overslaan" button on steps 3–5
+- **Do NOT mount full `<ImportPage />` inside wizard steps** — use stripped-down inline dropzones with wizard-internal handlers
+- `onboardingComplete: true` persisted to store only after final step
 
 ---
 
-*Research completed: 2026-05-12*
-*Ready for roadmap: yes*
+## 3. Architecture Decisions
+
+**New files:** `src/components/OnboardingWizard.tsx`, `src/components/RekenenNederlandsSection.tsx`
+
+**Modified files:** `src-tauri/tauri.conf.json`, `src/App.tsx`, `src/components/ImportPage.tsx`, `src/components/DetailWeergave.tsx`, `src/components/AanvullendSection.tsx`, `src/index.css`, `parsers/pdf.ts`, `utils/bpv.ts`, `utils/schema.ts`
+
+**`App.tsx` view union:** `'import' | 'klas' | 'detail' | 'settings'` → adds `'onboarding'`
+
+**BPV import routing:** Filename heuristic `/bpv|stage|praktijk/i.test(name)` routes to `handleBpvExcel()` in `ImportPage`; all other `.xls` → existing `handleExcel()`
+
+**RNL section placement:** After `AanvullendSection`, before `StageSection` in `DetailWeergave`
+
+**BPV storage:** `bpv_data` store key holds `{ [leerlingId]: { gerealiseerdeUren } }` — does not merge with `stageData` until real file confirms structure
+
+---
+
+## 4. Watch Out For — Top 5 Pitfalls
+
+**1. CRITICAL — Tauri drag-drop interceptor blocks HTML5 events**
+`e.dataTransfer.files` is always empty in Tauri 2 by default. Fix: `"dragDropEnabled": false` in `tauri.conf.json`. Do NOT remove document-level `preventDefault` listeners in `App.tsx`.
+
+**2. HIGH — `window.print()` captures full DOM, not just DetailWeergave**
+Fix: `.print-target` wrapper + `@media print { body > * { display: none; } }`. `@page { margin: 0 }` suppresses Chromium's injected URL in print header.
+
+**3. HIGH — Wizard step state lost on back navigation**
+`useState` in step components is destroyed on unmount. Fix: lift all state to parent `wizardState` — step components accept props, call `onUpdate(partial)`.
+
+**4. HIGH — BPV Excel selects wrong sheet**
+Existing sheet scorer keywords (`verzuim`, `totaal`, `overzicht`) miss BPV sheet names (`"BPV uren"`, `"Deelnemers"`). Fix: separate sheet-scoring function for BPV.
+
+**5. HIGH — Rekenen/Nederlands absent from many PDFs**
+Fields must be `string | null` everywhere. `?? null` fallback required on all deserialized old records (missing field on encrypted store data).
+
+---
+
+## 5. Blocked Features
+
+| Feature | Blocked on | Impact if delayed |
+|---------|-----------|-------------------|
+| BPV column matchers (BPV-01) | Real BPV Excel export file | Scaffold proceeds; `gerealiseerdeUren` shows 0 until unblocked |
+| RNL PDF extraction (RNL-04) | Real PDF with Rekenen/Nederlands section | Manual entry works without it; extraction is additive |
+
+---
+
+## 6. Recommended Phase Order
+
+| Phase | Feature | Rationale |
+|-------|---------|-----------|
+| 20 | BUG-01 Drag-and-Drop Fix | One config line; unblocks all file import paths |
+| 21 | EXP-01..04 Print-to-PDF | Zero dependencies; quick win |
+| 22 | BPV-01..04 Stage Excel Parser | Scaffold now, column matchers when sample file arrives |
+| 23 | RNL-01..04 Rekenen & Nederlands | Data model + UI now; PDF extraction additive |
+| 24 | ONB-01..08 Onboarding Wizard | Wraps all prior features; build last |
+
+---
+
+*Sources: Tauri 2 Rust API docs, tauri.conf.json schema, GitHub issues #9448 + #14373, rijksoverheid.nl, examenbladmbo.nl, PatternFly wizard design guidelines, direct codebase inspection.*

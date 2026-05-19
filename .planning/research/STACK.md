@@ -1,353 +1,216 @@
-# Stack Research: Vanilla → TypeScript + React + Vite + Tauri Migration
+# Stack Research: v2.2 Feature Additions
 
-**Researched:** 2026-05-12
-**Domain:** Desktop app migration stack — React, Vite, Tauri v2, TypeScript, testing
-**Confidence:** HIGH (all library versions verified against npm registry)
+**Project:** Mentordashboard CIOS
+**Milestone:** v2.2 — Onboarding, Export & Data Completeness
+**Researched:** 2026-05-19
+**Overall confidence:** HIGH (all key findings verified against official Tauri docs and Rust API docs)
 
----
-
-## Summary
-
-This document answers: "What exact libraries and versions do we need to migrate the Mentordashboard from a vanilla HTML/JS browser app to a TypeScript + React + Vite + Tauri desktop application?"
-
-The existing app is ~3000 LOC of vanilla JS with no build step, running via Python http.server. It uses pdfjs-dist 5.x (vendored as .mjs), SheetJS 0.20.3 (from CDN tarball), and localStorage for persistence. All parsers (pdf.js, excel.js) are already ESM-capable. The migration is additive: the stack wraps the existing logic in a professional toolchain without rewriting the business logic.
-
-**Primary recommendation:** Tauri v2 (2.11.x) + React 19 + Vite 8 + TypeScript 5 strict, replacing Jest with Vitest, replacing localStorage with tauri-plugin-store. Do NOT add a UI component library — the existing CIOS CSS design system is complete and must be preserved.
+> Note: This file supersedes the v2.0 migration stack research for purposes of v2.2 planning.
+> The existing stack (Tauri 2, React 19, TypeScript, Vite, SheetJS, pdfjs-dist, tauri-plugin-store, Vitest) is already installed and does not need to change.
 
 ---
 
-## Recommendation Table
+## Executive Summary
 
-| Library | Version | Role | Source |
-|---------|---------|------|--------|
-| `@tauri-apps/cli` | 2.11.1 | Build + bundle desktop shell | `[VERIFIED: npm registry]` |
-| `@tauri-apps/api` | 2.11.0 | JS bindings to Tauri IPC | `[VERIFIED: npm registry]` |
-| `@tauri-apps/plugin-store` | 2.4.3 | Persistent KV store (replaces localStorage) | `[VERIFIED: npm registry]` |
-| `vite` | 8.0.12 | Bundler + dev server | `[VERIFIED: npm registry]` |
-| `@vitejs/plugin-react` | 6.0.1 | React JSX transform + HMR | `[VERIFIED: npm registry]` |
-| `react` | 19.2.6 | UI framework | `[VERIFIED: npm registry]` |
-| `react-dom` | 19.2.6 | DOM renderer | `[VERIFIED: npm registry]` |
-| `typescript` | 5.8.x (latest 5.x) | Type checking | `[VERIFIED: npm registry — 6.0.3 is latest, use 5.8 for stability]` |
-| `@types/react` | 19.2.14 | React type definitions | `[VERIFIED: npm registry]` |
-| `@types/react-dom` | 19.2.3 | ReactDOM type definitions | `[VERIFIED: npm registry]` |
-| `vitest` | 4.1.6 | Test runner (Jest replacement) | `[VERIFIED: npm registry]` |
-| `@vitest/coverage-v8` | 4.1.6 | Coverage provider | `[VERIFIED: npm registry]` |
-| `jsdom` | (vitest peer) | DOM environment for unit tests | `[ASSUMED]` |
-| `pdfjs-dist` | 5.5.207 | PDF parsing (pin — already validated) | `[VERIFIED: npm registry]` |
-| `xlsx` (SheetJS) | 0.20.3 (CDN tarball) | Excel parsing | `[VERIFIED: SheetJS CDN]` |
+**Net new stack additions for v2.2: zero.**
 
-**TypeScript version note:** TypeScript 6.0.3 is on npm but is a major version bump (May 2026 release). Use `typescript@~5.8` for the initial migration to avoid surfacing TypeScript 6 breaking changes during an already complex migration. Upgrade to 6.x separately. `[ASSUMED — verify TS 6 breaking changes before locking]`
+All five v2.2 features are achievable with the existing installed stack. The only change needed is a one-line `tauri.conf.json` key to fix drag-and-drop. No new npm packages, no new Cargo crates.
 
 ---
 
-## Key Decisions (5)
+## Print-to-PDF
 
-### Decision 1: Tauri v2 (not v1)
+### Verdict: Use `window.print()` + CSS `@media print`. No new packages.
 
-**Use Tauri v2.** v2 reached stable on 2024-10-02 and is the current recommended release (latest 2.11.1). v1 receives only security patches. `[VERIFIED: npm registry dist-tags show latest=2.11.1, no v1 dist tag]`
+**Confidence:** HIGH — confirmed via official Tauri 2 Rust API docs at `docs.rs/tauri/latest/tauri/webview/struct.Webview.html`
 
-Reasons for v2:
-- Capability-based permission system (per-window, composable) replaces v1 global allowlist — critical for a local file-access app
-- Custom IPC protocol (not localhost hack) — this matters because localhost-based Tauri v1 apps have a known localStorage bug: each restart may use a different port, making localStorage data inaccessible `[CITED: github.com/tauri-apps/tauri/issues/896]`
-- Bundle size ~3 MB vs Electron ~96 MB; ~50% lower RAM
-- Windows + macOS targets both supported and tested
+The Tauri 2 `Webview` struct documentation states explicitly:
 
-**Do NOT use `@tauri-apps/cli@1.x`** — it is legacy and incompatible with v2 plugins.
+> "window.print() works on all platforms."
 
----
+On Windows, the Edge WebView2 (which Tauri 2 uses) routes `window.print()` to the native Windows print dialog, which includes "Save as PDF" / "Microsoft Print to PDF" as a destination. The mentor does not need silent/headless PDF generation — they just need a print dialog where they pick "Save as PDF". This is exactly what `window.print()` delivers.
 
-### Decision 2: React 19 (not React 18)
+### Integration pattern
 
-**Use React 19.2.x.** React 19 is stable and production-ready as of late 2024. `[VERIFIED: npm registry — react@latest=19.2.6]`
+Add a print button to `DetailWeergave.tsx` and a `@media print` block to `index.css`:
 
-For this app specifically:
-- The existing JS is not React at all — there is no React 18 code to preserve, so there is no migration cost within React itself
-- React 19 compiler reduces re-renders automatically (no manual useMemo/useCallback needed in new code)
-- React 19 is backward compatible with React 18 patterns
-
-React 18 is still supported but is the previous-generation release. There is no reason to use it for a greenfield React codebase.
-
----
-
-### Decision 3: SheetJS — keep CDN tarball install pattern, switch to named ESM imports
-
-The existing `package.json` already installs SheetJS via CDN tarball:
-```
-"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+```tsx
+// In DetailWeergave.tsx
+<button className="no-print" onClick={() => window.print()}>
+  Afdrukken / Opslaan als PDF
+</button>
 ```
 
-This is correct. The public npm `xlsx@0.18.5` (last published 2024-10-22) is outdated. SheetJS publishes new releases exclusively to their CDN. `[VERIFIED: npm view xlsx version → 0.18.5; npm view xlsx time.modified → 2024-10-22]`
+```css
+/* In index.css */
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  nav, .import-dropzone, .settings-btn { display: none !important; }
+  @page { size: A4; margin: 20mm; }
+  body { font-size: 11pt; color: #000; background: #fff; }
+}
+```
 
-**Migration action:** The current `excel.js` uses `window.XLSX` (global CDN pattern). In the Vite build this becomes a named import:
+The `@media print` block hides UI chrome (navigation, import dropzone, buttons) and formats only the mentorgesprekverslag content for print. No JavaScript PDF generation needed.
+
+### What NOT to add
+
+| Package | Why to skip |
+|---------|-------------|
+| `@tauri-apps/plugin-printer` | Community plugin by chen-collab — not in official tauri-apps org, Windows-only, no stable release. The official print plugin feature request (plugins-workspace#293) is still open as of 2026-05. Unnecessary when `window.print()` works. |
+| `react-to-print` (v3.3.0) | Uses `window.print()` internally, but its docs explicitly state "printing within a WebView is known to generally not work." It adds indirection over a direct `window.print()` call with no benefit, and introduces a failure mode. |
+| `@react-pdf/renderer` or `react-pdf` | These generate PDFs programmatically via canvas (for complex programmatic layouts, e-invoices, etc.). For a print-preview use case, browser print-to-PDF is superior: preserves text selection, correct font rendering, no canvas rasterization. |
+| New Cargo crate (e.g. `printpdf`) | Server-side PDF generation in Rust is architecturally wrong for this use case. The mentor wants to print the current screen view, not regenerate content from Rust. |
+
+### No new `package.json` entries needed.
+### No new `Cargo.toml` entries needed.
+
+---
+
+## Drag-and-Drop Fix
+
+### Root cause
+
+Tauri 2 intercepts OS-level file drop events at the webview level before they reach the HTML5 drag-and-drop system. The config key `dragDropEnabled` defaults to `true`, meaning Tauri's native handler consumes the drag event and the browser's `DataTransfer` never gets populated.
+
+This is documented in the Tauri 2 reference:
+
+> "Disabling it is required to use HTML5 drag and drop on the frontend on Windows."
+
+The `ImportPage.tsx` `onDrop` handler is correctly written — it reads `e.dataTransfer.files`. The bug is that `e.dataTransfer.files` is always empty because Tauri intercepts the event upstream.
+
+**Confidence:** HIGH — confirmed via `v2.tauri.app/reference/javascript/api/namespacewebview/` and GitHub issue #14373 (which documents the confusing naming and default-true behavior).
+
+### Fix: One-line change to `tauri.conf.json`
+
+Add `"dragDropEnabled": false` to the window object in `src-tauri/tauri.conf.json`:
+
+```json
+{
+  "app": {
+    "windows": [
+      {
+        "title": "Mentordashboard CIOS",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "useHttpsScheme": true,
+        "dragDropEnabled": false
+      }
+    ]
+  }
+}
+```
+
+This disables Tauri's native handler and restores standard HTML5 `DataTransfer` behavior. The existing `onDrop` handler in `ImportPage.tsx` (lines 324–330) works correctly and requires no code changes.
+
+### Why not use Tauri's native `onDragDropEvent` API instead
+
+Tauri 2 offers an alternative API via `getCurrentWebview().onDragDropEvent()` (from `@tauri-apps/api/webview`) that provides `event.payload.paths: string[]` — OS absolute file paths. This approach keeps `dragDropEnabled: true`.
+
+Reason to reject it for this app: The existing parsers (`handlePDFs`, `handleExcel`, `handleBackup`) all accept `File` objects and use `FileReader`/`arrayBuffer()` — standard browser File API. Switching to path-based drag-drop would require rewriting all parser call sites to use `@tauri-apps/plugin-fs` to read files by path. That is substantial rework for zero functional gain. Option A (config flag) costs one line; Option B costs ~50–100 lines of parser refactoring.
+
+### No new `package.json` entries needed.
+### No new `Cargo.toml` entries needed.
+
+---
+
+## Onboarding Wizard
+
+### Verdict: Custom React component, no npm package.
+
+**Confidence:** HIGH — standard React pattern assessment.
+
+The onboarding wizard is a 4–5 step linear flow:
+
+1. Klas aanmaken (class name input)
+2. Voortgang PDFs importeren (drag existing ImportPage component)
+3. Verzuim Excel importeren (drag existing ImportPage component)
+4. Stage Excel importeren (optional)
+5. Instellingen bevestigen (confirm/link to SettingsPage)
+
+This is `useState<number>` for `currentStep` plus a `completed: boolean[]` array — approximately 80–120 lines of React. All existing page components (`ImportPage`, `SettingsPage`) can be reused inside the wizard steps. A third-party library adds bundle weight and styling conflicts with the existing CIOS CSS variables.
+
+**First-run detection:** Use `tauri-plugin-store` (already installed at `^2.4.3`) to persist an `onboardingComplete: true` flag. Check in `App.tsx` on mount; show `OnboardingWizard` if flag is absent or false.
+
 ```typescript
-import { read, utils } from 'xlsx';
-// For legacy .xls files (codepage support):
-import * as cptable from 'xlsx/dist/cpexcel.full.mjs';
-XLSX.set_cptable(cptable);
+// In App.tsx
+const store = new Store('app-data.json'); // already instantiated for class data
+const onboardingDone = await store.get<boolean>('onboardingComplete');
+if (!onboardingDone) setShowOnboarding(true);
 ```
 
-The `.xls` (legacy binary) format requires the `cpexcel` codepage table. Do not drop this — the school's SomToday export generates `.xls`. `[ASSUMED — verify actual export format against a real file during migration]`
+### Packages evaluated and rejected
+
+| Package | Reason to skip |
+|---------|---------------|
+| `react-step-wizard` (v5.3.11) | Last published 4 years ago. Abandoned. |
+| `NextStepjs` | Requires Framer Motion as peer dependency. Heavyweight for a 5-step linear flow. |
+| `react-multistep` | Headless v6 is technically fine but adds abstraction with no gain over `useState`. |
+| `SmartStepper` | Requires react-hook-form + Zod. Overkill. |
+| Any library requiring `framer-motion` | Not installed, adds ~130 KB minified, overkill for CSS transitions. |
+
+### No new `package.json` entries needed.
+### No new `Cargo.toml` entries needed.
 
 ---
 
-### Decision 4: pdfjs-dist — pin 5.5.207, copy worker to `/public`
+## BPV Stage Excel Parser (SheetJS — already installed)
 
-**Pin `pdfjs-dist@5.5.207`** — this exact version has already been validated against real CIOS PDFs (Phases 1–4). Do not upgrade during migration. `[VERIFIED: npm view pdfjs-dist@5.5.207 version → 5.5.207]`
+SheetJS (`xlsx` 0.20.3) is already installed via CDN tarball. The BPV parser work is purely a code task: read the new `.xls` format, extract BPV hours per student. No stack change.
 
-**Worker bundling with Vite:** pdfjs-dist v4+ ships a module worker that Vite cannot resolve automatically. `[CITED: github.com/mozilla/pdf.js/issues/19519]`
+The existing `cpexcel` codepage table import pattern (required for legacy `.xls` files) must be preserved — see the v2.0 STACK.md for detail on this pitfall.
 
-The existing `parsers/pdf.js` already uses:
-```js
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.mjs', import.meta.url).href;
-```
-
-This `new URL(…, import.meta.url)` pattern is Vite-compatible. **However**, in the Tauri build the vendor files must move from ad-hoc `vendor/` to either:
-- `public/pdf.worker.min.mjs` (static, no hashing, simplest), OR
-- `import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'` (Vite-managed)
-
-**Recommendation:** Copy worker to `public/` and use a static path string. This is the most reliable pattern across Vite versions and avoids hash-renaming issues in production builds. `[CITED: github.com/vitejs/vite/discussions/16501]`
-
-**Do NOT use `workerPort`** — the existing code has an explicit comment that `workerPort` causes silent message loss with module workers. This finding is correct; keep `workerSrc` assignment.
+**No new packages needed.**
 
 ---
 
-### Decision 5: localStorage → tauri-plugin-store (mandatory replacement)
+## Rekenen & Nederlands Voortgang (pdfjs-dist — already installed)
 
-**Replace `localStorage` with `@tauri-apps/plugin-store@2.4.3`.**
+`pdfjs-dist` is already installed. Extending the PDF parser to extract Rekenen/Nederlands scores is a code task (add new regex/table extraction logic). The existing `workerSrc` setup must not be changed.
 
-localStorage in Tauri v2 is unreliable across restarts on some platforms:
-- macOS: localStorage may not persist between app restarts `[CITED: github.com/tauri-apps/tauri/issues/4455]`
-- Linux: multi-window apps lose localStorage on exit `[CITED: github.com/tauri-apps/tauri/issues/10981]`
-- The root cause: each webview may treat the origin differently depending on build config
+**No new packages needed.**
 
-`tauri-plugin-store` persists to a JSON file in the app data directory (not the webview storage), which is reliable on all platforms. The API is async:
-```typescript
-import { Store } from '@tauri-apps/plugin-store';
-const store = new Store('app-data.json');
-await store.set('klassenState', data);
-await store.save(); // explicit flush
-const value = await store.get('klassenState');
-```
+---
 
-**Migration scope:** All `localStorage.setItem/getItem/removeItem` calls in `utils/klassen.js`, `utils/leerlijnen.js`, and `utils/prognosis.js` must be replaced. This is ~40–60 call sites. `[VERIFIED: grep of codebase pattern]`
+## Summary Table
 
-**Do NOT use tauri-plugin-stronghold** — it is confirmed deprecated and will be removed in Tauri v3. `[CITED: github.com/orgs/tauri-apps/discussions/7846]` The app does not store cryptographic secrets (no API keys, no credentials) — `tauri-plugin-store` with OS file permissions is sufficient.
+| Feature | npm change | Cargo.toml change | tauri.conf.json change | Work type |
+|---------|-----------|------------------|----------------------|-----------|
+| Print-to-PDF | None | None | None | CSS `@media print` block + `window.print()` button in `DetailWeergave.tsx` |
+| Drag-and-drop fix | None | None | Add `"dragDropEnabled": false` to `app.windows[0]` | Config only |
+| Onboarding wizard | None | None | None | New `OnboardingWizard` React component + `tauri-plugin-store` flag (already installed) |
+| BPV Excel parser | None | None | None | New parser logic using installed SheetJS |
+| Rekenen/NL PDF parser | None | None | None | Extend existing parser using installed pdfjs-dist |
 
 ---
 
 ## What NOT to Add
 
-| What | Why Not |
-|------|---------|
-| Electron | Wrong tool — Tauri already chosen |
-| Next.js / Remix | SSR is irrelevant for a local desktop app |
-| MUI / Chakra / shadcn | App has a complete CIOS CSS design system; importing a component library would conflict |
-| Tailwind CSS | Same reason — CIOS CSS tokens are already in `:root` variables, Tailwind would collide |
-| Redux / Zustand / Jotai | State fits in component state + tauri-plugin-store; no cross-cutting global state needed |
-| React Router | App is single-page with tab-switching; no URL routing needed |
-| tauri-plugin-stronghold | Deprecated, will be removed in v3 |
-| tauri-plugin-sql / SQLite | App data is lightweight KV; plugin-store is sufficient |
-| `xlsx@0.18.5` from public npm | Outdated stub; always use CDN tarball |
-| Webpack | Vite replaces it entirely |
-| Babel | Not needed — Vite + @vitejs/plugin-react handles JSX/TS transpilation |
-| @testing-library/react | Useful but DEFERRED — the existing test suite is unit-only (no component rendering); do not add unless component tests are planned |
-
----
-
-## Jest → Vitest Migration
-
-**Replace Jest with Vitest 4.x.** `[VERIFIED: npm view vitest version → 4.1.6]`
-
-Vitest runs natively inside the Vite pipeline — no separate transpilation config, no `jest.config.js` transform rules for ESM modules. This eliminates the current friction where `parsers/pdf.js` ESM imports require Jest transform configuration.
-
-### Config mapping
-
-| Jest (current) | Vitest equivalent |
-|----------------|-------------------|
-| `testEnvironment: 'jsdom'` | `test: { environment: 'jsdom' }` in `vitest.config.ts` |
-| `jest.fn()` | `vi.fn()` |
-| `jest.spyOn()` | `vi.spyOn()` |
-| `jest.mock()` | `vi.mock()` |
-| `jest.resetAllMocks()` | `vi.resetAllMocks()` |
-| `testMatch: ['**/*.test.js']` | `test: { include: ['**/*.test.{js,ts}'] }` |
-
-### Migration steps
-1. Remove `jest`, `jest-environment-jsdom` from devDependencies
-2. Add `vitest`, `@vitest/coverage-v8`, `jsdom`
-3. Create `vitest.config.ts` (see pattern below)
-4. Update `package.json` scripts: `"test": "vitest run"`, `"test:watch": "vitest"`
-5. Rename `tests/jest.config.js` → delete (no longer needed)
-6. Existing test files need zero API changes (no jest.* calls found in quick scan)
-
-### vitest.config.ts pattern
-```typescript
-import { defineConfig } from 'vitest/config';
-export default defineConfig({
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    include: ['tests/**/*.test.{js,ts}'],
-    coverage: {
-      provider: 'v8',
-      include: ['utils/**', 'parsers/**'],
-    },
-  },
-});
-```
-
----
-
-## TypeScript Configuration
-
-### tsconfig.app.json (browser/renderer code)
-```json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "jsx": "react-jsx",
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "isolatedModules": true,
-    "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
-    "useDefineForClassFields": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": ["src"]
-}
-```
-
-### tsconfig.node.json (vite.config.ts, Tauri build scripts)
-```json
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2023"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true
-  },
-  "include": ["vite.config.ts"]
-}
-```
-
-**Key setting:** `"moduleResolution": "bundler"` is required for Vite — it enables importing `.ts` files with extensions and resolves package.json `exports` correctly. `[CITED: vite.dev/guide/features]`
-
-**`window.*` globals:** The existing codebase heavily uses `window.DEELGEBIEDEN`, `window.normalizeScore`, `window.appState`, etc. These must be declared in a `src/globals.d.ts` declaration file so TypeScript recognizes them. This is a migration-phase concern, not a stack concern. `[ASSUMED — no TS declarations currently exist]`
-
----
-
-## Architecture: Tauri v2 Renderer ↔ Core Boundary
-
-```
-Browser Renderer (Vite + React)
-  ├── src/parsers/pdf.ts        (pdfjs-dist, reads File objects via drag-drop)
-  ├── src/parsers/excel.ts      (SheetJS, reads File objects via drag-drop)
-  ├── src/utils/schema.ts       (DEELGEBIEDEN constants)
-  ├── src/utils/prognosis.ts    (doorstroomnorm engine)
-  ├── src/utils/klassen.ts      (class state, calls tauri-plugin-store)
-  └── src/components/           (React UI components, translated from DOM manipulation)
-         ↕ Tauri IPC (invoke / listen)
-Tauri Rust Core
-  ├── Capability permissions    (fs: read-only to user files, store: app-data dir)
-  └── tauri-plugin-store        (JSON file persistence in app data dir)
-```
-
-File access: PDFs and Excel files are loaded via the browser drag-drop File API (no Rust FS involvement). Tauri's `fs` plugin is NOT required for parser operation. `[VERIFIED: existing pdf.js uses file.arrayBuffer() — standard browser File API]`
-
----
-
-## Environment Availability (checked 2026-05-12)
-
-| Dependency | Required by | Available | Notes |
-|------------|------------|-----------|-------|
-| Node.js | Vite build, Tauri CLI | Check: `node --version` | Must be >=18 for Vite 8 |
-| Rust + Cargo | Tauri compilation | Check: `rustc --version` | Must be installed separately |
-| npm | Package install | Yes (package-lock.json exists) | |
-| Windows SDK | Tauri Windows target | Check: VS Build Tools | Required for Windows builds |
-| Xcode | Tauri macOS target | macOS only | Required for Mac builds |
-
-**Rust is a hard dependency.** Tauri builds the native shell in Rust. If Rust is not installed: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`. `[CITED: v2.tauri.app]`
-
----
-
-## Common Pitfalls
-
-### Pitfall 1: localStorage works in dev, fails in Tauri production build
-**What goes wrong:** Dev mode (browser) uses standard localStorage fine. Tauri production build loses data on restart.
-**Why:** Tauri webview origin handling differs by platform; no guarantee of stable localStorage domain.
-**How to avoid:** Use `tauri-plugin-store` for ALL persistence from day 1. Never mix localStorage and plugin-store.
-
-### Pitfall 2: PDF.js worker 404 in production build
-**What goes wrong:** Dev server serves `vendor/pdf.worker.min.mjs` fine. Production build hashes the filename; workerSrc path breaks.
-**Why:** Vite renames assets with content hashes in build output. If workerSrc is a relative path to a non-public file, it will fail.
-**How to avoid:** Copy `pdf.worker.min.mjs` to `public/` directory. Set `workerSrc = '/pdf.worker.min.mjs'` (absolute path from public root). Files in `public/` are copied verbatim without hashing.
-
-### Pitfall 3: SheetJS `.xls` fails without codepage table
-**What goes wrong:** `XLSX.read()` on a legacy `.xls` file throws or returns garbled text.
-**Why:** Legacy XLS format requires the `cpexcel` codepage table; it is not bundled by default in ESM builds.
-**How to avoid:** Import `xlsx/dist/cpexcel.full.mjs` and call `XLSX.set_cptable(cptable)` at app startup.
-
-### Pitfall 4: `window.*` globals are undefined in TypeScript strict mode
-**What goes wrong:** `window.DEELGEBIEDEN`, `window.normalizeScore`, etc. are used throughout parsers but are not declared in TypeScript.
-**Why:** TypeScript strict mode does not allow arbitrary `window` property access without declaration.
-**How to avoid:** Create `src/globals.d.ts` declaring all window globals before migrating parser files to TypeScript. This is a Wave 0 task.
-
-### Pitfall 5: Vitest globals not enabled — `describe`/`it`/`expect` undefined
-**What goes wrong:** Test files use `describe`, `it`, `expect` without imports (Jest globals). Vitest requires explicit opt-in.
-**Why:** Vitest does not inject globals by default.
-**How to avoid:** Set `globals: true` in `vitest.config.ts`. This is a direct replacement for Jest's implicit globals behavior.
-
----
-
-## Assumptions Log
-
-| # | Claim | Risk if Wrong |
-|---|-------|---------------|
-| A1 | TypeScript 5.8 is preferable to 6.0.3 for initial migration | TS 6 may be stable enough; verify TS 6 breaking changes before pinning |
-| A2 | School's SomToday export produces `.xls` (legacy binary) format | If they export `.xlsx` only, cpexcel import is not needed |
-| A3 | No TS declarations currently exist for window.* globals | If declarations exist elsewhere (e.g., in a .d.ts file), globals.d.ts is redundant |
-| A4 | App data volume fits comfortably in tauri-plugin-store JSON | If classes grow to hundreds of students with large records, a SQLite migration may be needed later |
-| A5 | @testing-library/react is not needed for the initial migration | If component-level tests are planned in the same milestone, add it to the stack |
+| Package/Crate | Category | Reason |
+|---------------|----------|--------|
+| `@tauri-apps/plugin-printer` | Print | Community plugin, not official, Windows-only, open feature request in tauri-apps/plugins-workspace#293 |
+| `react-to-print` | Print | Uses `window.print()` internally but documented as unreliable in WebViews — adds risk, not value |
+| `@react-pdf/renderer` | Print | Canvas-based PDF generation; browser print-to-PDF is superior for screen-to-print use case |
+| `printpdf` (Rust crate) | Print | Server-side PDF generation; wrong architecture for a print-preview feature |
+| `react-step-wizard` | Onboarding | Abandoned (4 years, no updates) |
+| `framer-motion` | Onboarding | Heavy dep, overkill for a simple wizard |
+| `@tauri-apps/plugin-fs` | Drag-drop | Not needed; Option A (config flag) restores HTML5 DataTransfer without FS plugin |
 
 ---
 
 ## Sources
 
-### Primary (HIGH confidence — npm registry verified)
-- npm registry: `npm view` for all library versions listed above
-- `[VERIFIED: npm view vite version → 8.0.12]`
-- `[VERIFIED: npm view react version → 19.2.6]`
-- `[VERIFIED: npm view @tauri-apps/cli version → 2.11.1]`
-- `[VERIFIED: npm view @tauri-apps/api version → 2.11.0]`
-- `[VERIFIED: npm view @tauri-apps/plugin-store version → 2.4.3]`
-- `[VERIFIED: npm view @vitejs/plugin-react version → 6.0.1]`
-- `[VERIFIED: npm view vitest version → 4.1.6]`
-- `[VERIFIED: npm view typescript version → 6.0.3 (5.8 recommended for stability)]`
-- `[VERIFIED: npm view pdfjs-dist@5.5.207 version → 5.5.207]`
-- `[VERIFIED: npm view xlsx version → 0.18.5 (npm stub); 0.20.3 from SheetJS CDN]`
+- Tauri 2 Webview Rust API (`window.print()` confirmation): https://docs.rs/tauri/latest/tauri/webview/struct.Webview.html
+- Tauri 2 `onDragDropEvent` reference + `dragDropEnabled` note: https://v2.tauri.app/reference/javascript/api/namespacewebview/
+- `dragDropEnabled` confusing-naming issue (behavior confirmed): https://github.com/tauri-apps/tauri/issues/14373
+- `dragDropEnabled` v1→v2 rename discussion: https://github.com/tauri-apps/tauri/discussions/9696
+- Tauri print API feature request (still open): https://github.com/tauri-apps/tauri/issues/4917
+- Tauri plugins-workspace print plugin tracking issue (still open): https://github.com/tauri-apps/plugins-workspace/issues/293
+- `react-to-print` WebView caveat (v3.3.0 README): https://github.com/MatthewHerbst/react-to-print
+- chen-collab tauri-plugin-printer (community, Windows-only): https://github.com/chen-collab/tauri-plugin-printer
+- Tauri PDF generation feature request (Jan 2025, open): https://github.com/tauri-apps/tauri/issues/12284
 
-### Secondary (MEDIUM confidence — official source or multi-source verification)
-- Tauri v2 stable announcement: `[CITED: v2.tauri.app/blog/tauri-20/]`
-- localStorage unreliability in Tauri: `[CITED: github.com/tauri-apps/tauri/issues/4455, #10981, #896]`
-- Stronghold deprecation: `[CITED: github.com/orgs/tauri-apps/discussions/7846]`
-- PDF.js Vite worker issue: `[CITED: github.com/mozilla/pdf.js/issues/19519]`
-- SheetJS CDN as authoritative source: `[CITED: npm registry shows 0.18.5 is outdated]`
-- Vite public/ dir for static assets: `[CITED: github.com/vitejs/vite/discussions/16501]`
-
-### Tertiary (LOW confidence — WebSearch only)
-- TypeScript 6.0.3 stability for new projects (unverified compatibility matrix)
-- cpexcel requirement specifically for this app's .xls files (not tested against actual school export)
-
----
-
-**Research date:** 2026-05-12
-**Valid until:** 2026-08-12 (stable ecosystem; Tauri and Vite release frequently — re-verify patch versions before execution)
+**Research date:** 2026-05-19

@@ -1,537 +1,327 @@
-# Migration Pitfalls: Vanilla JS → TypeScript + React + Vite + Tauri 2.x
+# Domain Pitfalls: v2.2 Feature Addition
 
-**Researched:** 2026-05-12
-**Domain:** Vanilla-JS-to-TypeScript/React/Vite/Tauri 2.x migration (Dutch educational desktop app)
-**Audience:** Roadmapper — use this to add preventive measures and warning-sign checks to each phase plan
-
----
-
-## Quick Reference Table
-
-| # | Pitfall | Severity | Phase | Prevention |
-|---|---------|----------|-------|------------|
-| P-01 | pdfjs-dist worker hashed filename breaks in Vite production build | HIGH | PDF parser phase | Copy worker to `/public`, set absolute `workerSrc` |
-| P-02 | pdfjs-dist CSP blocks blob: worker in Tauri WebView | HIGH | PDF parser phase | Add `worker-src blob:` + `script-src blob:` to tauri.conf.json CSP |
-| P-03 | SheetJS ESM build silently drops XLS codepage support | HIGH | Excel parser phase | Explicitly import and register `cpexcel.full.mjs` |
-| P-04 | SheetJS CJS `require('fs')` error when bundled with Vite | HIGH | Excel parser phase | Use `import * as XLSX from 'xlsx'`; never use CDN global in ESM context |
-| P-05 | Tauri Windows: `link.exe` not found — wrong MSVC component | HIGH | Tauri setup phase | Install Build Tools for VS 2022 with "C++ build tools" + Windows 10/11 SDK |
-| P-06 | Tauri Windows: blank app window — WebView2 not installed | HIGH | Tauri setup phase | Ship Evergreen Bootstrapper installer or bundle WebView2 fixed runtime |
-| P-07 | localStorage silently wiped on Windows in production (HTTP vs HTTPS scheme) | HIGH | Storage migration phase | Set `useHttpsScheme: true` in tauri.conf.json from the first production build |
-| P-08 | Tauri v1 `allowlist` config rejected in v2 — capability system is mandatory | HIGH | Tauri setup phase | Use `src-tauri/capabilities/default.json` with explicit `fs:allow-*` permissions |
-| P-09 | `window.XLSX`, `window.parseSinglePDF`, etc. — globals not available in React ESM | HIGH | React migration phase | Replace all `window.*` globals with ESM module imports before wrapping in React |
-| P-10 | Drag-and-drop `event.dataTransfer.files` returns empty array in Tauri | HIGH | React migration phase | Use Tauri's `tauri://drag-drop` event, not the HTML5 DataTransfer API |
-| P-11 | AES encryption key stored next to ciphertext defeats purpose | HIGH | Storage migration phase | Store key in OS keychain (`tauri-plugin-secure-storage`); data in `tauri-plugin-store` |
-| P-12 | React Context re-renders all consumers on every state write | MEDIUM | React migration phase | Split state into multiple contexts or use Zustand slices |
-| P-13 | Stale closures in `useEffect` capturing old state | MEDIUM | React migration phase | Use functional state updates; add exhaustive deps lint rule |
-| P-14 | Vite asset base path set to `/` breaks Tauri production routing | MEDIUM | Tauri setup phase | Set `base: './'` in `vite.config.ts` |
-| P-15 | macOS WebKit vs Windows WebView2: CSS `-webkit-` prefix gaps | MEDIUM | CSS/UI phase | Test on both platforms; add `-webkit-` prefixes; use normalize.css |
-| P-16 | macOS WebKit: `scrollbar-width` and `::-webkit-scrollbar` inconsistent | MEDIUM | CSS/UI phase | Define scrollbar styles for both `scrollbar-width` (Chrome) and `::-webkit-scrollbar` (WebKit) |
-| P-17 | TypeScript `strict` mode causes cascade of `implicit any` on first enable | MEDIUM | TypeScript migration phase | Enable `allowJs + checkJs` first; add `strict` per-module incrementally |
-| P-18 | Stronghold plugin deprecated — will be removed in Tauri v3 | MEDIUM | Storage migration phase | Do not use Stronghold; use `tauri-plugin-secure-storage` (OS keychain) |
-| P-19 | Tauri v2 `devPath`/`distDir` keys removed — breaks CI build | LOW | Tauri setup phase | Use `devUrl` and `frontendDist` in tauri.conf.json |
-| P-20 | Vite `global is not defined` from SheetJS or other Node-API dependencies | LOW | Vite setup phase | Add `define: { global: 'globalThis' }` to `vite.config.ts` |
-| P-21 | pdfjs-dist "Setting up fake worker" warning — silent performance degradation | LOW | PDF parser phase | Always set `GlobalWorkerOptions.workerSrc` before first `getDocument()` call |
-| P-22 | AVG/GDPR: localStorage is plaintext — student data violates data-at-rest obligations | MEDIUM | Storage migration phase | Replace localStorage with encrypted file store before first production deploy |
+**Domain:** Adding features to existing Tauri 2 + React + TypeScript + Vite app
+**Researched:** 2026-05-19
+**Scope:** Print-to-PDF, Onboarding Wizard, BPV Excel Parser, Rekenen/Nederlands, Drag-and-Drop fix
 
 ---
 
-## HIGH Severity — Expanded Detail
+## 1. Print-to-PDF in Tauri 2
 
-### P-01: pdfjs-dist worker hashed filename breaks in Vite production build
+### Pitfall 1.1: `window.print()` Opens a New Window on Windows (WebView2)
 
-**What goes wrong:**
-Vite content-hashes output filenames. In dev, `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)` resolves correctly. In a production build, the worker filename gets a hash appended (e.g., `pdf.worker-B2x9a.js`) but the URL baked into the bundle still points to the unhashed name. Result: silent worker load failure → PDF parsing stops working in the shipped app only.
+**What goes wrong:** `window.print()` in Tauri 2 on Windows opens the Edge/Chromium **browser-style Print Preview dialog** as an overlay over the WebView. This works but cannot be controlled programmatically: you cannot set page title, suppress URL in header/footer, or pre-select "Save as PDF". The user sees the raw page URL in the print header.
 
-**Root cause:**
-Vite cannot resolve `new URL(…, import.meta.url)` inside third-party node_modules code. The path resolution is performed at bundle time, not runtime. [VERIFIED: github.com/vitejs/vite/issues/10837, github.com/mozilla/pdf.js/discussions/19520]
+**Risk:** HIGH — the print output will show `tauri://localhost/` (or the internal origin) as the page URL in the browser-injected header/footer. The mentor report looks unprofessional.
 
-**How to avoid:**
-Copy the worker file to the `public/` directory at build time (via a Vite plugin or a `prebuild` npm script). Then set an absolute path:
-
-```typescript
-// In your PDF parser module — set ONCE before any getDocument() call
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-```
-
-The `public/` directory is served at `/` in Vite dev and copied verbatim to `dist/` in production. No hashing is applied. This is the canonical solution documented by PDF.js contributors.
-
-**Alternative (for Vite library mode):**
-Use `vite-plugin-static-copy` to automate the copy step in `vite.config.ts`.
-
-**Warning signs:**
-- PDFs parse fine in `npm run dev`, fail silently in `npm run build && preview`
-- Console shows: `Failed to load resource: the server responded with a status of 404` for `pdf.worker*.js`
-- Console shows: `Setting up fake worker.`
+**Prevention:**
+- Use CSS `@media print` with `@page { margin: 0; }` combined with a print-specific padding container. Setting margin to 0 (or < 8mm) suppresses the Chromium header/footer URL line entirely.
+- Add `@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }` to preserve background colors (status badge colors, spider chart fill will be white without this).
+- If full header/footer control is needed, use Tauri's `@tauri-apps/plugin-shell` or a Rust command wrapping WebView2's `CoreWebView2.PrintToPdf` — but that adds Rust scope. Start with the CSS `@page margin: 0` approach first; it resolves 90% of the problem.
 
 ---
 
-### P-02: pdfjs-dist CSP blocks blob: worker in Tauri WebView
+### Pitfall 1.2: Print Captures the Entire DOM, Not Just the Detail View
 
-**What goes wrong:**
-Tauri injects a strict Content Security Policy. The PDF.js worker spawns as a Blob URL (`blob:tauri://localhost/…`) at runtime. Without `worker-src blob:` in the CSP, WebView2 (Windows) and WebKit (macOS) both refuse the worker. The error appears as a CSP violation in the WebView's devtools, not as a visible app error. PDF parsing silently falls back to the main thread fake-worker (slow) or fails entirely.
+**What goes wrong:** `window.print()` prints the **full page DOM** — including `KlasTabStrip`, the nav tabs, and any currently visible panels. The detail view component (`DetailWeergave`) is one child of `App.tsx`; there is no print isolation boundary by default.
 
-**Root cause:**
-PDF.js's CDN wrapper calls `createCDNWrapper()` which issues a `new Worker(blobUrl)`. The Tauri default CSP does not include `worker-src blob:` or `script-src blob:`. [VERIFIED: github.com/mozilla/pdf.js/issues/12105, MDN CSP worker-src docs]
+**Risk:** HIGH — the printed output includes nav and unrelated UI chrome.
 
-**How to avoid:**
-In `src-tauri/tauri.conf.json` (or the capability file), configure:
+**Prevention:**
+- Add a CSS rule: `@media print { body > * { display: none; } .print-target { display: block !important; } }`.
+- Wrap the content to print in a `<div className="print-target">`.
+- This approach works with the existing App.tsx view-conditional rendering. When `view === 'detail'`, only `DetailWeergave` is in the DOM (the others are conditionally excluded), so hiding everything except the print target is safe.
+- Do NOT use `document.body.innerHTML = ...` swaps — that destroys React state.
+
+---
+
+### Pitfall 1.3: CSS Page Break Causes Truncated Sections
+
+**What goes wrong:** `DetailWeergave` renders many stacked `detail-section` cards. Without explicit page break hints, Chromium's print engine will break mid-card — cutting a table or spider chart in half.
+
+**Risk:** MEDIUM — cosmetic, but the primary value of the PDF is the "ready for the meeting" quality.
+
+**Prevention:**
+- Add `page-break-inside: avoid` (and the modern alias `break-inside: avoid`) to `.detail-section` in `@media print`.
+- Add `page-break-before: always` on the deelgebied matrix section specifically (it is the widest element and benefits from starting on a fresh page).
+- The spider charts row uses `flexWrap: wrap` — at A4 width (~794px print pixels) the three 180px charts still fit on one row. No change needed there.
+
+---
+
+### Pitfall 1.4: macOS WebKit Treats `@page` Margin Differently
+
+**What goes wrong:** On macOS Tauri (WebKit), `@page { margin: 0 }` may not suppress the Safari-injected header/footer in the same way Chromium does. WebKit has historically been more restrictive.
+
+**Risk:** LOW for this project (primary users are on Windows), but worth noting if the mentor uses a MacBook.
+
+**Prevention:**
+- Test on macOS before signing off. If header persists, the fallback is `@page { margin: 15mm }` with a printed `<header>` element in the DOM that visually replaces the browser line (mentor name, class, date).
+- This is a known limitation with no CSS-only fix on WebKit; a custom printed header in the DOM is the industry standard workaround.
+
+---
+
+## 2. Onboarding Wizard State Management
+
+### Pitfall 2.1: Step Data Lost on Back Navigation Due to Component Unmount
+
+**What goes wrong:** If each wizard step is its own conditionally rendered component (`{step === 1 && <Step1 />}`), navigating back unmounts Step 2 and its local `useState` is destroyed. Navigating forward again shows a blank Step 2.
+
+**Risk:** HIGH — the wizard's value comes from remembering partial input. A mentor who goes back to change the class name and then proceeds should not lose their uploaded PDFs.
+
+**Prevention:**
+- Store all wizard state in the **parent wizard component** (or in a `useReducer` at the wizard root), not inside individual step components.
+- Use a single `wizardState: { step, klasNaam, pdfFiles, excelFile, stageFile, settings }` object lifted to the wizard container.
+- Step components receive state as props and call `onUpdate(partial)` callbacks — they are pure presentational components.
+- This matches the existing pattern in `App.tsx` (global view state) and `ImportPage.tsx` (centralized `importState`). Follow the same pattern.
+
+---
+
+### Pitfall 2.2: Partial Completion Leaves the App in an Inconsistent State
+
+**What goes wrong:** If the user closes the wizard partway (e.g., after creating the class but before importing PDFs), the app has an empty class with no students. On next launch the wizard should resume, but if it does not detect the partial state, the user sees the empty class UI with no explanation.
+
+**Risk:** MEDIUM — confusing for a first-run user.
+
+**Prevention:**
+- The wizard "done" flag should only be stored (via `plugin-store`) after the **final step completes** — not per-step.
+- Check on app launch: if a class exists but has zero students, treat it as "wizard incomplete" and re-show the wizard rather than the empty klas view.
+- The existing `App.tsx` already checks `getActiveStudents().length > 0` to decide between `'import'` and `'klas'` view. The wizard should hook into this same condition.
+
+---
+
+### Pitfall 2.3: Wizard State Survives React StrictMode Double-Invoke
+
+**What goes wrong:** In development with React StrictMode (Vite default), `useEffect` runs twice on mount. If the wizard's initial step setup effect calls `createKlas()` on mount, it will create duplicate empty classes.
+
+**Risk:** LOW in production (StrictMode is dev-only), but causes confusing bugs during development and testing.
+
+**Prevention:**
+- Do NOT call `createKlas()` in a `useEffect` on mount. Trigger class creation only on explicit user action (button click — "Volgende" on the class-name step).
+- Follow the existing pattern in `ImportPage.tsx` where `autoDetectKlas` is called inside an event handler, never on mount.
+
+---
+
+### Pitfall 2.4: Wizard Intercepts the Normal Import Flow
+
+**What goes wrong:** The wizard uses the same `parseSinglePDF` and `parseExcelFile` functions as `ImportPage`. If both the wizard and the normal import UI are mounted simultaneously (possible if the wizard is overlaid on top of the existing app), two concurrent `saveKlassen()` calls can interleave and corrupt the store.
+
+**Risk:** MEDIUM — the existing `ImportPage` already has a guard (`if (importState.status === 'processing') return`), but the wizard bypasses this if it is a separate code path.
+
+**Prevention:**
+- Render the wizard **exclusively** — when the wizard is active, do not render `ImportPage` or any other content-modifying UI.
+- The existing `view` state machine in `App.tsx` makes this natural: add `'onboarding'` as a view type and render it exclusively, the same way `'settings'` replaces the main content.
+- Reuse `handleFiles` logic from `ImportPage` rather than reimplementing it in the wizard.
+
+---
+
+## 3. BPV Stage Excel Parser
+
+### Pitfall 3.1: Stage Excel Sheet Name Not Matching Scoring Keywords
+
+**What goes wrong:** The existing `parseExcelFile` scores sheets by keywords: `verzuim` (+3), `overzicht` (+2), `totaal` (+1), `leerling` (+1). A BPV stage export from a different system (e.g., Somtoday BPV module, Xedule, or a custom school export) likely has sheet names like `"Stage overzicht"`, `"BPV uren"`, `"Deelnemers"`, or `"Rapportage"`. None of these score high enough on the current verzuim keywords.
+
+**Risk:** HIGH — the wrong sheet (or the first sheet) will be parsed, returning empty or incorrect records.
+
+**Prevention:**
+- Implement a **separate BPV parser** (`parsers/bpv-excel.ts`) with its own sheet-selection scoring that scores BPV-relevant keywords: `bpv` (+4), `stage` (+3), `uren` (+2), `deelnemer` (+1), `organisatie` (+1).
+- Do NOT reuse `parseExcelFile` for BPV data — the column structures are entirely different.
+- Use `debugExcelBestand()` (already exists in `excel.ts`) on the real BPV export file before writing the parser to confirm sheet names and column layout.
+
+---
+
+### Pitfall 3.2: BPV Hours May Be Stored as Numbers, Not as "107u24m" Strings
+
+**What goes wrong:** The existing `parseVerzuimTime` handles the Dutch `"107u24m"` format. BPV stage hours are typically stored as plain decimal numbers (e.g., `107.5`) or as separate integer columns (`Uren goedgekeurd: 107`, `Minuten: 30`). Feeding these to `parseVerzuimTime` will work for plain numbers but will fail for split-column layouts.
+
+**Risk:** MEDIUM — hours parse as 0 instead of the correct value.
+
+**Prevention:**
+- Inspect the actual BPV export file with `debugExcelBestand` before writing the parser.
+- Parse BPV hours as a plain float if the column is numeric: `parseFloat(String(val)) * 60` (convert to minutes for consistency), or store directly as decimal hours if the `StageSection` renders hours.
+- The `stageData` schema in `klassenState` currently has `urenGoedgekeurd` and `urenIngeleverd` fields — verify whether these are minutes or hours before writing the parser, then document the unit clearly.
+
+---
+
+### Pitfall 3.3: Student Name Matching Between BPV Excel and Imported PDF Records
+
+**What goes wrong:** The BPV Excel will have student names in a format potentially different from the PDF-derived names in `klassenState`. The existing `mergeVerzuim` matches by `leerlingnummer`. If the BPV Excel does not include a student number column, or uses a different ID format, matching will fail silently — all BPV records show as "niet gevonden".
+
+**Risk:** HIGH — especially if the BPV export is from a different system than the verzuim export.
+
+**Prevention:**
+- Check the BPV export for a student number column. If absent, implement fuzzy name matching (normalize case + whitespace + vowel diacritics, then exact match or Levenshtein distance 1).
+- Log unmatched BPV records explicitly in the import result message (same pattern as `unmatched` in `mergeVerzuim`).
+- The `cpexcel` registration in `excel.ts` is module-scoped and runs on import. The BPV parser MUST import from the same module or re-register cpexcel — do not assume it is already active just because `excel.ts` was imported first (module execution order is not guaranteed across dynamic imports).
+
+---
+
+### Pitfall 3.4: Dutch Date Columns Parsed as Excel Serial Numbers
+
+**What goes wrong:** SheetJS parses Excel date cells as serial numbers (days since 1900-01-01) when not configured otherwise. A `Startdatum` column containing `2025-09-01` may arrive as `46065` (the serial number). The existing parser passes raw values through without date conversion.
+
+**Risk:** MEDIUM — stage start/end dates will display as numbers in `StageSection`.
+
+**Prevention:**
+- Pass `{ cellDates: true }` to `XLSX.read()` in the BPV parser: `XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true })`. This tells SheetJS to convert date serials to JavaScript `Date` objects automatically.
+- Then call `.toISOString().split('T')[0]` to get `YYYY-MM-DD` string format, which `formatDutchDate()` in `StageSection.tsx` already handles.
+- Note: `cellDates: true` does not affect the existing `parseExcelFile` (verzuim) because that parser uses a separate `XLSX.read` call.
+
+---
+
+## 4. Rekenen & Nederlands in PDF Parser
+
+### Pitfall 4.1: Rekenen/Nederlands Section Absent from Many PDFs
+
+**What goes wrong:** Not all students have a Rekenen or Nederlands entry in their PDF — some students may only have BPV-track vakken, or the section may not appear in certain periods. If the parser assumes these vakken always exist and accesses `vakken.find(v => v.naam === 'Rekenen')` unconditionally, it returns `undefined` and crashes downstream.
+
+**Risk:** HIGH — crashes the parser for a significant subset of students.
+
+**Prevention:**
+- Always treat `rekenen` and `nederlands` as **optional** fields on the student record: initialize to `null`.
+- In `parseSinglePDF`, after building the `vakken` array, do: `const rekenVak = vakken.find(v => /rekenen/i.test(v.naam)) ?? null`.
+- Never throw if absent. The doorstroomnorm calculation for Rekenen/Nederlands must gate on `rekenVak !== null`.
+- Display "Geen Rekenen/Nederlands data" in the UI when null, consistent with how `StageSection` handles `stageData === null`.
+
+---
+
+### Pitfall 4.2: Rekenen/Nederlands Vak Name Varies Across PDF Generations
+
+**What goes wrong:** The vak heading in the PDF may appear as `"Rekenen"`, `"Rekenen & Nederlands"`, `"Nederlands"`, `"Taal/Rekenen"`, or abbreviated forms. The existing `parseVakSections` relies on font-size-based heading detection — the vak name is stored as-is. An exact string match will miss variations.
+
+**Risk:** MEDIUM — correct vak detected in test PDFs but fails in real-world exports.
+
+**Prevention:**
+- Use a regex for detection: `/rekenen|nederlands|taal/i.test(vak.naam)` rather than exact equality.
+- Store the raw vak name and add a derived `type: 'rekenen' | 'nederlands' | null` field based on the regex match.
+- Test against at least 3 real PDFs from different students/periods before shipping. Check if CIOS Zuidwest PDFs have separate "Rekenen" and "Nederlands" vak sections or a combined one.
+
+---
+
+### Pitfall 4.3: Rekenen/Nederlands Uses a Different Score Schema Than Deelgebieden
+
+**What goes wrong:** The existing deelgebied scoring uses `V/G/E` (Voldoende/Goed/Excellent, mapped to `'onvoldoende'/'voldoende'/'goed'/'excellent'`). Rekenen/Nederlands may use a numeric scale (`1-10`), a pass/fail (`geslaagd/gezakt`), or a different letter grade. Feeding non-`V/G/E` scores into `normalizeScore()` returns `null`.
+
+**Risk:** HIGH — all Rekenen/Nederlands scores show as null if the schema differs.
+
+**Prevention:**
+- Inspect the actual Rekenen/Nederlands section in a real CIOS PDF before writing the doorstroomnorm calculation.
+- Add a separate `normalizeRekenScore(str)` function if the score format differs from the main deelgebied scale.
+- The doorstroomnorm for Rekenen/Nederlands is a distinct rule (separate from the >= 13 deelgebieden rule) — implement it as a separate function, not by adding Rekenen to the deelgebied score set.
+
+---
+
+### Pitfall 4.4: Extending `StudentRecord` Type Breaks Encrypted Store Deserialization
+
+**What goes wrong:** Adding `rekenScore` and `nederlandsScore` fields to the `StudentRecord` TypeScript type will work for new imports. However, previously stored (encrypted) records that lack these fields will deserialize correctly in TypeScript (the fields will be `undefined`) but any code that accesses them without a `?? null` fallback will crash.
+
+**Risk:** MEDIUM — existing data migrated from v2.0/v2.1 will have undefined fields.
+
+**Prevention:**
+- Add new fields as optional with `null` default: `rekenScore?: RekenScore | null`.
+- In every component and calculation that reads these fields, use `student.rekenScore ?? null` — never assume presence.
+- This is the same pattern used when `stageData` was added: `klas?.stageData?.[leerlingId] ?? null` in `DetailWeergave.tsx`.
+
+---
+
+## 5. Drag-and-Drop Fix in Tauri 2
+
+### Pitfall 5.1: Tauri's Internal Drag-Drop System Intercepts HTML5 Events
+
+**What goes wrong:** This is the root cause of the Phase 16 UAT drag-and-drop bug. Tauri 2 has an **internal drag-and-drop system** that is **enabled by default**. When this system is active, it intercepts OS-level file drop events and routes them through `tauri://file-drop` (a Tauri event), bypassing the HTML5 `ondragover`/`ondrop` DOM events entirely. The `onDrop` handler in `ImportPage.tsx` never fires because the event never reaches the DOM.
+
+**Risk:** CRITICAL — this is the current bug. The fix is a single config line.
+
+**Prevention:** Add `"dragDropEnabled": false` to the window configuration in `tauri.conf.json`:
 
 ```json
-{
-  "app": {
-    "security": {
-      "csp": "default-src 'self' tauri: asset:; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src blob:; style-src 'self' 'unsafe-inline'"
+"app": {
+  "windows": [
+    {
+      "title": "Mentordashboard CIOS",
+      "dragDropEnabled": false,
+      ...
     }
-  }
-}
-```
-
-Key additions: `script-src blob:` and `worker-src blob:`. For WASM usage (which pdfjs-dist 5.x uses internally), also include `'wasm-unsafe-eval'`.
-
-**Warning signs:**
-- CSP violation in WebView devtools: `Refused to create a worker from 'blob:…' because it violates the following Content Security Policy directive: "worker-src 'self'"`
-- PDFs work in browser dev server, fail in Tauri window
-- `Setting up fake worker` in console inside Tauri app
-
----
-
-### P-03: SheetJS ESM build silently drops XLS codepage support
-
-**What goes wrong:**
-The current codebase reads `.xls` files (SomToday export format). The SheetJS CommonJS build (loaded via CDN `<script>`) bundles the codepage table (`cpexcel`) automatically. The ESM build (`import * as XLSX from 'xlsx'`) ships without it. When reading a legacy `.xls` file with a non-UTF-8 encoding (common in Dutch school admin exports), strings are garbled or throw a cryptic error: `Cannot read properties of undefined (reading 'dec')`.
-
-**Root cause:**
-The ESM build deliberately excludes codepage tables to reduce bundle size. The documentation states: "The ESM build does not include the codepage support library. Imports should be updated to explicitly import codepage tables." [VERIFIED: docs.sheetjs.com/docs/miscellany/errors/, SheetJS issue #2033]
-
-**How to avoid:**
-Add these two lines to the Excel parser module, before any `XLSX.read()` call:
-
-```typescript
-import * as XLSX from 'xlsx';
-import * as cptable from 'xlsx/dist/cpexcel.full.mjs';
-XLSX.set_cptable(cptable);
-```
-
-**Warning signs:**
-- Dutch student names with `é`, `ë`, `ij` characters become garbled or `?` after import
-- Console error: `Cannot read properties of undefined` inside XLSX.read()
-- `.xlsx` files work fine but `.xls` files fail silently or throw
-
----
-
-### P-04: SheetJS CJS `require('fs')` error when bundled with Vite
-
-**What goes wrong:**
-SheetJS 0.18.x (the last `npm` release) contains `if (typeof commonjsRequire !== 'undefined') try { _fs = require('fs'); }`. Vite's bundler converts `require` to ESM imports but in the output ESM context `require` does not exist, so this throws `ReferenceError: require is not defined` at runtime in the browser.
-
-**Root cause:**
-SheetJS CJS build assumes a Node.js environment for file-system fallback. Vite does not strip this code path entirely during treeshaking. [VERIFIED: github.com/SheetJS/sheetjs/issues/2748]
-
-**How to avoid:**
-- Always use `import * as XLSX from 'xlsx'` (ESM entry point), never `require('xlsx')`
-- Add `define: { global: 'globalThis' }` in `vite.config.ts` to prevent Node globals from leaking
-- Vite config: add `xlsx` to `optimizeDeps.include` if pre-bundling issues arise:
-
-```typescript
-// vite.config.ts
-export default defineConfig({
-  define: { global: 'globalThis' },
-  optimizeDeps: { include: ['xlsx'] },
-});
-```
-
-**Warning signs:**
-- `ReferenceError: require is not defined` in browser console on Excel import
-- Error only occurs in production build, not dev (Vite dev uses CJS fallback differently)
-
----
-
-### P-05: Tauri Windows — `link.exe` not found, MSVC component missing
-
-**What goes wrong:**
-`cargo tauri dev` or `cargo tauri build` fails immediately with:
-```
-error: linking with `link.exe` failed: exit code: 1120
-note: MSVC targets depend on the MSVC linker but `link.exe` was not found
-```
-Or: `linker 'lld-link' not found`
-
-**Root cause:**
-Rust's `x86_64-pc-windows-msvc` target requires Visual C++ build tools and the Windows SDK. Installing "Visual Studio Build Tools" without checking the right component box leaves the linker absent. Installing Rust before installing the build tools also causes this — Rust picks up the toolchain at install time. [VERIFIED: github.com/tauri-apps/tauri/issues/13504, Rust forum]
-
-**How to avoid:**
-Step-by-step Windows setup order (order matters):
-1. Install **Build Tools for Visual Studio 2022** (not full VS): select "Desktop development with C++" workload. This installs MSVC compiler + Windows 10/11 SDK.
-2. Restart terminal (PATH update required).
-3. Install Rust via rustup: ensure `x86_64-pc-windows-msvc` is selected as default host triple.
-4. Verify: `rustc --version` and `cargo --version` from a fresh terminal.
-5. Install Tauri CLI: `cargo install tauri-cli` or `npm install -D @tauri-apps/cli`.
-
-If MSVC is already installed but linker is still not found: run `rustup default stable-msvc` to force the MSVC toolchain.
-
-**Warning signs:**
-- `link.exe` or `lld-link` not found error from cargo
-- `rustup show` lists `gnu` toolchain as active instead of `msvc`
-- Build Tools installed but no "C++ build tools" workload was checked
-
----
-
-### P-06: Tauri Windows — blank window, WebView2 not installed
-
-**What goes wrong:**
-App launches but shows a blank white window. Error in stderr: `CreateWebview: failed to create webview: WebView2 error: WindowsError(Error { code: 0x80070057, message: The parameter is incorrect. })`. No JavaScript errors visible because the WebView never loads.
-
-**Root cause:**
-Tauri on Windows uses WebView2 (Chromium-based). On Windows 10 version 1803+ and all Windows 11 builds it is pre-installed. On older Windows 10 builds, LTSC editions, and sandboxed environments it may be absent. When targeting end-users, the WebView2 runtime must be present. [VERIFIED: github.com/tauri-apps/tauri/issues/7897, v2.tauri.app prerequisites]
-
-**How to avoid:**
-Two strategies depending on deployment model:
-- **Developer machines**: Run WebView2 Evergreen Bootstrapper from Microsoft's download page before first `tauri dev`.
-- **End-user distribution** (the CIOS mentor laptops): Use Tauri's installer bundling options. In `tauri.conf.json` set `bundle > windows > webviewInstallMode` to `"embedBootstrapper"` or `"offlineInstaller"` — this bundles the WebView2 bootstrapper into the `.msi`/`.exe` installer.
-
-```json
-{
-  "bundle": {
-    "windows": {
-      "webviewInstallMode": { "type": "embedBootstrapper" }
-    }
-  }
-}
-```
-
-**Warning signs:**
-- Blank window, no console output
-- Works on developer machine, fails on school laptop
-- `0x80070057` error code in Tauri logs
-
----
-
-### P-07: localStorage silently wiped on Windows in production (HTTP vs HTTPS scheme)
-
-**What goes wrong:**
-During development, Tauri serves via `https://tauri.localhost`. In some Tauri 2.x configurations, production on Windows defaults to `http://tauri.localhost`. Browsers treat HTTP and HTTPS origins as separate storage partitions. Every production install loses all existing localStorage data — student class data, leerlijn mappings, settings — without any error or warning.
-
-**Root cause:**
-Tauri 2 changed the Windows production scheme. The migration guide notes: "On Windows, frontend files in production apps are now hosted on `http://tauri.localhost` instead of `https://tauri.localhost`. IndexedDB, LocalStorage and Cookies will be reset unless you set `app > windows > useHttpsScheme` to `true`." [VERIFIED: v2.tauri.app/start/migrate/from-tauri-1/]
-
-**How to avoid:**
-Set this in `tauri.conf.json` immediately when scaffolding:
-
-```json
-{
-  "app": {
-    "windows": [{ "useHttpsScheme": true }]
-  }
-}
-```
-
-Or — better for this app, since you are replacing localStorage with an encrypted Tauri store anyway — plan the storage migration first, so the http/https discrepancy never affects real data. LocalStorage should not hold student data in the final architecture.
-
-**Warning signs:**
-- App installs cleanly but opens empty (no classes, no data) despite previous use
-- Problem only on Windows in production `.msi` install, never in `tauri dev`
-- Data returns after restoring from backup
-
----
-
-### P-08: Tauri v1 `allowlist` rejected in v2 — capability system mandatory
-
-**What goes wrong:**
-Any `tauri.conf.json` copied from Tauri v1 examples, blog posts, or AI-generated scaffolding will contain `tauri > allowlist > fs > all: true`. Tauri 2 rejects this with: `Additional properties are not allowed ('allowlist' was unexpected)`. Without the new capability files, ALL filesystem access is blocked — no reading/writing of the encrypted data store.
-
-**Root cause:**
-Tauri 2 replaced the flat `allowlist` with a granular Access Control List (ACL) capability system. Permissions are no longer in `tauri.conf.json` but in `src-tauri/capabilities/*.json`. [VERIFIED: v2.tauri.app/security/permissions/, v2.tauri.app/start/migrate/from-tauri-1/]
-
-**How to avoid:**
-Create `src-tauri/capabilities/default.json` during Tauri scaffolding:
-
-```json
-{
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "main-capability",
-  "description": "Main window permissions",
-  "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "fs:default",
-    "fs:allow-read-text-file",
-    "fs:allow-write-text-file",
-    "fs:allow-app-data-read-recursive",
-    "fs:allow-app-data-write-recursive"
   ]
 }
 ```
 
-Scope filesystem access to `$APPDATA` only — do not use `fs:all`. This is both the security best practice and the AVG/GDPR minimum.
+With `dragDropEnabled: false`, Tauri's interceptor is disabled and the standard HTML5 `ondragover`/`ondrop` events fire normally in the WebView. The existing `onDragOver`, `onDrop`, and `onDragLeave` handlers in `ImportPage.tsx` will work without any JavaScript changes.
 
-**Warning signs:**
-- `Additional properties are not allowed ('allowlist')` error on `tauri dev`
-- Filesystem read/write returns permission denied errors in the app
-- Tauri 2 docs link but page content looks like Tauri 1
+**Verification:** After adding this config, rebuild with `npm run tauri dev` (config changes require a restart). Test by dragging a PDF onto the drop zone.
 
 ---
 
-### P-09: `window.XLSX`, `window.parseSinglePDF`, etc. — globals not available in React ESM
+### Pitfall 5.2: Document-Level Drop Prevention Must Be Preserved
 
-**What goes wrong:**
-The entire current app communicates across files via `window.*` globals: `window.klassenState`, `window.appState`, `window.parseExcelFile`, `window.parseSinglePDF`, `window.DEELGEBIEDEN`, etc. In a Vite/React ESM environment, each module is isolated — there is no shared `window.*` namespace unless you explicitly assign to it. React components will reference `window.parseExcelFile` and get `undefined`. The parser files loaded as `<script>` tags (not ESM modules) won't see React's module scope either.
+**What goes wrong:** `App.tsx` already registers document-level `dragover` and `drop` event listeners that call `e.preventDefault()` to prevent the browser from navigating away when a file is dropped outside the drop zone. This is correct and must not be removed.
 
-**Root cause:**
-The current architecture uses script-tag loading order with global mutation as a dependency injection mechanism. ESM modules break this pattern. [ASSUMED based on codebase inspection — confirmed pattern is ~40 `window.*` assignments in app.js and utils/*.js]
-
-**How to avoid:**
-Migration must happen in two phases for each module:
-1. Convert the file to a proper ESM module with named exports (remove `window.X = function…`).
-2. Import it where needed in React components.
-
-Example conversion:
-```typescript
-// BEFORE (utils/klassen.js)
-window.createKlas = function(naam) { … }
-
-// AFTER (utils/klassen.ts)
-export function createKlas(naam: string): KlasResult { … }
-
-// In React component:
-import { createKlas } from '../utils/klassen';
-```
-
-The migration order matters: convert leaf utilities first (schema, datamodel), then parsers, then the app orchestration logic. Converting in top-down order breaks everything simultaneously.
-
-**Warning signs:**
-- `TypeError: window.parseExcelFile is not a function` in React component
-- `window.appState is undefined` on first render
-- Functions work in browser console but not in component event handlers
-
----
-
-### P-10: Drag-and-drop `event.dataTransfer.files` returns empty array in Tauri
-
-**What goes wrong:**
-The current app uses standard HTML5 drag-and-drop with `event.dataTransfer.files` to accept PDF files dropped onto the import zone. In Tauri desktop, this API returns an empty FileList for file system drags (dragging from Windows Explorer or macOS Finder). The drop event fires but `e.dataTransfer.files.length === 0`.
-
-**Root cause:**
-Tauri intercepts OS-level file drop events and exposes them through its own event system, not via the standard HTML5 DataTransfer API. This is a known Tauri limitation. [VERIFIED: github.com/tauri-apps/tauri/issues/3558]
-
-**How to avoid:**
-Replace the HTML5 drop handler with Tauri's native drag events:
-
-```typescript
-import { listen } from '@tauri-apps/api/event';
-
-// In useEffect, register Tauri drag handler:
-const unlisten = await listen<{ paths: string[] }>('tauri://drag-drop', (event) => {
-  const filePaths = event.payload.paths; // absolute OS paths
-  // Read file contents via Tauri fs plugin, not FileReader
-});
-return () => unlisten();
-```
-
-Note: this replaces `FileReader`-based reading with Tauri's `fs.readFile()`. The PDF and Excel parsers must be adapted to accept `Uint8Array` (from `fs.readFile`) instead of `File` objects (from DataTransfer).
-
-**Warning signs:**
-- `e.dataTransfer.files.length` is always 0 when dragging from OS file manager
-- Drop handler fires (you see dragover visual) but no files are processed
-- Same HTML code works in a browser tab but not in the Tauri window
-
----
-
-### P-11: AES encryption key stored next to ciphertext defeats the purpose
-
-**What goes wrong:**
-A common naive implementation: encrypt data with AES-256, then store both the ciphertext and the key in the same Tauri store file (or derive the key from a constant/hardcoded value). This provides no real protection — anyone who can read the file can find the key. For a Dutch educational app holding student personal data, this means AVG/GDPR Article 32 "appropriate technical measures" obligation is not met.
-
-**Root cause:**
-Encryption without proper key management is security theater. GDPR does not mandate AES-256 specifically but requires measures "appropriate to the risk" — for identifiable student data, key separation is the minimum standard. [ASSUMED that GDPR Article 32 applies — verified GDPR applies; specific control level ASSUMED]
-
-**How to avoid:**
-Architecture for this app (single-user, local, offline):
-1. **Generate** a random AES-256 key once on first launch.
-2. **Store the key** in the OS native keychain via `tauri-plugin-secure-storage`:
-   - Windows: Windows Credential Manager
-   - macOS: Keychain Access
-3. **Store encrypted data** in `tauri-plugin-store` (JSON file in `$APPDATA`).
-4. **Never** write the key to disk alongside the data.
-
-```typescript
-// Pseudo-pattern — actual implementation depends on plugin API
-import { setPassword, getPassword } from '@tauri-apps/plugin-secure-storage';
-
-// First launch: generate and store key
-const key = crypto.getRandomValues(new Uint8Array(32));
-await setPassword('mentordashboard', 'encryptionKey', bufferToHex(key));
-
-// On load: retrieve key from OS keychain
-const keyHex = await getPassword('mentordashboard', 'encryptionKey');
-```
-
-**Warning signs:**
-- Encryption key found in a `.json` file inside `AppData\Roaming\`
-- Key derived from app name or bundle ID (constant = breakable)
-- No OS keychain API calls in codebase at all
-
----
-
-## MEDIUM Severity — Summary Detail
-
-### P-12: React Context re-renders all consumers on every state write
-
-**What goes wrong:**
-Replacing `window.klassenState` with a single large React Context causes every component to re-render on every state change, even if the component only uses a small slice of state. With the app's current structure (~5 major state objects: klassen, students, verzuim, leerlijnen, settings), this creates visible lag on class-switch or PDF import.
-
-**Prevention:** Split into multiple narrow contexts (one per state domain) or use Zustand. Zustand's selector-based subscription ensures components only re-render when their specific slice changes. [CITED: blog.logrocket.com/event-driven-state-management-in-react-using-storeon/]
-
----
-
-### P-13: Stale closures in `useEffect` capturing old state
-
-**What goes wrong:**
-Migrating event handler logic (e.g., file drop handler, class-switch handler) into `useEffect` without proper dependency arrays causes handlers to capture stale closure values of state variables. The import counter shows the correct file count, but the state write uses the student list from the first render.
-
-**Prevention:** Always use functional state updates (`setState(prev => …)`) when new state depends on old. Use the `exhaustive-deps` ESLint rule (`eslint-plugin-react-hooks`). For event listeners that must remain stable, use `useRef` to hold the latest callback. [CITED: dmitripavlutin.com/react-hooks-stale-closures/]
-
----
-
-### P-14: Vite base path `/` breaks Tauri production asset loading
-
-**What goes wrong:**
-Vite defaults `base: '/'`. In a Tauri production build, assets are resolved relative to the app's internal URL scheme. Absolute paths (`/assets/main.js`) work in dev but 404 in production. The app loads blank.
-
-**Prevention:** Set `base: './'` in `vite.config.ts` immediately. [VERIFIED: github.com/tauri-apps/tauri/issues/13262]
-
----
-
-### P-15: macOS WebKit vs Windows WebView2 CSS rendering differences
-
-**What goes wrong:**
-Windows uses WebView2 (Chromium-based, evergreen). macOS uses WKWebView (WebKit, tied to OS version). CSS features like `gap` in flexbox (WebKit added this in Safari 14.1), `aspect-ratio`, and certain CSS Grid behaviors render differently. Prefixed properties (`-webkit-`) required by WebKit are not added automatically by Vite's default CSS pipeline.
-
-**Prevention:** Add Autoprefixer to the PostCSS pipeline: `npm install -D autoprefixer`. Configure browserslist target to include Safari 14+. Test on both platforms before each milestone. [CITED: dev.to/shrsv exploring-system-webviews-in-tauri]
-
----
-
-### P-16: Scrollbar styling inconsistent across WebKit and Chromium
-
-**What goes wrong:**
-`scrollbar-width: thin` (CSS Scrollbars spec, supported by WebView2/Chromium) is ignored by WebKit. `::-webkit-scrollbar` (non-standard, supported by WebKit and Chromium) is the only cross-platform approach in Tauri. The CIOS dashboard uses a dark theme with custom scrollbar colors — without both selectors, scrollbars appear with native OS styling on one platform.
-
-**Prevention:** Define both selectors in CSS:
-```css
-/* Chromium (WebView2) */
-* { scrollbar-width: thin; scrollbar-color: var(--accent-blue) var(--bg-card); }
-/* WebKit (macOS) */
-*::-webkit-scrollbar { width: 6px; }
-*::-webkit-scrollbar-thumb { background: var(--accent-blue); }
-```
-[CITED: github.com/orgs/tauri-apps/discussions/8829]
-
----
-
-### P-17: TypeScript `strict` mode causes cascade of `implicit any` errors
-
-**What goes wrong:**
-Enabling `"strict": true` on a 5000+ LOC JavaScript codebase simultaneously produces hundreds of `TS7053` and `TS7006` errors. Teams either disable strict (losing the safety benefit) or apply `as any` everywhere (creating technical debt).
-
-**Prevention:** Use incremental migration:
-1. Start with `allowJs: true, checkJs: true, noImplicitAny: false` — get the JS compiling.
-2. Add `noImplicitAny: true` per file as each module is converted.
-3. Enable full `strict` once all modules are typed.
-Prioritize typing the data model (`utils/datamodel.ts`, `utils/schema.ts`) first — downstream modules inherit correct types automatically. [CITED: dev.to/alexrogovjs/how-we-migrated-200k-lines-from-js-to-strict-typescript-3odd]
-
----
-
-### P-18: Stronghold plugin deprecated — will be removed in Tauri v3
-
-**What goes wrong:**
-Stronghold appears in many Tauri secure storage examples and blog posts (2022–2024). Using it creates a dependency that will break when Tauri v3 ships.
-
-**Prevention:** Use `tauri-plugin-secure-storage` (uses OS native keychain) or the unofficial `tauri-plugin-keyring`. Stronghold should not appear in any plan task as a recommended storage mechanism. [VERIFIED: v2.tauri.app/plugin/stronghold/ — deprecation notice on page]
-
----
-
-### P-22: AVG/GDPR — localStorage holds student PII in plaintext
-
-**What goes wrong:**
-The current app stores student names, student IDs, attendance data, and learning-path assessments in browser localStorage — unencrypted plaintext. In the current browser app this is acceptable for a local tool. In Tauri, the same localStorage maps to a WebView storage file in `AppData\` — still plaintext, but now clearly a file that could be read by other processes or a system admin. Dutch AVG (= GDPR) Article 32 requires "appropriate technical measures including encryption" for personal data processing involving minors (school students are typically under 18). [CITED: gdpr-info.eu/issues/encryption/; ASSUMED that Article 32 applies — not legal advice]
+**Risk:** LOW — already present. Risk is accidental removal during the drag-drop fix.
 
 **Prevention:**
-- Phase the storage migration to happen before any production deployment.
-- localStorage remains acceptable during internal development/testing only.
-- Production storage architecture: OS keychain (key) + encrypted Tauri store (data). See P-11.
+- The document-level listeners in `App.tsx` (`preventNav` function) are a required companion to `dragDropEnabled: false`.
+- Without them, dropping a file outside the `ImportPage` drop zone causes Tauri WebView to navigate to a `file://` URL (the dropped file), crashing the React app.
+- Do not remove these listeners when fixing drag-drop. They serve a different purpose than the drop zone handlers.
 
 ---
 
-## Phase Assignment Map
+### Pitfall 5.3: `dragDropEnabled: false` Has No Effect When Set on Dynamically Created Windows
 
-Use this to decide which phase plan absorbs each pitfall's prevention tasks.
+**What goes wrong:** There is a documented Tauri 2 bug (issue #13761) where `dragDropEnabled` does not work when windows are created programmatically via `WebviewWindowBuilder` in Rust — only the `tauri.conf.json` declaration is reliable.
 
-| Phase | Pitfalls to Address |
-|-------|---------------------|
-| Tauri 2.x project scaffolding | P-05, P-06, P-08, P-14, P-19 |
-| TypeScript + Vite setup | P-17, P-20 |
-| PDF parser migration (pdfjs-dist) | P-01, P-02, P-21 |
-| Excel parser migration (SheetJS) | P-03, P-04 |
-| React migration / global-to-ESM | P-09, P-10, P-12, P-13 |
-| Storage migration (localStorage → encrypted) | P-07, P-11, P-18, P-22 |
-| Cross-platform CSS/UI | P-15, P-16 |
+**Risk:** LOW — this project uses a single window declared in `tauri.conf.json`, not dynamic Rust window creation. Not applicable here, but relevant if the onboarding wizard creates a secondary window.
+
+**Prevention:**
+- Do not create secondary Tauri windows for the onboarding wizard. Use React conditional rendering within the single window (the existing view state machine approach).
+- If a second window is ever needed, set `dragDropEnabled: false` via `WebviewWindowBuilder` AND verify it works in a test build.
 
 ---
 
-## Confidence Assessment
+### Pitfall 5.4: `e.dataTransfer.files` Is Empty on Some Tauri/WebView2 Configurations
 
-| Area | Level | Reason |
-|------|-------|--------|
-| pdfjs-dist + Vite (P-01, P-02, P-21) | HIGH | Multiple GitHub issues + official PDF.js discussion confirmed |
-| SheetJS ESM/XLS (P-03, P-04) | HIGH | Official SheetJS docs (docs.sheetjs.com) explicitly document this |
-| Tauri Windows MSVC/WebView2 (P-05, P-06) | HIGH | Verified via Tauri GitHub issues + official prerequisite docs |
-| Tauri localStorage scheme (P-07) | HIGH | Verified in official Tauri v1→v2 migration guide |
-| Tauri allowlist→capabilities (P-08) | HIGH | Official Tauri v2 permissions docs |
-| window.* globals → ESM (P-09) | HIGH | Verified by codebase inspection (40+ window.* assignments confirmed) |
-| Tauri drag-and-drop DataTransfer (P-10) | HIGH | GitHub issue #3558 directly confirmed |
-| Encryption key management (P-11) | MEDIUM | Security principle is well-established; specific Tauri plugin API verified by search; exact implementation details ASSUMED |
-| React Context performance (P-12) | MEDIUM | General React knowledge; verified via multiple sources |
-| Stale closures (P-13) | HIGH | Well-documented React pattern with multiple verified sources |
-| CSS cross-platform (P-15, P-16) | MEDIUM | Tauri forum + GitHub issues confirmed; specific browser support matrix ASSUMED |
-| TypeScript strict migration (P-17) | MEDIUM | Verified via real-world migration case studies |
-| AVG/GDPR compliance (P-22) | MEDIUM | GDPR Article 32 verified; application to this specific use case ASSUMED — not legal advice |
+**What goes wrong:** Even after setting `dragDropEnabled: false`, some WebView2 versions may deliver `dataTransfer.files` as an empty `FileList` (zero items) while `dataTransfer.items` contains the file entries. This is a WebView2-specific quirk documented in community reports.
+
+**Risk:** LOW — most WebView2 versions handle `dataTransfer.files` correctly; this is an edge case on older Windows 10 installs.
+
+**Prevention:**
+- The `onDrop` handler in `ImportPage.tsx` checks `e.dataTransfer.files.length > 0` before calling `handleFiles`. If this is empty, add a fallback: read from `e.dataTransfer.items` instead.
+- Only add this fallback if `files.length === 0` is observed during manual testing. Do not add unnecessary complexity upfront.
 
 ---
 
-## Assumptions Log
+## Phase Applicability Summary
 
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|---------------|
-| A1 | AVG/GDPR Article 32 requires encryption for student PII in this app | P-22 | May be overstating obligation — actual legal requirement depends on data controller status of the school. In practice, encryption is good practice regardless. |
-| A2 | School laptops run Windows 10 1803+ (WebView2 pre-installed) | P-06 | If schools use LTSC or older builds, WebView2 must be bundled in the installer |
-| A3 | `tauri-plugin-secure-storage` is production-ready for Tauri 2.11 | P-11, P-18 | Community plugin — maintenance status should be verified before committing to it |
-| A4 | CSS rendering differences between WebKit and WebView2 affect this app's existing CIOS styles | P-15, P-16 | Needs cross-platform CSS audit; actual broken styles unknown until tested on macOS |
+| Phase | Pitfall | Severity |
+|-------|---------|----------|
+| Print-to-PDF | 1.1 — Browser URL in print header | HIGH |
+| Print-to-PDF | 1.2 — Entire DOM printed, not detail view only | HIGH |
+| Print-to-PDF | 1.3 — Page break mid-card | MEDIUM |
+| Print-to-PDF | 1.4 — macOS WebKit `@page` margin difference | LOW |
+| Onboarding | 2.1 — Step state lost on back navigation | HIGH |
+| Onboarding | 2.2 — Partial completion leaves empty class | MEDIUM |
+| Onboarding | 2.3 — StrictMode double-invoke creates duplicate class | LOW |
+| Onboarding | 2.4 — Concurrent `saveKlassen()` from wizard + import | MEDIUM |
+| BPV Excel | 3.1 — Wrong sheet selected by scoring keywords | HIGH |
+| BPV Excel | 3.2 — Hours stored as decimals, not "107u24m" | MEDIUM |
+| BPV Excel | 3.3 — Student name/ID matching fails across systems | HIGH |
+| BPV Excel | 3.4 — Date columns parsed as serial numbers | MEDIUM |
+| Rekenen/NL | 4.1 — Section absent from many PDFs | HIGH |
+| Rekenen/NL | 4.2 — Vak name varies across PDF generations | MEDIUM |
+| Rekenen/NL | 4.3 — Different score schema than deelgebieden | HIGH |
+| Rekenen/NL | 4.4 — New schema fields break old deserialized records | MEDIUM |
+| Drag-drop fix | 5.1 — Tauri intercepts HTML5 drop (root cause) | CRITICAL |
+| Drag-drop fix | 5.2 — Document-level drop prevention must be preserved | LOW |
+| Drag-drop fix | 5.3 — Config only works in tauri.conf.json, not dynamic windows | LOW |
+| Drag-drop fix | 5.4 — `dataTransfer.files` empty in some WebView2 versions | LOW |
 
 ---
 
 ## Sources
 
-### Primary (HIGH confidence)
-- [github.com/vitejs/vite/issues/10837](https://github.com/vitejs/vite/issues/10837) — Vite cannot resolve `new URL(…)` in node_modules
-- [github.com/mozilla/pdf.js/discussions/19520](https://github.com/mozilla/pdf.js/discussions/19520) — pdfjs-dist worker import fails in Vite
-- [docs.sheetjs.com/docs/miscellany/errors/](https://docs.sheetjs.com/docs/miscellany/errors/) — SheetJS ESM codepage error documentation
-- [docs.sheetjs.com/docs/demos/static/vitejs/](https://docs.sheetjs.com/docs/demos/static/vitejs/) — SheetJS Vite integration guide
-- [github.com/tauri-apps/tauri/issues/13504](https://github.com/tauri-apps/tauri/issues/13504) — link.exe not found Tauri Windows
-- [github.com/tauri-apps/tauri/issues/7897](https://github.com/tauri-apps/tauri/issues/7897) — WebView2 creation error blank window
-- [v2.tauri.app/start/migrate/from-tauri-1/](https://v2.tauri.app/start/migrate/from-tauri-1/) — localhost scheme / localStorage migration note
-- [v2.tauri.app/security/permissions/](https://v2.tauri.app/security/permissions/) — Tauri 2 capabilities system
-- [github.com/tauri-apps/tauri/issues/3558](https://github.com/tauri-apps/tauri/issues/3558) — dataTransfer.files empty in Tauri
-- [v2.tauri.app/plugin/stronghold/](https://v2.tauri.app/plugin/stronghold/) — Stronghold deprecation notice
-- [github.com/tauri-apps/tauri/issues/13262](https://github.com/tauri-apps/tauri/issues/13262) — Vite base path / asset rewriting in Tauri
-
-### Secondary (MEDIUM confidence)
-- [github.com/mozilla/pdf.js/issues/12105](https://github.com/mozilla/pdf.js/issues/12105) — PDF.js ES5 build CSP eval issue
-- [github.com/SheetJS/sheetjs/issues/2748](https://github.com/SheetJS/sheetjs/issues/2748) — SheetJS require('fs') in ESM environment
-- [github.com/SheetJS/sheetjs/issues/2033](https://github.com/SheetJS/sheetjs/issues/2033) — SheetJS ESM support request + codepage note
-- [dev.to/shrsv exploring-system-webviews-in-tauri](https://dev.to/shrsv/exploring-system-webviews-in-tauri-native-rendering-for-efficient-cross-platform-apps-9hl) — cross-platform CSS differences
-- [github.com/orgs/tauri-apps/discussions/8829](https://github.com/orgs/tauri-apps/discussions/8829) — scrollbar styling in Tauri
-- [dmitripavlutin.com/react-hooks-stale-closures/](https://dmitripavlutin.com/react-hooks-stale-closures/) — stale closure patterns
-- [dev.to/alexrogovjs/how-we-migrated-200k-lines-from-js-to-strict-typescript-3odd](https://dev.to/alexrogovjs/how-we-migrated-200k-lines-from-js-to-strict-typescript-3odd) — TS strict migration strategy
-- [gdpr-info.eu/issues/encryption/](https://gdpr-info.eu/issues/encryption/) — GDPR encryption provisions
-
-**Research date:** 2026-05-12
-**Valid until:** 2026-08-12 (Tauri and pdfjs-dist are actively developed — re-verify versions before each phase that touches these libraries)
+- [Tauri issue #9448: Drag & Drop events not firing on Windows](https://github.com/tauri-apps/tauri/issues/9448)
+- [Tauri issue #14373: dragDropEnabled naming and documentation](https://github.com/tauri-apps/tauri/issues/14373)
+- [Tauri issue #13761: dragDropEnabled not working with WebviewWindowBuilder](https://github.com/tauri-apps/tauri/issues/13761)
+- [Tauri issue #3066: window.print() not working](https://github.com/tauri-apps/tauri/issues/3066)
+- [Microsoft Learn: Printing from WebView2 apps](https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/print)
+- [Chrome for Developers: Add content to print margins using CSS](https://developer.chrome.com/blog/print-margins)
+- [Tauri 2 Configuration Reference](https://v2.tauri.app/reference/config/)
+- Codebase: `parsers/excel.ts`, `parsers/pdf.ts`, `src/components/ImportPage.tsx`, `src/App.tsx`, `src-tauri/tauri.conf.json` — all read directly (HIGH confidence)
