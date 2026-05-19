@@ -49,7 +49,7 @@
 - [x] **Phase 16: Auto-class Detection** — Bij eerste import detecteert de app automatisch de klasnaam uit de PDF-header en maakt de klas aan zonder handmatige stap *(completed 2026-05-17)*
 - [x] **Phase 17: Settings Panel Foundation** — Mentor kan via een settings-icoon dark mode activeren (volledig gestyled) en nieuwe bestanden toevoegen aan een bestaande klas (completed: 2026-05-17)
 - [x] **Phase 18: Settings Panel Advanced** — Mentor kan deelgebieden hernoemen/deactiveren, leerlijn-toewijzing aanpassen, verzuim-drempelwaarden en BPV-uren configureren *(completed 2026-05-18)*
-- [ ] **Phase 19: UI Polish** — Spiderweb chart tooltips, responsive layout en consistente hover-animaties zijn afgerond
+- [x] **Phase 19: UI Polish** — Spiderweb chart tooltips, responsive layout en consistente hover-animaties zijn afgerond (completed 2026-05-19)
 
 ## Phase Details
 
@@ -353,7 +353,7 @@ Plans:
 - [x] 19-03-PLAN.md — Spider chart JSX refactor + tooltip + .spider-card responsive (POL-02, POL-03)
 
 **Wave 3** *(blocked on 19-02 + 19-03; has user checkpoints)*
-- [ ] 19-04-PLAN.md — Dark mode lift to App.tsx, settings slide-in animation, KlasTabStrip logo + nav diagonal stripe, .aanvullend-grid responsive fix (POL-03, POL-04)
+- [x] 19-04-PLAN.md — Dark mode lift to App.tsx, settings slide-in animation, KlasTabStrip logo + nav diagonal stripe, .aanvullend-grid responsive fix (POL-03, POL-04)
 
 ## Progress
 
@@ -377,4 +377,4 @@ Plans:
 | 16. Auto-class Detection | 1/1 | Complete | 2026-05-17 |
 | 17. Settings Panel Foundation | 0/3 | Ready to execute | - |
 | 18. Settings Panel Advanced | 2/5 | In Progress|  |
-| 19. UI Polish | 3/4 | In Progress|  |
+| 19. UI Polish | 4/4 | Complete   | 2026-05-19 |
