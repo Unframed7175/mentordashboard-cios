@@ -6,7 +6,7 @@
 - ✅ **v1.1 Klasbeheer & Export** — Phases 6–8 (shipped 2026-04-23)
 - ✅ **v1.2 Dashboard Redesign** — Phase 9 (shipped 2026-04-24)
 - ✅ **v2.0 Stack Modernisering** — Phases 10–15 (shipped 2026-05-16)
-- 🔄 **v2.1 Settings, Polish & Auto-class Detection** — Phases 16–19 (active)
+- ✅ **v2.1 Settings, Polish & Auto-class Detection** — Phases 16–19 (shipped 2026-05-19)
 
 ## Phases
 
@@ -371,10 +371,10 @@ Plans:
 | 10. Scaffold & Toolchain | 3/3 | Complete | 2026-05-13 |
 | 11. TypeScript Migratie | 6/6 | Complete | 2026-05-14 |
 | 12. Versleutelde Opslag | 5/5 | Complete | 2026-05-14 |
-| 13. Bestandstoegang | 0/2 | Ready to execute | - |
-| 14. React UI | 0/6 | Not started | - |
-| 15. Packaging & Cross-platform | 0/2 | In progress | - |
+| 13. Bestandstoegang | 2/2 | Complete | 2026-05-14 |
+| 14. React UI | 6/6 | Complete | 2026-05-15 |
+| 15. Packaging & Cross-platform | 2/2 | Complete | 2026-05-16 |
 | 16. Auto-class Detection | 1/1 | Complete | 2026-05-17 |
-| 17. Settings Panel Foundation | 0/3 | Ready to execute | - |
-| 18. Settings Panel Advanced | 2/5 | In Progress|  |
-| 19. UI Polish | 4/4 | Complete   | 2026-05-19 |
+| 17. Settings Panel Foundation | 4/4 | Complete | 2026-05-17 |
+| 18. Settings Panel Advanced | 5/5 | Complete | 2026-05-18 |
+| 19. UI Polish | 4/4 | Complete | 2026-05-19 |

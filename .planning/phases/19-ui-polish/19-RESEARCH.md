@@ -893,7 +893,7 @@ All claims in this research were verified directly from source files or confirme
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Logo export format (SVG vs PNG)**
    - What we know: Logo images were provided in the design session as raster images.
