@@ -5,19 +5,39 @@
    Typography: Inter (modern SaaS standard)
    ========================================================================== */
 
-/* Google Fonts — Inter */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Industry font — bundled OTF (D-07, D-08: replaces Google Fonts Inter) */
+@font-face {
+  font-family: 'Industry';
+  src: url('./assets/fonts/IndustryTest-Book.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Industry';
+  src: url('./assets/fonts/IndustryTest-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Industry';
+  src: url('./assets/fonts/IndustryTest-Demi.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* --------------------------------------------------------------------------
    1. Design Tokens
    -------------------------------------------------------------------------- */
 :root {
-  /* Brand accent — Indigo */
-  --accent:           #4F46E5;
-  --accent-hover:     #4338CA;
-  --accent-light:     #EEF2FF;
-  --accent-border:    #C7D2FE;
-  --accent-text:      #3730A3;
+  /* Brand accent — CIOS Blue (D-05: replaces Indigo) */
+  --accent:           #009FE3;
+  --accent-hover:     #007DBF;
+  --accent-light:     #E0F5FD;
+  --accent-border:    #99D9F4;
+  --accent-text:      #00547A;
 
   /* Surfaces */
   --bg-page:          #F1F5F9;
@@ -34,13 +54,13 @@
   /* Borders */
   --border-default:   #E2E8F0;
   --border-light:     #F1F5F9;
-  --border-focus:     #4F46E5;
+  --border-focus:     #009FE3;
 
   /* Shadows — Soft UI Evolution */
   --shadow-xs:        0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-sm:        0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md:        0 4px 12px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.06);
-  --shadow-lg:        0 10px 24px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
+  --shadow-sm:        0 2px 4px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.08);
+  --shadow-md:        0 4px 8px rgba(15, 23, 42, 0.16), 0 2px 4px rgba(15, 23, 42, 0.10);
+  --shadow-lg:        0 8px 16px rgba(15, 23, 42, 0.20), 0 4px 8px rgba(15, 23, 42, 0.12);
 
   /* Border radius */
   --radius-sm:        8px;
@@ -109,11 +129,12 @@
 
 /* Dark mode — JS-controlled via body.dark class (Plan 17-01) */
 body.dark {
-  --accent:           #818CF8;
-  --accent-hover:     #A5B4FC;
-  --accent-light:     #1E1B4B;
-  --accent-border:    #3730A3;
-  --accent-text:      #C7D2FE;
+  --accent:           #009FE3;
+  --accent-hover:     #007DBF;
+  --accent-light:     #003B57;
+  --accent-border:    #005F8E;
+  --accent-text:      #7DD4F5;
+  --border-focus:     #009FE3;
 
   --bg-page:          #0B0F1A;
   --bg-surface:       #131929;
@@ -178,11 +199,16 @@ html, body, #root {
   min-height: 100vh;
   background-color: var(--bg-page);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Industry', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode theme transition — prevents jarring flash on theme toggle (D-15) */
+body {
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 input, button, select, textarea { font-family: inherit; font-size: inherit; }
@@ -302,7 +328,7 @@ a:hover { text-decoration: underline; }
 .klas-zoek::placeholder { color: var(--text-faint); }
 .klas-zoek:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.12);
 }
 
 .sort-group { display: flex; gap: 4px; }
@@ -473,6 +499,10 @@ a:hover { text-decoration: underline; }
   margin-bottom: 1rem;
   box-shadow: var(--shadow-sm);
 }
+.detail-section:hover {
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-base);
+}
 
 .detail-section-title {
   font-size: 0.6875rem;
@@ -574,7 +604,7 @@ a:hover { text-decoration: underline; }
 }
 .aanvullend-veld select:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.12);
 }
 
 .aanvullend-hint {
@@ -716,7 +746,7 @@ a:hover { text-decoration: underline; }
 .notitie-textarea::placeholder { color: var(--text-faint); }
 .notitie-textarea:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.12);
 }
 
 .notitie-hint {
@@ -761,7 +791,7 @@ a:hover { text-decoration: underline; }
 }
 .ap-input-onderwerp:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.12);
 }
 
 .ap-input-datum,
@@ -778,7 +808,7 @@ a:hover { text-decoration: underline; }
 .ap-input-datum:focus,
 .ap-input-status:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.12);
 }
 
 .ap-row {
@@ -1045,6 +1075,9 @@ a:hover { text-decoration: underline; }
   background: var(--accent);
   border-color: var(--accent);
 }
+.toggle-switch:hover .toggle-track:not(.on) {
+  background: var(--text-faint);
+}
 
 .toggle-thumb {
   position: absolute;
@@ -1109,7 +1142,7 @@ a:hover { text-decoration: underline; }
 .dg-naam-input:focus {
   border-color: var(--border-focus);
   background: var(--bg-surface);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.12);
   outline: none;
 }
 
@@ -1127,7 +1160,10 @@ a:hover { text-decoration: underline; }
 }
 .dg-leerlijn-select:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.12);
+}
+.dg-leerlijn-select:hover {
+  border-color: var(--accent-border);
 }
 
 /* Scaled-down toggle for table context */
@@ -1180,7 +1216,10 @@ a:hover { text-decoration: underline; }
 }
 .settings-number-input:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.12);
+}
+.settings-number-input:hover {
+  border-color: var(--accent-border);
 }
 
 .bpv-progress-wrap {
