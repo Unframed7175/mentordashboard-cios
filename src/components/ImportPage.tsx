@@ -4,6 +4,7 @@ import { parseExcelFile } from '../../parsers/excel';
 import { applyBackupRestore } from '../../utils/backup';
 import { saveKlassen, klassenState, switchActiveKlas, createKlas } from '../../utils/klassen';
 import { addStudent, mergeVerzuim } from '../../utils/datamodel';
+import { parseBpvExcel, saveBpvData, getBpvData } from '../../utils/bpv';
 
 interface ImportState {
   status: 'idle' | 'processing' | 'done' | 'error';
@@ -220,6 +221,47 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
     }
   }
 
+  async function handleBpvExcel(file: File) {
+    if (klassenState.activeKlasId === null) {
+      setImportState(prev => ({
+        ...prev,
+        status: 'error',
+        errors: [...prev.errors, 'Geen actieve klas — importeer eerst een PDF om een klas aan te maken'],
+      }));
+      return;
+    }
+
+    setImportState(prev => ({ ...prev, status: 'processing' }));
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const bpvData = parseBpvExcel(buffer);
+      const existing = await getBpvData();
+      const merged = { ...existing, ...bpvData };
+      const saved = await saveBpvData(merged);
+      if (saved === false) {
+        setImportState(prev => ({
+          ...prev,
+          status: 'error',
+          errors: [...prev.errors, 'BPV opslaan mislukt — controleer schijfruimte of sleutelbeheer'],
+        }));
+      } else {
+        const count = Object.keys(bpvData).length;
+        setImportState(prev => ({
+          ...prev,
+          status: 'done',
+          messages: [...prev.messages, `BPV-data verwerkt: ${count} leerling${count !== 1 ? 'en' : ''}`],
+        }));
+      }
+    } catch (err: any) {
+      setImportState(prev => ({
+        ...prev,
+        status: 'error',
+        errors: [...prev.errors, `BPV Excel verwerking mislukt: ${err.message || String(err)}`],
+      }));
+    }
+  }
+
   async function handleBackup(file: File) {
     setImportState(prev => ({ ...prev, status: 'processing', messages: [], errors: [] }));
 
@@ -276,17 +318,28 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
     const warnings: string[] = [];
     let excelCount = 0;
     let zipCount = 0;
+    let bpv: File | null = null;
+    let bpvCount = 0;
 
     for (const file of files) {
       const name = file.name.toLowerCase();
       if (name.endsWith('.pdf')) {
         pdfs.push(file);
       } else if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
-        excelCount++;
-        if (excelCount === 1) {
-          excel = file;
-        } else if (excelCount === 2) {
-          warnings.push('Meerdere .xls/.xlsx bestanden gedropt — alleen het eerste bestand verwerkt');
+        if (/bpv|stage|praktijk/i.test(file.name)) {
+          bpvCount++;
+          if (bpvCount === 1) {
+            bpv = file;
+          } else if (bpvCount === 2) {
+            warnings.push('Meerdere BPV bestanden gedropt — alleen het eerste verwerkt');
+          }
+        } else {
+          excelCount++;
+          if (excelCount === 1) {
+            excel = file;
+          } else if (excelCount === 2) {
+            warnings.push('Meerdere .xls/.xlsx bestanden gedropt — alleen het eerste bestand verwerkt');
+          }
         }
       } else if (name.endsWith('.zip')) {
         zipCount++;
@@ -314,6 +367,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
     }
     if (pdfs.length > 0) await handlePDFs(pdfs);
     if (excel) await handleExcel(excel);
+    if (bpv) await handleBpvExcel(bpv);
   }
 
   function onDragOver(e: React.DragEvent<HTMLDivElement>) {

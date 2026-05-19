@@ -35,7 +35,7 @@ export default function BpvProgressSection({ leerlingId }: BpvProgressSectionPro
       {bpvConfig === null || record === null ? (
         /* Empty state — no BPV data imported yet */
         <p style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-          Geen BPV-data — importeer de BPV Excel via Instellingen.
+          Nog geen stage-data — importeer de stage Excel via het importscherm.
         </p>
       ) : (
         /* Populated state — show progress bar + stats */
