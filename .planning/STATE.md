@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Settings, Polish & Auto-class Detection
-status: Ready for Phase 19
-last_updated: "2026-05-18T20:32:18.454Z"
-last_activity: 2026-05-18 -- Phase 18 complete (SET-03/04/05/06 shipped, Gap A fixed, Gap B D-13 pending sample file)
+status: executing
+last_updated: "2026-05-19T05:50:46.108Z"
+last_activity: 2026-05-18 -- Phase 19 planned (4 plans, 3 waves — UI Polish)
 progress:
   total_phases: 14
   completed_phases: 13
-  total_plans: 42
-  completed_plans: 42
-  percent: 100
+  total_plans: 46
+  completed_plans: 44
+  percent: 96
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 
 ## Current Position
 
-Phase: 18 (complete)
-Plan: 05 (complete)
-Status: Ready for Phase 19
-Last activity: 2026-05-18 -- Phase 18 complete (SET-03/04/05/06 shipped, Gap A fixed, Gap B D-13 pending sample file)
+Phase: 19
+Plan: 01 (complete)
+Status: Executing Phase 19 — Plan 01 done, Plans 02-04 pending
+Last activity: 2026-05-19 -- Phase 19 Plan 01 executed (RED spider test scaffold for JSX refactor)
 
 ## Progress Bar
 
@@ -112,3 +112,4 @@ v2.1 phases completed: 0/4
 - 2026-05-18: Phase 18 Plan 01 executed — Wave 0 RED test scaffolds. 4 new test files (deelgebieden, verzuimDrempels, bpv, leerlijnen) + 2 extended (status, prognosis). 28 new RED tests gate Wave 1 GREEN. 3 tasks completed, 0 deviations.
 - 2026-05-18: Phase 18 Plan 02 executed — Wave 1 utility implementations. 3 new files (deelgebieden.ts, verzuimDrempels.ts, bpv.ts) + getLeerlijnenMappingSync added + main.tsx pre-warm. 20/20 Wave 0 utility tests GREEN. 1 deviation: getLeerlijnenMapping async bug fixed early in prognosis.ts.
 - 2026-05-18: Phase 18 Plan 05 executed — Wave 3 UI completion. SettingsPage section 4 (threshold inputs + BPV config + import button), BpvProgressSection (new), DeelgebiedenMatrix + SpiderChartCard active-DG filter (Invariant I1 preserved), DetailWeergave BPV mount (D-12), CSS section 25 completed. 89/89 tests pass. 0 deviations.
+- 2026-05-19: Phase 19 Plan 01 executed — RED spider test scaffold. tests/spider.test.ts rewritten with 7 JSX-aware tests (React.isValidElement, renderToStaticMarkup, onHover callback contract). 5/7 tests RED until Plan 03 ships JSX refactor. 88 non-spider tests green. 0 deviations.

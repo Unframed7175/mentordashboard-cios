@@ -340,8 +340,20 @@ Cross-cutting constraints:
   1. Hover over een punt in het spiderweb chart toont een tooltip met de naam van het deelgebied en de score — as-labels zijn leesbaar zonder overlap
   2. Dashboard (klasoverzicht + detailweergave) werkt correct op vensterbreedtes vanaf 1024px — geen horizontale scroll, geen afgekapte inhoud
   3. KPI tiles, leerling-tegels en nav-tabs hebben een subtiele hover-animatie (150–200ms ease) die consistent is door de hele app
-**Plans**: TBD
+**Plans**: 4 plans
 **UI hint**: yes
+
+Plans:
+
+**Wave 1**
+- [x] 19-01-PLAN.md — Update spider tests for JSX return type (RED scaffold for Plan 03) (POL-02)
+- [ ] 19-02-PLAN.md — CSS brand tokens, Industry font @font-face, Material shadows, focus-ring rgba fixes, 4 hover gaps (POL-04)
+
+**Wave 2** *(blocked on 19-01 + 19-02)*
+- [ ] 19-03-PLAN.md — Spider chart JSX refactor + tooltip + .spider-card responsive (POL-02, POL-03)
+
+**Wave 3** *(blocked on 19-02 + 19-03; has user checkpoints)*
+- [ ] 19-04-PLAN.md — Dark mode lift to App.tsx, settings slide-in animation, KlasTabStrip logo + nav diagonal stripe, .aanvullend-grid responsive fix (POL-03, POL-04)
 
 ## Progress
 
@@ -365,4 +377,4 @@ Cross-cutting constraints:
 | 16. Auto-class Detection | 1/1 | Complete | 2026-05-17 |
 | 17. Settings Panel Foundation | 0/3 | Ready to execute | - |
 | 18. Settings Panel Advanced | 2/5 | In Progress|  |
-| 19. UI Polish | 0/TBD | Not started | - |
+| 19. UI Polish | 1/4 | In Progress|  |
