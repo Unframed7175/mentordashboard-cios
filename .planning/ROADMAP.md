@@ -347,7 +347,7 @@ Plans:
 
 **Wave 1**
 - [x] 19-01-PLAN.md — Update spider tests for JSX return type (RED scaffold for Plan 03) (POL-02)
-- [ ] 19-02-PLAN.md — CSS brand tokens, Industry font @font-face, Material shadows, focus-ring rgba fixes, 4 hover gaps (POL-04)
+- [x] 19-02-PLAN.md — CSS brand tokens, Industry font @font-face, Material shadows, focus-ring rgba fixes, 4 hover gaps (POL-04)
 
 **Wave 2** *(blocked on 19-01 + 19-02)*
 - [ ] 19-03-PLAN.md — Spider chart JSX refactor + tooltip + .spider-card responsive (POL-02, POL-03)
@@ -377,4 +377,4 @@ Plans:
 | 16. Auto-class Detection | 1/1 | Complete | 2026-05-17 |
 | 17. Settings Panel Foundation | 0/3 | Ready to execute | - |
 | 18. Settings Panel Advanced | 2/5 | In Progress|  |
-| 19. UI Polish | 1/4 | In Progress|  |
+| 19. UI Polish | 2/4 | In Progress|  |
