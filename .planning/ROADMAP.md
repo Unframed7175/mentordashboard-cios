@@ -386,7 +386,11 @@ Plans:
   2. Het afgedrukte verslag bevat leerlingnaam, datum, klasnaam, doorstroomprognose (rood/oranje/groen), voortgang per deelgebied, verzuimcijfers en actiepunten
   3. Het verslag past op A4 papier — geen afgekapte inhoud, geen horizontale scroll, correcte paginering bij meerdere pagina's
   4. RAG-kleuren (rood/oranje/groen) van de doorstroomprognose zijn zichtbaar in het afgedrukte verslag
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 21-01-PLAN.md — Print-only header + Afdrukken button + A4 print CSS
+
 **UI hint**: yes
 
 ### Phase 22: BPV Stage Excel Parser
