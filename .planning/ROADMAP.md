@@ -55,7 +55,7 @@
 ### v2.2 Onboarding, Export & Data Completeness
 
 - [x] **Phase 20: Drag-and-Drop Fix** — Bestanden slepen op het importveld werkt correct voor PDF, .xls en zip-bestanden *(completed 2026-05-19)*
-- [x] **Phase 21: Print-to-PDF Export** — Mentor kan een mentorgesprekverslag afdrukken als A4-PDF vanuit de detailweergave (completed 2026-05-19)
+- [x] **Phase 21: Print-to-PDF Export** — Mentor kan een mentorgesprekverslag afdrukken als A4-PDF vanuit de detailweergave (completed 2026-05-19)
 - [ ] **Phase 22: BPV Stage Excel Parser** — App leest echte BPV-uren uit het stage Excel bestand per leerling
 - [ ] **Phase 23: Rekenen & Nederlands** — Mentor kan Rekenen en Nederlands voortgang apart bijhouden met eigen doorstroomnorm
 - [ ] **Phase 24: Onboarding Wizard** — Eerste-keer mentor doorloopt een stap-voor-stap wizard om de app volledig in te stellen
@@ -415,7 +415,15 @@ Plans:
   2. De detailweergave toont een aparte sectie voor Nederlands met de score van die leerling en een groen/rood status op basis van de MBO-3 norm (2F voldoende)
   3. Rekenen en Nederlands scores worden automatisch ingelezen uit de bestaande voortgang PDFs — geen apart bestand vereist
   4. Als een PDF geen Rekenen/Nederlands sectie bevat, toont de sectie "Geen data" — de rest van de detailweergave blijft intact
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+
+**Wave 1**
+- [ ] 23-01-PLAN.md — normalizeRekenScore() in utils/schema.ts + JSDoc fields in utils/datamodel.ts (RNL-01, RNL-02, RNL-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 23-02-PLAN.md — RekenenNederlandsSection component + DetailWeergave mount (RNL-01, RNL-02, RNL-03, RNL-04 scaffold)
 
 **Note**: RNL-04 (PDF extraction) is partially blocked — the data model and manual-entry UI path proceed without a sample PDF. Extraction is additive: `rekenResultaat` and `nederlandsResultaat` default to `null` if the PDF section is absent.
 
@@ -458,5 +466,5 @@ Plans:
 | 20. Drag-and-Drop Fix | 1/1 | Complete | 2026-05-19 |
 | 21. Print-to-PDF Export | 1/1 | Complete   | 2026-05-19 |
 | 22. BPV Stage Excel Parser | 0/TBD | Not started | - |
-| 23. Rekenen & Nederlands | 0/TBD | Not started | - |
+| 23. Rekenen & Nederlands | 0/2 | Not started | - |
 | 24. Onboarding Wizard | 0/TBD | Not started | - |
