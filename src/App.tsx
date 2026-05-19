@@ -6,6 +6,7 @@ import KlasOverzicht from './components/KlasOverzicht';
 import DetailWeergave from './components/DetailWeergave';
 import SettingsPage from './components/SettingsPage';
 import { klassenState, switchActiveKlas, getActiveStudents } from '../utils/klassen';
+import { loadSettings, applyTheme } from '../utils/settings';
 
 function App() {
   const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings'>('import');
@@ -14,6 +15,23 @@ function App() {
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null);
   const [detailStudentList, setDetailStudentList] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [settingsOpenCount, setSettingsOpenCount] = useState(0);
+  const [isDark, setIsDark] = useState<boolean>(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const s = await loadSettings();
+        const dark =
+          s.theme === 'dark' ||
+          (s.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        setIsDark(dark);
+        applyTheme(s.theme ?? 'light');
+      } catch {
+        // On load failure: leave defaults (light mode)
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     function preventNav(e: DragEvent) {
@@ -33,8 +51,13 @@ function App() {
   }
 
   function handleOpenSettings() {
+    setSettingsOpenCount(c => c + 1);
     setPrevView(view as 'import' | 'klas' | 'detail');
     setView('settings');
+  }
+
+  function handleToggleDark(next: boolean) {
+    setIsDark(next);
   }
 
   function handleBackFromSettings() {
@@ -80,6 +103,7 @@ function App() {
         onCreateKlas={() => setShowModal(true)}
         onSettings={handleOpenSettings}
         isSettingsActive={view === 'settings'}
+        isDark={isDark}
       />
       {showModal && (
         <KlasModal
@@ -107,10 +131,15 @@ function App() {
         />
       )}
       {view === 'settings' && (
-        <SettingsPage
-          onBack={handleBackFromSettings}
-          onNavigateToImport={handleNavigateToImportFromSettings}
-        />
+        <div className="view-slide-in-right" style={{ overflow: 'hidden' }}>
+          <SettingsPage
+            key={settingsOpenCount}
+            onBack={handleBackFromSettings}
+            onNavigateToImport={handleNavigateToImportFromSettings}
+            isDark={isDark}
+            onToggleDark={handleToggleDark}
+          />
+        </div>
       )}
     </>
   );

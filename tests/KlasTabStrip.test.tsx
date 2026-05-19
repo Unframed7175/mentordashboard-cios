@@ -16,6 +16,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onCreateKlas={vi.fn()}
         onSettings={vi.fn()}
         isSettingsActive={false}
+        isDark={false}
       />
     );
     expect(screen.getByRole('button', { name: 'Instellingen openen' })).toBeTruthy();
@@ -31,6 +32,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onCreateKlas={vi.fn()}
         onSettings={onSettingsSpy}
         isSettingsActive={false}
+        isDark={false}
       />
     );
     fireEvent.click(screen.getByRole('button', { name: 'Instellingen openen' }));
@@ -46,6 +48,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onCreateKlas={vi.fn()}
         onSettings={vi.fn()}
         isSettingsActive={true}
+        isDark={false}
       />
     );
     const gearBtn = screen.getByRole('button', { name: 'Instellingen openen' });
@@ -61,6 +64,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onCreateKlas={vi.fn()}
         onSettings={vi.fn()}
         isSettingsActive={false}
+        isDark={false}
       />
     );
     expect(screen.queryByText(/↑ Importeer/)).toBeNull();

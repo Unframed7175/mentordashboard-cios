@@ -6,7 +6,7 @@
 // POL-01: uses .toggle-switch / .toggle-track / .toggle-thumb CSS classes from Plan 01
 
 import { useEffect, useState, useRef } from 'react';
-import { loadSettings, saveSettings, applyTheme, type Theme } from '../../utils/settings';
+import { saveSettings, applyTheme, type Theme } from '../../utils/settings';
 import { DEELGEBIEDEN } from '../../utils/schema';
 import {
   getDeelgebiedenConfig,
@@ -25,6 +25,8 @@ import { getBpvConfig, saveBpvConfig, parseBpvExcel, saveBpvData, getBpvData, ty
 interface SettingsPageProps {
   onBack: () => void;
   onNavigateToImport: () => void;
+  isDark: boolean;
+  onToggleDark: (isDark: boolean) => void;
 }
 
 // ── NaamInput: inline text input with blur/Enter apply and Escape revert ──────
@@ -75,14 +77,7 @@ function NaamInput({ id, label, onApply }: NaamInputProps) {
 
 // ── SettingsPage ────────────────────────────────────────────────────────────────
 
-export default function SettingsPage({ onBack, onNavigateToImport }: SettingsPageProps) {
-  // Flicker-free initializer: read hydrated body.dark set by main.tsx startup hydration (Plan 03)
-  // Using lazy initializer (() => ...) so the document access only happens on first render.
-  // typeof guard is defensive for any future SSR scenario — under jsdom document is always defined.
-  // Codex MEDIUM "Toggle flicker on open" resolved: toggle is visually correct from first paint.
-  const [isDark, setIsDark] = useState<boolean>(
-    () => typeof document !== 'undefined' && document.body.classList.contains('dark')
-  );
+export default function SettingsPage({ onBack, onNavigateToImport, isDark, onToggleDark }: SettingsPageProps) {
 
   // Section 3 state — deelgebieden config + leerlijn mapping
   const [dgConfig, setDgConfig] = useState<DeelgebiedConfig[]>([]);
@@ -95,29 +90,6 @@ export default function SettingsPage({ onBack, onNavigateToImport }: SettingsPag
   const [bpvUren, setBpvUren] = useState<number>(200);
   const [bpvImportError, setBpvImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // On mount: restore saved theme preference
-  useEffect(() => {
-    (async () => {
-      try {
-        const saved = await loadSettings();
-        if (saved?.theme) {
-          // Persisted theme found — apply and sync toggle
-          applyTheme(saved.theme);
-          setIsDark(saved.theme === 'dark');
-        } else {
-          // No persisted theme — read OS preference (D-06: do NOT persist this)
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          applyTheme(prefersDark ? 'dark' : 'light');
-          setIsDark(prefersDark);
-          // D-06 / Pitfall 4: OS preference is NOT persisted — only explicit user choice
-        }
-      } catch (err) {
-        // On load failure: log and leave state as-is (lazy initializer gave sensible default)
-        console.warn('[SettingsPage] loadSettings failed:', err);
-      }
-    })();
-  }, []);
 
   // On mount: load section 3 config (separate from dark-mode effect — different concern)
   useEffect(() => {
@@ -140,12 +112,15 @@ export default function SettingsPage({ onBack, onNavigateToImport }: SettingsPag
       .catch(err => console.warn('[SettingsPage] section 4 load failed:', err));
   }, []);
 
-  // Toggle handler: update DOM + React state + persist (Pitfall 6: must update both atomically)
+  // Toggle handler: update DOM + persist + notify parent (Pitfall 6: must update DOM atomically)
   async function handleToggle(checked: boolean) {
     const theme: Theme = checked ? 'dark' : 'light';
     applyTheme(theme);   // immediate DOM update
-    setIsDark(checked);  // immediate React state update
     await saveSettings({ theme }); // persist to plugin-store
+    const nextIsDark =
+      theme === 'dark' ||
+      (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    onToggleDark(nextIsDark); // notify App.tsx to mirror the value
   }
 
   // Section 3 handlers (instant-apply pattern — state updated before async write)
