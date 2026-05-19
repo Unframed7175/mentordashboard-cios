@@ -350,7 +350,7 @@ Plans:
 - [x] 19-02-PLAN.md — CSS brand tokens, Industry font @font-face, Material shadows, focus-ring rgba fixes, 4 hover gaps (POL-04)
 
 **Wave 2** *(blocked on 19-01 + 19-02)*
-- [ ] 19-03-PLAN.md — Spider chart JSX refactor + tooltip + .spider-card responsive (POL-02, POL-03)
+- [x] 19-03-PLAN.md — Spider chart JSX refactor + tooltip + .spider-card responsive (POL-02, POL-03)
 
 **Wave 3** *(blocked on 19-02 + 19-03; has user checkpoints)*
 - [ ] 19-04-PLAN.md — Dark mode lift to App.tsx, settings slide-in animation, KlasTabStrip logo + nav diagonal stripe, .aanvullend-grid responsive fix (POL-03, POL-04)
@@ -377,4 +377,4 @@ Plans:
 | 16. Auto-class Detection | 1/1 | Complete | 2026-05-17 |
 | 17. Settings Panel Foundation | 0/3 | Ready to execute | - |
 | 18. Settings Panel Advanced | 2/5 | In Progress|  |
-| 19. UI Polish | 2/4 | In Progress|  |
+| 19. UI Polish | 3/4 | In Progress|  |

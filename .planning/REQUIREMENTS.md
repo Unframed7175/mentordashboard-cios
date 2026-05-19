@@ -23,8 +23,8 @@
 
 - [ ] **POL-01**: Dark mode volledig geïmplementeerd — alle componenten consistent gestyled met dark theme CSS-variabelen
 - [x] **POL-02**: Spiderweb chart heeft leesbare as-labels en toont hover-tooltips met deelgebied-naam en score
-- [ ] **POL-03**: Tile grid en detailweergave schalen correct op kleinere vensterbreedtes (≥1024px) zonder horizontale scroll
-- [ ] **POL-04**: Hover-effecten en transitions zijn consistent — KPI tiles, student-tegels en nav-tabs animeren subtiel (150–200ms ease)
+- [x] **POL-03**: Tile grid en detailweergave schalen correct op kleinere vensterbreedtes (≥1024px) zonder horizontale scroll
+- [x] **POL-04**: Hover-effecten en transitions zijn consistent — KPI tiles, student-tegels en nav-tabs animeren subtiel (150–200ms ease)
 
 ---
 
