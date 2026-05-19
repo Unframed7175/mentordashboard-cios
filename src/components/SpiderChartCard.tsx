@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SpiderChart } from '../../utils/spider';
 import { DEELGEBIEDEN } from '../../utils/schema';
 import { getDeelgebiedenConfigSync } from '../../utils/deelgebieden';
@@ -9,6 +9,16 @@ interface SpiderChartCardProps {
   fillVar: string;
   strokeVar: string;
   title: string;
+}
+
+function scoreDisplay(score: string | null): string {
+  switch (score) {
+    case 'onvoldoende': return 'Onvoldoende';
+    case 'voldoende':   return 'Voldoende';
+    case 'goed':        return 'Goed';
+    case 'excellent':   return 'Excellent';
+    default:            return 'Geen score';
+  }
 }
 
 export default function SpiderChartCard({ group, scores, fillVar, strokeVar, title }: SpiderChartCardProps) {
@@ -27,25 +37,24 @@ export default function SpiderChartCard({ group, scores, fillVar, strokeVar, tit
       label: labelById.get(dg.id) ?? dg.label,  // custom label for display only
     }));
 
+  // Tooltip state for hit-circle hover (D-11, Phase 19 POL-02)
+  const [tooltip, setTooltip] = useState<{ axisIndex: number; x: number; y: number } | null>(null);
+
   if (axes.length === 0) {
     return <div className="spider-empty">Geen scores beschikbaar</div>;
   }
 
-  const rawSvg = SpiderChart.buildSpiderSVG(axes, scores, fillVar, strokeVar);
-
-  if (!rawSvg) {
-    return <div className="spider-empty">Geen scores beschikbaar</div>;
-  }
-
-  // Security: buildSpiderSVG embeds only math-computed coordinates and sanitized CSS
-  // variable names (see utils/spider.ts sanitizeCssVar). Axis labels are NOT embedded
-  // in the SVG string — only their numeric polygon coordinates appear. As a defence-in-depth
-  // measure we strip any script tags that could appear if the utility ever changes.
-  const svg = rawSvg.replace(/<script[\s\S]*?<\/script>/gi, '');
-
   return (
-    <div className="spider-card" style={{ maxWidth: '180px' }}>
-      <div dangerouslySetInnerHTML={{ __html: svg }} />
+    <div className="spider-card">
+      {SpiderChart.buildSpiderSVG(axes, scores, fillVar, strokeVar, setTooltip)}
+      {tooltip && (
+        <div
+          className="spider-tooltip"
+          style={{ top: tooltip.y, left: tooltip.x }}
+        >
+          {axes[tooltip.axisIndex].label}: {scoreDisplay(scores[axes[tooltip.axisIndex].key] ?? null)}
+        </div>
+      )}
       <div className="spider-leerlijn-title" style={{ fontSize: '0.85rem', fontWeight: 700, marginTop: '8px' }}>
         {title}
       </div>
