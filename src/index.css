@@ -99,7 +99,7 @@
   --spider-organiseren:          rgba(234, 179, 8, 0.25);
   --spider-organiseren-stroke:   #CA8A04;
   --spider-prof-handelen:        rgba(99, 102, 241, 0.25);
-  --spider-prof-handelen-stroke: #4F46E5;
+  --spider-prof-handelen-stroke: #009FE3;
 
   /* Legacy aliases (keep for components that still reference --accent-blue) */
   --accent-blue:        var(--accent);

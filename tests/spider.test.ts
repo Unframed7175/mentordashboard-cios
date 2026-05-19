@@ -42,9 +42,12 @@ test('buildSpiderSVG gooit geen fout bij lege scores', () => {
 test('axis labels worden gerenderd als text elementen', () => {
   const svg = SpiderChart.buildSpiderSVG(axes, {}, '--color-spider-fill', '--color-spider-stroke');
   const html = renderToStaticMarkup(svg as React.ReactElement);
-  // Each axis should produce a <text> element with the label value
+  // Each axis should produce a <text> element with the label value.
+  // renderToStaticMarkup HTML-encodes special chars (& → &amp;), so we compare
+  // against the encoded form to correctly handle labels like 'V&A' → 'V&amp;A'.
+  const encodedLabel = axes[0].label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   expect(html).toContain('<text');
-  expect(html).toContain(axes[0].label);
+  expect(html).toContain(encodedLabel);
 });
 
 test('hit circles worden gerenderd voor tooltip interactie', () => {
