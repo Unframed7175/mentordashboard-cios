@@ -54,7 +54,7 @@
 
 ### v2.2 Onboarding, Export & Data Completeness
 
-- [ ] **Phase 20: Drag-and-Drop Fix** — Bestanden slepen op het importveld werkt correct voor PDF, .xls en zip-bestanden
+- [x] **Phase 20: Drag-and-Drop Fix** — Bestanden slepen op het importveld werkt correct voor PDF, .xls en zip-bestanden *(completed 2026-05-19)*
 - [ ] **Phase 21: Print-to-PDF Export** — Mentor kan een mentorgesprekverslag afdrukken als A4-PDF vanuit de detailweergave
 - [ ] **Phase 22: BPV Stage Excel Parser** — App leest echte BPV-uren uit het stage Excel bestand per leerling
 - [ ] **Phase 23: Rekenen & Nederlands** — Mentor kan Rekenen en Nederlands voortgang apart bijhouden met eigen doorstroomnorm
@@ -375,7 +375,7 @@ Plans:
   2. Mentor sleept een .xls verzuim-Excel op het importveld — verzuimdata verschijnt correct in de tegels
   3. Mentor sleept een zip-backup op het importveld — de klasdata wordt hersteld zonder browse-navigatie
   4. Per ongeluk slepen buiten het importveld navigeert de browser niet weg van de app
-**Plans**: TBD
+**Plans**: 1 (20-01 complete)
 
 ### Phase 21: Print-to-PDF Export
 **Goal**: Mentor kan vanuit de detailweergave van een leerling een mentorgesprekverslag afdrukken als A4-PDF via de browser print-dialoog — het verslag is compleet, correct opgemaakt en bevat alle gespreksrelevante informatie
@@ -451,7 +451,7 @@ Plans:
 | 17. Settings Panel Foundation | 4/4 | Complete | 2026-05-17 |
 | 18. Settings Panel Advanced | 5/5 | Complete | 2026-05-18 |
 | 19. UI Polish | 4/4 | Complete | 2026-05-19 |
-| 20. Drag-and-Drop Fix | 0/TBD | Not started | - |
+| 20. Drag-and-Drop Fix | 1/1 | Complete | 2026-05-19 |
 | 21. Print-to-PDF Export | 0/TBD | Not started | - |
 | 22. BPV Stage Excel Parser | 0/TBD | Not started | - |
 | 23. Rekenen & Nederlands | 0/TBD | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Onboarding, Export & Data Completeness
 status: planning
-last_updated: "2026-05-19T00:00:00.000Z"
-last_activity: 2026-05-19 -- Roadmap created. Phases 20–24 defined. 21 requirements mapped. Ready for /gsd-plan-phase 20.
+last_updated: "2026-05-19T13:14:14.688Z"
+last_activity: 2026-05-19 — v2.2 roadmap created (Phases 20–24)
 progress:
-  total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 19
+  completed_phases: 15
+  total_plans: 47
+  completed_plans: 47
+  percent: 100
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 
 ## Current Position
 
-Phase: 20 — Drag-and-Drop Fix (not started)
-Plan: —
-Status: Roadmap complete, ready to plan Phase 20
-Last activity: 2026-05-19 — v2.2 roadmap created (Phases 20–24)
+Phase: 20 — Drag-and-Drop Fix (complete)
+Plan: 20-01 (1/1 complete)
+Status: Phase 20 shipped. BUG-01 fixed.
+Last activity: 2026-05-19 — Phase 20 Plan 01 executed — BUG-01 drag-drop fix
 
 ## Progress Bar
 
@@ -42,7 +42,7 @@ v1.1 phases completed: 3/3
 v1.2 phases completed: 1/1
 v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
-v2.2 phases completed: 0/5
+v2.2 phases completed: 1/5
 
 ## Accumulated Context
 
@@ -70,6 +70,8 @@ v2.2 phases completed: 0/5
 
 ### v2.2 Design Notes
 
+- [20-01] dragDropEnabled: false in tauri.conf.json — disables Tauri 2 native OS drag intercept, restores HTML5 DataTransfer.files for import dropzone (BUG-01)
+- [20-01] Cargo.toml [package] version bumped to 2.2.0 to align with v2.2 milestone
 - Phase 20 (BUG-01): Fix is one config line — `"dragDropEnabled": false` in `app.windows[0]` in `tauri.conf.json`. Document-level `preventDefault` listeners in `App.tsx` must be PRESERVED (they prevent browser navigation on accidental drops — unrelated to the bug).
 - Phase 21 (EXP): `window.print()` works in Tauri 2 WebView2. Use `.print-target` wrapper + `@media print { body > * { display: none; } }`. `@page { size: A4; margin: 2cm; }` suppresses Chromium URL header/footer. `print-color-adjust: exact` preserves RAG badge colors.
 - Phase 22 (BPV): Separate `parseBpvExcel()` in `utils/bpv.ts` — do NOT reuse `parseExcelFile`. Separate sheet-scorer keywords: `bpv` (+4), `stage` (+3), `uren` (+2). `debugBpvExcel()` helper must run on real file before writing column matchers. `XLSX.read({ cellDates: true })` for date columns. Graceful fallback: `gerealiseerdeUren = 0` if column not found.
@@ -121,3 +123,4 @@ v2.2 phases completed: 0/5
 - 2026-05-19: Phase 19 Plan 01 executed — RED spider test scaffold. tests/spider.test.ts rewritten with 7 JSX-aware tests (React.isValidElement, renderToStaticMarkup, onHover callback contract). 5/7 tests RED until Plan 03 ships JSX refactor. 88 non-spider tests green. 0 deviations.
 - 2026-05-19: Phase 19 Plans 02–04 executed — CIOS brand refresh (Industry font, #009FE3 accent, Material shadows), spider chart JSX refactor + tooltips, dark mode lift to App.tsx, settings slide-in animation, logo swap, responsive grid fix. 7/8 UAT items passed. 1 cosmetic open: nav ::after diagonal stripe not visible in Tauri WebView (background task logged). v2.1 SHIPPED.
 - 2026-05-19: v2.2 milestone started. Roadmap created — Phases 20–24 defined, all 21 requirements mapped. Next: /gsd-plan-phase 20
+- 2026-05-19: Phase 20 Plan 01 executed — BUG-01 fixed. dragDropEnabled: false in tauri.conf.json. Cargo.toml bumped to 2.2.0. 93/93 tests pass. commit dd6f1a7.
