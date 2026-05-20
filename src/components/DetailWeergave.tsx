@@ -9,7 +9,6 @@ import VerzuimSection from './VerzuimSection';
 import BpvProgressSection from './BpvProgressSection';
 import VakkenSection from './VakkenSection';
 import NotitiesTextarea from './NotitiesTextarea';
-import AanvullendSection from './AanvullendSection';
 import RekenenNederlandsSection from './RekenenNederlandsSection';
 import StageSection from './StageSection';
 import LeerlijnenSection from './LeerlijnenSection';
@@ -134,10 +133,7 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       {/* Section 1: DoortstroomPrognoseSection */}
       <DoortstroomPrognoseSection student={student} status={status} />
 
-      {/* Section 2: AanvullendSection */}
-      <AanvullendSection student={student} />
-
-      {/* Section 2b: RekenenNederlandsSection — RNL-01..03 */}
+      {/* Section 2: RekenenNederlandsSection — RNL-01..03 */}
       <RekenenNederlandsSection student={student} />
 
       {/* Section 3: StageSection — stageData passed as prop (WR-08) */}
