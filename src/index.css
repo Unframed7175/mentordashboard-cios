@@ -1279,13 +1279,8 @@ a:hover { text-decoration: underline; }
    ========================================================================== */
 
 @page {
-  size: A4;
-  margin: 1cm 1.2cm;
-}
-
-@page landscape {
   size: A4 landscape;
-  margin: 1cm 1.2cm;
+  margin: 1cm 1.5cm;
 }
 
 .print-header {
@@ -1322,9 +1317,6 @@ a:hover { text-decoration: underline; }
   }
 
   .dg-matrix-wrap {
-    page: landscape;
-    break-before: page;
-    break-after: page;
     overflow: visible !important;
   }
 
