@@ -1280,7 +1280,7 @@ a:hover { text-decoration: underline; }
 
 @page {
   size: A4;
-  margin: 2cm;
+  margin: 1cm 1.2cm;
 }
 
 .print-header {
@@ -1312,6 +1312,30 @@ a:hover { text-decoration: underline; }
 
   .detail-section {
     break-inside: avoid;
+    padding: 0.4rem 0 !important;
+    margin-bottom: 0.4rem !important;
+  }
+
+  .detail-section-title {
+    font-size: 0.7rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  body, .print-target {
+    font-size: 0.75rem !important;
+  }
+
+  .print-header {
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.4rem;
+  }
+
+  table {
+    font-size: 0.7rem !important;
+  }
+
+  th, td {
+    padding: 2px 4px !important;
   }
 
   * {
