@@ -11,7 +11,7 @@ import { loadSettings, applyTheme } from '../utils/settings';
 
 function App() {
   const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings' | 'onboarding'>(
-    () => Object.keys(klassenState.klassen).length === 0 ? 'onboarding' : 'import'
+    () => Object.values(klassenState.klassen).some((k: any) => k.students?.length > 0) ? 'import' : 'onboarding'
   );
   const [prevView, setPrevView] = useState<'import' | 'klas' | 'detail'>('klas');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -151,7 +151,7 @@ function App() {
         </div>
       )}
       {view === 'onboarding' && (
-        <OnboardingWizard onComplete={handleOnboardingComplete} />
+        <OnboardingWizard onComplete={handleOnboardingComplete} onAbort={() => setView('import')} />
       )}
     </>
   );

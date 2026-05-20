@@ -1,12 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createKlas, switchActiveKlas, saveKlassen } from '../../utils/klassen';
 import { parseSinglePDF } from '../../parsers/pdf';
 import { parseExcelFile } from '../../parsers/excel';
 import { addStudent, mergeVerzuim } from '../../utils/datamodel';
 import { parseBpvExcel, saveBpvData, getBpvData } from '../../utils/bpv';
+import { loadVerzuimDrempels, saveVerzuimDrempels, DEFAULT_VERZUIM_DREMPELS } from '../../utils/verzuimDrempels';
 
 interface OnboardingWizardProps {
   onComplete: (klasId: string) => void;
+  onAbort?: () => void;
 }
 
 const STEP_TITLES: Record<number, string> = {
@@ -14,7 +16,8 @@ const STEP_TITLES: Record<number, string> = {
   2: 'Voortgang PDFs uploaden',
   3: 'Verzuim Excel uploaden',
   4: 'Stage Excel uploaden (BPV)',
-  5: 'Klaar om te beginnen',
+  5: 'Instellingen (optioneel)',
+  6: 'Klaar om te beginnen',
 };
 
 const STEP_SUBS: Record<number, string> = {
@@ -22,21 +25,31 @@ const STEP_SUBS: Record<number, string> = {
   2: 'Upload de voortgang PDF(s) van je leerlingen. Je kunt meerdere bestanden tegelijk uploaden.',
   3: 'Upload de verzuim Excel vanuit SomToday. Dit is optioneel — je kunt dit later doen.',
   4: 'Upload de stage Excel (BPV-logboek) van je leerlingen. Dit is optioneel — je kunt dit later doen.',
-  5: 'Je klas is aangemaakt en je gegevens zijn geladen. Je kunt nu aan de slag!',
+  5: 'Stel drempelwaarden in voor verzuimwaarschuwingen. Je kunt dit overslaan — de standaardwaarden worden dan gebruikt.',
+  6: 'Je klas is aangemaakt en je gegevens zijn geladen. Je kunt nu aan de slag!',
 };
 
-export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWizardProps) {
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [klasId, setKlasId] = useState<string | null>(null);
   const [klasNaamInput, setKlasNaamInput] = useState('');
   const [pdfsUploaded, setPdfsUploaded] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [stepMsg, setStepMsg] = useState('');
   const [stepErr, setStepErr] = useState('');
+  const [geoorloofdHours, setGeoorloofdHours] = useState<number>(() => Math.round(DEFAULT_VERZUIM_DREMPELS.geoorloofd / 60));
+  const [ongeoorloofdHours, setOngeoorloofdHours] = useState<number>(() => Math.round(DEFAULT_VERZUIM_DREMPELS.ongeoorloofd / 60));
 
   const pdfRef = useRef<HTMLInputElement>(null);
   const xlsRef = useRef<HTMLInputElement>(null);
   const bpvRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadVerzuimDrempels().then(d => {
+      setGeoorloofdHours(Math.round(d.geoorloofd / 60));
+      setOngeoorloofdHours(Math.round(d.ongeoorloofd / 60));
+    }).catch(() => { /* gebruik defaults */ });
+  }, []);
 
   function clearFeedback() {
     setStepMsg('');
@@ -44,7 +57,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
   }
 
   function nextStep() {
-    setStep(s => Math.min(5, s + 1) as 1 | 2 | 3 | 4 | 5);
+    setStep(s => Math.min(6, s + 1) as 1 | 2 | 3 | 4 | 5 | 6);
     clearFeedback();
   }
 
@@ -132,6 +145,20 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
     }
   }
 
+  async function handleSaveDrempels() {
+    if (processing) return;
+    setProcessing(true);
+    clearFeedback();
+    try {
+      await saveVerzuimDrempels({ geoorloofd: geoorloofdHours * 60, ongeoorloofd: ongeoorloofdHours * 60 });
+      nextStep();
+    } catch (e: any) {
+      setStepErr('Opslaan mislukt: ' + (e?.message ?? String(e)));
+    } finally {
+      setProcessing(false);
+    }
+  }
+
   function dropProps(
     handler: (files: File[]) => void,
     exts: string[]
@@ -153,10 +180,10 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
       <div className="onboarding-card">
         {/* Progress indicator */}
         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-          Stap {step} van 5
+          Stap {step} van 6
         </p>
         <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem' }}>
-          {[1, 2, 3, 4, 5].map(n => (
+          {[1, 2, 3, 4, 5, 6].map(n => (
             <div
               key={n}
               style={{
@@ -293,6 +320,43 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
         )}
 
         {step === 5 && (
+          <div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+                Geoorloofd verzuim (uren)
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={200}
+                value={geoorloofdHours}
+                onChange={e => setGeoorloofdHours(Number(e.target.value))}
+                style={{ width: '160px', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-default)', background: 'var(--bg-page)', color: 'inherit', fontSize: '0.95rem', boxSizing: 'border-box' }}
+              />
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                Standaard: {Math.round(DEFAULT_VERZUIM_DREMPELS.geoorloofd / 60)} uur
+              </p>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.875rem', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+                Ongeoorloofd verzuim (uren)
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={200}
+                value={ongeoorloofdHours}
+                onChange={e => setOngeoorloofdHours(Number(e.target.value))}
+                style={{ width: '160px', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-default)', background: 'var(--bg-page)', color: 'inherit', fontSize: '0.95rem', boxSizing: 'border-box' }}
+              />
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                Standaard: {Math.round(DEFAULT_VERZUIM_DREMPELS.ongeoorloofd / 60)} uur
+              </p>
+            </div>
+          </div>
+        )}
+
+        {step === 6 && (
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>
             <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>🎉</div>
             <p style={{ fontSize: '0.95rem' }}>
@@ -311,6 +375,16 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
 
         {/* Action buttons */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
+          {step >= 2 && step <= 5 && (
+            <button
+              style={{ marginRight: 'auto', background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', cursor: 'pointer', padding: '0.25rem 0' }}
+              onClick={() => { klasId ? onComplete(klasId) : onAbort?.(); }}
+              disabled={processing}
+            >
+              Afbreken
+            </button>
+          )}
+
           {processing && (
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Verwerken...</span>
           )}
@@ -355,9 +429,31 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
           )}
 
           {step === 5 && (
+            <>
+              <button
+                className="detail-nav-btn"
+                onClick={nextStep}
+                disabled={processing}
+              >
+                Overslaan
+              </button>
+              <button
+                className="btn-primary-accent"
+                onClick={handleSaveDrempels}
+                disabled={processing}
+              >
+                Opslaan & Volgende →
+              </button>
+            </>
+          )}
+
+          {step === 6 && (
             <button
               className="btn-primary-accent"
-              onClick={() => onComplete(klasId!)}
+              onClick={() => {
+                if (!klasId) { setStepErr('Interne fout: klas ID ontbreekt. Herstart de wizard.'); return; }
+                onComplete(klasId);
+              }}
             >
               Naar het dashboard →
             </button>
