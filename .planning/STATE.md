@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Onboarding, Export & Data Completeness
-status: planning
-last_updated: "2026-05-19T13:14:14.688Z"
-last_activity: 2026-05-19 — v2.2 roadmap created (Phases 20–24)
+status: in_progress
+last_updated: "2026-05-19T00:00:00.000Z"
+last_activity: 2026-05-19 — Phase 22 complete. BPV-01..04 shipped. Real file columns confirmed. 93 tests pass.
 progress:
-  total_phases: 19
-  completed_phases: 15
-  total_plans: 47
-  completed_plans: 47
-  percent: 100
+  total_phases: 5
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
+  percent: 60
 ---
 
 # Project State
@@ -24,15 +24,15 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 
 ## Current Position
 
-Phase: 20 — Drag-and-Drop Fix (complete)
-Plan: 20-01 (1/1 complete)
-Status: Phase 20 shipped. BUG-01 fixed.
-Last activity: 2026-05-19 — Phase 20 Plan 01 executed — BUG-01 drag-drop fix
+Phase: 21 — Print-to-PDF Export (complete)
+Plan: 21-01 (1/1 complete)
+Status: Phase 21 shipped. EXP-01..04 fulfilled.
+Last activity: 2026-05-19 — Phase 21 Plan 01 executed — Afdrukken button + @media print isolation
 
 ## Progress Bar
 
 ```
-v2.2: [░░░░░░░░░░░░░░░░░░░░] 0% (0/5 phases)
+v2.2: [████████████░░░░░░░░] 60% (3/5 phases)
 ```
 
 ## Performance Metrics
@@ -42,7 +42,7 @@ v1.1 phases completed: 3/3
 v1.2 phases completed: 1/1
 v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
-v2.2 phases completed: 1/5
+v2.2 phases completed: 3/5
 
 ## Accumulated Context
 
