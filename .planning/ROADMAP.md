@@ -7,7 +7,7 @@
 - ✅ **v1.2 Dashboard Redesign** — Phase 9 (shipped 2026-04-24)
 - ✅ **v2.0 Stack Modernisering** — Phases 10–15 (shipped 2026-05-16)
 - ✅ **v2.1 Settings, Polish & Auto-class Detection** — Phases 16–19 (shipped 2026-05-19)
-- 🔄 **v2.2 Onboarding, Export & Data Completeness** — Phases 20–24 (active)
+- ✅ **v2.2 Onboarding, Export & Data Completeness** — Phases 20–24 (shipped 2026-05-20) · [archive](.planning/milestones/v2.2-ROADMAP.md)
 
 ## Phases
 
@@ -52,13 +52,16 @@
 - [x] **Phase 18: Settings Panel Advanced** — Mentor kan deelgebieden hernoemen/deactiveren, leerlijn-toewijzing aanpassen, verzuim-drempelwaarden en BPV-uren configureren *(completed 2026-05-18)*
 - [x] **Phase 19: UI Polish** — Spiderweb chart tooltips, responsive layout en consistente hover-animaties zijn afgerond (completed 2026-05-19)
 
-### v2.2 Onboarding, Export & Data Completeness
+<details>
+<summary>✅ v2.2 Onboarding, Export & Data Completeness (Phases 20–24) — SHIPPED 2026-05-20</summary>
 
 - [x] **Phase 20: Drag-and-Drop Fix** — Bestanden slepen op het importveld werkt correct voor PDF, .xls en zip-bestanden *(completed 2026-05-19)*
-- [x] **Phase 21: Print-to-PDF Export** — Mentor kan een mentorgesprekverslag afdrukken als A4-PDF vanuit de detailweergave (completed 2026-05-19)
-- [ ] **Phase 22: BPV Stage Excel Parser** — App leest echte BPV-uren uit het stage Excel bestand per leerling
-- [ ] **Phase 23: Rekenen & Nederlands** — Mentor kan Rekenen en Nederlands voortgang apart bijhouden met eigen doorstroomnorm
-- [ ] **Phase 24: Onboarding Wizard** — Eerste-keer mentor doorloopt een stap-voor-stap wizard om de app volledig in te stellen
+- [x] **Phase 21: Print-to-PDF Export** — Mentor kan een mentorgesprekverslag afdrukken als A4-PDF vanuit de detailweergave *(completed 2026-05-19)*
+- [x] **Phase 22: BPV Stage Excel Parser** — App leest echte BPV-uren uit het stage Excel bestand per leerling, inclusief per-placement breakdown *(completed 2026-05-20)*
+- [x] **Phase 23: Rekenen & Nederlands** — Mentor kan Rekenen en Nederlands voortgang apart bijhouden met eigen doorstroomnorm *(completed 2026-05-20)*
+- [x] **Phase 24: Onboarding Wizard** — Eerste-keer mentor doorloopt een stap-voor-stap wizard om de app volledig in te stellen *(completed 2026-05-20)*
+
+</details>
 
 ## Phase Details
 
@@ -468,6 +471,6 @@ Plans:
 | 19. UI Polish | 4/4 | Complete | 2026-05-19 |
 | 20. Drag-and-Drop Fix | 1/1 | Complete | 2026-05-19 |
 | 21. Print-to-PDF Export | 1/1 | Complete   | 2026-05-19 |
-| 22. BPV Stage Excel Parser | 0/TBD | Not started | - |
-| 23. Rekenen & Nederlands | 0/2 | Not started | - |
-| 24. Onboarding Wizard | 0/TBD | Not started | - |
+| 22. BPV Stage Excel Parser | 2/2 | Complete | 2026-05-20 |
+| 23. Rekenen & Nederlands | 2/2 | Complete | 2026-05-20 |
+| 24. Onboarding Wizard | 3/3 | Complete | 2026-05-20 |

@@ -8,16 +8,21 @@ Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL die voortgang-PDFs p
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
-## Current Milestone: v2.2 Onboarding, Export & Data Completeness
+## Milestone: v2.2 Onboarding, Export & Data Completeness — COMPLETE (2026-05-20)
 
 **Goal:** Mentoren kunnen de app in één gestructureerde flow instellen en alle benodigde data compleet aanleveren — inclusief BPV-stage uren en Rekenen/Nederlands — en een mentorgesprekverslag afdrukken als PDF.
 
-**Target features:**
-- Onboarding wizard — first-run stap-voor-stap: klas aanmaken → voortgang PDFs → verzuim Excel → stage Excel → instellingen
-- Print-to-PDF export — mentorgesprekverslag afdrukken vanuit de detailweergave (EXP-01–04)
-- BPV stage Excel parser — echte BPV-uren inlezen (nu gestubbed; vereist echt voorbeeldbestand)
-- Rekenen & Nederlands — voortgang apart bijhouden met eigen doorstroomnorm
-- Fix drag-and-drop — bestanden slepen op importveld werkt niet (bug Phase 16 UAT)
+**Delivered:**
+- ✓ Drag-drop fix — `dragDropEnabled: false` restores HTML5 DataTransfer in Tauri 2 (Phase 20)
+- ✓ Print-to-PDF export — Afdrukken button, A4 landscape, RAG color preservation (Phase 21)
+- ✓ BPV stage Excel parser — real uren extraction with per-placement breakdown (Phase 22)
+- ✓ Rekenen & Nederlands section — `normalizeRekenScore()` + norm badges, own doorstroomnorm (Phase 23)
+- ✓ 6-step onboarding wizard — first-run detection, ghost-class guard, abort flow, settings step (Phase 24)
+- ✓ PDF parser hardened — Unicode dash fix (U+2010), page-header row filtering
+
+## Current Milestone: Planning
+
+**Status:** v2.2 complete. Start `/gsd-new-milestone` to define v2.3.
 
 ## Milestone: v2.1 Settings, Polish & Auto-class Detection — COMPLETE (2026-05-19)
 

@@ -44,3 +44,52 @@
 - Model: claude-sonnet-4-6
 - Sessions: ~4 sessions (context was summarized and continued across sessions)
 - Notable: pdfjs debugging was the most expensive phase in terms of session turns; reading vendor source earlier would have cut this significantly
+
+---
+
+## Milestone: v2.2 — Onboarding, Export & Data Completeness
+
+**Shipped:** 2026-05-20
+**Phases:** 5 (20–24) | **Plans:** 9 (+1 gap closure) | **Timeline:** 2 days
+**Code:** 132 tests passing · 49 files changed · 4445 insertions
+
+### What Was Built
+
+1. Drag-drop fix — `dragDropEnabled: false` restores HTML5 DataTransfer in Tauri 2 (Phase 20)
+2. Print-to-PDF — Afdrukken button, A4 landscape, RAG color preservation via `print-color-adjust: exact` (Phase 21)
+3. BPV Excel parser — real XLSX with per-placement breakdown (locatie/ingeleverd/goedgekeurd) (Phase 22)
+4. Rekenen & Nederlands — `normalizeRekenScore()` + norm badges, own doorstroomnorm (Phase 23)
+5. 6-step onboarding wizard — first-run detection, ghost-class guard, abort flow, settings step (Phase 24)
+6. PDF parser hardened — Unicode dash U+2010 fix, multi-page page-header row filtering
+
+### What Worked
+
+- **Cross-AI review (Gemini + Codex) before gap closure** — surfaced 4 concrete gaps (ONB-06 missing settings step, ghost-class trap, klasId null-guard, abort flow) before execution. All 4 were real and fixed in plan 24-03.
+- **Milestone audit before completion** — running `/gsd-audit-milestone` caught ONB-08 (wizard re-ran after zero-PDF abort) which wasn't in any plan. Fixed in minutes before archiving.
+- **Unicode character logging pattern** — when `startsWith('-')` silently failed, logging char codes (`U+XXXX` format) pinpointed U+2010 HYPHEN vs U+002D HYPHEN-MINUS immediately. Simple, decisive.
+- **`klassenState` sync pattern** — module-level object populated during `loadKlassen()` before React mounts. Adding `onboardingCompleted` to it was a 3-file change with zero risk of timing issues.
+
+### What Was Inefficient
+
+- **No VERIFICATION.md for any v2.2 phase** — UAT files captured the validation but weren't in the standard format. Milestone audit had to operate without verification records, which cost extra time.
+- **PDF parser fix took 3 iterations** — pendingBlank buffer → `startsWith('-')` (broken) → Unicode regex. The correct question to ask upfront was "what does the first character of a datapunt actually look like at the byte level?" Asking it after the first failure would have saved two iterations.
+- **BPV-04 loading vs empty state** — cosmetic debt carried forward. Small issues like this tend to accumulate; worth closing in the same phase rather than deferring.
+
+### Patterns Established
+
+- `dragDropEnabled: false` in `tauri.conf.json` — required for any Tauri 2 app using HTML5 drag-drop; Tauri's native handler consumes OS drag events before the browser sees them
+- Unicode-aware dash regex `/^[-‐‑‒–—―−]/` — SomToday PDFs use U+2010 HYPHEN, not ASCII hyphen. Any PDF text extraction must be Unicode-aware.
+- `onboardingCompleted` boolean in LazyStore, read via `klassenState` sync object — clean pattern for any first-run gating that must be resolved before React mounts
+- `print-color-adjust: exact` + `#root > *` isolation — required combination for RAG badge color preservation and correct print scope in a React/Tauri app
+
+### Key Lessons
+
+- **Log char codes when a string comparison silently fails** — visually identical characters often differ at the byte level (U+2010 vs U+002D). `charCodeAt(0).toString(16)` resolves it instantly.
+- **Run `/gsd-audit-milestone` before completion, not after** — gaps found during audit are cheap to fix; gaps found post-archive become v.next tech debt.
+- **Cross-AI review is most valuable right before gap closure** — adversarial review on a nearly-complete feature catches the corner cases that normal planning misses (abort flows, guard conditions, edge cases).
+
+### Cost Observations
+
+- Model: claude-sonnet-4-6
+- Sessions: ~3 sessions across 2 days
+- Notable: PDF parser iteration was the most expensive debugging stretch; Unicode char logging cut the final iteration to one round-trip

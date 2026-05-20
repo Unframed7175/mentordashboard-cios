@@ -1,38 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Onboarding, Export & Data Completeness
-status: complete
+milestone: v2.3
+milestone_name: TBD (planning)
+status: planning
 last_updated: "2026-05-20T00:00:00.000Z"
-last_activity: 2026-05-20 — Phase 24 complete. ONB-01..08 shipped. 132 tests pass. v2.2 DONE.
+last_activity: 2026-05-20 — v2.2 milestone archived. Git tag v2.2 created. Ready to define v2.3.
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-19)
+See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** v2.2 — Onboarding, Export & Data Completeness
+**Current focus:** Planning — v2.3 milestone definition
 
 ## Current Position
 
-Phase: 24 — Onboarding Wizard
-Plan: 24-02 (2/2 complete)
-Status: Phase 24 complete. ONB-01..08 fulfilled. v2.2 milestone COMPLETE.
-Last activity: 2026-05-20 — Phase 24 executed — OnboardingWizard.tsx + App.tsx wiring + 132 tests pass
+Phase: n/a — Planning
+Status: v2.2 archived. Awaiting v2.3 milestone definition via `/gsd-new-milestone`.
+Last activity: 2026-05-20 — v2.2 milestone archived and tagged.
 
 ## Progress Bar
 
 ```
-v2.2: [████████████████████] 100% (5/5 phases)
+v2.3: [____________________] 0% (0/? phases) — milestone not yet defined
 ```
 
 ## Performance Metrics
@@ -126,3 +125,4 @@ v2.2 phases completed: 5/5
 - 2026-05-19: Phase 20 Plan 01 executed — BUG-01 fixed. dragDropEnabled: false in tauri.conf.json. Cargo.toml bumped to 2.2.0. 93/93 tests pass. commit dd6f1a7.
 - 2026-05-20: Phase 23 Plan 02 executed — RekenenNederlandsSection.tsx created (TDD: 22 tests, RED→GREEN). Norm badge inline with label (3F/2F/1F). Mounted in DetailWeergave.tsx between AanvullendSection and StageSection. 132/132 tests pass. commit 6946d84.
 - 2026-05-20: Phase 24 executed — OnboardingWizard.tsx (5-step wizard: klas aanmaken, PDFs, verzuim, BPV, completion). App.tsx wired with lazy view initializer + handleOnboardingComplete. ONB-01..08 fulfilled. 132/132 tests pass. commit 49135bc. v2.2 COMPLETE.
+- 2026-05-20: Phase 24 gap closure (plan 24-03) executed — ONB-06 settings step (drempelwaarden), ghost-class lazy-init fix, klasId null-guard, Afbreken abort flow. 132/132 tests pass. commit 4767da1.
