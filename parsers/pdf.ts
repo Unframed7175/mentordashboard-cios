@@ -584,6 +584,13 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
   // Track the current vak name (rows in this table are grouped by vak)
   let currentVak = '';
 
+  // Buffer for rows with no score cells at all (no scoreItems).
+  // These could be real blank datapunten OR repeated page-header rows (student name/info).
+  // We flush the buffer when real content arrives and discard it when a repeated
+  // column-header row is detected — that discards the page-header lines that appear
+  // just before each repeated column header on multi-page tables.
+  let pendingBlank: any[] = [];
+
   // Walk lines after the header row
   for (let i = startIndex + 1; i < lines.length; i++) {
     const line = lines[i];
@@ -592,9 +599,11 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     // Skip blank lines
     if (!text) continue;
 
-    // Skip repeated header rows (table continues on next page)
+    // Repeated column-header row (multi-page table) — discard pending buffer
+    // because the lines since the last scored row were page-header content.
     if (isHeaderRow(line)) {
       console.log(`[pdf.ts] Skipping repeated deelgebied header row at line ${i}`);
+      pendingBlank = [];
       continue;
     }
 
@@ -626,31 +635,39 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     }
 
     if (!hasAnyScore) {
-      // Rows with score-area cells that didn't match O/V/G/E are still datapunten (not yet graded).
-      // Rows with NO cells in the score area at all may be vak group headings OR blank-scored datapunten.
-      // Use VAK_HEADINGS to distinguish: only exact matches (case-insensitive) are group separators.
       if (scoreItems.length > 0) {
-        // Has cells but none matched a score — include as datapunt with empty scores
+        // Has cells in the score area but none matched O/V/G/E — real datapunt, not yet graded.
+        // Flush pending buffer before adding (these blanks came before real content).
+        datapunten.push(...pendingBlank);
+        pendingBlank = [];
         datapunten.push({ vak: currentVak, datapunt: labelText, scores: {} });
       } else if (labelText && VAK_HEADINGS.has(labelText.toLowerCase())) {
-        // Known vak group heading
+        // Known vak group heading — flush pending, advance vak.
+        datapunten.push(...pendingBlank);
+        pendingBlank = [];
         currentVak = labelText;
         console.log(`[pdf.ts] Deelgebied table: vak heading → "${currentVak}"`);
       } else if (labelText && labelText.length > 1) {
-        // No score cells, not a known heading — treat as blank-scored datapunt
-        console.log(`[pdf.ts] Deelgebied table: blank datapunt (no scores yet) → "${labelText}" under vak "${currentVak}"`);
-        datapunten.push({ vak: currentVak, datapunt: labelText, scores: {} });
+        // No score cells, not a known heading — buffer it.
+        // Will be flushed when real content arrives, or discarded on next column header.
+        console.log(`[pdf.ts] Deelgebied table: buffering no-score row → "${labelText}"`);
+        pendingBlank.push({ vak: currentVak, datapunt: labelText, scores: {} });
       }
       continue;
     }
 
-    // Data row: record as a datapunt
+    // Scored data row — flush pending buffer then record this datapunt.
+    datapunten.push(...pendingBlank);
+    pendingBlank = [];
     datapunten.push({
       vak:      currentVak,
       datapunt: labelText,
       scores,
     });
   }
+
+  // Flush any remaining buffered blank datapunten (trailing ungraded rows at end of table).
+  datapunten.push(...pendingBlank);
 
   // -----------------------------------------------------------------------
   // Aggregate deelgebiedScores: initialize all 19 as null, then apply
