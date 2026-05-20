@@ -201,6 +201,8 @@ export function parseBpvExcel(buffer: ArrayBuffer): BpvData {
     let score = 0;
     if (ln.includes('bpv'))      score += 4;
     if (ln.includes('stage'))    score += 3;
+    if (ln.includes('logboek'))  score += 3;
+    if (ln.includes('voortgang')) score += 2;
     if (ln.includes('uren'))     score += 2;
     if (ln.includes('praktijk')) score += 2;
     if (score > bestScore) { bestScore = score; sheetName = name; }

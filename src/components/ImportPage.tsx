@@ -326,7 +326,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
       if (name.endsWith('.pdf')) {
         pdfs.push(file);
       } else if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
-        if (/bpv|stage|praktijk/i.test(file.name)) {
+        if (/bpv|stage|praktijk|logboek/i.test(file.name)) {
           bpvCount++;
           if (bpvCount === 1) {
             bpv = file;
