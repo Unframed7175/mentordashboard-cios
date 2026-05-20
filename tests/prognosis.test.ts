@@ -125,17 +125,8 @@ describe('berekenPrognose activeDeelgebiedenIds filter (Phase 18)', () => {
   });
 
   it('uses getLeerlijnenMappingSync (no Promise leak)', () => {
-    // Mock leerlijnen so getLeerlijnenMappingSync returns a known sync mapping
-    // All DEELGEBIEDEN ids mapped to 'lesgeven' for simplicity
-    const knownMapping = Object.fromEntries(
-      DEELGEBIEDEN.map(dg => [dg.id, 'lesgeven'])
-    );
-    vi.mock('../utils/leerlijnen', () => ({
-      getLeerlijnenMappingSync: () => knownMapping,
-      getLeerlijnenMapping: async () => knownMapping,
-    }));
-
-    // 4 deelgebieden scored 'goed' (which is goedOfHoger for SBC check)
+    // getLeerlijnenMappingSync is synchronous by design; cold-cache returns schema defaults.
+    // No mock needed — calling it inside berekenPrognose must not return a Promise.
     const activeIds = DEELGEBIEDEN.slice(0, 4).map(dg => dg.id);
     const scores: Record<string, string | null> = {};
     for (const dg of DEELGEBIEDEN) {
@@ -149,8 +140,6 @@ describe('berekenPrognose activeDeelgebiedenIds filter (Phase 18)', () => {
     const validLabels = ['sbc', 'sbl', 'negatief', 'neutraal'];
     expect(validLabels).toContain(result.label);
     expect(result.label).not.toBeUndefined();
-
-    vi.unmock('../utils/leerlijnen');
   });
 
 });
