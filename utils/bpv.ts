@@ -31,8 +31,15 @@ export interface BpvConfig {
   verwachteUren: number; // default 200 (D-14 per UI-SPEC)
 }
 
+export interface BpvPlaatsing {
+  locatie: string;
+  ingeleverdUren: number;
+  goedgekeurdeUren: number;
+}
+
 export interface BpvStudentRecord {
-  gerealiseerdeUren: number;
+  gerealiseerdeUren: number; // sum of goedgekeurdeUren across all plaatsingen
+  plaatsen: BpvPlaatsing[];
 }
 
 export type BpvData = Record<string, BpvStudentRecord>; // keyed by leerlingId
@@ -244,16 +251,34 @@ export function parseBpvExcel(buffer: ArrayBuffer): BpvData {
     const llnrMatch = llnrRaw.match(/^(\d+)(?:[.,]0+)?$/);
     const leerlingId = llnrMatch ? llnrMatch[1] : naam;
 
-    // Real file column: "Stage-uren goedgekeurd" (approved hours)
-    const urenRaw = _bpvKolom(rowObj, [
-      'Stage-uren goedgekeurd', 'Stage-uren ingeleverd',
+    // Location / organisation name for this placement
+    const locatie = String(
+      _bpvKolom(rowObj, [
+        'Leerbedrijf', 'Organisatie', 'Bedrijf', 'Stagebedrijf', 'Stageplek',
+        'Locatie', 'Naam organisatie', 'Instelling', 'Adres', 'Organisation', 'Company',
+      ]) || ''
+    ).trim();
+
+    // Submitted hours (ingeleverd) — hours the student logged, not yet fully approved
+    const ingeleverdRaw = _bpvKolom(rowObj, [
+      'Stage-uren ingeleverd', 'Uren ingeleverd', 'Ingediende uren',
+      'Ingeleverd', 'Totaal uren', 'Totaal',
+    ]);
+    const ingeleverdUren = ingeleverdRaw !== '' ? (parseFloat(String(ingeleverdRaw)) || 0) : 0;
+
+    // Approved hours (goedgekeurd) — hours formally signed off
+    const goedgekeurdRaw = _bpvKolom(rowObj, [
+      'Stage-uren goedgekeurd', 'Goedgekeurde uren', 'Goedgekeurd',
       'Gerealiseerde uren', 'Gerealiseerd', 'BPV uren', 'Stage uren',
       'Uren gerealiseerd', 'Behaalde uren', 'Uren',
     ]);
-    const gerealiseerdeUren = urenRaw !== '' ? (parseFloat(String(urenRaw)) || 0) : 0;
+    const goedgekeurdeUren = goedgekeurdRaw !== '' ? (parseFloat(String(goedgekeurdRaw)) || 0) : 0;
 
-    // SUM across multiple rows — one row per organisation per student
-    result[leerlingId] = { gerealiseerdeUren: (result[leerlingId]?.gerealiseerdeUren ?? 0) + gerealiseerdeUren };
+    // Accumulate per student: push placement + update running total
+    const existing = result[leerlingId] ?? { gerealiseerdeUren: 0, plaatsen: [] };
+    existing.plaatsen.push({ locatie: locatie || '—', ingeleverdUren, goedgekeurdeUren });
+    existing.gerealiseerdeUren += goedgekeurdeUren;
+    result[leerlingId] = existing;
   }
 
   return result;

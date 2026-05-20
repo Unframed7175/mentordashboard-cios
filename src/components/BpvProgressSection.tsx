@@ -9,6 +9,7 @@ import {
   berekenBpvPct,
   type BpvConfig,
   type BpvStudentRecord,
+  type BpvPlaatsing,
 } from '../../utils/bpv';
 
 interface BpvProgressSectionProps {
@@ -38,7 +39,7 @@ export default function BpvProgressSection({ leerlingId }: BpvProgressSectionPro
           Nog geen stage-data — importeer de stage Excel via het importscherm.
         </p>
       ) : (
-        /* Populated state — show progress bar + stats */
+        /* Populated state — overall bar + per-placement breakdown */
         (() => {
           const gerealiseerd = record.gerealiseerdeUren;
           const verwacht = bpvConfig.verwachteUren;
@@ -46,10 +47,11 @@ export default function BpvProgressSection({ leerlingId }: BpvProgressSectionPro
           const verschil = verwacht - gerealiseerd;
           const verschilPrefix = verschil >= 0 ? '+' : '−';
           const overshoot = gerealiseerd >= verwacht;
+          const plaatsen: BpvPlaatsing[] = record.plaatsen ?? [];
 
           return (
             <div className="bpv-progress-wrap">
-              {/* Progress bar row */}
+              {/* Overall progress bar */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div className="bpv-bar-track">
                   <div
@@ -65,11 +67,11 @@ export default function BpvProgressSection({ leerlingId }: BpvProgressSectionPro
                 </span>
               </div>
 
-              {/* Stats row */}
+              {/* Overall stats row */}
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 <div>
                   <div style={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.07em' }}>
-                    Gerealiseerd
+                    Goedgekeurd
                   </div>
                   <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {gerealiseerd}u
@@ -85,13 +87,54 @@ export default function BpvProgressSection({ leerlingId }: BpvProgressSectionPro
                 </div>
                 <div>
                   <div style={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.07em' }}>
-                    Verschil
+                    Resterend
                   </div>
                   <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {verschilPrefix}{Math.abs(verschil)}u
                   </div>
                 </div>
               </div>
+
+              {/* Per-placement breakdown */}
+              {plaatsen.length > 0 && (
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, fontSize: '0.8125rem' }}>
+                  <thead>
+                    <tr>
+                      {(['Locatie', 'Ingeleverd', 'Goedgekeurd', 'In behandeling'] as const).map(h => (
+                        <th key={h} style={{
+                          textAlign: h === 'Locatie' ? 'left' : 'right',
+                          fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase',
+                          color: 'var(--text-muted)', letterSpacing: '0.07em',
+                          paddingBottom: 4, borderBottom: '1px solid var(--border-color)',
+                        }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {plaatsen.map((p, i) => {
+                      const inBehandeling = Math.max(0, p.ingeleverdUren - p.goedgekeurdeUren);
+                      return (
+                        <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '5px 0', color: 'var(--text-primary)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {p.locatie}
+                          </td>
+                          <td style={{ padding: '5px 0 5px 8px', textAlign: 'right', color: 'var(--text-secondary)' }}>
+                            {p.ingeleverdUren}u
+                          </td>
+                          <td style={{ padding: '5px 0 5px 8px', textAlign: 'right', color: p.goedgekeurdeUren > 0 ? '#22C55E' : 'var(--text-secondary)', fontWeight: p.goedgekeurdeUren > 0 ? 700 : 400 }}>
+                            {p.goedgekeurdeUren}u
+                          </td>
+                          <td style={{ padding: '5px 0 5px 8px', textAlign: 'right', color: inBehandeling > 0 ? '#F59E0B' : 'var(--text-muted)' }}>
+                            {inBehandeling}u
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
           );
         })()

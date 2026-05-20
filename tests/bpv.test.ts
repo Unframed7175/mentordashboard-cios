@@ -73,7 +73,7 @@ describe('bpv utility (Phase 18)', () => {
   it('saveBpvData persists per-student record', async () => {
     const { getBpvData, saveBpvData } = await import('../utils/bpv');
 
-    await saveBpvData({ 'L-001': { gerealiseerdeUren: 80 } });
+    await saveBpvData({ 'L-001': { gerealiseerdeUren: 80, plaatsen: [] } });
 
     // Invalidate module cache but retain store map
     vi.resetModules();
