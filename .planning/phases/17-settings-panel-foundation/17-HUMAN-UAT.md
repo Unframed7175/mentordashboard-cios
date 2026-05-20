@@ -3,7 +3,7 @@ status: resolved
 phase: 17-settings-panel-foundation
 source: [17-VERIFICATION.md]
 started: 2026-05-17T19:15:00Z
-updated: 2026-05-17T20:47:00Z
+updated: 2026-05-20T00:00:00Z
 ---
 
 ## Current Test
@@ -45,12 +45,13 @@ blocked: 0
   artifacts:
     - src/components/DeelgebiedenMatrix.tsx
     - src/index.css
-  missing:
-    - body.dark overrides for .score-o, .score-v, .score-g, .score-e (index.css:877-880)
-    - body.dark overrides for .gap-ok, .gap-danger, .gap-warn, .gap-info (index.css:509-512)
-    - DeelgebiedenMatrix GROEPEN array uses hardcoded inline styles on <th> headers (DeelgebiedenMatrix.tsx:15,20,25) — needs CSS variables or dark-aware classes
   root_cause: >
     Three distinct sources: (1) DeelgebiedenMatrix.tsx GROEPEN array has hardcoded hex inline styles
     for category headers (Lesgeven/Organiseren/Prof.handelen) that bypass body.dark CSS cascade.
     (2) Score chips .score-o/v/g/e in index.css have no body.dark overrides — light pastels stay
     visible in dark mode. (3) Gap badge classes .gap-ok/danger/warn/info similarly lack body.dark rules.
+  fix_applied:
+    - "index.css: body.dark .score-o/v/g/e overrides added (lines 178-181)"
+    - "index.css: body.dark .gap-ok/danger/warn/info overrides added (lines 183-186)"
+    - "DeelgebiedenMatrix.tsx: GROEPEN uses CSS class names (dm-header-lesgeven/organiseren/profhandelen) backed by CSS variables — no hardcoded hex inline styles"
+  resolved_at: "2026-05-20 (verified via grep: body.dark overrides present, CSS variable classes in use)"
