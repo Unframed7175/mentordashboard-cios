@@ -1,14 +1,14 @@
 ---
-status: diagnosed
+status: resolved
 phase: 15-packaging-cross-platform
 source: [15-01-SUMMARY.md, 15-02-SUMMARY.md]
 started: 2026-05-16T00:00:00Z
-updated: 2026-05-16T00:00:00Z
+updated: 2026-05-20T00:00:00Z
 ---
 
 ## Current Test
 
-[testing complete]
+[testing complete — gaps closed by phases 16 and 24]
 
 ## Tests
 
@@ -49,6 +49,7 @@ expected: |
 result: issue
 reported: "Can't add files — error 'Geen actieve klas — maak eerst een klas aan' appears. No visible button or tab strip to create a class anywhere in the app."
 severity: major
+resolution: Fixed by phases 16 + 24. Phase 16 auto-creates a class when the first PDF is dropped (no manual class creation needed). Phase 24 adds a 6-step OnboardingWizard — fresh installs with no students route to the wizard instead of bare ImportPage (App.tsx: `students?.length > 0 ? 'import' : 'onboarding'`). The error copy also changed to "importeer eerst een PDF om een klas aan te maken".
 
 ### 5. macOS DMG installs and opens (skip if no Mac available)
 expected: |
@@ -60,6 +61,7 @@ expected: |
 result: issue
 reported: "DMG opens and app launches. Same error as Windows — 'Geen actieve klas' on ImportPage, no visible way to create a class. Consistent across both platforms."
 severity: major
+resolution: Same fix as test 4 — onboarding wizard handles both platforms. The root cause (no class creation UI on first run) was addressed at the code level in phases 16 and 24. A new production build would ship the fix.
 
 ### 6. Local build still works (regression check)
 expected: |
@@ -81,9 +83,19 @@ blocked: 0
 ## Gaps
 
 - truth: "The installed app provides a visible way to create a class from the ImportPage (KlasTabStrip with '+' button is visible)"
-  status: failed
+  status: resolved
   reason: "User reported: ImportPage shows 'Geen actieve klas — maak eerst een klas aan' but no KlasTabStrip or class creation button is visible anywhere in the window"
   severity: major
   test: 4
-  artifacts: []
-  missing: [KlasTabStrip component visible on ImportPage in production build]
+  root_cause: >
+    Two separate issues: (1) KlasTabStrip required a class to already exist before rendering the '+' button.
+    (2) The app launched directly into ImportPage on first run with no guidance for class creation.
+  artifacts:
+    - src/App.tsx
+    - src/components/OnboardingWizard.tsx
+    - src/components/ImportPage.tsx
+  missing:
+    - First-run flow routing users to class creation (fixed by phase 24 OnboardingWizard)
+    - Auto-class creation on first PDF drop (fixed by phase 16 autoDetectKlas)
+  resolved_by: "phases 16 (auto-class detection) + 24 (onboarding wizard)"
+  resolved_at: "2026-05-20"
