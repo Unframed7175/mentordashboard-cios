@@ -10,7 +10,6 @@ import BpvProgressSection from './BpvProgressSection';
 import VakkenSection from './VakkenSection';
 import NotitiesTextarea from './NotitiesTextarea';
 import RekenenNederlandsSection from './RekenenNederlandsSection';
-import StageSection from './StageSection';
 import LeerlijnenSection from './LeerlijnenSection';
 
 interface DetailWeergaveProps {
@@ -47,13 +46,7 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
 
   const status = berekenStatus(student);
   const meta = [student.periode, student.leerjaar].filter(Boolean).join(' · ');
-
-  // WR-08: Look up stageData here and pass it as a prop to StageSection so that
-  // StageSection does not need to read the klassenState singleton directly. This
-  // ensures StageSection always shows data for the current active class as
-  // observed by DetailWeergave, not a potentially stale singleton snapshot.
   const klas = klassenState.activeKlasId ? klassenState.klassen[klassenState.activeKlasId] : null;
-  const stageData = klas?.stageData?.[leerlingId] ?? null;
 
   // Aggregate deelgebiedScores across ALL periods: latest non-null wins.
   // Most-recent record alone only covers one period — when 2+ PDFs are imported,
@@ -135,9 +128,6 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
 
       {/* Section 2: RekenenNederlandsSection — RNL-01..03 */}
       <RekenenNederlandsSection student={student} />
-
-      {/* Section 3: StageSection — stageData passed as prop (WR-08) */}
-      <StageSection student={student} stageData={stageData} />
 
       {/* Section 4: FeedbackActiepuntenSection */}
       <FeedbackActiepuntenSection leerlingId={leerlingId} />
