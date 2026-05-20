@@ -37,6 +37,8 @@
  * @property {string}  [taalniveauGesprekken]  - '' | '2F' | '3F' (Phase 12)
  * @property {number|null} [rekenDomeinenAfgerond] - 0–7 or null (Phase 12)
  * @property {Actiepunt[]} [actiepunten] - Mentor actiepunten (Phase 13 Plan 02)
+ * @property {string|null} [rekenResultaat]      - '2F' | '3F' | '' | null — Rekenen assessment result (RNL-01)
+ * @property {string|null} [nederlandsResultaat] - '2F' | '3F' | '' | null — Nederlands assessment result (RNL-02)
  */
 
 /**
