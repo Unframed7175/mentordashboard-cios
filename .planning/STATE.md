@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Onboarding, Export & Data Completeness
-status: Phase 21 shipped. EXP-01..04 fulfilled.
-last_updated: "2026-05-20T06:12:19.251Z"
-last_activity: 2026-05-19 — Phase 21 Plan 01 executed — Afdrukken button + @media print isolation
+status: complete
+last_updated: "2026-05-20T00:00:00.000Z"
+last_activity: 2026-05-20 — Phase 24 complete. ONB-01..08 shipped. 132 tests pass. v2.2 DONE.
 progress:
-  total_phases: 19
-  completed_phases: 18
-  total_plans: 52
-  completed_plans: 52
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 8
+  completed_plans: 8
   percent: 100
 ---
 
@@ -24,15 +24,15 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 
 ## Current Position
 
-Phase: 23 — Rekenen & Nederlands
-Plan: 23-02 (2/2 complete)
-Status: Phase 23 Plan 02 shipped. RNL-01..03 fulfilled. RNL-04 pending real PDF.
-Last activity: 2026-05-20 — Phase 23 Plan 02 executed — RekenenNederlandsSection.tsx + 22 tests + DetailWeergave mount
+Phase: 24 — Onboarding Wizard
+Plan: 24-02 (2/2 complete)
+Status: Phase 24 complete. ONB-01..08 fulfilled. v2.2 milestone COMPLETE.
+Last activity: 2026-05-20 — Phase 24 executed — OnboardingWizard.tsx + App.tsx wiring + 132 tests pass
 
 ## Progress Bar
 
 ```
-v2.2: [████████████░░░░░░░░] 60% (3/5 phases)
+v2.2: [████████████████████] 100% (5/5 phases)
 ```
 
 ## Performance Metrics
@@ -42,7 +42,7 @@ v1.1 phases completed: 3/3
 v1.2 phases completed: 1/1
 v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
-v2.2 phases completed: 3/5
+v2.2 phases completed: 5/5
 
 ## Accumulated Context
 
@@ -125,3 +125,4 @@ v2.2 phases completed: 3/5
 - 2026-05-19: v2.2 milestone started. Roadmap created — Phases 20–24 defined, all 21 requirements mapped. Next: /gsd-plan-phase 20
 - 2026-05-19: Phase 20 Plan 01 executed — BUG-01 fixed. dragDropEnabled: false in tauri.conf.json. Cargo.toml bumped to 2.2.0. 93/93 tests pass. commit dd6f1a7.
 - 2026-05-20: Phase 23 Plan 02 executed — RekenenNederlandsSection.tsx created (TDD: 22 tests, RED→GREEN). Norm badge inline with label (3F/2F/1F). Mounted in DetailWeergave.tsx between AanvullendSection and StageSection. 132/132 tests pass. commit 6946d84.
+- 2026-05-20: Phase 24 executed — OnboardingWizard.tsx (5-step wizard: klas aanmaken, PDFs, verzuim, BPV, completion). App.tsx wired with lazy view initializer + handleOnboardingComplete. ONB-01..08 fulfilled. 132/132 tests pass. commit 49135bc. v2.2 COMPLETE.

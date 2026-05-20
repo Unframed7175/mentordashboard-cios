@@ -12,6 +12,11 @@
 //
 // Phase 18 Plan 02 — Wave 1 implementation
 
+import * as XLSX from 'xlsx';
+import * as cpexcel from 'xlsx/dist/cpexcel.full.mjs';
+const _cptableWithUtils = Object.assign({}, (cpexcel as any).cptable, { utils: (cpexcel as any).utils });
+XLSX.set_cptable(_cptableWithUtils);
+
 import { LazyStore } from '@tauri-apps/plugin-store';
 
 const store = new LazyStore('store.json', { defaults: {}, autoSave: false });
@@ -148,20 +153,130 @@ export function berekenBpvPct(gerealiseerd: number, verwacht: number): number {
 
 // ── parseBpvExcel() ───────────────────────────────────────────────────────────
 
-/**
- * Parse a BPV Excel file into BpvData.
- * D-13: BPV Excel parser stubbed — replace when user supplies sample BPV Excel file
- */
+function _bpvKolom(rowObj: Record<string, any>, kandidaten: string[]): any {
+  const rowKeys = Object.keys(rowObj);
+  for (const kandidaat of kandidaten) {
+    const needle = kandidaat.toLowerCase().trim();
+    for (const key of rowKeys) {
+      const hdr = key.toLowerCase().trim();
+      if (hdr === needle || hdr.includes(needle)) {
+        const val = rowObj[key];
+        if (val !== undefined && val !== null && val !== '') return val;
+      }
+    }
+  }
+  return '';
+}
+
 export function parseBpvExcel(buffer: ArrayBuffer): BpvData {
-  // D-13: BPV Excel parser stubbed — replace when user supplies sample BPV Excel file
-  // Magic-byte guard: reject files that are clearly not XLSX (PK\x03\x04) or XLS (D0 CF 11 E0)
   const bytes = new Uint8Array(buffer.slice(0, 8));
   const isXlsx = bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04;
   const isXls  = bytes[0] === 0xD0 && bytes[1] === 0xCF && bytes[2] === 0x11 && bytes[3] === 0xE0;
   if (!isXlsx && !isXls) {
     throw new Error('Onbekend BPV-bestandsformaat');
   }
-  return {};
+
+  let workbook: XLSX.WorkBook;
+  try {
+    workbook = XLSX.read(new Uint8Array(buffer), { type: 'array', cellDates: true });
+  } catch {
+    return {};
+  }
+
+  if (!workbook.SheetNames || workbook.SheetNames.length === 0) return {};
+
+  // BPV-specific sheet scorer — separate from verzuim scorer
+  // Real file: "Logboek voortgang" (only sheet, defaults to SheetNames[0])
+  let sheetName = workbook.SheetNames[0];
+  let bestScore = 0;
+  workbook.SheetNames.forEach((name: string) => {
+    const ln = name.toLowerCase();
+    let score = 0;
+    if (ln.includes('bpv'))      score += 4;
+    if (ln.includes('stage'))    score += 3;
+    if (ln.includes('uren'))     score += 2;
+    if (ln.includes('praktijk')) score += 2;
+    if (score > bestScore) { bestScore = score; sheetName = name; }
+  });
+
+  const sheet = workbook.Sheets[sheetName];
+  let rawRows: any[][];
+  try {
+    rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as any[][];
+  } catch {
+    return {};
+  }
+  if (rawRows.length === 0) return {};
+
+  // Header row detection
+  const BPV_HEADER_KEYS = ['naam', 'leerling', 'student', 'deelnemer', 'cursist', 'uren', 'gerealiseerd', 'bpv', 'stage'];
+  let headerRowIdx = 0;
+  let headerScore  = 0;
+  for (let ri = 0; ri < Math.min(rawRows.length, 20); ri++) {
+    const rowLower = rawRows[ri].map((c: any) => String(c || '').toLowerCase().trim());
+    let score = 0;
+    rowLower.forEach((c: string) => {
+      BPV_HEADER_KEYS.forEach((k: string) => { if (c.includes(k)) score++; });
+    });
+    if (score > headerScore) { headerScore = score; headerRowIdx = ri; }
+  }
+
+  const headers  = rawRows[headerRowIdx].map((h: any) => String(h || '').trim());
+  const dataRows = rawRows.slice(headerRowIdx + 1);
+
+  const result: BpvData = {};
+
+  for (const rawRow of dataRows) {
+    if (!rawRow.some((c: any) => c !== '' && c !== null && c !== undefined)) continue;
+
+    const rowObj: Record<string, any> = {};
+    headers.forEach((h, i) => { if (h) rowObj[h] = rawRow[i] !== undefined ? rawRow[i] : ''; });
+
+    // Real file columns: "Student" (name), "Studentnummer" (ID)
+    const naam = String(
+      _bpvKolom(rowObj, ['Student', 'Naam', 'Leerlingnaam', 'Deelnemer', 'Cursist', 'Studentnaam', 'Deelnemersnaam']) || ''
+    ).trim();
+    if (!naam) continue;
+
+    const llnrRaw = String(
+      _bpvKolom(rowObj, ['Studentnummer', 'Leerlingnummer', 'Llnr', 'Deelnemer nr', 'Deelnemersnummer', 'Nummer']) || ''
+    ).trim();
+    const llnrMatch = llnrRaw.match(/^(\d+)(?:[.,]0+)?$/);
+    const leerlingId = llnrMatch ? llnrMatch[1] : naam;
+
+    // Real file column: "Stage-uren goedgekeurd" (approved hours)
+    const urenRaw = _bpvKolom(rowObj, [
+      'Stage-uren goedgekeurd', 'Stage-uren ingeleverd',
+      'Gerealiseerde uren', 'Gerealiseerd', 'BPV uren', 'Stage uren',
+      'Uren gerealiseerd', 'Behaalde uren', 'Uren',
+    ]);
+    const gerealiseerdeUren = urenRaw !== '' ? (parseFloat(String(urenRaw)) || 0) : 0;
+
+    // SUM across multiple rows — one row per organisation per student
+    result[leerlingId] = { gerealiseerdeUren: (result[leerlingId]?.gerealiseerdeUren ?? 0) + gerealiseerdeUren };
+  }
+
+  return result;
+}
+
+// ── debugBpvExcel() ────────────────────────────────────────────────────────────
+
+export function debugBpvExcel(buffer: ArrayBuffer): void {
+  try {
+    const wb = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+    console.group('=== debugBpvExcel ===');
+    console.log('Werkbladen:', wb.SheetNames);
+    wb.SheetNames.forEach((name: string) => {
+      const ws = wb.Sheets[name];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as any[][];
+      console.group('Werkblad: "' + name + '" (' + rows.length + ' rijen)');
+      rows.slice(0, 5).forEach((r, i) => console.log('Rij ' + i + ':', r));
+      console.groupEnd();
+    });
+    console.groupEnd();
+  } catch (e) {
+    console.warn('[debugBpvExcel] parse error:', e);
+  }
 }
 
 console.log('[bpv.ts] BPV config + data persistence geladen');
