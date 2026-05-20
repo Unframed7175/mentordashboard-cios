@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Onboarding, Export & Data Completeness
-status: in_progress
-last_updated: "2026-05-19T00:00:00.000Z"
-last_activity: 2026-05-19 — Phase 22 complete. BPV-01..04 shipped. Real file columns confirmed. 93 tests pass.
+status: Phase 21 shipped. EXP-01..04 fulfilled.
+last_updated: "2026-05-20T06:12:19.251Z"
+last_activity: 2026-05-19 — Phase 21 Plan 01 executed — Afdrukken button + @media print isolation
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
-  percent: 60
+  total_phases: 19
+  completed_phases: 18
+  total_plans: 52
+  completed_plans: 52
+  percent: 100
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-19)
 
 ## Current Position
 
-Phase: 21 — Print-to-PDF Export (complete)
-Plan: 21-01 (1/1 complete)
-Status: Phase 21 shipped. EXP-01..04 fulfilled.
-Last activity: 2026-05-19 — Phase 21 Plan 01 executed — Afdrukken button + @media print isolation
+Phase: 23 — Rekenen & Nederlands
+Plan: 23-02 (2/2 complete)
+Status: Phase 23 Plan 02 shipped. RNL-01..03 fulfilled. RNL-04 pending real PDF.
+Last activity: 2026-05-20 — Phase 23 Plan 02 executed — RekenenNederlandsSection.tsx + 22 tests + DetailWeergave mount
 
 ## Progress Bar
 
@@ -124,3 +124,4 @@ v2.2 phases completed: 3/5
 - 2026-05-19: Phase 19 Plans 02–04 executed — CIOS brand refresh (Industry font, #009FE3 accent, Material shadows), spider chart JSX refactor + tooltips, dark mode lift to App.tsx, settings slide-in animation, logo swap, responsive grid fix. 7/8 UAT items passed. 1 cosmetic open: nav ::after diagonal stripe not visible in Tauri WebView (background task logged). v2.1 SHIPPED.
 - 2026-05-19: v2.2 milestone started. Roadmap created — Phases 20–24 defined, all 21 requirements mapped. Next: /gsd-plan-phase 20
 - 2026-05-19: Phase 20 Plan 01 executed — BUG-01 fixed. dragDropEnabled: false in tauri.conf.json. Cargo.toml bumped to 2.2.0. 93/93 tests pass. commit dd6f1a7.
+- 2026-05-20: Phase 23 Plan 02 executed — RekenenNederlandsSection.tsx created (TDD: 22 tests, RED→GREEN). Norm badge inline with label (3F/2F/1F). Mounted in DetailWeergave.tsx between AanvullendSection and StageSection. 132/132 tests pass. commit 6946d84.
