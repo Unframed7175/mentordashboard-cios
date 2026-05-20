@@ -1283,6 +1283,11 @@ a:hover { text-decoration: underline; }
   margin: 1cm 1.2cm;
 }
 
+@page landscape {
+  size: A4 landscape;
+  margin: 1cm 1.2cm;
+}
+
 .print-header {
   display: none;
 }
@@ -1314,6 +1319,13 @@ a:hover { text-decoration: underline; }
     break-inside: avoid;
     padding: 0.4rem 0 !important;
     margin-bottom: 0.4rem !important;
+  }
+
+  .dg-matrix-wrap {
+    page: landscape;
+    break-before: page;
+    break-after: page;
+    overflow: visible !important;
   }
 
   .detail-section-title {
