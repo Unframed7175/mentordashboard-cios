@@ -3,7 +3,7 @@ status: resolved
 phase: 16-auto-class-detection
 source: [16-VERIFICATION.md]
 started: 2026-05-17T10:20:00Z
-updated: 2026-05-17T11:00:00Z
+updated: 2026-05-20T00:00:00Z
 ---
 
 ## Current Test
@@ -38,4 +38,7 @@ blocked: 0
 ### Observed during UAT (out of scope for phase 16)
 
 - **Drag-and-drop not working** — File upload via button works correctly; drag-and-drop to the ImportPage dropzone does not trigger. Phase 13 introduced the dropzone; this may be a Tauri drag-drop event registration issue.
+  **Resolved by phase 20** (2026-05-19): `dragDropEnabled: false` added to `src-tauri/tauri.conf.json` — releases OS drag events back to the browser HTML5 DataTransfer API.
+
 - **Stage Excel files not working** — Verzuim Excel import works; stage/BPV Excel files are not processed correctly. Scope unclear — may be a parser mismatch or a missing handler for the stage file format.
+  **Resolved by phase 22** (2026-05-19): `parseBpvExcel()` implemented in `utils/bpv.ts` with magic-byte validation, sheet scoring, and `Stage-uren goedgekeurd` column extraction. Filename heuristic (`/bpv|stage|praktijk/i`) routes matching files to BPV parser in `ImportPage.tsx`.
