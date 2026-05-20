@@ -437,7 +437,10 @@ Plans:
   3. Stappen 3 (verzuim Excel), 4 (stage Excel) en 5 (instellingen) kunnen elk worden overgeslagen — de wizard blokkeert niet op optionele data
   4. Na voltooiing van de wizard opent het dashboard met de nieuwe klas als actief tabblad en alle geïmporteerde data zichtbaar
   5. Bij een tweede start (klassen aanwezig) toont de app geen wizard — de mentor komt direct in het dashboard
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 24-01-PLAN.md -- OnboardingWizard component (5 steps) + CSS classes
+- [ ] 24-02-PLAN.md -- App.tsx wiring, first-run detection, commit
 **UI hint**: yes
 
 ## Progress
