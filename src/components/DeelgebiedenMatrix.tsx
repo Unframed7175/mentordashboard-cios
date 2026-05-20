@@ -134,19 +134,46 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
             </tr>
           </thead>
           <tbody>
-            {datapunten.map((dp: any, i: number) => (
-              <tr key={i}>
-                <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', whiteSpace: 'nowrap' }}>
-                  {dp.vak && <span className="cell-vak" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-faint)' }}>{dp.vak}</span>}
-                  <span className="cell-dp">{dp.datapunt}</span>
-                </td>
-                {allDG.map(dg => (
-                  <td key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
-                    <DmChip score={dp.scores ? (dp.scores[dg.label] || null) : null} />
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {(() => {
+              const rows: React.ReactNode[] = [];
+              let lastVak: string | null = null;
+              datapunten.forEach((dp: any, i: number) => {
+                const vak = dp.vak || '';
+                if (vak && vak !== lastVak) {
+                  // Vak heading row — match colour to leerlijn group
+                  const groep = GROEPEN.find(g =>
+                    vak.toLowerCase().includes(g.key.replace('_', ' ')) ||
+                    vak.toLowerCase().includes(g.label.toLowerCase().slice(0, 5))
+                  );
+                  const cls = groep ? groep.className : 'dm-header-lesgeven';
+                  rows.push(
+                    <tr key={`vak-${i}`}>
+                      <td
+                        colSpan={allDG.length + 1}
+                        className={cls}
+                        style={{ padding: '0.3rem 0.75rem', fontWeight: 700, fontSize: '0.75rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}
+                      >
+                        {vak}
+                      </td>
+                    </tr>
+                  );
+                  lastVak = vak;
+                }
+                rows.push(
+                  <tr key={i}>
+                    <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <span className="cell-dp">{dp.datapunt}</span>
+                    </td>
+                    {allDG.map(dg => (
+                      <td key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
+                        <DmChip score={dp.scores ? (dp.scores[dg.label] || null) : null} />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              });
+              return rows;
+            })()}
           </tbody>
           <tfoot>
             {hasTwoPeriods ? (
