@@ -59,3 +59,17 @@ export function normalizeScore(raw: unknown): string | null {
   if (u === 'E' || u === 'EXC' || u === 'EXCELLENT')   return 'excellent';
   return null;
 }
+
+/**
+ * Normalize a Rekenen or Nederlands result to a canonical pass/fail status.
+ * MBO-3 national norm: 2F = voldoende, below 2F = onvoldoende, 3F = goed.
+ * Returns 'goed' | 'voldoende' | 'onvoldoende' | null
+ */
+export function normalizeRekenScore(raw: unknown): 'goed' | 'voldoende' | 'onvoldoende' | null {
+  if (raw === null || raw === undefined || raw === '') return null;
+  const u = String(raw).trim().toLowerCase();
+  if (u === '3f' || u === 'goed' || u === 'g')                          return 'goed';
+  if (u === '2f' || u === 'voldoende' || u === 'v')                     return 'voldoende';
+  if (u === '1f' || u === 'onvoldoende' || u === 'o' || u === 'onv')    return 'onvoldoende';
+  return null;
+}
