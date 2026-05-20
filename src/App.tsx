@@ -5,11 +5,14 @@ import KlasModal from './components/KlasModal';
 import KlasOverzicht from './components/KlasOverzicht';
 import DetailWeergave from './components/DetailWeergave';
 import SettingsPage from './components/SettingsPage';
+import OnboardingWizard from './components/OnboardingWizard';
 import { klassenState, switchActiveKlas, getActiveStudents } from '../utils/klassen';
 import { loadSettings, applyTheme } from '../utils/settings';
 
 function App() {
-  const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings'>('import');
+  const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings' | 'onboarding'>(
+    () => Object.keys(klassenState.klassen).length === 0 ? 'onboarding' : 'import'
+  );
   const [prevView, setPrevView] = useState<'import' | 'klas' | 'detail'>('klas');
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null);
@@ -93,6 +96,12 @@ function App() {
     setShowModal(false);
   }
 
+  async function handleOnboardingComplete(klasId: string) {
+    await switchActiveKlas(klasId);
+    setRefreshKey(k => k + 1);
+    setView('klas');
+  }
+
   return (
     <>
       <div id="storage-error-banner" style={{ display: 'none' }} />
@@ -140,6 +149,9 @@ function App() {
             onToggleDark={handleToggleDark}
           />
         </div>
+      )}
+      {view === 'onboarding' && (
+        <OnboardingWizard onComplete={handleOnboardingComplete} />
       )}
     </>
   );
