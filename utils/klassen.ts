@@ -28,9 +28,10 @@ function showStorageError(message: string): void {
 }
 
 // ── State object ──────────────────────────────────────────────────────────────
-export const klassenState: { klassen: Record<string, any>; activeKlasId: string | null } = {
+export const klassenState: { klassen: Record<string, any>; activeKlasId: string | null; onboardingCompleted: boolean } = {
   klassen: {},       // { [klasId]: { id, naam, students, lastSaved } }
   activeKlasId: null,
+  onboardingCompleted: false,
 };
 
 // Extracted from existing loadKlassen() bridge logic — named for reuse
@@ -142,9 +143,19 @@ export async function saveKlassen(): Promise<boolean> {
   }
 }
 
+// ── saveOnboardingCompleted() ─────────────────────────────────────────────────
+export async function saveOnboardingCompleted(): Promise<void> {
+  klassenState.onboardingCompleted = true;
+  await store.set('onboardingCompleted', true);
+  await store.save();
+}
+
 // ── loadKlassen() — KLS-04/KLS-06 ────────────────────────────────────────────
 export async function loadKlassen(): Promise<boolean> {
   try {
+    // Load onboarding completion flag (non-sensitive — stored as plain boolean)
+    klassenState.onboardingCompleted = (await store.get<boolean>('onboardingCompleted')) === true;
+
     const ciphertext = await store.get<string>('klassen');
     if (ciphertext) {
       const plaintext = await invoke<string>('decrypt_klassen', { ciphertext });

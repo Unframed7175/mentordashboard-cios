@@ -6,12 +6,13 @@ import KlasOverzicht from './components/KlasOverzicht';
 import DetailWeergave from './components/DetailWeergave';
 import SettingsPage from './components/SettingsPage';
 import OnboardingWizard from './components/OnboardingWizard';
-import { klassenState, switchActiveKlas, getActiveStudents } from '../utils/klassen';
+import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted } from '../utils/klassen';
 import { loadSettings, applyTheme } from '../utils/settings';
 
 function App() {
   const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings' | 'onboarding'>(
-    () => Object.values(klassenState.klassen).some((k: any) => k.students?.length > 0) ? 'import' : 'onboarding'
+    () => (klassenState.onboardingCompleted || Object.values(klassenState.klassen).some((k: any) => k.students?.length > 0))
+      ? 'import' : 'onboarding'
   );
   const [prevView, setPrevView] = useState<'import' | 'klas' | 'detail'>('klas');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -97,6 +98,7 @@ function App() {
   }
 
   async function handleOnboardingComplete(klasId: string) {
+    await saveOnboardingCompleted();
     await switchActiveKlas(klasId);
     setRefreshKey(k => k + 1);
     setView('klas');
