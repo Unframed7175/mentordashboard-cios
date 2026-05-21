@@ -1393,3 +1393,22 @@ a:hover { text-decoration: underline; }
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* ==========================================================================
+   Doorstroomdrempels (Phase 25 — NORM-01..07)
+   ========================================================================== */
+
+/* Section 25 continued — Doorstroomdrempels (Phase 25) */
+
+.settings-sub-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.norm-warning {
+  font-size: 0.875rem;
+  color: var(--status-oranje-text);
+  margin-top: 4px;
+}

@@ -8,6 +8,7 @@ import { loadKlassen } from "../utils/klassen";
 import { getLeerlijnenMapping } from "../utils/leerlijnen";
 import { loadSettings, applyTheme } from "../utils/settings";
 import { loadVerzuimDrempels } from "../utils/verzuimDrempels";
+import { loadNormen } from "../utils/normen";
 
 (async () => {
   try {
@@ -47,6 +48,7 @@ import { loadVerzuimDrempels } from "../utils/verzuimDrempels";
       getBpvConfig(),
       getBpvData(),
       getLeerlijnenMapping(),
+      loadNormen(), // Phase 25 — pre-warm doorstroom normen sync cache
     ]);
   } catch (err) {
     console.warn('[main.tsx] Phase 18 cache pre-warm mislukt:', err);

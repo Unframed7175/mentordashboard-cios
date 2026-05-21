@@ -109,7 +109,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
 
     // Allow mount useEffect to resolve (loadSettings → empty store → OS fallback)
     await act(async () => { await Promise.resolve(); });
@@ -142,7 +142,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={true} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={true} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
 
     // Toggle must reflect prop immediately (no async needed — prop-driven)
     const checkbox = screen.getByRole('checkbox', { name: 'Donkere modus' });
@@ -157,7 +157,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
 
     const checkbox = screen.getByRole('checkbox', { name: 'Donkere modus' });
     expect((checkbox as HTMLInputElement).checked).toBe(false);
@@ -173,7 +173,7 @@ describe('SettingsPage', () => {
     const onImport = vi.fn();
     const onToggleDark = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={onToggleDark} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={onToggleDark} onNormenChanged={() => {}} />);
 
     const checkbox = screen.getByRole('checkbox', { name: 'Donkere modus' });
     await act(async () => {
@@ -199,7 +199,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
     await act(async () => { await Promise.resolve(); });
 
     const btn = screen.getByRole('button', { name: 'Bestanden toevoegen' });
@@ -213,7 +213,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
     await act(async () => { await Promise.resolve(); });
 
     const btn = screen.getByRole('button', { name: '← Terug' });
@@ -246,7 +246,7 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
 
   function renderSettings() {
     return render(
-      <SettingsPage onBack={vi.fn()} onNavigateToImport={vi.fn()} isDark={false} onToggleDark={vi.fn()} />
+      <SettingsPage onBack={vi.fn()} onNavigateToImport={vi.fn()} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />
     );
   }
 
@@ -335,12 +335,14 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
     renderSettings();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
-    const herstelBtn = screen.getByRole('button', { name: 'Herstel standaard' });
+    // Section 5 also has a "Herstel standaard" button — target Section 3's button (first one)
+    const herstelBtns = screen.getAllByRole('button', { name: 'Herstel standaard' });
+    const herstelBtn = herstelBtns[0]; // Section 3 reset button
     await act(async () => { fireEvent.click(herstelBtn); });
 
     expect(screen.getByText('Alles terugzetten naar standaard?')).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Niet herstellen' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Ja, herstel' })).toBeDefined();
+    expect(screen.getAllByRole('button', { name: 'Niet herstellen' })[0]).toBeDefined();
+    expect(screen.getAllByRole('button', { name: 'Ja, herstel' })[0]).toBeDefined();
   });
 
   // ── Test S3-07: "Niet herstellen" dismisses confirmation without reset ────────
@@ -348,15 +350,19 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
     renderSettings();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
-    const herstelBtn = screen.getByRole('button', { name: 'Herstel standaard' });
+    // Section 5 also has a "Herstel standaard" button — target Section 3's button (first one)
+    const herstelBtns = screen.getAllByRole('button', { name: 'Herstel standaard' });
+    const herstelBtn = herstelBtns[0]; // Section 3 reset button
     await act(async () => { fireEvent.click(herstelBtn); });
 
-    const cancelBtn = screen.getByRole('button', { name: 'Niet herstellen' });
+    const cancelBtns = screen.getAllByRole('button', { name: 'Niet herstellen' });
+    const cancelBtn = cancelBtns[0]; // Section 3 cancel button
     await act(async () => { fireEvent.click(cancelBtn); });
 
-    // Confirmation should be gone, Herstel standaard button should be back
+    // Section 3 confirmation should be gone
     expect(screen.queryByText('Alles terugzetten naar standaard?')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Herstel standaard' })).toBeDefined();
+    // Section 3 "Herstel standaard" button should be back (2 buttons total again)
+    expect(screen.getAllByRole('button', { name: 'Herstel standaard' }).length).toBeGreaterThanOrEqual(1);
 
     // No reset was called
     expect(mockResetDeelgebiedenConfig).not.toHaveBeenCalled();
@@ -368,10 +374,13 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
     renderSettings();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
-    const herstelBtn = screen.getByRole('button', { name: 'Herstel standaard' });
+    // Section 5 also has a "Herstel standaard" button — target Section 3's button (first one)
+    const herstelBtns = screen.getAllByRole('button', { name: 'Herstel standaard' });
+    const herstelBtn = herstelBtns[0]; // Section 3 reset button
     await act(async () => { fireEvent.click(herstelBtn); });
 
-    const confirmBtn = screen.getByRole('button', { name: 'Ja, herstel' });
+    const confirmBtns = screen.getAllByRole('button', { name: 'Ja, herstel' });
+    const confirmBtn = confirmBtns[0]; // Section 3 confirm button
     await act(async () => {
       fireEvent.click(confirmBtn);
       await new Promise(r => setTimeout(r, 0));
