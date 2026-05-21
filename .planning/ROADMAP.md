@@ -66,7 +66,7 @@
 
 ### v2.3 Inzicht, Configuratie & Testers Onboarden
 
-- [ ] **Phase 25: Doorstroomnorm Configuratie** â€” Mentor kan alle doorstroomdrempels instellen in de settings en deze worden opgeslagen tussen sessies
+- [x] **Phase 25: Doorstroomnorm Configuratie** â€” Mentor kan alle doorstroomdrempels instellen in de settings en deze worden opgeslagen tussen sessies (completed 2026-05-21)
 - [ ] **Phase 26: Tegel Score-telling & Fase-vergelijking** â€” Klasoverzicht-tegels tonen score-telling en een trend-pijl als beide fases aanwezig zijn
 - [ ] **Phase 27: Klasbeheer** â€” Mentor kan lege klassen verwijderen en bestaande klassen hernoemen zonder dataverlies
 - [ ] **Phase 28: Bug/Feedback Rapportage** â€” Mentor of tester kan met Ã©Ã©n klik een vooringevulde bugmelding e-mailen inclusief OS/versie en console errors
@@ -478,8 +478,8 @@ Plans:
 - [x] 25-02-PLAN.md — Wave 2: utils/normen.ts (LazyStore + Number.isFinite validation + field-level logging + saveNormen failure logging) + utils/prognosis.ts refactor (8 hardcoded sites to normen.*) — turns Plan 01 RED tests GREEN
 
 **Wave 3** *(blocked on Wave 2 completion — Plans 03 and 04 can run in parallel)*
-- [ ] 25-03-PLAN.md — Wave 3a: main.tsx pre-warm + App.tsx onNormenChanged wiring + SettingsPage Section 5 (8 inputs, SBC<SBL warning, reset, persistence-failure logging) + CSS rules + SettingsPage.test.tsx Section 5 coverage + human-verify checkpoint
-- [ ] 25-04-PLAN.md — Wave 3b: DoortstroomPrognoseSection.tsx parameterization — replace hardcoded norm text with getNormenSync() reads (NORM-01..05)
+- [x] 25-03-PLAN.md — Wave 3a: main.tsx pre-warm + App.tsx onNormenChanged wiring + SettingsPage Section 5 (8 inputs, SBC<SBL warning, reset, persistence-failure logging) + CSS rules + SettingsPage.test.tsx Section 5 coverage + human-verify checkpoint
+- [x] 25-04-PLAN.md — Wave 3b: DoortstroomPrognoseSection.tsx parameterization — replace hardcoded norm text with getNormenSync() reads (NORM-01..05)
 
 ### Phase 26: Tegel Score-telling & Fase-vergelijking
 **Goal**: Elke leerlingtegel in het klasoverzicht toont hoeveel deelgebieden voldoende/onvoldoende zijn, en een pijl geeft de trend t.o.v. fase 1 aan â€” alleen als beide fases aanwezig zijn
@@ -573,7 +573,7 @@ Plans:
 | 22. BPV Stage Excel Parser | 2/2 | Complete | 2026-05-20 |
 | 23. Rekenen & Nederlands | 2/2 | Complete | 2026-05-20 |
 | 24. Onboarding Wizard | 3/3 | Complete | 2026-05-20 |
-| 25. Doorstroomnorm Configuratie | 2/4 | In Progress|  |
+| 25. Doorstroomnorm Configuratie | 4/4 | Complete   | 2026-05-21 |
 | 26. Tegel Score-telling & Fase-vergelijking | 0/? | Not started | - |
 | 27. Klasbeheer | 0/? | Not started | - |
 | 28. Bug/Feedback Rapportage | 0/? | Not started | - |
