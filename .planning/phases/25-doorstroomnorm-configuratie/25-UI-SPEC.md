@@ -1,10 +1,11 @@
 ---
 phase: 25
 slug: doorstroomnorm-configuratie
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-21
+reviewed_at: 2026-05-21
 ---
 
 # Phase 25 — UI Design Contract
@@ -25,7 +26,7 @@ created: 2026-05-21
 | Preset | not applicable |
 | Component library | none (bespoke React + CSS variables) |
 | Icon library | none (text labels only in settings sections) |
-| Font | Industry (OTF, bundled) — Book 400 / Demi 600 / Bold 700 |
+| Font | Industry (OTF, bundled) — Book 400 / Demi 600 |
 
 Source: `src/index.css` @font-face declarations (lines 9–29), `components.json` absent.
 
@@ -59,9 +60,12 @@ Source: `src/index.css` `.settings-threshold-group`, `.settings-threshold-row`, 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body / label | 14px (0.875rem) | 400 (Book) | 1.6 (inherited from root) |
-| Section title (`.detail-section-title`) | 11px (0.6875rem) | 700 (Bold) | 1.2 (implicit) |
 | Sub-block heading (BJ2 / BJ1 labels) | 14px (0.875rem) | 600 (Demi) | 1.4 |
 | Warning text | 14px (0.875rem) | 400 (Book) | 1.4 |
+
+Declared weights for this phase: 400 (Book) and 600 (Demi).
+
+Note: `.detail-section-title` uses 700 (Bold) — inherited from existing CSS, not declared by this phase.
 
 Notes:
 - `.detail-section-title` is all-caps with `letter-spacing: 0.07em` — do not change for section 5 title "Doorstroomdrempels".
