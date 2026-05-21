@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Inzicht, Configuratie & Testers Onboarden
 status: executing
-last_updated: "2026-05-21T07:16:18.742Z"
-last_activity: 2026-05-21 -- Phase 25 replanned (--reviews): 4 plans incorporating cross-AI review feedback
+last_updated: "2026-05-21T14:22:34.651Z"
+last_activity: 2026-05-21 -- Phase 25 execution started
 progress:
   total_phases: 25
   completed_phases: 19
   total_plans: 59
   completed_plans: 55
-  percent: 76
+  percent: 93
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** v2.3 — Phase 25: Doorstroomnorm Configuratie
+**Current focus:** Phase 25 — doorstroomnorm-configuratie
 
 ## Current Position
 
-Phase: 25 — Doorstroomnorm Configuratie
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-21 -- Phase 25 planning complete
+Phase: 25 (doorstroomnorm-configuratie) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 25
+Last activity: 2026-05-21 -- Phase 25 execution started
 
 ## Progress Bar
 
