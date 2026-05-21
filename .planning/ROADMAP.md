@@ -475,7 +475,7 @@ Plans:
 - [x] 25-01-PLAN.md — Wave 1: RED tests for utils/normen.ts (new file) + tests/prognosis.normen.test.ts (new isolated file, does NOT modify prognosis.test.ts) (NORM-01..07)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 25-02-PLAN.md — Wave 2: utils/normen.ts (LazyStore + Number.isFinite validation + field-level logging + saveNormen failure logging) + utils/prognosis.ts refactor (8 hardcoded sites to normen.*) — turns Plan 01 RED tests GREEN
+- [x] 25-02-PLAN.md — Wave 2: utils/normen.ts (LazyStore + Number.isFinite validation + field-level logging + saveNormen failure logging) + utils/prognosis.ts refactor (8 hardcoded sites to normen.*) — turns Plan 01 RED tests GREEN
 
 **Wave 3** *(blocked on Wave 2 completion — Plans 03 and 04 can run in parallel)*
 - [ ] 25-03-PLAN.md — Wave 3a: main.tsx pre-warm + App.tsx onNormenChanged wiring + SettingsPage Section 5 (8 inputs, SBC<SBL warning, reset, persistence-failure logging) + CSS rules + SettingsPage.test.tsx Section 5 coverage + human-verify checkpoint
@@ -573,7 +573,7 @@ Plans:
 | 22. BPV Stage Excel Parser | 2/2 | Complete | 2026-05-20 |
 | 23. Rekenen & Nederlands | 2/2 | Complete | 2026-05-20 |
 | 24. Onboarding Wizard | 3/3 | Complete | 2026-05-20 |
-| 25. Doorstroomnorm Configuratie | 1/4 | In Progress|  |
+| 25. Doorstroomnorm Configuratie | 2/4 | In Progress|  |
 | 26. Tegel Score-telling & Fase-vergelijking | 0/? | Not started | - |
 | 27. Klasbeheer | 0/? | Not started | - |
 | 28. Bug/Feedback Rapportage | 0/? | Not started | - |
