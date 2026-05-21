@@ -90,12 +90,39 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| NORM-01..07 | TBD | ○ Pending |
-| TEGEL-01..02 | TBD | ○ Pending |
-| TREND-01..04 | TBD | ○ Pending |
-| KLS-01..03 | TBD | ○ Pending |
-| FEED-01..05 | TBD | ○ Pending |
-| HELP-01..04 | TBD | ○ Pending |
-| TEST-01..05 | TBD | ○ Pending |
-| UI-01..04 | TBD | ○ Pending |
-| FIX-01..02 | TBD | ○ Pending |
+| NORM-01 | Phase 25 | ○ Pending |
+| NORM-02 | Phase 25 | ○ Pending |
+| NORM-03 | Phase 25 | ○ Pending |
+| NORM-04 | Phase 25 | ○ Pending |
+| NORM-05 | Phase 25 | ○ Pending |
+| NORM-06 | Phase 25 | ○ Pending |
+| NORM-07 | Phase 25 | ○ Pending |
+| TEGEL-01 | Phase 26 | ○ Pending |
+| TEGEL-02 | Phase 26 | ○ Pending |
+| TREND-01 | Phase 26 | ○ Pending |
+| TREND-02 | Phase 26 | ○ Pending |
+| TREND-03 | Phase 26 | ○ Pending |
+| TREND-04 | Phase 26 | ○ Pending |
+| KLS-01 | Phase 27 | ○ Pending |
+| KLS-02 | Phase 27 | ○ Pending |
+| KLS-03 | Phase 27 | ○ Pending |
+| FEED-01 | Phase 28 | ○ Pending |
+| FEED-02 | Phase 28 | ○ Pending |
+| FEED-03 | Phase 28 | ○ Pending |
+| FEED-04 | Phase 28 | ○ Pending |
+| FEED-05 | Phase 28 | ○ Pending |
+| UI-01 | Phase 29 | ○ Pending |
+| UI-02 | Phase 29 | ○ Pending |
+| UI-03 | Phase 29 | ○ Pending |
+| UI-04 | Phase 29 | ○ Pending |
+| FIX-01 | Phase 29 | ○ Pending |
+| FIX-02 | Phase 29 | ○ Pending |
+| HELP-01 | Phase 30 | ○ Pending |
+| HELP-02 | Phase 30 | ○ Pending |
+| HELP-03 | Phase 30 | ○ Pending |
+| HELP-04 | Phase 30 | ○ Pending |
+| TEST-01 | Phase 30 | ○ Pending |
+| TEST-02 | Phase 30 | ○ Pending |
+| TEST-03 | Phase 30 | ○ Pending |
+| TEST-04 | Phase 30 | ○ Pending |
+| TEST-05 | Phase 30 | ○ Pending |

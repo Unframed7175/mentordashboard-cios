@@ -8,6 +8,7 @@
 - ✅ **v2.0 Stack Modernisering** — Phases 10–15 (shipped 2026-05-16)
 - ✅ **v2.1 Settings, Polish & Auto-class Detection** — Phases 16–19 (shipped 2026-05-19)
 - ✅ **v2.2 Onboarding, Export & Data Completeness** — Phases 20–24 (shipped 2026-05-20) · [archive](.planning/milestones/v2.2-ROADMAP.md)
+- 🔄 **v2.3 Inzicht, Configuratie & Testers Onboarden** — Phases 25–30 (active)
 
 ## Phases
 
@@ -62,6 +63,15 @@
 - [x] **Phase 24: Onboarding Wizard** — Eerste-keer mentor doorloopt een stap-voor-stap wizard om de app volledig in te stellen *(completed 2026-05-20)*
 
 </details>
+
+### v2.3 Inzicht, Configuratie & Testers Onboarden
+
+- [ ] **Phase 25: Doorstroomnorm Configuratie** — Mentor kan alle doorstroomdrempels instellen in de settings en deze worden opgeslagen tussen sessies
+- [ ] **Phase 26: Tegel Score-telling & Fase-vergelijking** — Klasoverzicht-tegels tonen score-telling en een trend-pijl als beide fases aanwezig zijn
+- [ ] **Phase 27: Klasbeheer** — Mentor kan lege klassen verwijderen en bestaande klassen hernoemen zonder dataverlies
+- [ ] **Phase 28: Bug/Feedback Rapportage** — Mentor of tester kan met één klik een vooringevulde bugmelding e-mailen inclusief OS/versie en console errors
+- [ ] **Phase 29: UI Streamlining & Bugfixes** — Consistente spacing/typografie door de hele app, opgeschoond klasoverzicht en twee cosmetic bugfixes
+- [ ] **Phase 30: Documentatie, Help & CI** — In-app helppagina, uitgebreide INSTRUCTIES.md voor testers, en GitHub Actions CI builds op Windows en macOS
 
 ## Phase Details
 
@@ -446,6 +456,84 @@ Plans:
 - [ ] 24-02-PLAN.md -- App.tsx wiring, first-run detection, commit
 **UI hint**: yes
 
+---
+
+### Phase 25: Doorstroomnorm Configuratie
+**Goal**: Mentor kan alle doorstroomdrempels (SBL, SBC, negatief totaal, negatief per leerlijn, BJ1 versneld-SBC) aanpassen in de settings — wijzigingen zijn persistent en de prognose-engine past zich direct aan
+**Depends on**: Phase 24
+**Requirements**: NORM-01, NORM-02, NORM-03, NORM-04, NORM-05, NORM-06, NORM-07
+**Success Criteria** (what must be TRUE):
+  1. De settings-pagina heeft een sectie "Doorstroomdrempels" met invoervelden voor SBL-drempel (≥V), SBC-drempel (≥V), negatief-drempel totaal (O), negatief-drempel per leerlijn (O) en BJ1 versneld-SBC drempels
+  2. Na het aanpassen van een drempel herberekent de doorstroomprognose van alle leerlingen in de klasoverzicht direct — de RAG-tegel-kleuren updaten zonder pagina-herstart
+  3. Ingestelde drempels overleven een app-herstart — bij heropenen staan de aangepaste waarden nog in de invoervelden
+  4. Een "Herstel standaard"-knop zet alle drempelwaarden terug naar de CIOS-normen (SBL ≥13, SBC ≥15, >6 O totaal, >2 O per leerlijn) en herberekent de prognose
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 26: Tegel Score-telling & Fase-vergelijking
+**Goal**: Elke leerlingtegel in het klasoverzicht toont hoeveel deelgebieden voldoende/onvoldoende zijn, en een pijl geeft de trend t.o.v. fase 1 aan — alleen als beide fases aanwezig zijn
+**Depends on**: Phase 25
+**Requirements**: TEGEL-01, TEGEL-02, TREND-01, TREND-02, TREND-03, TREND-04
+**Success Criteria** (what must be TRUE):
+  1. Iedere tegel van een leerling met scores toont onder de status-badge een telling zoals "14/19 ≥V · 1 O"
+  2. Een tegel zonder scores (grijs / Onbekend) toont geen score-telling — de telling wordt verborgen
+  3. Als zowel fase 1 als fase 2 voor een leerling zijn geïmporteerd en de prognose is verbeterd (bijv. rood naar oranje), toont de tegel een pijl omhoog (↑)
+  4. Als de prognose verslechterd is t.o.v. fase 1, toont de tegel een pijl omlaag (↓) — bij gelijke prognose verschijnt geen pijl
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 27: Klasbeheer
+**Goal**: Mentor kan lege klassen direct verwijderen vanuit de tab-strip en elke klas hernoemen zonder de bijbehorende leerlingdata te verliezen
+**Depends on**: Phase 24
+**Requirements**: KLS-01, KLS-02, KLS-03
+**Success Criteria** (what must be TRUE):
+  1. Een klas-tabblad met 0 leerlingen toont een "Verwijder klas"-knop — klikken verwijdert de klas na bevestiging en de tab verdwijnt
+  2. Mentor kan dubbelklikken op een klas-tab (of een rename-icoon gebruiken) om de klasnaam in-place te bewerken en op te slaan
+  3. Na hernoemen is de nieuwe klasnaam direct zichtbaar in de tab-strip, de KPI-header en alle andere plekken in de app — zonder dataverlies
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 28: Bug/Feedback Rapportage
+**Goal**: Elke tester of mentor kan met één klik een vooraf ingevulde bugmelding e-mailen — OS, app-versie, laatste import-actie en console errors worden automatisch meegestuurd
+**Depends on**: Phase 24
+**Requirements**: FEED-01, FEED-02, FEED-03, FEED-04, FEED-05
+**Success Criteria** (what must be TRUE):
+  1. Een "Fout melden" of "Feedback"-knop is zichtbaar vanuit elke view (nav, footer of persistent floating button)
+  2. Klikken opent de standaard e-mailapp met het ontwikkelaar-e-mailadres vooringevuld in het Aan-veld
+  3. De e-mailbody bevat automatisch OS-naam, OS-versie, app-versie en de bestandsnaam/type van de laatste import-actie
+  4. De e-mailbody bevat de laatste 5–10 console errors die de app heeft gelogd
+  5. Het onderwerp-veld of het begin van de body is leeg of bevat een uitnodiging voor de tester om het probleem te beschrijven
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 29: UI Streamlining & Bugfixes
+**Goal**: Het dashboard heeft consistente spacing en typografie door alle views, het klasoverzicht oogt opgeschoond, dark mode heeft geen witte vlekken meer, en twee bekende cosmetic bugs zijn opgelost
+**Depends on**: Phase 24
+**Requirements**: UI-01, UI-02, UI-03, UI-04, FIX-01, FIX-02
+**Success Criteria** (what must be TRUE):
+  1. Section-titels, body-tekst, labels en badges gebruiken consistente font-sizes en line-heights door alle views (klasoverzicht, detailweergave, settings, help)
+  2. Het klasoverzicht heeft duidelijke visuele hiërarchie — minder drukke tegels, voldoende witruimte, onderscheidbare elementen
+  3. Dark mode toont geen witte vlekken of slecht leesbare tekst in welke view dan ook
+  4. Tab-navigatie en view-wissels hebben een subtiele CSS-transitie (150–200ms)
+  5. De nav diagonal stripe (`::after` pseudo-element) is correct zichtbaar in de Tauri WebView op Windows
+  6. De BPV-sectie toont "Laden..." terwijl een import bezig is, en "Geen BPV-data geïmporteerd" als er geen stage-bestand is — niet hetzelfde bericht voor beide toestanden
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 30: Documentatie, Help & CI
+**Goal**: Collega-testers kunnen de app installeren en gebruiken zonder hulp van de ontwikkelaar — er is een in-app helppagina, een uitgebreide INSTRUCTIES.md en een GitHub Actions CI die automatisch bouwt op Windows en macOS
+**Depends on**: Phase 25, Phase 26, Phase 27, Phase 28, Phase 29 (features stable before documentation)
+**Requirements**: HELP-01, HELP-02, HELP-03, HELP-04, TEST-01, TEST-02, TEST-03, TEST-04, TEST-05
+**Success Criteria** (what must be TRUE):
+  1. Een "?"-knop of "Help"-link in de navigatie opent een in-app helppagina met een stap-voor-stap uitleg van importeren, bekijken en afdrukken
+  2. `INSTRUCTIES.md` in de repo-root beschrijft installatie, eerste gebruik, importstappen, bekende beperkingen en hoe een bug te melden
+  3. GitHub Actions CI bouwt de app succesvol op Windows x64 en macOS Apple Silicon bij elke push naar main — zonder handmatige tussenkomst
+  4. `TESTPLAN.md` bevat stap-voor-stap scenario's met verwacht gedrag zodat testers zelfstandig kunnen verifiëren dat de app correct werkt
+**Plans**: TBD
+**UI hint**: yes
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -474,3 +562,9 @@ Plans:
 | 22. BPV Stage Excel Parser | 2/2 | Complete | 2026-05-20 |
 | 23. Rekenen & Nederlands | 2/2 | Complete | 2026-05-20 |
 | 24. Onboarding Wizard | 3/3 | Complete | 2026-05-20 |
+| 25. Doorstroomnorm Configuratie | 0/? | Not started | - |
+| 26. Tegel Score-telling & Fase-vergelijking | 0/? | Not started | - |
+| 27. Klasbeheer | 0/? | Not started | - |
+| 28. Bug/Feedback Rapportage | 0/? | Not started | - |
+| 29. UI Streamlining & Bugfixes | 0/? | Not started | - |
+| 30. Documentatie, Help & CI | 0/? | Not started | - |

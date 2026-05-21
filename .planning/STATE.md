@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Inzicht, Configuratie & Testers Onboarden
-status: planning
+status: requirements_defined
 last_updated: "2026-05-21T00:00:00.000Z"
-last_activity: 2026-05-21 — Milestone v2.3 started. Requirements being defined.
+last_activity: 2026-05-21 — Roadmap created. Phase 25 is next.
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,19 +20,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** Planning — v2.3 milestone definition
+**Current focus:** v2.3 — Phase 25: Doorstroomnorm Configuratie
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 25 — Doorstroomnorm Configuratie
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-21 — Milestone v2.3 started
+Status: Requirements defined — ready to plan
+Last activity: 2026-05-21 — v2.3 roadmap created (Phases 25–30, 36 requirements mapped)
 
 ## Progress Bar
 
 ```
-v2.3: [____________________] 0% (0/? phases) — milestone not yet defined
+v2.3: [____________________] 0% (0/6 phases) — Phase 25 next
 ```
 
 ## Performance Metrics
@@ -43,6 +43,7 @@ v1.2 phases completed: 1/1
 v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
 v2.2 phases completed: 5/5
+v2.3 phases completed: 0/6
 
 ## Accumulated Context
 
@@ -77,9 +78,16 @@ v2.2 phases completed: 5/5
 - Phase 22 (BPV): Separate `parseBpvExcel()` in `utils/bpv.ts` — do NOT reuse `parseExcelFile`. Separate sheet-scorer keywords: `bpv` (+4), `stage` (+3), `uren` (+2). `debugBpvExcel()` helper must run on real file before writing column matchers. `XLSX.read({ cellDates: true })` for date columns. Graceful fallback: `gerealiseerdeUren = 0` if column not found.
 - Phase 22 (BPV) PARTIAL BLOCK: Column matchers for BPV-01 require a real BPV Excel export file. Scaffold and routing proceed without it; `gerealiseerdeUren` shows 0 until sample file is provided.
 - Phase 23 (RNL): New optional fields on `StudentRecord`: `rekenResultaat?: string | null`, `nederlandsResultaat?: string | null`. `normalizeRekenScore()` separate from `normalizeScore()` — score format may differ from V/G/E. `?? null` fallback required on all deserialized old records.
-- Phase 23 (RNL) PARTIAL BLOCK: RNL-04 PDF extraction requires a real PDF with Rekenen/Nederlands section. Manual entry and data model proceed without it; extraction is additive.
+- Phase 23 (RNL) PARTIAL BLOCK: RNL-04 PDF extraction requires a real PDF with Rekenen/Nederlands section. Data model + UI proceeds without it; extraction is additive.
 - Phase 24 (ONB): Add `'onboarding'` to `view` union in `App.tsx`. First-run detection: `Object.keys(klassenState.klassen).length === 0` in startup `useEffect`. All wizard state lifted to parent — step components are purely presentational. Do NOT mount full `<ImportPage />` inside wizard steps — use stripped-down inline dropzones. `onboardingComplete: true` persisted to store after final step.
 - Phase 24 (ONB): Depends on Phase 20 (drag-drop). BPV wizard step (Step 4) improves with Phase 22 complete but is not a hard dependency.
+
+### v2.3 Design Notes
+
+- Phase 25 (NORM): Doorstroomnorm config extends existing settings pattern (Phase 18 pattern). Store via plugin-store same as deelgebieden/verzuimDrempels/bpv. `berekenPrognose()` must read thresholds from settings store synchronously (getLeerlijnenMappingSync pattern applies here too). Provide `getDefaultNormen()` as reset function.
+- Phase 26 (TEGEL/TREND): Score-telling computed from same `berekenPrognose()` output — no separate calculation needed. Trend pijl requires comparing `prognoseFase1` vs `prognoseFase2` on the StudentRecord. Only render pijl when both phases present (`student.fase1Data != null && student.fase2Data != null`).
+- Phase 28 (FEED): Use `tauri-plugin-os` for OS info (already available in Tauri 2). App version readable from `tauri.conf.json` via `import { getVersion } from '@tauri-apps/api/app'`. Console errors must be intercepted via `window.onerror` + `console.error` patch at app init and stored in a ring buffer (last 10 entries). mailto: URL must be built client-side — no server call.
+- Phase 30 (TEST CI): GitHub Actions matrix should use `windows-latest` and `macos-latest` (Apple Silicon). Mirror Phase 15 CI pattern but trigger on push to main rather than on tag/release. Smoke test = exit code 0 from `npm run build` (no Rust test suite required for this phase).
 
 ### Pending Todos
 
@@ -127,3 +135,4 @@ v2.2 phases completed: 5/5
 - 2026-05-20: Phase 23 Plan 02 executed — RekenenNederlandsSection.tsx created (TDD: 22 tests, RED→GREEN). Norm badge inline with label (3F/2F/1F). Mounted in DetailWeergave.tsx between AanvullendSection and StageSection. 132/132 tests pass. commit 6946d84.
 - 2026-05-20: Phase 24 executed — OnboardingWizard.tsx (5-step wizard: klas aanmaken, PDFs, verzuim, BPV, completion). App.tsx wired with lazy view initializer + handleOnboardingComplete. ONB-01..08 fulfilled. 132/132 tests pass. commit 49135bc. v2.2 COMPLETE.
 - 2026-05-20: Phase 24 gap closure (plan 24-03) executed — ONB-06 settings step (drempelwaarden), ghost-class lazy-init fix, klasId null-guard, Afbreken abort flow. 132/132 tests pass. commit 4767da1.
+- 2026-05-21: v2.3 milestone started. Roadmap created — Phases 25–30 defined, 36 requirements mapped (NORM-01..07, TEGEL-01..02, TREND-01..04, KLS-01..03, FEED-01..05, HELP-01..04, TEST-01..05, UI-01..04, FIX-01..02). Next: /gsd-plan-phase 25
