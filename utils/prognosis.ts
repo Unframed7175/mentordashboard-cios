@@ -14,6 +14,7 @@
 import { DEELGEBIEDEN } from './schema';
 import { getLeerlijnenMappingSync } from './leerlijnen';
 import { appState } from './datamodel';
+import { getNormenSync, type Normen } from './normen';
 
 // ---------------------------------------------------------------------------
 // Constanten
@@ -23,13 +24,8 @@ import { appState } from './datamodel';
 // V&A, P&O, C&B en E&B (= 1E&B conform doorstroomnorm engine v1.0) moeten elk ≥V zijn
 var KERN_SBC = ['V&A', 'P&O', 'C&B', '1E&B'];
 
-// Per-leerlijn minima voor BJ1 → Versneld SBC (pagina 3)
-// Lesgeven ≥4 G/E, Organiseren ≥3 G/E, Prof. handelen ≥5 G/E
-var VERSNELD_BJ1: Record<string, number> = {
-  lesgeven:      4,
-  organiseren:   3,
-  prof_handelen: 5,
-};
+// Note: per-leerlijn minima voor BJ1 → Versneld SBC (lesgeven/organiseren/prof_handelen)
+// are now sourced from utils/normen.ts via getNormenSync() (Phase 25 parametrisation).
 
 // ---------------------------------------------------------------------------
 // Score helpers
@@ -107,7 +103,8 @@ function telLeerlijnen(scores: any, activeDeelgebiedenIds?: string[]): any {
 //   bj1: 'negatief' | 'versneld_sbc' | 'naar_bj2' | 'neutraal'
 //   bj2: 'negatief' | 'sbc'          | 'sbl'       | 'neutraal'
 // ---------------------------------------------------------------------------
-export function berekenPrognose(student: any, traject?: string, activeDeelgebiedenIds?: string[]): any {
+export function berekenPrognose(student: any, traject?: string, activeDeelgebiedenIds?: string[], normen?: Normen): any {
+  const n = normen ?? getNormenSync();
   traject = traject || 'bj2';
   var scores = student.deelgebiedScores || {};
   var leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
@@ -123,10 +120,10 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
   }, 0);
 
   // NEGATIEF-trigger — geldt voor alle trajecten (pagina 3, BJ1 kolom; zelfde principe BJ2)
-  // >6 onvoldoende totaal OF >2 onvoldoende binnen één leerlijn
+  // >negatiefTotaal onvoldoende totaal OF >negatiefPerLeerlijn onvoldoende binnen één leerlijn
   var isNegatief = (
-    totaalOnvoldoende > 6 ||
-    leerlijnen.some(function(ll: string) { return telling[ll].onvoldoende > 2; })
+    totaalOnvoldoende > n.negatiefTotaal ||
+    leerlijnen.some(function(ll: string) { return telling[ll].onvoldoende > n.negatiefPerLeerlijn; })
   );
 
   var label: string;
@@ -134,14 +131,14 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
 
   // ── BJ1 → BJ2 of Versneld SBC ─────────────────────────────────────────
   if (traject === 'bj1') {
-    // Versneld SBC (pagina 3): lesgeven ≥4 G/E + org ≥3 G/E + prof ≥5 G/E
+    // Versneld SBC (pagina 3): lesgeven ≥versneldLesgeven G/E + org ≥versneldOrganiseren G/E + prof ≥versneldProfHandelen G/E
     var isVersneldSBC = (
-      telling['lesgeven'].goedOfHoger      >= VERSNELD_BJ1.lesgeven &&
-      telling['organiseren'].goedOfHoger   >= VERSNELD_BJ1.organiseren &&
-      telling['prof_handelen'].goedOfHoger >= VERSNELD_BJ1.prof_handelen
+      telling['lesgeven'].goedOfHoger      >= n.versneldLesgeven &&
+      telling['organiseren'].goedOfHoger   >= n.versneldOrganiseren &&
+      telling['prof_handelen'].goedOfHoger >= n.versneldProfHandelen
     );
-    // BJ2 positief (pagina 3): ≥13 deelgebieden voldoende
-    var isBJ2 = totaalVoldoendeOfHoger >= 13;
+    // BJ2 positief (pagina 3): ≥bj1Positief deelgebieden voldoende
+    var isBJ2 = totaalVoldoendeOfHoger >= n.bj1Positief;
 
     if (isNegatief) {
       label = 'negatief';
@@ -155,32 +152,32 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
 
     gaps = {
       // BJ2-norm: hoeveel ≥V nog nodig
-      nodigBJ2: Math.max(0, 13 - totaalVoldoendeOfHoger),
+      nodigBJ2: Math.max(0, n.bj1Positief - totaalVoldoendeOfHoger),
       // Versneld SBC: per leerlijn hoeveel ≥G nog nodig
-      nodigVersneld_lesgeven:      Math.max(0, VERSNELD_BJ1.lesgeven      - telling['lesgeven'].goedOfHoger),
-      nodigVersneld_organiseren:   Math.max(0, VERSNELD_BJ1.organiseren   - telling['organiseren'].goedOfHoger),
-      nodigVersneld_profHandelen:  Math.max(0, VERSNELD_BJ1.prof_handelen - telling['prof_handelen'].goedOfHoger),
+      nodigVersneld_lesgeven:      Math.max(0, n.versneldLesgeven      - telling['lesgeven'].goedOfHoger),
+      nodigVersneld_organiseren:   Math.max(0, n.versneldOrganiseren   - telling['organiseren'].goedOfHoger),
+      nodigVersneld_profHandelen:  Math.max(0, n.versneldProfHandelen  - telling['prof_handelen'].goedOfHoger),
       // Negatief-ruimte
-      onvoldoendeRuimte: 6 - totaalOnvoldoende,
+      onvoldoendeRuimte: n.negatiefTotaal - totaalOnvoldoende,
       // Per leerlijn: hoeveel O nog toegestaan
       onvoldoendeRuimtePerLeerlijn: {
-        lesgeven:      2 - telling['lesgeven'].onvoldoende,
-        organiseren:   2 - telling['organiseren'].onvoldoende,
-        prof_handelen: 2 - telling['prof_handelen'].onvoldoende,
+        lesgeven:      n.negatiefPerLeerlijn - telling['lesgeven'].onvoldoende,
+        organiseren:   n.negatiefPerLeerlijn - telling['organiseren'].onvoldoende,
+        prof_handelen: n.negatiefPerLeerlijn - telling['prof_handelen'].onvoldoende,
       },
     };
 
   // ── BJ2 → SBL of Profieljaar SBC ──────────────────────────────────────
   } else {
-    // SBC profieljaar (pagina 4): ≥15 voldoende + V&A/P&O/C&B/1E&B elk ≥V
+    // SBC profieljaar (pagina 4): ≥sbc voldoende + V&A/P&O/C&B/1E&B elk ≥V
     var kernNietVoldaan = KERN_SBC.filter(function(lbl: string) {
       var score: string | null = scores[lbl] !== undefined ? scores[lbl] : null;
       return !isVoldoendeOfHoger(score);
     });
-    var isSBC = totaalVoldoendeOfHoger >= 15 && kernNietVoldaan.length === 0;
+    var isSBC = totaalVoldoendeOfHoger >= n.sbc && kernNietVoldaan.length === 0;
 
-    // SBL standaard (pagina 4): ≥13 voldoende
-    var isSBL = totaalVoldoendeOfHoger >= 13;
+    // SBL standaard (pagina 4): ≥sbl voldoende
+    var isSBL = totaalVoldoendeOfHoger >= n.sbl;
 
     if (isNegatief) {
       label = 'negatief';
@@ -194,18 +191,18 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
 
     gaps = {
       // SBL: hoeveel ≥V nog nodig
-      nodigSBL: Math.max(0, 13 - totaalVoldoendeOfHoger),
-      // SBC deelgebied-tel: hoeveel ≥V nog nodig voor 15
-      nodigSBC_deelgebieden: Math.max(0, 15 - totaalVoldoendeOfHoger),
+      nodigSBL: Math.max(0, n.sbl - totaalVoldoendeOfHoger),
+      // SBC deelgebied-tel: hoeveel ≥V nog nodig voor sbc
+      nodigSBC_deelgebieden: Math.max(0, n.sbc - totaalVoldoendeOfHoger),
       // SBC kerndeelgebieden die nog niet ≥V zijn
       nodigSBC_kern: kernNietVoldaan,
       // Negatief-ruimte
-      onvoldoendeRuimte: 6 - totaalOnvoldoende,
+      onvoldoendeRuimte: n.negatiefTotaal - totaalOnvoldoende,
       // Per leerlijn: hoeveel O nog toegestaan
       onvoldoendeRuimtePerLeerlijn: {
-        lesgeven:      2 - telling['lesgeven'].onvoldoende,
-        organiseren:   2 - telling['organiseren'].onvoldoende,
-        prof_handelen: 2 - telling['prof_handelen'].onvoldoende,
+        lesgeven:      n.negatiefPerLeerlijn - telling['lesgeven'].onvoldoende,
+        organiseren:   n.negatiefPerLeerlijn - telling['organiseren'].onvoldoende,
+        prof_handelen: n.negatiefPerLeerlijn - telling['prof_handelen'].onvoldoende,
       },
     };
   }
