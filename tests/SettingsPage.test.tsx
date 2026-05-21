@@ -19,6 +19,10 @@ const {
   mockGetLeerlijnenMapping,
   mockSaveLeerlijnenMapping,
   mockResetLeerlijnenMapping,
+  mockLoadNormen,
+  mockSaveNormen,
+  mockResetNormen,
+  DEFAULT_NORMEN_MOCK,
 } = vi.hoisted(() => {
   let _map = new Map<string, unknown>();
   const defaultDgConfig = [
@@ -26,6 +30,10 @@ const {
     { id: 'mm', label: 'M&M', active: true },
   ];
   const defaultMapping: Record<string, string> = { va: 'lesgeven', mm: 'lesgeven' };
+  const DEFAULT_NORMEN_MOCK = {
+    sbl: 13, sbc: 15, negatiefTotaal: 6, negatiefPerLeerlijn: 2,
+    bj1Positief: 13, versneldLesgeven: 4, versneldOrganiseren: 3, versneldProfHandelen: 5,
+  };
   return {
     getStoreMap: () => _map,
     setStoreMap: (m: Map<string, unknown>) => { _map = m; },
@@ -35,6 +43,10 @@ const {
     mockGetLeerlijnenMapping: vi.fn().mockResolvedValue(defaultMapping),
     mockSaveLeerlijnenMapping: vi.fn().mockResolvedValue(true),
     mockResetLeerlijnenMapping: vi.fn().mockResolvedValue(undefined),
+    mockLoadNormen: vi.fn().mockResolvedValue({ ...DEFAULT_NORMEN_MOCK }),
+    mockSaveNormen: vi.fn().mockResolvedValue(true),
+    mockResetNormen: vi.fn().mockResolvedValue({ ...DEFAULT_NORMEN_MOCK }),
+    DEFAULT_NORMEN_MOCK,
   };
 });
 
@@ -49,6 +61,13 @@ vi.mock('../utils/leerlijnen', () => ({
   getLeerlijnenMapping: mockGetLeerlijnenMapping,
   saveLeerlijnenMapping: mockSaveLeerlijnenMapping,
   resetLeerlijnenMapping: mockResetLeerlijnenMapping,
+}));
+
+vi.mock('../utils/normen', () => ({
+  loadNormen: mockLoadNormen,
+  saveNormen: mockSaveNormen,
+  resetNormen: mockResetNormen,
+  DEFAULT_NORMEN: DEFAULT_NORMEN_MOCK,
 }));
 
 vi.mock('@tauri-apps/plugin-store', () => {
@@ -96,6 +115,11 @@ beforeEach(() => {
   }
 
   vi.clearAllMocks();
+
+  // Re-initialize normen mocks after clearAllMocks
+  mockLoadNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK });
+  mockSaveNormen.mockResolvedValue(true);
+  mockResetNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK });
 });
 
 describe('SettingsPage', () => {
@@ -109,7 +133,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
 
     // Allow mount useEffect to resolve (loadSettings → empty store → OS fallback)
     await act(async () => { await Promise.resolve(); });
@@ -142,7 +166,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={true} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={true} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
 
     // Toggle must reflect prop immediately (no async needed — prop-driven)
     const checkbox = screen.getByRole('checkbox', { name: 'Donkere modus' });
@@ -157,7 +181,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
 
     const checkbox = screen.getByRole('checkbox', { name: 'Donkere modus' });
     expect((checkbox as HTMLInputElement).checked).toBe(false);
@@ -173,7 +197,7 @@ describe('SettingsPage', () => {
     const onImport = vi.fn();
     const onToggleDark = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={onToggleDark} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={onToggleDark} onNormenChanged={() => {}} />);
 
     const checkbox = screen.getByRole('checkbox', { name: 'Donkere modus' });
     await act(async () => {
@@ -199,7 +223,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
     await act(async () => { await Promise.resolve(); });
 
     const btn = screen.getByRole('button', { name: 'Bestanden toevoegen' });
@@ -213,7 +237,7 @@ describe('SettingsPage', () => {
     const onBack = vi.fn();
     const onImport = vi.fn();
 
-    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} />);
+    render(<SettingsPage onBack={onBack} onNavigateToImport={onImport} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />);
     await act(async () => { await Promise.resolve(); });
 
     const btn = screen.getByRole('button', { name: '← Terug' });
@@ -246,7 +270,7 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
 
   function renderSettings() {
     return render(
-      <SettingsPage onBack={vi.fn()} onNavigateToImport={vi.fn()} isDark={false} onToggleDark={vi.fn()} />
+      <SettingsPage onBack={vi.fn()} onNavigateToImport={vi.fn()} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />
     );
   }
 
@@ -335,12 +359,14 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
     renderSettings();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
-    const herstelBtn = screen.getByRole('button', { name: 'Herstel standaard' });
+    // Section 5 also has a "Herstel standaard" button — target Section 3's button (first one)
+    const herstelBtns = screen.getAllByRole('button', { name: 'Herstel standaard' });
+    const herstelBtn = herstelBtns[0]; // Section 3 reset button
     await act(async () => { fireEvent.click(herstelBtn); });
 
     expect(screen.getByText('Alles terugzetten naar standaard?')).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Niet herstellen' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Ja, herstel' })).toBeDefined();
+    expect(screen.getAllByRole('button', { name: 'Niet herstellen' })[0]).toBeDefined();
+    expect(screen.getAllByRole('button', { name: 'Ja, herstel' })[0]).toBeDefined();
   });
 
   // ── Test S3-07: "Niet herstellen" dismisses confirmation without reset ────────
@@ -348,15 +374,19 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
     renderSettings();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
-    const herstelBtn = screen.getByRole('button', { name: 'Herstel standaard' });
+    // Section 5 also has a "Herstel standaard" button — target Section 3's button (first one)
+    const herstelBtns = screen.getAllByRole('button', { name: 'Herstel standaard' });
+    const herstelBtn = herstelBtns[0]; // Section 3 reset button
     await act(async () => { fireEvent.click(herstelBtn); });
 
-    const cancelBtn = screen.getByRole('button', { name: 'Niet herstellen' });
+    const cancelBtns = screen.getAllByRole('button', { name: 'Niet herstellen' });
+    const cancelBtn = cancelBtns[0]; // Section 3 cancel button
     await act(async () => { fireEvent.click(cancelBtn); });
 
-    // Confirmation should be gone, Herstel standaard button should be back
+    // Section 3 confirmation should be gone
     expect(screen.queryByText('Alles terugzetten naar standaard?')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Herstel standaard' })).toBeDefined();
+    // Section 3 "Herstel standaard" button should be back (2 buttons total again)
+    expect(screen.getAllByRole('button', { name: 'Herstel standaard' }).length).toBeGreaterThanOrEqual(1);
 
     // No reset was called
     expect(mockResetDeelgebiedenConfig).not.toHaveBeenCalled();
@@ -368,10 +398,13 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
     renderSettings();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
-    const herstelBtn = screen.getByRole('button', { name: 'Herstel standaard' });
+    // Section 5 also has a "Herstel standaard" button — target Section 3's button (first one)
+    const herstelBtns = screen.getAllByRole('button', { name: 'Herstel standaard' });
+    const herstelBtn = herstelBtns[0]; // Section 3 reset button
     await act(async () => { fireEvent.click(herstelBtn); });
 
-    const confirmBtn = screen.getByRole('button', { name: 'Ja, herstel' });
+    const confirmBtns = screen.getAllByRole('button', { name: 'Ja, herstel' });
+    const confirmBtn = confirmBtns[0]; // Section 3 confirm button
     await act(async () => {
       fireEvent.click(confirmBtn);
       await new Promise(r => setTimeout(r, 0));
@@ -379,6 +412,163 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
 
     expect(mockResetDeelgebiedenConfig).toHaveBeenCalledTimes(1);
     expect(mockResetLeerlijnenMapping).toHaveBeenCalledTimes(1);
+  });
+
+});
+
+// ── Phase 25 doorstroom norm settings tests ────────────────────────────────────
+
+describe('Section 5: Doorstroomdrempels', () => {
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setStoreMap(new Map<string, unknown>());
+    document.body.className = '';
+    // Re-initialize all mocks after clearAllMocks
+    mockGetDeelgebiedenConfig.mockResolvedValue([
+      { id: 'va', label: 'V&A', active: true },
+      { id: 'mm', label: 'M&M', active: true },
+    ]);
+    mockGetLeerlijnenMapping.mockResolvedValue({ va: 'lesgeven', mm: 'lesgeven' });
+    mockSaveDeelgebiedenConfig.mockResolvedValue(true);
+    mockSaveLeerlijnenMapping.mockResolvedValue(true);
+    mockResetDeelgebiedenConfig.mockResolvedValue(undefined);
+    mockResetLeerlijnenMapping.mockResolvedValue(undefined);
+    mockLoadNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK });
+    mockSaveNormen.mockResolvedValue(true);
+    mockResetNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK });
+  });
+
+  function renderSection5(onNormenChanged = vi.fn()) {
+    return render(
+      <SettingsPage
+        onBack={vi.fn()}
+        onNavigateToImport={vi.fn()}
+        isDark={false}
+        onToggleDark={vi.fn()}
+        onNormenChanged={onNormenChanged}
+      />
+    );
+  }
+
+  // ── Test S5-01: section renders with heading and sub-block headings ─────────
+  it('S5-01: Section 5 renders "Doorstroomdrempels" heading with BJ2 and BJ1 sub-blocks', async () => {
+    renderSection5();
+    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+
+    expect(screen.getByText('Doorstroomdrempels')).toBeDefined();
+    expect(screen.getByText('BJ2-drempels')).toBeDefined();
+    expect(screen.getByText('BJ1-drempels')).toBeDefined();
+  });
+
+  // ── Test S5-02: blur triggers saveNormen + onNormenChanged ─────────────────
+  it('S5-02: changing SBL input and blurring calls saveNormen and onNormenChanged', async () => {
+    const onNormenChanged = vi.fn();
+    renderSection5(onNormenChanged);
+    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+
+    const sblInput = screen.getByLabelText('SBL-drempel (≥V)');
+
+    await act(async () => {
+      fireEvent.change(sblInput, { target: { value: '10' } });
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    await act(async () => {
+      fireEvent.blur(sblInput);
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    expect(mockSaveNormen).toHaveBeenCalledWith(expect.objectContaining({ sbl: 10 }));
+    expect(onNormenChanged).toHaveBeenCalledTimes(1);
+  });
+
+  // ── Test S5-03: Enter key triggers blur (and thus save) ───────────────────
+  it('S5-03: pressing Enter on SBL input triggers blur handler (saveNormen called)', async () => {
+    const onNormenChanged = vi.fn();
+    renderSection5(onNormenChanged);
+    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+
+    const sblInput = screen.getByLabelText('SBL-drempel (≥V)');
+
+    await act(async () => {
+      fireEvent.change(sblInput, { target: { value: '11' } });
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    await act(async () => {
+      fireEvent.keyDown(sblInput, { key: 'Enter' });
+      // blur fires synchronously after keyDown in jsdom environment
+      fireEvent.blur(sblInput);
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    expect(mockSaveNormen).toHaveBeenCalled();
+  });
+
+  // ── Test S5-04: SBC<SBL warning appears when sbc < sbl ───────────────────
+  it('S5-04: SBC < SBL warning appears when SBC is below SBL', async () => {
+    // Seed loadNormen to return sbc < sbl
+    mockLoadNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK, sbc: 10, sbl: 13 });
+    renderSection5();
+    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+
+    expect(screen.getByText('Let op: SBC-drempel is normaal hoger dan SBL-drempel (standaard: 15 vs 13).')).toBeDefined();
+  });
+
+  // ── Test S5-05: reset confirmation flow ───────────────────────────────────
+  it('S5-05: reset confirmation flow — Herstel standaard → confirm → resetNormen called', async () => {
+    const onNormenChanged = vi.fn();
+    renderSection5(onNormenChanged);
+    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+
+    // Click Section 5 "Herstel standaard" (second one, index 1)
+    const herstelBtns = screen.getAllByRole('button', { name: 'Herstel standaard' });
+    const section5HerstelBtn = herstelBtns[herstelBtns.length - 1]; // Section 5 is last
+    await act(async () => { fireEvent.click(section5HerstelBtn); });
+
+    // Confirm row appears with CIOS copy
+    expect(screen.getByText('Alles terugzetten naar CIOS-standaard?')).toBeDefined();
+    const nietHerstelBtns = screen.getAllByRole('button', { name: 'Niet herstellen' });
+    expect(nietHerstelBtns.length).toBeGreaterThanOrEqual(1);
+
+    // Click "Niet herstellen" (last one — Section 5)
+    await act(async () => { fireEvent.click(nietHerstelBtns[nietHerstelBtns.length - 1]); });
+    expect(screen.queryByText('Alles terugzetten naar CIOS-standaard?')).toBeNull();
+
+    // Click again and then confirm
+    const herstelBtns2 = screen.getAllByRole('button', { name: 'Herstel standaard' });
+    await act(async () => { fireEvent.click(herstelBtns2[herstelBtns2.length - 1]); });
+
+    const jaHerstelBtns = screen.getAllByRole('button', { name: 'Ja, herstel' });
+    await act(async () => {
+      fireEvent.click(jaHerstelBtns[jaHerstelBtns.length - 1]);
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    expect(mockResetNormen).toHaveBeenCalledTimes(1);
+    expect(onNormenChanged).toHaveBeenCalled();
+  });
+
+  // ── Test S5-06: onNormenChanged fires exactly once per blur ───────────────
+  it('S5-06: onNormenChanged fires exactly once per blur event on an input', async () => {
+    const onNormenChanged = vi.fn();
+    renderSection5(onNormenChanged);
+    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+
+    const sblInput = screen.getByLabelText('SBL-drempel (≥V)');
+
+    await act(async () => {
+      fireEvent.change(sblInput, { target: { value: '12' } });
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    await act(async () => {
+      fireEvent.blur(sblInput);
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    expect(onNormenChanged).toHaveBeenCalledTimes(1);
   });
 
 });

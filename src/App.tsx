@@ -64,6 +64,10 @@ function App() {
     setIsDark(next);
   }
 
+  function handleNormenChanged() {
+    setRefreshKey(k => k + 1);
+  }
+
   function handleBackFromSettings() {
     setView(prevView);
   }
@@ -149,6 +153,7 @@ function App() {
             onNavigateToImport={handleNavigateToImportFromSettings}
             isDark={isDark}
             onToggleDark={handleToggleDark}
+            onNormenChanged={handleNormenChanged}
           />
         </div>
       )}

@@ -21,12 +21,14 @@ import {
 } from '../../utils/leerlijnen';
 import { loadVerzuimDrempels, saveVerzuimDrempels } from '../../utils/verzuimDrempels';
 import { getBpvConfig, saveBpvConfig, parseBpvExcel, saveBpvData, getBpvData, type BpvConfig, type BpvData } from '../../utils/bpv';
+import { loadNormen, saveNormen, resetNormen, DEFAULT_NORMEN, type Normen } from '../../utils/normen';
 
 interface SettingsPageProps {
   onBack: () => void;
   onNavigateToImport: () => void;
   isDark: boolean;
   onToggleDark: (isDark: boolean) => void;
+  onNormenChanged: () => void;
 }
 
 // ── NaamInput: inline text input with blur/Enter apply and Escape revert ──────
@@ -77,7 +79,7 @@ function NaamInput({ id, label, onApply }: NaamInputProps) {
 
 // ── SettingsPage ────────────────────────────────────────────────────────────────
 
-export default function SettingsPage({ onBack, onNavigateToImport, isDark, onToggleDark }: SettingsPageProps) {
+export default function SettingsPage({ onBack, onNavigateToImport, isDark, onToggleDark, onNormenChanged }: SettingsPageProps) {
 
   // Section 3 state — deelgebieden config + leerlijn mapping
   const [dgConfig, setDgConfig] = useState<DeelgebiedConfig[]>([]);
@@ -90,6 +92,10 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
   const [bpvUren, setBpvUren] = useState<number>(200);
   const [bpvImportError, setBpvImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Section 5 state — doorstroom normen
+  const [normen, setNormen] = useState<Normen>(DEFAULT_NORMEN);
+  const [confirmingResetNormen, setConfirmingResetNormen] = useState(false);
 
   // On mount: load section 3 config (separate from dark-mode effect — different concern)
   useEffect(() => {
@@ -110,6 +116,11 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
         setBpvUren(bpvConfig.verwachteUren);
       })
       .catch(err => console.warn('[SettingsPage] section 4 load failed:', err));
+  }, []);
+
+  // On mount: load section 5 config — doorstroom normen
+  useEffect(() => {
+    loadNormen().then(setNormen).catch(err => console.warn('[SettingsPage] section 5 load failed:', err));
   }, []);
 
   // Toggle handler: update DOM + persist + notify parent (Pitfall 6: must update DOM atomically)
@@ -193,6 +204,28 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
       setBpvImportError('Onbekend BPV-bestandsformaat. Probeer een ander bestand.');
     }
   }
+
+  // Section 5 handlers — doorstroom normen (D-06, D-07, D-09, D-10)
+
+  async function handleNormenBlur(field: keyof Normen, rawValue: number, min: number, max: number) {
+    const rounded = Math.round(Number.isFinite(rawValue) ? rawValue : DEFAULT_NORMEN[field]);
+    const clamped = Math.max(min, Math.min(max, rounded));
+    const updated = { ...normen, [field]: clamped };
+    setNormen(updated);
+    const ok = await saveNormen(updated);
+    if (!ok) { console.error('[SettingsPage] saveNormen returned false — doorstroom norm niet opgeslagen'); }
+    onNormenChanged();
+  }
+
+  async function handleResetNormen() {
+    const fresh = await resetNormen();
+    setNormen(fresh);
+    setConfirmingResetNormen(false);
+    onNormenChanged();
+  }
+
+  // SBC < SBL warning predicate (D-10)
+  const sbcWaarschuwing = normen.sbc < normen.sbl;
 
   // Helper: get schema-default leerlijn group for a deelgebied (fallback when not in mapping)
   function schemaDefaultFor(id: string): string {
@@ -380,6 +413,179 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
         </p>
         {bpvImportError && (
           <p style={{ fontSize: '0.875rem', color: '#EF4444', marginTop: 8 }}>{bpvImportError}</p>
+        )}
+      </section>
+
+      {/* Section 5: Phase 25 — NORM-01..07 */}
+      <section className="detail-section">
+        <h2 className="detail-section-title">Doorstroomdrempels</h2>
+
+        {/* Sub-block 1 */}
+        <p className="settings-sub-heading">BJ2-drempels</p>
+        <div className="settings-threshold-group">
+          <div className="settings-threshold-row">
+            <label htmlFor="norm-sbl">SBL-drempel (≥V)</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              id="norm-sbl"
+              min={1}
+              max={19}
+              step={1}
+              value={normen.sbl}
+              onChange={e => setNormen(n => ({ ...n, sbl: Number(e.target.value) }))}
+              onBlur={() => handleNormenBlur('sbl', normen.sbl, 1, 19)}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            />
+            <span className="text-muted">≥V</span>
+          </div>
+          <div className="settings-threshold-row">
+            <label htmlFor="norm-sbc">SBC-drempel (≥V)</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              id="norm-sbc"
+              min={1}
+              max={19}
+              step={1}
+              value={normen.sbc}
+              onChange={e => setNormen(n => ({ ...n, sbc: Number(e.target.value) }))}
+              onBlur={() => handleNormenBlur('sbc', normen.sbc, 1, 19)}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            />
+            <span className="text-muted">≥V</span>
+          </div>
+          {sbcWaarschuwing && (
+            <p className="norm-warning" role="status">
+              Let op: SBC-drempel is normaal hoger dan SBL-drempel (standaard: 15 vs 13).
+            </p>
+          )}
+          <div className="settings-threshold-row">
+            <label htmlFor="norm-negatiefTotaal">Negatief totaal (O)</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              id="norm-negatiefTotaal"
+              min={1}
+              max={19}
+              step={1}
+              value={normen.negatiefTotaal}
+              onChange={e => setNormen(n => ({ ...n, negatiefTotaal: Number(e.target.value) }))}
+              onBlur={() => handleNormenBlur('negatiefTotaal', normen.negatiefTotaal, 1, 19)}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            />
+            <span className="text-muted">O totaal</span>
+          </div>
+          <div className="settings-threshold-row">
+            <label htmlFor="norm-negatiefPerLeerlijn">Negatief per leerlijn (O)</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              id="norm-negatiefPerLeerlijn"
+              min={1}
+              max={6}
+              step={1}
+              value={normen.negatiefPerLeerlijn}
+              onChange={e => setNormen(n => ({ ...n, negatiefPerLeerlijn: Number(e.target.value) }))}
+              onBlur={() => handleNormenBlur('negatiefPerLeerlijn', normen.negatiefPerLeerlijn, 1, 6)}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            />
+            <span className="text-muted">O per leerlijn</span>
+          </div>
+        </div>
+
+        <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)', margin: '16px 0' }} />
+
+        {/* Sub-block 2 */}
+        <p className="settings-sub-heading">BJ1-drempels</p>
+        <div className="settings-threshold-group">
+          <div className="settings-threshold-row">
+            <label htmlFor="norm-bj1Positief">BJ1-positief drempel (≥V)</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              id="norm-bj1Positief"
+              min={1}
+              max={19}
+              step={1}
+              value={normen.bj1Positief}
+              onChange={e => setNormen(n => ({ ...n, bj1Positief: Number(e.target.value) }))}
+              onBlur={() => handleNormenBlur('bj1Positief', normen.bj1Positief, 1, 19)}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            />
+            <span className="text-muted">≥V</span>
+          </div>
+          <div className="settings-threshold-row">
+            <label htmlFor="norm-versneldLesgeven">Versneld-SBC lesgeven (≥G)</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              id="norm-versneldLesgeven"
+              min={1}
+              max={6}
+              step={1}
+              value={normen.versneldLesgeven}
+              onChange={e => setNormen(n => ({ ...n, versneldLesgeven: Number(e.target.value) }))}
+              onBlur={() => handleNormenBlur('versneldLesgeven', normen.versneldLesgeven, 1, 6)}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            />
+            <span className="text-muted">≥G</span>
+          </div>
+          <div className="settings-threshold-row">
+            <label htmlFor="norm-versneldOrganiseren">Versneld-SBC organiseren (≥G)</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              id="norm-versneldOrganiseren"
+              min={1}
+              max={6}
+              step={1}
+              value={normen.versneldOrganiseren}
+              onChange={e => setNormen(n => ({ ...n, versneldOrganiseren: Number(e.target.value) }))}
+              onBlur={() => handleNormenBlur('versneldOrganiseren', normen.versneldOrganiseren, 1, 6)}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            />
+            <span className="text-muted">≥G</span>
+          </div>
+          <div className="settings-threshold-row">
+            <label htmlFor="norm-versneldProfHandelen">Versneld-SBC prof. handelen (≥G)</label>
+            <input
+              type="number"
+              className="settings-number-input"
+              id="norm-versneldProfHandelen"
+              min={1}
+              max={6}
+              step={1}
+              value={normen.versneldProfHandelen}
+              onChange={e => setNormen(n => ({ ...n, versneldProfHandelen: Number(e.target.value) }))}
+              onBlur={() => handleNormenBlur('versneldProfHandelen', normen.versneldProfHandelen, 1, 6)}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            />
+            <span className="text-muted">≥G</span>
+          </div>
+        </div>
+
+        {/* Two-step reset button — Section 3 pattern (D-02) */}
+        {!confirmingResetNormen ? (
+          <button
+            className="btn btn-ghost"
+            style={{ marginTop: 8 }}
+            onClick={() => setConfirmingResetNormen(true)}
+          >
+            Herstel standaard
+          </button>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              Alles terugzetten naar CIOS-standaard?
+            </span>
+            <button className="btn btn-ghost" onClick={() => setConfirmingResetNormen(false)}>
+              Niet herstellen
+            </button>
+            <button className="btn btn-primary" onClick={handleResetNormen}>
+              Ja, herstel
+            </button>
+          </div>
         )}
       </section>
     </main>
