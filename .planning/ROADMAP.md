@@ -467,8 +467,13 @@ Plans:
   2. Na het aanpassen van een drempel herberekent de doorstroomprognose van alle leerlingen in de klasoverzicht direct — de RAG-tegel-kleuren updaten zonder pagina-herstart
   3. Ingestelde drempels overleven een app-herstart — bij heropenen staan de aangepaste waarden nog in de invoervelden
   4. Een "Herstel standaard"-knop zet alle drempelwaarden terug naar de CIOS-normen (SBL ≥13, SBC ≥15, >6 O totaal, >2 O per leerlijn) en herberekent de prognose
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 25-01-PLAN.md — Wave 1: RED tests for utils/normen.ts + berekenPrognose normen param (NORM-01..07)
+- [ ] 25-02-PLAN.md — Wave 2: utils/normen.ts (LazyStore + sync cache) + utils/prognosis.ts refactor (8 hardcoded sites → normen.*) — turns Plan 01 RED tests GREEN
+- [ ] 25-03-PLAN.md — Wave 3: main.tsx pre-warm + App.tsx onNormenChanged wiring + SettingsPage Section 5 (8 inputs, SBC<SBL warning, reset) + CSS rules + human-verify checkpoint
 
 ### Phase 26: Tegel Score-telling & Fase-vergelijking
 **Goal**: Elke leerlingtegel in het klasoverzicht toont hoeveel deelgebieden voldoende/onvoldoende zijn, en een pijl geeft de trend t.o.v. fase 1 aan — alleen als beide fases aanwezig zijn
