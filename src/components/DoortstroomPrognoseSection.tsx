@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StatusResult, detectTraject } from '../utils/status';
+import { getNormenSync } from '../utils/normen';
 
 interface DoortstroomPrognoseSectionProps {
   student: any;
@@ -21,23 +22,24 @@ const LEERLIJN_LABEL: Record<string, string> = {
 
 /** Shared warnings: negatief advies + onvoldoende ruimte per leerlijn. */
 function computeAlgemeneItems(p: any): GapItem[] {
+  const n = getNormenSync();
   const items: GapItem[] = [];
   if (p.isNegatief) {
     items.push({
-      label: `Negatief advies: ${p.totaalOnvoldoende} onvoldoende(s) — max. 6 totaal, max. 2 per leerlijn`,
+      label: `Negatief advies: ${p.totaalOnvoldoende} onvoldoende(s) — max. ${n.negatiefTotaal} totaal, max. ${n.negatiefPerLeerlijn} per leerlijn`,
       type: 'danger',
     });
   } else {
     const ruimte = p.gaps.onvoldoendeRuimte;
     if (ruimte <= 1) {
       items.push({
-        label: `Opgelet: nog maar ${ruimte} onvoldoende(s) toegestaan (${p.totaalOnvoldoende}/6 O)`,
+        label: `Opgelet: nog maar ${ruimte} onvoldoende(s) toegestaan (${p.totaalOnvoldoende}/${n.negatiefTotaal} O)`,
         type: 'warn',
       });
     }
     for (const [ll, r] of Object.entries(p.gaps.onvoldoendeRuimtePerLeerlijn || {})) {
       if ((r as number) <= 0) {
-        items.push({ label: `${LEERLIJN_LABEL[ll] || ll}: max. 2 O per leerlijn bereikt`, type: 'warn' });
+        items.push({ label: `${LEERLIJN_LABEL[ll] || ll}: max. ${n.negatiefPerLeerlijn} O per leerlijn bereikt`, type: 'warn' });
       }
     }
   }
@@ -46,26 +48,28 @@ function computeAlgemeneItems(p: any): GapItem[] {
 
 /** SBL-focused criteria for BJ2 students. */
 function computeSBLItems(p: any): GapItem[] {
+  const n = getNormenSync();
   if (p.traject !== 'bj2') return [];
   const { nodigSBL } = p.gaps;
   return [
     nodigSBL === 0
-      ? { label: `SBL-norm gehaald (${p.totaalVoldoendeOfHoger}/19 ≥V, norm ≥13)`, type: 'ok' as GapType }
-      : { label: `Nog ${nodigSBL} deelgebied(en) ≥V nodig voor SBL (nu ${p.totaalVoldoendeOfHoger}/19, norm ≥13)`, type: 'warn' as GapType },
+      ? { label: `SBL-norm gehaald (${p.totaalVoldoendeOfHoger}/19 ≥V, norm ≥${n.sbl})`, type: 'ok' as GapType }
+      : { label: `Nog ${nodigSBL} deelgebied(en) ≥V nodig voor SBL (nu ${p.totaalVoldoendeOfHoger}/19, norm ≥${n.sbl})`, type: 'warn' as GapType },
   ];
 }
 
 /** SBC-focused criteria for BJ2 students. */
 function computeSBCItems(p: any): GapItem[] {
+  const n = getNormenSync();
   if (p.traject !== 'bj2') return [];
   const { nodigSBC_deelgebieden, nodigSBC_kern } = p.gaps;
   const items: GapItem[] = [];
   if (nodigSBC_deelgebieden === 0 && nodigSBC_kern.length === 0) {
-    items.push({ label: 'SBC-norm gehaald (≥15 ≥V + alle kerndeelgebieden)', type: 'ok' });
+    items.push({ label: `SBC-norm gehaald (≥${n.sbc} ≥V + alle kerndeelgebieden)`, type: 'ok' });
   } else {
     if (nodigSBC_deelgebieden > 0) {
       items.push({
-        label: `SBC: nog ${nodigSBC_deelgebieden} deelgebied(en) ≥V nodig (nu ${p.totaalVoldoendeOfHoger}/19, norm ≥15)`,
+        label: `SBC: nog ${nodigSBC_deelgebieden} deelgebied(en) ≥V nodig (nu ${p.totaalVoldoendeOfHoger}/19, norm ≥${n.sbc})`,
         type: 'info',
       });
     }
@@ -78,11 +82,12 @@ function computeSBCItems(p: any): GapItem[] {
 
 /** BJ1 criteria (no SBC/SBL toggle — shows BJ2 doorstroom + versneld SBC). */
 function computeBJ1Items(p: any): GapItem[] {
+  const n = getNormenSync();
   const { nodigBJ2, nodigVersneld_lesgeven: nvL, nodigVersneld_organiseren: nvO, nodigVersneld_profHandelen: nvP } = p.gaps;
   const items: GapItem[] = [];
   items.push(
     nodigBJ2 === 0
-      ? { label: `BJ2-norm gehaald (${p.totaalVoldoendeOfHoger}/19 ≥V, norm ≥13)`, type: 'ok' }
+      ? { label: `BJ2-norm gehaald (${p.totaalVoldoendeOfHoger}/19 ≥V, norm ≥${n.bj1Positief})`, type: 'ok' }
       : { label: `Nog ${nodigBJ2} deelgebied(en) ≥V nodig voor doorstroom BJ2`, type: 'warn' }
   );
   if (nvL === 0 && nvO === 0 && nvP === 0) {
