@@ -20,9 +20,22 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ 6-step onboarding wizard — first-run detection, ghost-class guard, abort flow, settings step (Phase 24)
 - ✓ PDF parser hardened — Unicode dash fix (U+2010), page-header row filtering
 
-## Current Milestone: Planning
+## Current Milestone: v2.3 Inzicht, Configuratie & Testers Onboarden
 
-**Status:** v2.2 complete. Start `/gsd-new-milestone` to define v2.3.
+**Goal:** Het dashboard wordt informatiever en aanpasbaar voor mentoren, en klaar voor bredere tests door collega's — met configureerbare doorstroomdrempels, score-telling op tegels, fase-vergelijking, bug-rapportage, instructiedocumentatie en CI cross-platform builds.
+
+**Target features:**
+- NORM — Doorstroomdrempels configureerbaar in settings (13/15 ≥V, max 6/2 O, BJ1 versneld-SBC)
+- TEGEL — Score-telling op tegel: "14/19 ≥V · 1 O" onder de status-badge
+- TREND — Fase-vergelijking pijl ↑↓ op tegel (alleen als fase 1 én fase 2 geïmporteerd zijn)
+- KLS — Lege klas → verwijderknop; alle klassen → hernoembaar in-place
+- BUG — Bug/feedback knop → mailto: met OS/versie/import-actie/console errors automatisch ingevuld
+- HELP — Kort helpscherm in-app + uitgebreid INSTRUCTIES.md bestand voor collega-testers
+- TEST — CI smoke tests op Windows + macOS (GitHub Actions) + handmatige testchecklist
+- UI — Consistente spacing/typografie, opgeschoond klasoverzicht, dark mode verfijnd, animaties
+- FIX — Nav diagonal stripe (CSS ::after), BPV loading vs empty state onderscheid
+
+**Active requirements:** See REQUIREMENTS.md
 
 ## Milestone: v2.1 Settings, Polish & Auto-class Detection — COMPLETE (2026-05-19)
 

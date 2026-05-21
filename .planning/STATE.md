@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.3
-milestone_name: TBD (planning)
+milestone_name: Inzicht, Configuratie & Testers Onboarden
 status: planning
-last_updated: "2026-05-20T00:00:00.000Z"
-last_activity: 2026-05-20 — v2.2 milestone archived. Git tag v2.2 created. Ready to define v2.3.
+last_updated: "2026-05-21T00:00:00.000Z"
+last_activity: 2026-05-21 — Milestone v2.3 started. Requirements being defined.
 progress:
   total_phases: 0
   completed_phases: 0
@@ -24,9 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 
 ## Current Position
 
-Phase: n/a — Planning
-Status: v2.2 archived. Awaiting v2.3 milestone definition via `/gsd-new-milestone`.
-Last activity: 2026-05-20 — v2.2 milestone archived and tagged.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-21 — Milestone v2.3 started
 
 ## Progress Bar
 
