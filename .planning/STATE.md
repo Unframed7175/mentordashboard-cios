@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Inzicht, Configuratie & Testers Onboarden
-status: executing
+status: ready_to_plan
 last_updated: "2026-05-21T14:22:34.651Z"
 last_activity: 2026-05-21 -- Phase 25 execution started
 progress:
   total_phases: 25
-  completed_phases: 19
+  completed_phases: 20
   total_plans: 59
   completed_plans: 55
-  percent: 93
+  percent: 80
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 
 ## Current Position
 
-Phase: 25 (doorstroomnorm-configuratie) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 25
-Last activity: 2026-05-21 -- Phase 25 execution started
+Phase: 26
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-22
 
 ## Progress Bar
 

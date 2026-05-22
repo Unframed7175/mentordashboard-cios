@@ -8,13 +8,13 @@
 
 ## Dashboard: Doorstroomnorm Configuratie (NORM)
 
-- [ ] **NORM-01**: Mentor kan de SBL-drempel (standaard ≥13 ≥V) aanpassen in de instellingen
-- [ ] **NORM-02**: Mentor kan de SBC-drempel (standaard ≥15 ≥V) aanpassen in de instellingen
-- [ ] **NORM-03**: Mentor kan de negatief-drempel (standaard >6 O totaal) aanpassen in de instellingen
-- [ ] **NORM-04**: Mentor kan de per-leerlijn negatief-drempel (standaard >2 O) aanpassen in de instellingen
-- [ ] **NORM-05**: Mentor kan de BJ1 versneld-SBC drempels aanpassen (lesgeven ≥4, organiseren ≥3, prof. handelen ≥5)
-- [ ] **NORM-06**: Ingestelde drempels worden opgeslagen en bewaard tussen sessies
-- [ ] **NORM-07**: Een "Herstel standaard" knop zet alle drempels terug naar de CIOS-normen
+- [x] **NORM-01**: Mentor kan de SBL-drempel (standaard ≥13 ≥V) aanpassen in de instellingen
+- [x] **NORM-02**: Mentor kan de SBC-drempel (standaard ≥15 ≥V) aanpassen in de instellingen
+- [x] **NORM-03**: Mentor kan de negatief-drempel (standaard >6 O totaal) aanpassen in de instellingen
+- [x] **NORM-04**: Mentor kan de per-leerlijn negatief-drempel (standaard >2 O) aanpassen in de instellingen
+- [x] **NORM-05**: Mentor kan de BJ1 versneld-SBC drempels aanpassen (lesgeven ≥4, organiseren ≥3, prof. handelen ≥5)
+- [x] **NORM-06**: Ingestelde drempels worden opgeslagen en bewaard tussen sessies
+- [x] **NORM-07**: Een "Herstel standaard" knop zet alle drempels terug naar de CIOS-normen
 
 ## Dashboard: Tegel Score-telling (TEGEL)
 

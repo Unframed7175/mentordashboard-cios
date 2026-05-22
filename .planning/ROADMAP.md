@@ -573,7 +573,7 @@ Plans:
 | 22. BPV Stage Excel Parser | 2/2 | Complete | 2026-05-20 |
 | 23. Rekenen & Nederlands | 2/2 | Complete | 2026-05-20 |
 | 24. Onboarding Wizard | 3/3 | Complete | 2026-05-20 |
-| 25. Doorstroomnorm Configuratie | 4/4 | Complete   | 2026-05-21 |
+| 25. Doorstroomnorm Configuratie | 4/4 | Complete    | 2026-05-22 |
 | 26. Tegel Score-telling & Fase-vergelijking | 0/? | Not started | - |
 | 27. Klasbeheer | 0/? | Not started | - |
 | 28. Bug/Feedback Rapportage | 0/? | Not started | - |
