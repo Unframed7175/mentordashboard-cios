@@ -31,7 +31,7 @@ function computeAlgemeneItems(p: any): GapItem[] {
     });
   } else {
     const ruimte = p.gaps.onvoldoendeRuimte;
-    if (ruimte <= 1) {
+    if (ruimte <= Math.max(1, Math.ceil(n.negatiefTotaal * 0.25))) {
       items.push({
         label: `Opgelet: nog maar ${ruimte} onvoldoende(s) toegestaan (${p.totaalOnvoldoende}/${n.negatiefTotaal} O)`,
         type: 'warn',
