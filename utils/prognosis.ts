@@ -249,6 +249,7 @@ export function debugPrognose(query: string, traject?: string): void {
     return;
   }
 
+  const n = getNormenSync();
   var p = berekenPrognose(student, traject);
   var isBJ1 = p.traject === 'bj1';
 
@@ -258,14 +259,14 @@ export function debugPrognose(query: string, traject?: string): void {
   console.log('Totaal ≥V: ' + p.totaalVoldoendeOfHoger + '/19  |  Totaal O: ' + p.totaalOnvoldoende);
 
   if (isBJ1) {
-    console.log('BJ2-norm  (≥13 ≥V): ' + (p.totaalVoldoendeOfHoger >= 13 ? '✅' : '❌ nog ' + p.gaps.nodigBJ2 + ' nodig'));
+    console.log('BJ2-norm  (≥' + n.bj1Positief + ' ≥V): ' + (p.totaalVoldoendeOfHoger >= n.bj1Positief ? '✅' : '❌ nog ' + p.gaps.nodigBJ2 + ' nodig'));
     console.log('Versneld SBC:');
-    console.log('  lesgeven ≥4 G/E:      ' + telling_str(telling_val(p, 'lesgeven', 'goedOfHoger'), 4, p.gaps.nodigVersneld_lesgeven));
-    console.log('  organiseren ≥3 G/E:   ' + telling_str(telling_val(p, 'organiseren', 'goedOfHoger'), 3, p.gaps.nodigVersneld_organiseren));
-    console.log('  prof.handelen ≥5 G/E: ' + telling_str(telling_val(p, 'prof_handelen', 'goedOfHoger'), 5, p.gaps.nodigVersneld_profHandelen));
+    console.log('  lesgeven ≥' + n.versneldLesgeven + ' G/E:      ' + telling_str(telling_val(p, 'lesgeven', 'goedOfHoger'), n.versneldLesgeven, p.gaps.nodigVersneld_lesgeven));
+    console.log('  organiseren ≥' + n.versneldOrganiseren + ' G/E:   ' + telling_str(telling_val(p, 'organiseren', 'goedOfHoger'), n.versneldOrganiseren, p.gaps.nodigVersneld_organiseren));
+    console.log('  prof.handelen ≥' + n.versneldProfHandelen + ' G/E: ' + telling_str(telling_val(p, 'prof_handelen', 'goedOfHoger'), n.versneldProfHandelen, p.gaps.nodigVersneld_profHandelen));
   } else {
-    console.log('SBL-norm  (≥13 ≥V): ' + (p.totaalVoldoendeOfHoger >= 13 ? '✅' : '❌ nog ' + p.gaps.nodigSBL + ' nodig'));
-    console.log('SBC-norm  (≥15 ≥V): ' + (p.totaalVoldoendeOfHoger >= 15 ? '✅' : '❌ nog ' + p.gaps.nodigSBC_deelgebieden + ' nodig'));
+    console.log('SBL-norm  (≥' + n.sbl + ' ≥V): ' + (p.totaalVoldoendeOfHoger >= n.sbl ? '✅' : '❌ nog ' + p.gaps.nodigSBL + ' nodig'));
+    console.log('SBC-norm  (≥' + n.sbc + ' ≥V): ' + (p.totaalVoldoendeOfHoger >= n.sbc ? '✅' : '❌ nog ' + p.gaps.nodigSBC_deelgebieden + ' nodig'));
     if (p.gaps.nodigSBC_kern.length > 0) {
       console.log('SBC kern  (niet ≥V): ' + p.gaps.nodigSBC_kern.join(', '));
     } else {
