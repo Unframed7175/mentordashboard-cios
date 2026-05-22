@@ -25,7 +25,7 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 **Goal:** Het dashboard wordt informatiever en aanpasbaar voor mentoren, en klaar voor bredere tests door collega's — met configureerbare doorstroomdrempels, score-telling op tegels, fase-vergelijking, bug-rapportage, instructiedocumentatie en CI cross-platform builds.
 
 **Target features:**
-- NORM — Doorstroomdrempels configureerbaar in settings (13/15 ≥V, max 6/2 O, BJ1 versneld-SBC)
+- ✓ NORM — Doorstroomdrempels configureerbaar in settings (13/15 ≥V, max 6/2 O, BJ1 versneld-SBC) — Phase 25 complete
 - TEGEL — Score-telling op tegel: "14/19 ≥V · 1 O" onder de status-badge
 - TREND — Fase-vergelijking pijl ↑↓ op tegel (alleen als fase 1 én fase 2 geïmporteerd zijn)
 - KLS — Lege klas → verwijderknop; alle klassen → hernoembaar in-place
