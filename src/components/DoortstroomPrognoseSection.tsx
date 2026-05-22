@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StatusResult, detectTraject } from '../utils/status';
-import { getNormenSync } from '../utils/normen';
+import { getNormenSync } from '../../utils/normen';
 
 interface DoortstroomPrognoseSectionProps {
   student: any;
