@@ -64,48 +64,32 @@ export async function loadNormen(): Promise<Normen> {
   try {
     const raw = await store.get<Normen>(STORE_KEY);
     if (raw) {
-      // Validate each field: Number.isFinite() + per-field min/max range (T-25-03, T-25-08)
-      if (!Number.isFinite(raw.sbl) || raw.sbl < 1 || raw.sbl > 19) {
-        console.warn('[normen.ts] invalid field \'sbl\':', raw.sbl);
-        _cache = { ...DEFAULT_NORMEN };
-        return _cache;
-      }
-      if (!Number.isFinite(raw.sbc) || raw.sbc < 1 || raw.sbc > 19) {
-        console.warn('[normen.ts] invalid field \'sbc\':', raw.sbc);
-        _cache = { ...DEFAULT_NORMEN };
-        return _cache;
-      }
-      if (!Number.isFinite(raw.negatiefTotaal) || raw.negatiefTotaal < 1 || raw.negatiefTotaal > 19) {
-        console.warn('[normen.ts] invalid field \'negatiefTotaal\':', raw.negatiefTotaal);
-        _cache = { ...DEFAULT_NORMEN };
-        return _cache;
-      }
-      if (!Number.isFinite(raw.negatiefPerLeerlijn) || raw.negatiefPerLeerlijn < 1 || raw.negatiefPerLeerlijn > 6) {
-        console.warn('[normen.ts] invalid field \'negatiefPerLeerlijn\':', raw.negatiefPerLeerlijn);
-        _cache = { ...DEFAULT_NORMEN };
-        return _cache;
-      }
-      if (!Number.isFinite(raw.bj1Positief) || raw.bj1Positief < 1 || raw.bj1Positief > 19) {
-        console.warn('[normen.ts] invalid field \'bj1Positief\':', raw.bj1Positief);
-        _cache = { ...DEFAULT_NORMEN };
-        return _cache;
-      }
-      if (!Number.isFinite(raw.versneldLesgeven) || raw.versneldLesgeven < 1 || raw.versneldLesgeven > 6) {
-        console.warn('[normen.ts] invalid field \'versneldLesgeven\':', raw.versneldLesgeven);
-        _cache = { ...DEFAULT_NORMEN };
-        return _cache;
-      }
-      if (!Number.isFinite(raw.versneldOrganiseren) || raw.versneldOrganiseren < 1 || raw.versneldOrganiseren > 6) {
-        console.warn('[normen.ts] invalid field \'versneldOrganiseren\':', raw.versneldOrganiseren);
-        _cache = { ...DEFAULT_NORMEN };
-        return _cache;
-      }
-      if (!Number.isFinite(raw.versneldProfHandelen) || raw.versneldProfHandelen < 1 || raw.versneldProfHandelen > 6) {
-        console.warn('[normen.ts] invalid field \'versneldProfHandelen\':', raw.versneldProfHandelen);
-        _cache = { ...DEFAULT_NORMEN };
-        return _cache;
-      }
-      _cache = raw;
+      // Per-field validation helper: Number.isFinite(undefined) === false handles missing
+      // fields from older store schemas, so schema evolution (new fields added later) is safe.
+      const isValid = (v: unknown, min: number, max: number): v is number =>
+        Number.isFinite(v as number) && (v as number) >= min && (v as number) <= max;
+
+      // Per-field clamping: each invalid field falls back to its DEFAULT_NORMEN value
+      // individually, so one bad field does not reset all normen to defaults (T-25-03, T-25-08).
+      const validated: Normen = {
+        // Number.isFinite(undefined) === false — safe for missing fields from older schemas
+        sbl:                 isValid(raw.sbl, 1, 19)                 ? raw.sbl                 : DEFAULT_NORMEN.sbl,
+        // Number.isFinite(undefined) === false — safe for missing fields from older schemas
+        sbc:                 isValid(raw.sbc, 1, 19)                 ? raw.sbc                 : DEFAULT_NORMEN.sbc,
+        // Number.isFinite(undefined) === false — safe for missing fields from older schemas
+        negatiefTotaal:      isValid(raw.negatiefTotaal, 1, 19)      ? raw.negatiefTotaal      : DEFAULT_NORMEN.negatiefTotaal,
+        // Number.isFinite(undefined) === false — safe for missing fields from older schemas
+        negatiefPerLeerlijn: isValid(raw.negatiefPerLeerlijn, 1, 6)  ? raw.negatiefPerLeerlijn : DEFAULT_NORMEN.negatiefPerLeerlijn,
+        // Number.isFinite(undefined) === false — safe for missing fields from older schemas
+        bj1Positief:         isValid(raw.bj1Positief, 1, 19)         ? raw.bj1Positief         : DEFAULT_NORMEN.bj1Positief,
+        // Number.isFinite(undefined) === false — safe for missing fields from older schemas
+        versneldLesgeven:    isValid(raw.versneldLesgeven, 1, 6)     ? raw.versneldLesgeven    : DEFAULT_NORMEN.versneldLesgeven,
+        // Number.isFinite(undefined) === false — safe for missing fields from older schemas
+        versneldOrganiseren: isValid(raw.versneldOrganiseren, 1, 6)  ? raw.versneldOrganiseren : DEFAULT_NORMEN.versneldOrganiseren,
+        // Number.isFinite(undefined) === false — safe for missing fields from older schemas
+        versneldProfHandelen:isValid(raw.versneldProfHandelen, 1, 6) ? raw.versneldProfHandelen: DEFAULT_NORMEN.versneldProfHandelen,
+      };
+      _cache = validated;
       return _cache;
     }
   } catch (e: any) {
