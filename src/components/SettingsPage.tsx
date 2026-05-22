@@ -96,6 +96,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
   // Section 5 state — doorstroom normen
   const [normen, setNormen] = useState<Normen>(DEFAULT_NORMEN);
   const [confirmingResetNormen, setConfirmingResetNormen] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // On mount: load section 3 config (separate from dark-mode effect — different concern)
   useEffect(() => {
@@ -213,7 +214,12 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
     const updated = { ...normen, [field]: clamped };
     setNormen(updated);
     const ok = await saveNormen(updated);
-    if (!ok) { console.error('[SettingsPage] saveNormen returned false — doorstroom norm niet opgeslagen'); }
+    if (!ok) {
+      console.error('[SettingsPage] saveNormen returned false — doorstroom norm niet opgeslagen');
+      setSaveError('Opslaan mislukt. Probeer het opnieuw.');
+      return;
+    }
+    setSaveError(null);
     onNormenChanged();
   }
 
@@ -221,6 +227,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
     const fresh = await resetNormen();
     setNormen(fresh);
     setConfirmingResetNormen(false);
+    setSaveError(null);
     onNormenChanged();
   }
 
@@ -419,6 +426,9 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
       {/* Section 5: Phase 25 — NORM-01..07 */}
       <section className="detail-section">
         <h2 className="detail-section-title">Doorstroomdrempels</h2>
+        {saveError && (
+          <p style={{ fontSize: '0.875rem', color: '#EF4444', marginTop: 4 }} role="alert">{saveError}</p>
+        )}
 
         {/* Sub-block 1 */}
         <p className="settings-sub-heading">BJ2-drempels</p>
@@ -434,7 +444,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
               step={1}
               value={normen.sbl}
               onChange={e => setNormen(n => ({ ...n, sbl: Number(e.target.value) }))}
-              onBlur={() => handleNormenBlur('sbl', normen.sbl, 1, 19)}
+              onBlur={e => handleNormenBlur('sbl', Number((e.target as HTMLInputElement).value), 1, 19)}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
             />
             <span className="text-muted">≥V</span>
@@ -450,7 +460,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
               step={1}
               value={normen.sbc}
               onChange={e => setNormen(n => ({ ...n, sbc: Number(e.target.value) }))}
-              onBlur={() => handleNormenBlur('sbc', normen.sbc, 1, 19)}
+              onBlur={e => handleNormenBlur('sbc', Number((e.target as HTMLInputElement).value), 1, 19)}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
             />
             <span className="text-muted">≥V</span>
@@ -471,7 +481,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
               step={1}
               value={normen.negatiefTotaal}
               onChange={e => setNormen(n => ({ ...n, negatiefTotaal: Number(e.target.value) }))}
-              onBlur={() => handleNormenBlur('negatiefTotaal', normen.negatiefTotaal, 1, 19)}
+              onBlur={e => handleNormenBlur('negatiefTotaal', Number((e.target as HTMLInputElement).value), 1, 19)}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
             />
             <span className="text-muted">O totaal</span>
@@ -487,7 +497,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
               step={1}
               value={normen.negatiefPerLeerlijn}
               onChange={e => setNormen(n => ({ ...n, negatiefPerLeerlijn: Number(e.target.value) }))}
-              onBlur={() => handleNormenBlur('negatiefPerLeerlijn', normen.negatiefPerLeerlijn, 1, 6)}
+              onBlur={e => handleNormenBlur('negatiefPerLeerlijn', Number((e.target as HTMLInputElement).value), 1, 6)}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
             />
             <span className="text-muted">O per leerlijn</span>
@@ -510,7 +520,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
               step={1}
               value={normen.bj1Positief}
               onChange={e => setNormen(n => ({ ...n, bj1Positief: Number(e.target.value) }))}
-              onBlur={() => handleNormenBlur('bj1Positief', normen.bj1Positief, 1, 19)}
+              onBlur={e => handleNormenBlur('bj1Positief', Number((e.target as HTMLInputElement).value), 1, 19)}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
             />
             <span className="text-muted">≥V</span>
@@ -526,7 +536,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
               step={1}
               value={normen.versneldLesgeven}
               onChange={e => setNormen(n => ({ ...n, versneldLesgeven: Number(e.target.value) }))}
-              onBlur={() => handleNormenBlur('versneldLesgeven', normen.versneldLesgeven, 1, 6)}
+              onBlur={e => handleNormenBlur('versneldLesgeven', Number((e.target as HTMLInputElement).value), 1, 6)}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
             />
             <span className="text-muted">≥G</span>
@@ -542,7 +552,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
               step={1}
               value={normen.versneldOrganiseren}
               onChange={e => setNormen(n => ({ ...n, versneldOrganiseren: Number(e.target.value) }))}
-              onBlur={() => handleNormenBlur('versneldOrganiseren', normen.versneldOrganiseren, 1, 6)}
+              onBlur={e => handleNormenBlur('versneldOrganiseren', Number((e.target as HTMLInputElement).value), 1, 6)}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
             />
             <span className="text-muted">≥G</span>
@@ -558,7 +568,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
               step={1}
               value={normen.versneldProfHandelen}
               onChange={e => setNormen(n => ({ ...n, versneldProfHandelen: Number(e.target.value) }))}
-              onBlur={() => handleNormenBlur('versneldProfHandelen', normen.versneldProfHandelen, 1, 6)}
+              onBlur={e => handleNormenBlur('versneldProfHandelen', Number((e.target as HTMLInputElement).value), 1, 6)}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
             />
             <span className="text-muted">≥G</span>
