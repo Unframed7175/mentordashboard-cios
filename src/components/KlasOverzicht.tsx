@@ -5,7 +5,7 @@
 // ---------------------------------------------------------------------------
 
 import React, { useState, useMemo } from 'react';
-import { getActiveStudents, klassenState, deleteKlas } from '../../utils/klassen';
+import { getActiveStudents, getAllRecordsForStudent, klassenState, deleteKlas } from '../../utils/klassen';
 import { berekenStatus, STATUS_VOLGORDE } from '../utils/status';
 import LeerlingTegel from './LeerlingTegel';
 
@@ -32,6 +32,47 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDelet
     const students = getActiveStudents();
     const m = new Map<string, ReturnType<typeof berekenStatus>>();
     for (const s of students) m.set(s.leerlingId, berekenStatus(s));
+    return m;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey, allStudents.length]);
+
+  // Phase 26 (TREND-01..04): compute trend direction per student by comparing
+  // the oldest and newest period records via berekenStatus + STATUS_VOLGORDE rank.
+  const trendMap = useMemo(() => {
+    const students = getActiveStudents();
+    const m = new Map<string, 'op' | 'neer' | null>();
+
+    // Named helper — extracted for readability and future standalone extraction
+    const computeTrend = (records: any[]): 'op' | 'neer' | null => {
+      // Step A — length guard: need at least two records for a comparison
+      if (records.length < 2) return null;
+
+      // Step B — distinct-period guard: prevents a student imported twice in the
+      // same periode from producing a false two-fase comparison.
+      if (records[0].periode === records[records.length - 1].periode) return null;
+
+      // Step C — compute status for oldest (fase 1) and newest (fase 2) record
+      const fase1Status = berekenStatus(records[0]);
+      const fase2Status = berekenStatus(records[records.length - 1]);
+
+      // Grijs guard (D-09): only compare two real RAG colours (rood/oranje/groen/blauw)
+      if (fase1Status.kleur === 'grijs' || fase2Status.kleur === 'grijs') return null;
+
+      const rank1 = STATUS_VOLGORDE[fase1Status.kleur];
+      const rank2 = STATUS_VOLGORDE[fase2Status.kleur];
+
+      if (rank2 > rank1) return 'op';
+      if (rank2 < rank1) return 'neer';
+      return null;
+    };
+
+    for (const s of students) {
+      const records = getAllRecordsForStudent(s.leerlingId);
+      m.set(s.leerlingId, computeTrend(records));
+    }
+
+    // refreshKey increments on every import — ensures trendMap recomputes whenever
+    // new record data arrives (same invariant as statusMap above)
     return m;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey, allStudents.length]);
@@ -187,6 +228,7 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDelet
                 key={s.leerlingId}
                 student={s}
                 status={status}
+                trend={trendMap.get(s.leerlingId) ?? null}
                 onClick={() => onSelectStudent(s.leerlingId, sorted.map(r => r.leerlingId))}
               />
             );
