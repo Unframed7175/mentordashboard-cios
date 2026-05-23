@@ -228,6 +228,7 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDelet
                 key={s.leerlingId}
                 student={s}
                 status={status}
+                trend={trendMap.get(s.leerlingId) ?? null}
                 onClick={() => onSelectStudent(s.leerlingId, sorted.map(r => r.leerlingId))}
               />
             );
