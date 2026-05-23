@@ -502,6 +502,38 @@ a:hover { text-decoration: underline; }
 .mvb-geoorloofd  { background: #60A5FA; }
 .mvb-ongeoorloofd{ background: #F97316; }
 
+/* ── Phase 26: Score-telling & Trend-pijl ────────────────────────────── */
+.score-telling {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--text-muted);
+  padding-left: 0.375rem; /* matches .klas-tile-naam indentation */
+}
+
+.trend-pijl {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+  vertical-align: middle;
+}
+
+.trend-op {
+  border-left:   4px solid transparent;
+  border-right:  4px solid transparent;
+  border-bottom: 5px solid var(--rag-groen);
+}
+
+.trend-neer {
+  border-left:   4px solid transparent;
+  border-right:  4px solid transparent;
+  border-top:    5px solid var(--rag-rood);
+}
+
 /* --------------------------------------------------------------------------
    9. Detail Sections
    -------------------------------------------------------------------------- */
