@@ -497,7 +497,7 @@ Plans:
 Plans:
 
 **Wave 1**
-- [ ] 26-01-PLAN.md — CSS classes (.score-telling, .trend-pijl, .trend-op, .trend-neer) + LeerlingTegel trend prop + score-telling render (TEGEL-01, TEGEL-02)
+- [x] 26-01-PLAN.md — CSS classes (.score-telling, .trend-pijl, .trend-op, .trend-neer) + LeerlingTegel trend prop + score-telling render (TEGEL-01, TEGEL-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 26-02-PLAN.md — KlasOverzicht trendMap useMemo + trend prop wiring to LeerlingTegel (TREND-01, TREND-02, TREND-03, TREND-04)
