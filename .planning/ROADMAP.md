@@ -66,7 +66,8 @@
 
 ### v2.3 Inzicht, Configuratie & Testers Onboarden
 
-- [x] **Phase 25: Doorstroomnorm Configuratie** â€” Mentor kan alle doorstroomdrempels instellen in de settings en deze worden opgeslagen tussen sessies (completed 2026-05-21)
+- [x] **Phase 25: Doorstroomnorm Configuratie** â€” Mentor kan alle doorstroomdrempels instellen in de settings en deze worden opgeslagen tussen sessies
+ (completed 2026-05-21)
 - [ ] **Phase 26: Tegel Score-telling & Fase-vergelijking** â€” Klasoverzicht-tegels tonen score-telling en een trend-pijl als beide fases aanwezig zijn
 - [ ] **Phase 27: Klasbeheer** â€” Mentor kan lege klassen verwijderen en bestaande klassen hernoemen zonder dataverlies
 - [ ] **Phase 28: Bug/Feedback Rapportage** â€” Mentor of tester kan met Ã©Ã©n klik een vooringevulde bugmelding e-mailen inclusief OS/versie en console errors
@@ -490,8 +491,16 @@ Plans:
   2. Een tegel zonder scores (grijs / Onbekend) toont geen score-telling â€” de telling wordt verborgen
   3. Als zowel fase 1 als fase 2 voor een leerling zijn geÃ¯mporteerd en de prognose is verbeterd (bijv. rood naar oranje), toont de tegel een pijl omhoog (â†‘)
   4. Als de prognose verslechterd is t.o.v. fase 1, toont de tegel een pijl omlaag (â†“) â€” bij gelijke prognose verschijnt geen pijl
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
+
+Plans:
+
+**Wave 1**
+- [ ] 26-01-PLAN.md — CSS classes (.score-telling, .trend-pijl, .trend-op, .trend-neer) + LeerlingTegel trend prop + score-telling render (TEGEL-01, TEGEL-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 26-02-PLAN.md — KlasOverzicht trendMap useMemo + trend prop wiring to LeerlingTegel (TREND-01, TREND-02, TREND-03, TREND-04)
 
 ### Phase 27: Klasbeheer
 **Goal**: Mentor kan lege klassen direct verwijderen vanuit de tab-strip en elke klas hernoemen zonder de bijbehorende leerlingdata te verliezen
