@@ -11,9 +11,10 @@ interface LeerlingTegelProps {
   student: any;
   status: StatusResult;
   onClick: () => void;
+  trend?: 'op' | 'neer' | null;
 }
 
-export default function LeerlingTegel({ student, status, onClick }: LeerlingTegelProps) {
+export default function LeerlingTegel({ student, status, onClick, trend }: LeerlingTegelProps) {
   // Mini verzuim bar calculation (per app.js lines 1256-1269)
   let miniBar: React.ReactNode = null;
   if (student.verzuim) {
@@ -38,6 +39,34 @@ export default function LeerlingTegel({ student, status, onClick }: LeerlingTege
     }
   }
 
+  // Score-telling calculation (Phase 26 — TEGEL-01/TEGEL-02)
+  let scoreTelling: React.ReactNode = null;
+  if (status.kleur !== 'grijs') {
+    const totaalDeelgebieden =
+      status.prognose.totaalVoldoendeOfHoger + status.prognose.totaalOnvoldoende;
+    const v = status.prognose.totaalVoldoendeOfHoger;
+    const o = status.prognose.totaalOnvoldoende;
+    const ariaLabel =
+      trend === 'op'
+        ? `Trend omhoog: ${v} van ${totaalDeelgebieden} deelgebieden voldoende of hoger, ${o} onvoldoende`
+        : trend === 'neer'
+        ? `Trend omlaag: ${v} van ${totaalDeelgebieden} deelgebieden voldoende of hoger, ${o} onvoldoende`
+        : `${v} van ${totaalDeelgebieden} deelgebieden voldoende of hoger, ${o} onvoldoende`;
+    scoreTelling = (
+      <div className="score-telling" aria-label={ariaLabel}>
+        {trend === 'op' && (
+          <span className="trend-pijl trend-op" aria-hidden="true" />
+        )}
+        {trend === 'neer' && (
+          <span className="trend-pijl trend-neer" aria-hidden="true" />
+        )}
+        <span className="score-telling-tekst">
+          {v}/{totaalDeelgebieden} {'≥'}V{' · '}{o} O
+        </span>
+      </div>
+    );
+  }
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault(); // prevent page scroll on Space
@@ -58,6 +87,7 @@ export default function LeerlingTegel({ student, status, onClick }: LeerlingTege
     >
       <span className="klas-tile-naam">{student.naam}</span>
       <span className={`status-badge status-${status.kleur}`}>{status.label}</span>
+      {scoreTelling}
       {miniBar}
     </div>
   );
