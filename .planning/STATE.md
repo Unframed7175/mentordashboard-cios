@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Inzicht, Configuratie & Testers Onboarden
-status: planning
-last_updated: "2026-05-23T11:14:18.346Z"
-last_activity: 2026-05-22
+status: active
+last_updated: "2026-05-23T14:53:00.000Z"
+last_activity: 2026-05-23
 progress:
-  total_phases: 25
-  completed_phases: 20
-  total_plans: 59
-  completed_plans: 59
+  total_phases: 26
+  completed_phases: 21
+  total_plans: 61
+  completed_plans: 61
   percent: 100
 ---
 
@@ -20,19 +20,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** Phase 25 — doorstroomnorm-configuratie
+**Current focus:** Phase 27 — klasbeheer
 
 ## Current Position
 
-Phase: 26
+Phase: 27
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-05-22
+Last activity: 2026-05-23
 
 ## Progress Bar
 
 ```
-v2.3: [____________________] 0% (0/6 phases) — Phase 25 next
+v2.3: [███_________________] 33% (2/6 phases) — Phase 27 next
 ```
 
 ## Performance Metrics
@@ -43,7 +43,7 @@ v1.2 phases completed: 1/1
 v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
 v2.2 phases completed: 5/5
-v2.3 phases completed: 0/6
+v2.3 phases completed: 2/6
 
 ## Accumulated Context
 
@@ -136,3 +136,4 @@ v2.3 phases completed: 0/6
 - 2026-05-20: Phase 24 executed — OnboardingWizard.tsx (5-step wizard: klas aanmaken, PDFs, verzuim, BPV, completion). App.tsx wired with lazy view initializer + handleOnboardingComplete. ONB-01..08 fulfilled. 132/132 tests pass. commit 49135bc. v2.2 COMPLETE.
 - 2026-05-20: Phase 24 gap closure (plan 24-03) executed — ONB-06 settings step (drempelwaarden), ghost-class lazy-init fix, klasId null-guard, Afbreken abort flow. 132/132 tests pass. commit 4767da1.
 - 2026-05-21: v2.3 milestone started. Roadmap created — Phases 25–30 defined, 36 requirements mapped (NORM-01..07, TEGEL-01..02, TREND-01..04, KLS-01..03, FEED-01..05, HELP-01..04, TEST-01..05, UI-01..04, FIX-01..02). Next: /gsd-plan-phase 25
+- 2026-05-23: Phase 26 complete — score-telling row in LeerlingTegel (trend prop, .score-telling CSS, grijs guard) + trendMap useMemo in KlasOverzicht (computeTrend: length/period/grijs/rank guards). TEGEL-01, TEGEL-02, TREND-01..04 fulfilled. 150 tests pass. Human UAT approved.

@@ -68,7 +68,7 @@
 
 - [x] **Phase 25: Doorstroomnorm Configuratie** â€” Mentor kan alle doorstroomdrempels instellen in de settings en deze worden opgeslagen tussen sessies
  (completed 2026-05-21)
-- [ ] **Phase 26: Tegel Score-telling & Fase-vergelijking** â€” Klasoverzicht-tegels tonen score-telling en een trend-pijl als beide fases aanwezig zijn
+- [x] **Phase 26: Tegel Score-telling & Fase-vergelijking** â€” Klasoverzicht-tegels tonen score-telling en een trend-pijl als beide fases aanwezig zijn *(completed 2026-05-23)*
 - [ ] **Phase 27: Klasbeheer** â€” Mentor kan lege klassen verwijderen en bestaande klassen hernoemen zonder dataverlies
 - [ ] **Phase 28: Bug/Feedback Rapportage** â€” Mentor of tester kan met Ã©Ã©n klik een vooringevulde bugmelding e-mailen inclusief OS/versie en console errors
 - [ ] **Phase 29: UI Streamlining & Bugfixes** â€” Consistente spacing/typografie door de hele app, opgeschoond klasoverzicht en twee cosmetic bugfixes

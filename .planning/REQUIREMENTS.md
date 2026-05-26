@@ -18,15 +18,15 @@
 
 ## Dashboard: Tegel Score-telling (TEGEL)
 
-- [ ] **TEGEL-01**: De leerling-tegel toont het aantal deelgebieden ≥V en het aantal O onder de status-badge
-- [ ] **TEGEL-02**: De score-telling wordt verborgen als een leerling geen scores heeft (grijs / Onbekend tegel)
+- [x] **TEGEL-01**: De leerling-tegel toont het aantal deelgebieden ≥V en het aantal O onder de status-badge
+- [x] **TEGEL-02**: De score-telling wordt verborgen als een leerling geen scores heeft (grijs / Onbekend tegel)
 
 ## Dashboard: Fase-vergelijking Trend (TREND)
 
-- [ ] **TREND-01**: De tegel toont een pijl omhoog (↑) als de prognose verbeterd is t.o.v. fase 1 (bijv. rood → oranje, oranje → groen)
-- [ ] **TREND-02**: De tegel toont een pijl omlaag (↓) als de prognose verslechterd is t.o.v. fase 1
-- [ ] **TREND-03**: De pijl wordt alleen getoond als zowel fase 1 als fase 2 voor dezelfde leerling aanwezig zijn
-- [ ] **TREND-04**: Als de prognose gelijk is gebleven, wordt geen pijl getoond (geen visuele ruis)
+- [x] **TREND-01**: De tegel toont een pijl omhoog (↑) als de prognose verbeterd is t.o.v. fase 1 (bijv. rood → oranje, oranje → groen)
+- [x] **TREND-02**: De tegel toont een pijl omlaag (↓) als de prognose verslechterd is t.o.v. fase 1
+- [x] **TREND-03**: De pijl wordt alleen getoond als zowel fase 1 als fase 2 voor dezelfde leerling aanwezig zijn
+- [x] **TREND-04**: Als de prognose gelijk is gebleven, wordt geen pijl getoond (geen visuele ruis)
 
 ## Dashboard: Klasbeheer (KLS)
 
@@ -97,12 +97,12 @@
 | NORM-05 | Phase 25 | ○ Pending |
 | NORM-06 | Phase 25 | ○ Pending |
 | NORM-07 | Phase 25 | ○ Pending |
-| TEGEL-01 | Phase 26 | ○ Pending |
-| TEGEL-02 | Phase 26 | ○ Pending |
-| TREND-01 | Phase 26 | ○ Pending |
-| TREND-02 | Phase 26 | ○ Pending |
-| TREND-03 | Phase 26 | ○ Pending |
-| TREND-04 | Phase 26 | ○ Pending |
+| TEGEL-01 | Phase 26 | ✓ Complete |
+| TEGEL-02 | Phase 26 | ✓ Complete |
+| TREND-01 | Phase 26 | ✓ Complete |
+| TREND-02 | Phase 26 | ✓ Complete |
+| TREND-03 | Phase 26 | ✓ Complete |
+| TREND-04 | Phase 26 | ✓ Complete |
 | KLS-01 | Phase 27 | ○ Pending |
 | KLS-02 | Phase 27 | ○ Pending |
 | KLS-03 | Phase 27 | ○ Pending |
