@@ -30,9 +30,9 @@
 
 ## Dashboard: Klasbeheer (KLS)
 
-- [ ] **KLS-01**: Een lege klas (0 leerlingen) toont een "Verwijder klas" knop in de tab of tegel
-- [ ] **KLS-02**: Mentor kan de naam van elke bestaande klas wijzigen zonder de data te verliezen
-- [ ] **KLS-03**: Klasnaam-wijziging is direct zichtbaar in de tab-strip en alle onderdelen
+- [x] **KLS-01**: Een lege klas (0 leerlingen) toont een "Verwijder klas" knop in de tab of tegel *(validated Phase 27)*
+- [x] **KLS-02**: Mentor kan de naam van elke bestaande klas wijzigen zonder de data te verliezen *(validated Phase 27)*
+- [x] **KLS-03**: Klasnaam-wijziging is direct zichtbaar in de tab-strip en alle onderdelen *(validated Phase 27)*
 
 ## Testers: Bug/Feedback Rapportage (FEED)
 

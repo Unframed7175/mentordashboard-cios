@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Inzicht, Configuratie & Testers Onboarden
 status: active
-last_updated: "2026-05-26T00:00:00.000Z"
+last_updated: "2026-05-26T19:35:00.000Z"
 last_activity: 2026-05-26
 progress:
-  total_phases: 26
-  completed_phases: 21
-  total_plans: 63
-  completed_plans: 61
+  total_phases: 27
+  completed_phases: 22
+  total_plans: 65
+  completed_plans: 63
   percent: 97
 ---
 
@@ -20,19 +20,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus: Phase 27 — klasbeheer
+**Current focus: Phase 28 — bug/feedback rapportage
 
 ## Current Position
 
-Phase: 27
-Plan: 2 plans ready (27-01, 27-02)
-Status: Ready to execute
+Phase: 28
+Status: Phase 27 complete — ready to plan Phase 28
 Last activity: 2026-05-26
 
 ## Progress Bar
 
 ```
-v2.3: [███_________________] 33% (2/6 phases) — Phase 27 next
+v2.3: [████________________] 50% (3/6 phases) — Phase 28 next
 ```
 
 ## Performance Metrics
@@ -137,3 +136,4 @@ v2.3 phases completed: 2/6
 - 2026-05-20: Phase 24 gap closure (plan 24-03) executed — ONB-06 settings step (drempelwaarden), ghost-class lazy-init fix, klasId null-guard, Afbreken abort flow. 132/132 tests pass. commit 4767da1.
 - 2026-05-21: v2.3 milestone started. Roadmap created — Phases 25–30 defined, 36 requirements mapped (NORM-01..07, TEGEL-01..02, TREND-01..04, KLS-01..03, FEED-01..05, HELP-01..04, TEST-01..05, UI-01..04, FIX-01..02). Next: /gsd-plan-phase 25
 - 2026-05-23: Phase 26 complete — score-telling row in LeerlingTegel (trend prop, .score-telling CSS, grijs guard) + trendMap useMemo in KlasOverzicht (computeTrend: length/period/grijs/rank guards). TEGEL-01, TEGEL-02, TREND-01..04 fulfilled. 150 tests pass. Human UAT approved.
+- 2026-05-26: Phase 27 complete — renameKlas() in utils/klassen.ts (TDD: RNM-01 data-integrity, RNM-02 unknown-id guard, RNM-03 duplicate-name guard). KlasTabStrip rewritten: <div role="tab"> outer, hover/focus-within × delete, double-click inline rename with isCommittingRef guard. KlasOverzicht legacy delete removed (D-07). CSS .delete-tab-btn + .tab-rename-input. TAB-01..03 component tests. 158 tests pass. KLS-01..03 fulfilled.
