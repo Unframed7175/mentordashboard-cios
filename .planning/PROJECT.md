@@ -28,7 +28,7 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ NORM — Doorstroomdrempels configureerbaar in settings (13/15 ≥V, max 6/2 O, BJ1 versneld-SBC) — Phase 25 complete
 - ✓ TEGEL — Score-telling op tegel: "14/19 ≥V · 1 O" onder de status-badge — Phase 26 complete
 - ✓ TREND — Fase-vergelijking pijl ↑↓ op tegel (alleen als fase 1 én fase 2 geïmporteerd zijn) — Phase 26 complete
-- KLS — Lege klas → verwijderknop; alle klassen → hernoembaar in-place
+- ✓ KLS — Lege klas → hover × delete; alle klassen → double-click inline rename — Phase 27 complete
 - BUG — Bug/feedback knop → mailto: met OS/versie/import-actie/console errors automatisch ingevuld
 - HELP — Kort helpscherm in-app + uitgebreid INSTRUCTIES.md bestand voor collega-testers
 - TEST — CI smoke tests op Windows + macOS (GitHub Actions) + handmatige testchecklist
