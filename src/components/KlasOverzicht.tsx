@@ -107,8 +107,8 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDelet
 
   // Sort filtered list
   const sorted = [...filtered].sort((a, b) => {
-    const stA = statusMap.get(a.leerlingId)!;
-    const stB = statusMap.get(b.leerlingId)!;
+    const stA = statusMap.get(a.leerlingId) ?? { kleur: 'grijs' as const };
+    const stB = statusMap.get(b.leerlingId) ?? { kleur: 'grijs' as const };
     let cmp = 0;
     if (sortKey === 'naam') {
       cmp = a.naam.localeCompare(b.naam, 'nl');
