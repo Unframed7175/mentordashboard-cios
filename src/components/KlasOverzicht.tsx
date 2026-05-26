@@ -5,17 +5,16 @@
 // ---------------------------------------------------------------------------
 
 import React, { useState, useMemo } from 'react';
-import { getActiveStudents, getAllRecordsForStudent, klassenState, deleteKlas } from '../../utils/klassen';
+import { getActiveStudents, getAllRecordsForStudent, klassenState } from '../../utils/klassen';
 import { berekenStatus, STATUS_VOLGORDE } from '../utils/status';
 import LeerlingTegel from './LeerlingTegel';
 
 interface KlasOverzichtProps {
   refreshKey: number;
   onSelectStudent: (id: string, orderedList: string[]) => void;
-  onKlasDeleted: () => void;
 }
 
-export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDeleted }: KlasOverzichtProps) {
+export default function KlasOverzicht({ refreshKey, onSelectStudent }: KlasOverzichtProps) {
   const [zoekTerm, setZoekTerm] = useState('');
   const [sortKey, setSortKey] = useState<'naam' | 'status' | 'verzuim'>('naam');
   const [sortAsc, setSortAsc] = useState(true);
@@ -132,21 +131,6 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDelet
     }
   }
 
-  async function handleDelete() {
-    const activeKlas = klassenState.activeKlasId
-      ? klassenState.klassen[klassenState.activeKlasId]
-      : null;
-    const klasNaam = activeKlas ? activeKlas.naam : 'deze klas';
-    const confirmed = window.confirm(
-      `Klas '${klasNaam}' en alle leerlingdata verwijderen? Dit kan niet ongedaan worden gemaakt.`
-    );
-    if (!confirmed) return;
-    if (klassenState.activeKlasId) {
-      await deleteKlas(klassenState.activeKlasId);
-    }
-    onKlasDeleted();
-  }
-
   // Determine empty state
   const showNoImport = allStudents.length === 0 && !zoekTerm;
   const showNoMatch = allStudents.length > 0 && zoekTerm !== '' && sorted.length === 0;
@@ -240,14 +224,6 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDelet
         </div>
       )}
 
-      {/* Footer: delete klas */}
-      {klassenState.activeKlasId && (
-        <div style={{ marginTop: '2rem', textAlign: 'right' }}>
-          <button className="btn btn-ghost" style={{ color: 'var(--status-rood-text)' }} onClick={handleDelete}>
-            Klas verwijderen
-          </button>
-        </div>
-      )}
     </div>
   );
 }
