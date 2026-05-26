@@ -47,13 +47,18 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDelet
       // Step A — length guard: need at least two records for a comparison
       if (records.length < 2) return null;
 
-      // Step B — distinct-period guard: prevents a student imported twice in the
+      // Step B — natural-sort by numeric periode suffix (WR-02: prevents 'P10' sorting
+      // before 'P2' alphabetically, which would reverse trend direction).
+      const parseNum = (s: string) => parseInt((s || '').replace(/\D/g, '') || '0', 10);
+      const sorted = [...records].sort((a, b) => parseNum(a.periode) - parseNum(b.periode));
+
+      // distinct-period guard: prevents a student imported twice in the
       // same periode from producing a false two-fase comparison.
-      if (records[0].periode === records[records.length - 1].periode) return null;
+      if (sorted[0].periode === sorted[sorted.length - 1].periode) return null;
 
       // Step C — compute status for oldest (fase 1) and newest (fase 2) record
-      const fase1Status = berekenStatus(records[0]);
-      const fase2Status = berekenStatus(records[records.length - 1]);
+      const fase1Status = berekenStatus(sorted[0]);
+      const fase2Status = berekenStatus(sorted[sorted.length - 1]);
 
       // Grijs guard (D-09): only compare two real RAG colours (rood/oranje/groen/blauw)
       if (fase1Status.kleur === 'grijs' || fase2Status.kleur === 'grijs') return null;
