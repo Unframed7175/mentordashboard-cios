@@ -312,6 +312,42 @@ a:hover { text-decoration: underline; }
   font-weight: 600;
 }
 
+/* --- Tab delete button (KLS-01) --- */
+.nav-tab .delete-tab-btn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0 0 0 0.35rem;
+  color: var(--text-muted);
+}
+.nav-tab:hover .delete-tab-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+.nav-tab:focus-within .delete-tab-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* --- Inline rename input (KLS-02) --- */
+.tab-rename-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--accent);
+  outline: none;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+  min-width: 5ch;
+  max-width: 20ch;
+  padding: 0;
+}
+
 /* --------------------------------------------------------------------------
    5. KlasOverzicht — Toolbar & Search
    -------------------------------------------------------------------------- */

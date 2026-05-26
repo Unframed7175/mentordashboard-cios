@@ -153,7 +153,6 @@ function App() {
         <KlasOverzicht
           refreshKey={refreshKey}
           onSelectStudent={handleStudentSelect}
-          onKlasDeleted={handleBack}
         />
       )}
       {view === 'detail' && activeStudentId && (
