@@ -114,6 +114,16 @@ export async function deleteKlas(klasId: string): Promise<boolean> {
   return true;
 }
 
+// ── renameKlas(klasId, newNaam) — KLS-02/KLS-03 ──────────────────────────────
+export async function renameKlas(klasId: string, newNaam: string): Promise<boolean> {
+  if (!klassenState.klassen[klasId]) {
+    return false;
+  }
+  klassenState.klassen[klasId].naam = newNaam;
+  await saveKlassen();
+  return true;
+}
+
 // ── deleteStudent(klasId, leerlingId) — D-12-11, D-12-12 ─────────────────────
 // Phase 12 function only — UI wiring in Phase 14
 // Hard delete — filter students array then re-encrypt entire blob (AVG Art. 17)
