@@ -159,9 +159,7 @@ body.dark {
   --status-rood-bg:     #450A0A; --status-rood-text:   #FCA5A5;
   --status-blauw-bg:    #1E3A5F; --status-blauw-text:  #93C5FD;
   --status-grijs-bg:    #1E293B; --status-grijs-text:  #94A3B8;
-}
 
-body.dark {
   --dm-lesgeven-bg:        #1e3a5f;
   --dm-lesgeven-text:      #93c5fd;
   --dm-lesgeven-border:    #1d4ed8;
