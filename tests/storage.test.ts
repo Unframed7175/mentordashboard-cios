@@ -126,6 +126,18 @@ test('RNM-02: renameKlas() met onbekende klasId geeft false terug zonder bijwerk
   expect(Object.keys(klassenState.klassen).length).toBe(0);
 });
 
+// ── RNM-03: renameKlas — duplicate name guard ──────────────────
+
+test('RNM-03: renameKlas() with existing name returns false', async () => {
+  klassenState.klassen = {
+    klas_1: { id: 'klas_1', naam: 'Klas A', students: [] },
+    klas_2: { id: 'klas_2', naam: 'Klas B', students: [] },
+  };
+  const result = await renameKlas('klas_2', 'Klas A');
+  expect(result).toBe(false);
+  expect(klassenState.klassen['klas_2'].naam).toBe('Klas B');
+});
+
 // ── STO-04: deleteStudent ─────────────────────────────────────────────────────
 
 test('STO-04: deleteStudent() verwijdert leerling en slaat op', async () => {
