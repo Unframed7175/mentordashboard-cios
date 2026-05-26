@@ -56,7 +56,11 @@ function App() {
 
   function handleOpenSettings() {
     setSettingsOpenCount(c => c + 1);
-    setPrevView(view as 'import' | 'klas' | 'detail');
+    // CR-02: guard against non-content views (settings/onboarding) being stored as prevView
+    const safeView = (view === 'import' || view === 'klas' || view === 'detail')
+      ? view
+      : 'klas';
+    setPrevView(safeView);
     setView('settings');
   }
 
@@ -129,7 +133,7 @@ function App() {
         klassen={Object.values(klassenState.klassen).map((klas: any) => ({
           id: klas.id,
           naam: klas.naam,
-          canDelete: (klas.students?.length ?? 1) === 0,
+          canDelete: Array.isArray(klas.students) && klas.students.length === 0,
         }))}
         activeKlasId={klassenState.activeKlasId}
         onSwitch={handleKlasSwitch}
