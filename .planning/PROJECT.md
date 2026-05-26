@@ -26,8 +26,8 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 
 **Target features:**
 - ✓ NORM — Doorstroomdrempels configureerbaar in settings (13/15 ≥V, max 6/2 O, BJ1 versneld-SBC) — Phase 25 complete
-- TEGEL — Score-telling op tegel: "14/19 ≥V · 1 O" onder de status-badge
-- TREND — Fase-vergelijking pijl ↑↓ op tegel (alleen als fase 1 én fase 2 geïmporteerd zijn)
+- ✓ TEGEL — Score-telling op tegel: "14/19 ≥V · 1 O" onder de status-badge — Phase 26 complete
+- ✓ TREND — Fase-vergelijking pijl ↑↓ op tegel (alleen als fase 1 én fase 2 geïmporteerd zijn) — Phase 26 complete
 - KLS — Lege klas → verwijderknop; alle klassen → hernoembaar in-place
 - BUG — Bug/feedback knop → mailto: met OS/versie/import-actie/console errors automatisch ingevuld
 - HELP — Kort helpscherm in-app + uitgebreid INSTRUCTIES.md bestand voor collega-testers
@@ -180,4 +180,4 @@ This document evolves at phase transitions and milestone boundaries.
 **After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
 
 ---
-*Last updated: 2026-05-19 — v2.2 Onboarding, Export & Data Completeness milestone started*
+*Last updated: 2026-05-23 — Phase 26 complete: score-telling + trend pijl op leerlingtegels*
