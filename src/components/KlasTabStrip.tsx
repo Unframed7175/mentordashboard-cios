@@ -43,16 +43,15 @@ export default function KlasTabStrip({
   function commitRename(klasId: string): void {
     if (isCommittingRef.current) return;
     isCommittingRef.current = true;
-
-    if (editValue.trim().length === 0) {
+    try {
+      if (editValue.trim().length === 0) { setEditingKlasId(null); return; }
+      onRenameKlas(klasId, editValue.trim());
       setEditingKlasId(null);
-      isCommittingRef.current = false;
-      return;
+    } finally {
+      // WR-01: reset after synchronous state updates are queued so that a
+      // browser-fired onBlur (after Enter unmounts the input) cannot re-enter
+      Promise.resolve().then(() => { isCommittingRef.current = false; });
     }
-
-    onRenameKlas(klasId, editValue.trim());
-    setEditingKlasId(null);
-    isCommittingRef.current = false;
   }
 
   return (
@@ -65,7 +64,12 @@ export default function KlasTabStrip({
           tabIndex={0}
           className={`nav-tab${klas.id === activeKlasId ? ' active' : ''}`}
           onClick={() => { if (editingKlasId !== klas.id) onSwitch(klas.id); }}
-          onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && editingKlasId !== klas.id) onSwitch(klas.id); }}
+          onKeyDown={e => {
+            if ((e.key === 'Enter' || e.key === ' ') && editingKlasId !== klas.id) {
+              e.preventDefault(); // WR-05: prevent Space from scrolling the page
+              onSwitch(klas.id);
+            }
+          }}
         >
           {editingKlasId === klas.id ? (
             <input
