@@ -261,5 +261,3 @@ export function getAllRecordsForStudent(leerlingId: string): any[] {
     return (a.periode || '').localeCompare(b.periode || '');
   });
 }
-
-console.log('[klassen.ts] Multi-class manager loaded');
