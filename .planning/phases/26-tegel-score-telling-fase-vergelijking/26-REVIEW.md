@@ -8,10 +8,10 @@ files_reviewed_list:
   - src/index.css
   - src/components/KlasOverzicht.tsx
 findings:
-  critical: 1
-  warning: 4
-  info: 3
-  total: 8
+  critical: 0
+  warning: 0
+  info: 0
+  total: 0
 status: fixed
 ---
 
