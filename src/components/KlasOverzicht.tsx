@@ -22,18 +22,17 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent }: KlasOverz
   // Read singleton directly — refreshKey causes re-render when data changes
   const allStudents = getActiveStudents();
 
-  // WR-04: Wrap status computation in useMemo keyed on refreshKey + student count
-  // to avoid recomputing berekenStatus for every render triggered by zoekTerm changes.
-  // Using refreshKey (import/switch trigger) + student count as stable cache key;
-  // getActiveStudents() returns a new array reference each call so we cannot use
-  // the array reference directly as a dependency — that would rebuild every render.
+  // WR-04: Wrap status computation in useMemo keyed on refreshKey only.
+  // refreshKey is incremented on every mutating operation (import, switch, rename, delete),
+  // so it is the single correct invalidation signal. allStudents.length was a fragile proxy
+  // that missed content changes (e.g. verzuim update) without a count change (WR-02).
   const statusMap = useMemo(() => {
     const students = getActiveStudents();
     const m = new Map<string, ReturnType<typeof berekenStatus>>();
     for (const s of students) m.set(s.leerlingId, berekenStatus(s));
     return m;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey, allStudents.length]);
+  }, [refreshKey]); // refreshKey alone is the correct invalidation signal (WR-02)
 
   // Phase 26 (TREND-01..04): compute trend direction per student by comparing
   // the oldest and newest period records via berekenStatus + STATUS_VOLGORDE rank.
