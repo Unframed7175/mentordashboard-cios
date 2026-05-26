@@ -119,7 +119,17 @@ export async function renameKlas(klasId: string, newNaam: string): Promise<boole
   if (!klassenState.klassen[klasId]) {
     return false;
   }
-  klassenState.klassen[klasId].naam = newNaam;
+  // CR-01: validate -- reject empty/whitespace names (mirror createKlas validation)
+  if (!newNaam || typeof newNaam !== 'string') return false;
+  const trimmed = newNaam.trim();
+  if (!trimmed) return false;
+  // WR-06: duplicate-name guard (case-insensitive, same pattern as createKlas)
+  const lowerNew = trimmed.toLowerCase();
+  const hasDuplicate = Object.values(klassenState.klassen).some(
+    (k: any) => k.id !== klasId && k.naam.toLowerCase() === lowerNew
+  );
+  if (hasDuplicate) return false;
+  klassenState.klassen[klasId].naam = trimmed;
   await saveKlassen();
   return true;
 }
@@ -130,7 +140,10 @@ export async function renameKlas(klasId: string, newNaam: string): Promise<boole
 export async function deleteStudent(klasId: string, leerlingId: string): Promise<boolean> {
   const klas = klassenState.klassen[klasId];
   if (!klas) return false;
-  klas.students = klas.students.filter((s: any) => s.leerlingId !== leerlingId);
+  // CR-03: mutate in-place to preserve array reference shared with appState.students;
+  // filter() creates a new array, breaking the bridge set by switchActiveKlas/_restoreBridge.
+  const idx = klas.students.findIndex((s: any) => s.leerlingId === leerlingId);
+  if (idx !== -1) klas.students.splice(idx, 1);
   return saveKlassen();
 }
 
@@ -225,6 +238,15 @@ async function _migrateLocalStorageToStore(): Promise<boolean> {
     // Only remove localStorage entries AFTER confirmed write (D-12-14, D-12-15)
     if (rawV2) localStorage.removeItem(KLASSEN_KEY_V2);
     if (rawV1) localStorage.removeItem(KLASSEN_KEY_V1);
+
+    // WR-03: persist onboardingCompleted if migrated data contains students
+    // (users who completed onboarding before Phase 12 should not see the wizard again)
+    const hasStudents = Object.values(klassenState.klassen).some(
+      (k: any) => Array.isArray(k.students) && k.students.length > 0
+    );
+    if (hasStudents && !klassenState.onboardingCompleted) {
+      await saveOnboardingCompleted();
+    }
 
     console.log('[klassen.ts] Migratie localStorage → plugin-store geslaagd');
     return true;
