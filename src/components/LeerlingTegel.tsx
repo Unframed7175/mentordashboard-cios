@@ -40,31 +40,33 @@ export default function LeerlingTegel({ student, status, onClick, trend }: Leerl
   }
 
   // Score-telling calculation (Phase 26 — TEGEL-01/TEGEL-02)
+  // Guard: prognose must be non-null and have at least one scored deelgebied (CR-01/WR-01)
   let scoreTelling: React.ReactNode = null;
-  if (status.kleur !== 'grijs') {
-    const totaalDeelgebieden =
-      status.prognose.totaalVoldoendeOfHoger + status.prognose.totaalOnvoldoende;
-    const v = status.prognose.totaalVoldoendeOfHoger;
-    const o = status.prognose.totaalOnvoldoende;
-    const ariaLabel =
-      trend === 'op'
-        ? `Trend omhoog: ${v} van ${totaalDeelgebieden} deelgebieden voldoende of hoger, ${o} onvoldoende`
-        : trend === 'neer'
-        ? `Trend omlaag: ${v} van ${totaalDeelgebieden} deelgebieden voldoende of hoger, ${o} onvoldoende`
-        : `${v} van ${totaalDeelgebieden} deelgebieden voldoende of hoger, ${o} onvoldoende`;
-    scoreTelling = (
-      <div className="score-telling" aria-label={ariaLabel}>
-        {trend === 'op' && (
-          <span className="trend-pijl trend-op" aria-hidden="true" />
-        )}
-        {trend === 'neer' && (
-          <span className="trend-pijl trend-neer" aria-hidden="true" />
-        )}
-        <span className="score-telling-tekst">
-          {v}/{totaalDeelgebieden} {'≥'}V{' · '}{o} O
-        </span>
-      </div>
-    );
+  if (status.kleur !== 'grijs' && status.prognose != null) {
+    const v = status.prognose.totaalVoldoendeOfHoger ?? 0;
+    const o = status.prognose.totaalOnvoldoende ?? 0;
+    const totaalDeelgebieden = v + o;
+    if (totaalDeelgebieden > 0) {
+      const ariaLabel =
+        trend === 'op'
+          ? `Trend omhoog: ${v} van ${totaalDeelgebieden} deelgebieden voldoende of hoger, ${o} onvoldoende`
+          : trend === 'neer'
+          ? `Trend omlaag: ${v} van ${totaalDeelgebieden} deelgebieden voldoende of hoger, ${o} onvoldoende`
+          : `${v} van ${totaalDeelgebieden} deelgebieden voldoende of hoger, ${o} onvoldoende`;
+      scoreTelling = (
+        <div className="score-telling" aria-label={ariaLabel}>
+          {trend === 'op' && (
+            <span className="trend-pijl trend-op" aria-hidden="true" />
+          )}
+          {trend === 'neer' && (
+            <span className="trend-pijl trend-neer" aria-hidden="true" />
+          )}
+          <span className="score-telling-tekst">
+            {v}/{totaalDeelgebieden} {'≥'}V{' · '}{o} O
+          </span>
+        </div>
+      );
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
