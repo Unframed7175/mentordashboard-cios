@@ -76,9 +76,8 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, onKlasDelet
       m.set(s.leerlingId, computeTrend(records));
     }
 
-    // refreshKey increments on every import — ensures trendMap recomputes whenever
-    // new record data arrives (same invariant as statusMap above)
     return m;
+  // refreshKey increments on every import; allStudents.length catches add/remove
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey, allStudents.length]);
 
