@@ -7,8 +7,20 @@
 import React from 'react';
 import { RAG_BORDER, StatusResult } from '../utils/status';
 
+// Minimal student shape used by this component — covers all fields accessed below.
+// Intentionally kept inline (no full-refactor) per IN-01 review guidance.
+interface StudentProps {
+  naam: string;
+  leerlingId: string;
+  verzuim?: {
+    aanwezigheid: number;
+    geoorloofd: number;
+    ongeoorloofd: number;
+  };
+}
+
 interface LeerlingTegelProps {
-  student: any;
+  student: StudentProps;
   status: StatusResult;
   onClick: () => void;
   trend?: 'op' | 'neer' | null;
