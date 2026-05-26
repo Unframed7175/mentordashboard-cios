@@ -33,7 +33,7 @@ vi.mock('@tauri-apps/api/core', () => ({
   }),
 }));
 
-import { klassenState, saveKlassen, loadKlassen, deleteStudent } from '../utils/klassen';
+import { klassenState, saveKlassen, loadKlassen, deleteStudent, renameKlas } from '../utils/klassen';
 
 beforeEach(() => {
   _storeData = new Map<string, unknown>();
@@ -87,6 +87,43 @@ test('STO-03: migratie: localStorage-data wordt gemigreerd naar plugin-store', a
   expect(klassenState.klassen['klas_old']).toBeDefined();
   expect(_storeData.has('klassen')).toBe(true);
   expect(localStorage.getItem('mentordashboard_klassen_v1')).toBeNull();
+});
+
+// ── RNM-01: renameKlas — success path + data integrity ───────────────────────
+
+test('RNM-01: renameKlas() werkt naam bij, slaat op, en laat studenten intact na reload', async () => {
+  const originalStudents = [{ leerlingId: 'L1', naam: 'Bakker, J.' }];
+  klassenState.klassen = {
+    klas_1: { id: 'klas_1', naam: 'Oud Naam', students: originalStudents },
+  };
+  klassenState.activeKlasId = 'klas_1';
+
+  const result = await renameKlas('klas_1', 'Nieuwe Naam');
+
+  // Naam is bijgewerkt
+  expect(result).toBe(true);
+  expect(klassenState.klassen['klas_1'].naam).toBe('Nieuwe Naam');
+
+  // Persist + simulate app restart + reload
+  await saveKlassen();
+  klassenState.klassen = {};
+  klassenState.activeKlasId = null;
+  await loadKlassen();
+
+  // Naam is hersteld
+  expect(klassenState.klassen['klas_1'].naam).toBe('Nieuwe Naam');
+  // Students zijn ongewijzigd (data integrity)
+  expect(klassenState.klassen['klas_1'].students).toEqual(originalStudents);
+});
+
+// ── RNM-02: renameKlas — unknown id returns false, no side effects ────────────
+
+test('RNM-02: renameKlas() met onbekende klasId geeft false terug zonder bijwerkingen', async () => {
+  // klassenState.klassen is leeg (via beforeEach)
+  const result = await renameKlas('nonexistent', 'X');
+
+  expect(result).toBe(false);
+  expect(Object.keys(klassenState.klassen).length).toBe(0);
 });
 
 // ── STO-04: deleteStudent ─────────────────────────────────────────────────────
