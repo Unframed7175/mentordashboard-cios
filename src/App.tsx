@@ -6,7 +6,7 @@ import KlasOverzicht from './components/KlasOverzicht';
 import DetailWeergave from './components/DetailWeergave';
 import SettingsPage from './components/SettingsPage';
 import OnboardingWizard from './components/OnboardingWizard';
-import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted } from '../utils/klassen';
+import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted, deleteKlas, renameKlas } from '../utils/klassen';
 import { loadSettings, applyTheme } from '../utils/settings';
 
 function App() {
@@ -101,6 +101,20 @@ function App() {
     setShowModal(false);
   }
 
+  async function handleDeleteKlas(klasId: string): Promise<void> {
+    const confirmed = window.confirm(
+      `Klas '${klassenState.klassen[klasId]?.naam ?? klasId}' verwijderen? Dit kan niet ongedaan worden gemaakt.`
+    );
+    if (!confirmed) return;
+    await deleteKlas(klasId);
+    setRefreshKey(k => k + 1);
+  }
+
+  async function handleRenameKlas(klasId: string, newNaam: string): Promise<void> {
+    await renameKlas(klasId, newNaam);
+    setRefreshKey(k => k + 1);
+  }
+
   async function handleOnboardingComplete(klasId: string) {
     await saveOnboardingCompleted();
     await switchActiveKlas(klasId);
@@ -112,11 +126,17 @@ function App() {
     <>
       <div id="storage-error-banner" style={{ display: 'none' }} />
       <KlasTabStrip
-        klassen={Object.values(klassenState.klassen) as Array<{ id: string; naam: string }>}
+        klassen={Object.values(klassenState.klassen).map((klas: any) => ({
+          id: klas.id,
+          naam: klas.naam,
+          canDelete: (klas.students?.length ?? 1) === 0,
+        }))}
         activeKlasId={klassenState.activeKlasId}
         onSwitch={handleKlasSwitch}
         onCreateKlas={() => setShowModal(true)}
         onSettings={handleOpenSettings}
+        onDeleteKlas={handleDeleteKlas}
+        onRenameKlas={handleRenameKlas}
         isSettingsActive={view === 'settings'}
         isDark={isDark}
       />
