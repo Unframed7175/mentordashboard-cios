@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** Phase 27 — klasbeheer
+**Current focus: Phase 27 — klasbeheer
 
 ## Current Position
 
