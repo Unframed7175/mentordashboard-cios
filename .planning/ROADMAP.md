@@ -510,8 +510,16 @@ Plans:
   1. Een klas-tabblad met 0 leerlingen toont een "Verwijder klas"-knop â€” klikken verwijdert de klas na bevestiging en de tab verdwijnt
   2. Mentor kan dubbelklikken op een klas-tab (of een rename-icoon gebruiken) om de klasnaam in-place te bewerken en op te slaan
   3. Na hernoemen is de nieuwe klasnaam direct zichtbaar in de tab-strip, de KPI-header en alle andere plekken in de app â€” zonder dataverlies
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
+
+Plans:
+
+**Wave 1**
+- [ ] 27-01-PLAN.md — renameKlas() utility function + RNM-01/RNM-02 unit tests (KLS-02, KLS-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 27-02-PLAN.md — KlasTabStrip hover × delete + double-click inline rename + KlasOverzicht cleanup + CSS (KLS-01, KLS-02, KLS-03)
 
 ### Phase 28: Bug/Feedback Rapportage
 **Goal**: Elke tester of mentor kan met Ã©Ã©n klik een vooraf ingevulde bugmelding e-mailen â€” OS, app-versie, laatste import-actie en console errors worden automatisch meegestuurd
