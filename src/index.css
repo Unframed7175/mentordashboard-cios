@@ -1478,3 +1478,18 @@ a:hover { text-decoration: underline; }
   color: var(--status-oranje-text);
   margin-top: 4px;
 }
+
+/* --------------------------------------------------------------------------
+   22. FeedbackModal textarea
+   -------------------------------------------------------------------------- */
+.feedback-modal-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 80px;
+  resize: vertical;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: inherit;
+}

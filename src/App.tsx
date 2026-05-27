@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ImportPage from './components/ImportPage';
 import KlasTabStrip from './components/KlasTabStrip';
 import KlasModal from './components/KlasModal';
+import FeedbackModal from './components/FeedbackModal';
 import KlasOverzicht from './components/KlasOverzicht';
 import DetailWeergave from './components/DetailWeergave';
 import SettingsPage from './components/SettingsPage';
@@ -19,6 +20,7 @@ function App() {
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null);
   const [detailStudentList, setDetailStudentList] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [settingsOpenCount, setSettingsOpenCount] = useState(0);
   const [isDark, setIsDark] = useState<boolean>(false);
 
@@ -52,6 +54,10 @@ function App() {
   function handleImportComplete() {
     setRefreshKey(k => k + 1);
     setView('klas');
+  }
+
+  function handleFeedback() {
+    setFeedbackOpen(true);
   }
 
   function handleOpenSettings() {
@@ -139,6 +145,7 @@ function App() {
         onSwitch={handleKlasSwitch}
         onCreateKlas={() => setShowModal(true)}
         onSettings={handleOpenSettings}
+        onFeedback={handleFeedback}
         onDeleteKlas={handleDeleteKlas}
         onRenameKlas={handleRenameKlas}
         isSettingsActive={view === 'settings'}
@@ -150,6 +157,7 @@ function App() {
           onCancel={() => setShowModal(false)}
         />
       )}
+      {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
       {view === 'import' && (
         <ImportPage onImportComplete={handleImportComplete} />
       )}

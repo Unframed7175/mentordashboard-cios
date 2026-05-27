@@ -8,6 +8,7 @@ interface KlasTabStripProps {
   onSwitch: (klasId: string) => void;
   onCreateKlas: () => void;
   onSettings: () => void;
+  onFeedback: () => void;
   onDeleteKlas: (klasId: string) => void;
   onRenameKlas: (klasId: string, newNaam: string) => void;
   isSettingsActive: boolean;
@@ -23,6 +24,7 @@ export default function KlasTabStrip({
   onSwitch,
   onCreateKlas,
   onSettings,
+  onFeedback,
   onDeleteKlas,
   onRenameKlas,
   isSettingsActive,
@@ -120,6 +122,15 @@ export default function KlasTabStrip({
         onClick={onCreateKlas}
       >
         +
+      </button>
+      <button
+        className="nav-tab"
+        style={{ fontSize: '18px' }}
+        title="Fout melden"
+        aria-label="Fout melden"
+        onClick={onFeedback}
+      >
+        🐛
       </button>
       <button
         className={`nav-tab${isSettingsActive ? ' active' : ''}`}
