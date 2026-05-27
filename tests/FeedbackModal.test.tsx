@@ -6,14 +6,18 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
+// Use vi.hoisted to declare mocks before vi.mock() factory runs (avoids TDZ)
+const { mockOpen, mockBuildMailtoUrl } = vi.hoisted(() => ({
+  mockOpen: vi.fn(),
+  mockBuildMailtoUrl: vi.fn(),
+}));
+
 // Mock plugin-opener open() — must be mocked before importing FeedbackModal
-const mockOpen = vi.fn();
 vi.mock('@tauri-apps/plugin-opener', () => ({
   open: mockOpen,
 }));
 
 // Mock buildMailtoUrl from utils/feedback
-const mockBuildMailtoUrl = vi.fn();
 vi.mock('../utils/feedback', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../utils/feedback')>();
   return {
