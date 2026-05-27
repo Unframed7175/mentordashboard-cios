@@ -650,7 +650,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 28-01-PLAN.md — utils/feedback.ts (ring buffer, setLastImport, buildMailtoUrl) + main.tsx console patches + TDD tests
+- [x] 28-01-PLAN.md — utils/feedback.ts (ring buffer, setLastImport, buildMailtoUrl) + main.tsx console patches + TDD tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -723,6 +723,6 @@ Plans:
 | 25. Doorstroomnorm Configuratie | 4/4 | Complete    | 2026-05-22 |
 | 26. Tegel Score-telling & Fase-vergelijking | 0/? | Not started | - |
 | 27. Klasbeheer | 0/? | Not started | - |
-| 28. Bug/Feedback Rapportage | 0/? | Not started | - |
+| 28. Bug/Feedback Rapportage | 1/2 | In Progress|  |
 | 29. UI Streamlining & Bugfixes | 0/? | Not started | - |
 | 30. Documentatie, Help & CI | 0/? | Not started | - |
