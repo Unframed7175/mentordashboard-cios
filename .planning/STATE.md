@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Inzicht, Configuratie & Testers Onboarden
 status: executing
-last_updated: "2026-05-27T05:50:52.897Z"
+last_updated: "2026-05-27T13:25:55.761Z"
 last_activity: 2026-05-27 -- Phase 28 execution started
 progress:
   total_phases: 25
-  completed_phases: 22
+  completed_phases: 23
   total_plans: 65
-  completed_plans: 63
-  percent: 88
+  completed_plans: 65
+  percent: 92
 ---
 
 # Project State
