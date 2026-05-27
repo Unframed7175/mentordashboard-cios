@@ -1488,8 +1488,14 @@ a:hover { text-decoration: underline; }
   min-height: 80px;
   resize: vertical;
   padding: 0.5rem;
-  border: 1px solid var(--border-color, #ccc);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   font-size: 0.875rem;
   font-family: inherit;
+}
+
+.feedback-modal-textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px var(--accent-light);
 }

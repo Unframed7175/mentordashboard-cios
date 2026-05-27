@@ -255,6 +255,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
           status: 'done',
           messages: [...prev.messages, `BPV-data verwerkt: ${count} leerling${count !== 1 ? 'en' : ''}`],
         }));
+        setLastImport({ filename: file.name, type: 'Excel' });
       }
     } catch (err: any) {
       setImportState(prev => ({

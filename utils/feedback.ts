@@ -100,9 +100,16 @@ export async function initSystemInfo(): Promise<void> {
   systemInfoCache = await getSystemInfo();
 }
 
+// Maximum encoded body length (in URL-encoded chars). Keeps the full mailto: URL
+// well within Windows ShellExecute's ~2048-char practical limit.
+const MAX_ENCODED_BODY = 1800;
+
+// Truncation marker appended when content is cut to fit the budget.
+const TRUNCATION_MARKER = '...\n[ingekort wegens e-mail limiet]';
+
 /**
  * Build a mailto: URL with all available feedback data.
- * Body is capped at 1500 chars with truncation marker if needed.
+ * Body is capped so that encodeURIComponent(body).length <= MAX_ENCODED_BODY.
  */
 export async function buildMailtoUrl(description: string): Promise<string> {
   const info = systemInfoCache ?? (await getSystemInfo());
@@ -130,10 +137,10 @@ export async function buildMailtoUrl(description: string): Promise<string> {
     return descSection + techSection + errorsSection + truncationMarker;
   }
 
-  // First attempt: full body
+  // First attempt: full body — check encoded length, not raw length
   let body = assembleBody([...errorBuffer], false);
 
-  if (body.length <= 1500) {
+  if (encodeURIComponent(body).length <= MAX_ENCODED_BODY) {
     return `mailto:${DEVELOPER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
@@ -151,9 +158,14 @@ export async function buildMailtoUrl(description: string): Promise<string> {
 
   body = assembleBody(truncatedErrors, true);
 
-  if (body.length > 1500) {
-    // Hard truncate to 1497 + ellipsis, then add marker
-    body = body.slice(0, 1497) + '...\n[ingekort wegens e-mail limiet]';
+  // Hard truncate: iteratively slice until encoded length fits within budget
+  if (encodeURIComponent(body).length > MAX_ENCODED_BODY) {
+    let safe = body.slice(0, body.length - TRUNCATION_MARKER.length) + TRUNCATION_MARKER;
+    while (encodeURIComponent(safe).length > MAX_ENCODED_BODY) {
+      // Reduce by 50 raw chars per iteration — fast convergence
+      safe = safe.slice(0, safe.length - TRUNCATION_MARKER.length - 50) + TRUNCATION_MARKER;
+    }
+    body = safe;
   }
 
   return `mailto:${DEVELOPER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

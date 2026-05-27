@@ -18,6 +18,7 @@ export default function FeedbackModal({ onClose }: FeedbackModalProps) {
     try {
       const url = await buildMailtoUrl(description.trim());
       await openUrl(url);
+      setLoading(false);
       onClose();
     } catch {
       setLoading(false);

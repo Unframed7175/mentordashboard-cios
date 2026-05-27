@@ -116,7 +116,7 @@ describe('feedback utils (Phase 28)', () => {
     expect(body).toContain('entry-12');
   });
 
-  it('pushConsoleError truncates at 200 chars per entry', () => {
+  it('pushConsoleError truncates at 200 chars per entry', async () => {
     // The 300-char string as single arg should be truncated to at most 200 chars
     // (excluding the timestamp prefix)
     const longString = 'x'.repeat(300);
@@ -127,24 +127,22 @@ describe('feedback utils (Phase 28)', () => {
     // We test this indirectly: the total stored entry must not exceed 200 + timestamp length
     // For direct verification, we need to check what's stored. We'll verify via buildMailtoUrl:
     // The body should contain 'x' repeated at most 200 times consecutively
-    buildMailtoUrl('').then(url => {
-      const { body } = decodeMailto(url);
-      // Find the longest run of 'x' in the body
-      const match = body.match(/x+/);
-      const longestRun = match ? match[0].length : 0;
-      expect(longestRun).toBeLessThanOrEqual(200);
-    });
+    const url = await buildMailtoUrl('');
+    const { body } = decodeMailto(url);
+    // Find the longest run of 'x' in the body
+    const match = body.match(/x+/);
+    const longestRun = match ? match[0].length : 0;
+    expect(longestRun).toBeLessThanOrEqual(200);
   });
 
-  it('ring buffer entries include timestamp prefix', () => {
+  it('ring buffer entries include timestamp prefix', async () => {
     pushConsoleError(['hello']);
     // We need to verify the stored entry has a timestamp prefix
     // We check indirectly via buildMailtoUrl
-    buildMailtoUrl('').then(url => {
-      const { body } = decodeMailto(url);
-      // The entry should match a timestamp pattern [HH:MM:SS] hello
-      expect(body).toMatch(/\[\d{2}:\d{2}:\d{2}\] hello/);
-    });
+    const url = await buildMailtoUrl('');
+    const { body } = decodeMailto(url);
+    // The entry should match a timestamp pattern [HH:MM:SS] hello
+    expect(body).toMatch(/\[\d{2}:\d{2}:\d{2}\] hello/);
   });
 
   it('pushConsoleError with Error object uses .stack', async () => {
