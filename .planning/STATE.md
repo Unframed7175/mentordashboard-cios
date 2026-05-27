@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-20)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus: Phase 28 — bug/feedback rapportage
+**Current focus: Phase 29 — UI Streamlining & Bugfixes
 
 ## Current Position
 
-Phase: 28 (bug-feedback-rapportage) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 28
-Last activity: 2026-05-27 -- Phase 28 execution started
+Phase: 29 (ui-streamlining-bugfixes) — PLANNED
+Plan: 0 of 5
+Status: Ready to execute
+Last activity: 2026-05-27 -- Phase 29 planned (5 plans, 4 waves)
 
 ## Progress Bar
 
