@@ -12,9 +12,9 @@ const { mockOpen, mockBuildMailtoUrl } = vi.hoisted(() => ({
   mockBuildMailtoUrl: vi.fn(),
 }));
 
-// Mock plugin-opener open() — must be mocked before importing FeedbackModal
+// Mock plugin-opener openUrl() — the actual export name in @tauri-apps/plugin-opener
 vi.mock('@tauri-apps/plugin-opener', () => ({
-  open: mockOpen,
+  openUrl: mockOpen,
 }));
 
 // Mock buildMailtoUrl from utils/feedback

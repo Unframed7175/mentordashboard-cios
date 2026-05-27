@@ -5,6 +5,7 @@ import { applyBackupRestore } from '../../utils/backup';
 import { saveKlassen, klassenState, switchActiveKlas, createKlas } from '../../utils/klassen';
 import { addStudent, mergeVerzuim } from '../../utils/datamodel';
 import { parseBpvExcel, saveBpvData, getBpvData } from '../../utils/bpv';
+import { setLastImport } from '../../utils/feedback';
 
 interface ImportState {
   status: 'idle' | 'processing' | 'done' | 'error';
@@ -173,6 +174,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
       }));
       // WR-06: only switch view when at least one PDF was successfully imported
       if (succeeded > 0) {
+        setLastImport({ filename: files[0].name, type: 'PDF' });
         onImportComplete?.();
       }
     }
@@ -210,6 +212,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
             `Verzuim verwerkt: ${matched} gekoppeld, ${unmatched.length} niet gevonden`,
           ],
         }));
+        setLastImport({ filename: file.name, type: 'Excel' });
         onImportComplete?.();
       }
     } catch (err: any) {
@@ -281,6 +284,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
           status: 'done',
           messages: [...prev.messages, 'Backup hersteld'],
         }));
+        setLastImport({ filename: file.name, type: 'zip' });
         onImportComplete?.();
       } else {
         setImportState(prev => ({

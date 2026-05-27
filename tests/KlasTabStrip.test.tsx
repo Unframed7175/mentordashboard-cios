@@ -16,6 +16,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onSwitch={vi.fn()}
         onCreateKlas={vi.fn()}
         onSettings={vi.fn()}
+        onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
         isSettingsActive={false}
@@ -34,6 +35,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onSwitch={vi.fn()}
         onCreateKlas={vi.fn()}
         onSettings={onSettingsSpy}
+        onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
         isSettingsActive={false}
@@ -52,6 +54,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onSwitch={vi.fn()}
         onCreateKlas={vi.fn()}
         onSettings={vi.fn()}
+        onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
         isSettingsActive={true}
@@ -70,6 +73,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onSwitch={vi.fn()}
         onCreateKlas={vi.fn()}
         onSettings={vi.fn()}
+        onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
         isSettingsActive={false}
@@ -91,6 +95,7 @@ function makeProps(overrides?: Partial<Parameters<typeof KlasTabStrip>[0]>) {
     onSwitch: vi.fn(),
     onCreateKlas: vi.fn(),
     onSettings: vi.fn(),
+    onFeedback: vi.fn(),
     onDeleteKlas: vi.fn(),
     onRenameKlas: vi.fn(),
     isSettingsActive: false,
@@ -156,5 +161,19 @@ describe('KlasTabStrip — TAB-03: rename save and cancel (Phase 27)', () => {
     expect(onRenameKlas).not.toHaveBeenCalled();
     // Input should be gone after escape
     expect(screen.queryByRole('textbox')).toBeNull();
+  });
+});
+
+describe('KlasTabStrip — feedback button (Phase 28)', () => {
+  it('renders a button with aria-label "Fout melden"', () => {
+    render(<KlasTabStrip {...makeProps()} />);
+    expect(screen.getByRole('button', { name: 'Fout melden' })).toBeTruthy();
+  });
+
+  it('calls onFeedback when 🐛 button is clicked', () => {
+    const onFeedback = vi.fn();
+    render(<KlasTabStrip {...makeProps({ onFeedback })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Fout melden' }));
+    expect(onFeedback).toHaveBeenCalledTimes(1);
   });
 });
