@@ -105,14 +105,14 @@ describe('feedback utils (Phase 28)', () => {
   });
 
   it('ring buffer caps at 10 entries', async () => {
-    // Push 12 entries — entries 1 and 2 should be evicted
+    // Push 12 entries — entries 01 and 02 should be evicted (zero-padded to avoid substring collision)
     for (let i = 1; i <= 12; i++) {
-      pushConsoleError([`entry-${i}`]);
+      pushConsoleError([`entry-${String(i).padStart(2, '0')}`]);
     }
     const url = await buildMailtoUrl('');
     const { body } = decodeMailto(url);
-    expect(body).not.toContain('entry-1');
-    expect(body).not.toContain('entry-2');
+    expect(body).not.toContain('entry-01');
+    expect(body).not.toContain('entry-02');
     expect(body).toContain('entry-12');
   });
 
