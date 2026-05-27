@@ -9,8 +9,34 @@ import { getLeerlijnenMapping } from "../utils/leerlijnen";
 import { loadSettings, applyTheme } from "../utils/settings";
 import { loadVerzuimDrempels } from "../utils/verzuimDrempels";
 import { loadNormen } from "../utils/normen";
+import { pushConsoleError, initSystemInfo } from "../utils/feedback";
+
+// Phase 28: Install ring buffer hooks BEFORE async IIFE so errors during init are captured.
+
+// HMR guard — prevent double-wrapping console.error in dev mode
+if (!(console.error as unknown as Record<string, boolean>).__gsd_patched) {
+  const _origConsoleError = console.error;
+  console.error = (...args: unknown[]) => {
+    pushConsoleError(args);
+    _origConsoleError.apply(console, args);
+  };
+  (console.error as unknown as Record<string, boolean>).__gsd_patched = true;
+}
+
+// Capture uncaught exceptions (safer than window.onerror — does not clobber existing handlers)
+window.addEventListener('error', (event) => {
+  pushConsoleError([event.message ?? 'Unknown error']);
+});
+
+// Capture unhandled promise rejections (window.onerror misses these)
+window.addEventListener('unhandledrejection', (event) => {
+  pushConsoleError([event.reason instanceof Error ? event.reason : String(event.reason ?? 'Unhandled rejection')]);
+});
 
 (async () => {
+  // Pre-cache OS/version info for FeedbackModal — ignore failure, buildMailtoUrl falls back to live call
+  await initSystemInfo().catch(() => { /* ignore — buildMailtoUrl falls back to live call */ });
+
   try {
     await loadKlassen();
   } catch (err) {
