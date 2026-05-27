@@ -72,7 +72,7 @@
 
 - [x] **Phase 26: Tegel Score-telling & Fase-vergelijking** — Klasoverzicht-tegels tonen score-telling en een trend-pijl als beide fases aanwezig zijn *(completed 2026-05-23)*
 - [x] **Phase 27: Klasbeheer** — Mentor kan lege klassen verwijderen en bestaande klassen hernoemen zonder dataverlies *(completed 2026-05-26)*
-- [ ] **Phase 28: Bug/Feedback Rapportage** — Mentor of tester kan met één klik een vooringevulde bugmelding e-mailen inclusief OS/versie en console errors
+- [x] **Phase 28: Bug/Feedback Rapportage** — Mentor of tester kan met één klik een vooringevulde bugmelding e-mailen inclusief OS/versie en console errors (completed 2026-05-27)
 - [ ] **Phase 29: UI Streamlining & Bugfixes** — Consistente spacing/typografie door de hele app, opgeschoond klasoverzicht en twee cosmetic bugfixes
 - [ ] **Phase 30: Documentatie, Help & CI** — In-app helppagina, uitgebreide INSTRUCTIES.md voor testers, en GitHub Actions CI builds op Windows en macOS
 
@@ -654,7 +654,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 28-02-PLAN.md — FeedbackModal UI + KlasTabStrip wiring + App.tsx state + ImportPage.tsx setLastImport calls
+- [x] 28-02-PLAN.md — FeedbackModal UI + KlasTabStrip wiring + App.tsx state + ImportPage.tsx setLastImport calls
 
 **UI hint**: yes
 
@@ -723,6 +723,6 @@ Plans:
 | 25. Doorstroomnorm Configuratie | 4/4 | Complete    | 2026-05-22 |
 | 26. Tegel Score-telling & Fase-vergelijking | 0/? | Not started | - |
 | 27. Klasbeheer | 0/? | Not started | - |
-| 28. Bug/Feedback Rapportage | 1/2 | In Progress|  |
+| 28. Bug/Feedback Rapportage | 2/2 | Complete   | 2026-05-27 |
 | 29. UI Streamlining & Bugfixes | 0/? | Not started | - |
 | 30. Documentatie, Help & CI | 0/? | Not started | - |
