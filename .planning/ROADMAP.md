@@ -672,8 +672,15 @@ Plans:
   5. De nav diagonal stripe (`::after` pseudo-element) is correct zichtbaar in de Tauri WebView op Windows
   6. De BPV-sectie toont "Laden..." terwijl een import bezig is, en "Geen BPV-data geïmporteerd" als er geen stage-bestand is — niet hetzelfde bericht voor beide toestanden
 
-**Plans**: TBD
+**Plans**: 5 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 29-01-PLAN.md -- Wave 0: RED test scaffolds for FIX-02 and PROG-01
+- [ ] 29-02-PLAN.md -- Wave 1: CSS-only changes (nav-stripe, tile padding, view-fade-in, typography)
+- [ ] 29-03-PLAN.md -- Wave 2: BpvProgressSection FIX-02 + KlasTabStrip FIX-01
+- [ ] 29-04-PLAN.md -- Wave 2: DetailWeergave section removal + full-width spider + hex-fix pass (6 files)
+- [ ] 29-05-PLAN.md -- Wave 3: DoortstroomPrognoseSection full rewrite (PROG-01)
 
 ### Phase 30: Documentatie, Help & CI
 
