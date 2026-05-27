@@ -571,17 +571,17 @@ Step 2.6: Probed.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **PROG-01: How to handle a student with no scores at all?**
+1. **PROG-01: How to handle a student with no scores at all?** `[RESOLVED]`
    - What we know: `status.kleur === 'grijs'` when no scores; `totaalVoldoendeOfHoger === 0` and `totaalOnvoldoende === 0`
    - What's unclear: Should the block layout show empty blocks with "—" or should it show the same "Nog geen scores" empty state as the current implementation?
-   - Recommendation: Show the overall status badge but skip criterion rows — display "Nog geen scores beschikbaar" in each block body. This is consistent with other sections' empty state pattern.
+   - **Resolution:** Each block body shows "Nog geen scores beschikbaar" (in `var(--text-muted)`) when `totaalVoldoendeOfHoger === 0 && totaalOnvoldoende === 0`. The block header still renders with the block name; no status chip is shown. This is consistent with the BpvProgressSection empty-state pattern and confirmed in UI-SPEC.md Component Contracts.
 
-2. **UI-01: Scope of typography audit**
+2. **UI-01: Scope of typography audit** `[RESOLVED]`
    - What we know: The design token system is in place; `--text-faint`, `--text-muted`, `--text-secondary` are defined consistently.
    - What's unclear: Which specific font-size mismatches the user identified as "inconsistent" — is it across section title sizes, badge sizes, or body text between views?
-   - Recommendation: Planner should scope UI-01 as a CSS-only task with explicit rules: section titles = `0.6875rem/700/uppercase`, body = `0.875rem/400`, labels = `0.75rem/600`. The planner verifies each view against these.
+   - **Resolution:** Source code audit confirmed body text (`0.875rem/400`) and label tokens (`0.75rem/600`) are already applied consistently across all views via CSS custom properties — no corrective action needed for those categories. UI-01 work is scoped to: (a) verify/correct `.detail-section-title` rule (section titles must be `0.6875rem/700/uppercase/var(--text-faint)/letter-spacing 0.06em`), and (b) confirm any deviations in the settings and help views against these rules. If `.detail-section-title` is already correct and no other deviations are found, the audit pass itself constitutes delivery of UI-01.
 
 ---
 
