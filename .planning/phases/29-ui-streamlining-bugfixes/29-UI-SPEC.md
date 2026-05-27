@@ -22,7 +22,7 @@ created: 2026-05-27
 | Preset | not applicable |
 | Component library | none (custom CSS classes) |
 | Icon library | none (Unicode glyphs used inline: ↑ ↓ ✓) |
-| Font | Industry (bundled OTF — Book 400, Demi 600, Bold 700) |
+| Font | Industry (bundled OTF — Book 400, Bold 700) |
 
 Source: `src/index.css` @font-face declarations (lines 8–29), confirmed in RESEARCH.md Standard Stack.
 
@@ -48,7 +48,7 @@ Declared values (multiples of 4 only):
 | Element | Current | Target |
 |---------|---------|--------|
 | `.klas-tile` padding | `1rem 1.125rem` (16px 18px) | `1.25rem 1.5rem` (20px 24px) |
-| `.klas-tile` gap (stacked elements) | `0.5rem` (8px) | `0.625rem` (10px) |
+| `.klas-tile` gap (stacked elements) | `0.5rem` (8px) | `0.75rem` (12px) |
 | Tile grid gap | existing | verify min `1rem` (16px) between tiles |
 
 Exceptions: Touch targets are not applicable (desktop-only app). The `.nav-stripe` div uses explicit pixel geometry `width: 140px; height: 52px` to match the removed `::after` pseudo-element — this is a fixed visual element, not a spacing token.
@@ -59,13 +59,13 @@ Source: RESEARCH.md "Current `.klas-tile` Padding" section (D-UI-02 baseline con
 
 ## Typography
 
-All text uses the Industry font family. Two weights only: regular (400) and bold (700). Demi (600) is used for labels only.
+All text uses the Industry font family. Two weights only: regular (400) and bold (700).
 
 | Role | Size | Weight | Line Height | Token / Class |
 |------|------|--------|-------------|---------------|
 | Section title | 0.6875rem (11px) | 700 | 1.2 | `.detail-section-title` — uppercase, `var(--text-faint)` |
 | Body / content text | 0.875rem (14px) | 400 | 1.5 | Default `<p>` and data cells |
-| Label / badge | 0.75rem (12px) | 600 | 1.3 | Criterion row labels, status chips, score-telling |
+| Label / badge | 0.75rem (12px) | 700 | 1.3 | Criterion row labels, status chips, score-telling |
 | Card name | 1rem (16px) | 700 | 1.2 | Leerlingnaam in `.klas-tile` and detail header |
 
 **Canonical rules for UI-01 typography consistency pass:**
@@ -73,7 +73,7 @@ All text uses the Industry font family. Two weights only: regular (400) and bold
 - All section titles across all views (klasoverzicht, detailweergave, settings, help) use exactly: `font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; color: var(--text-faint); letter-spacing: 0.06em`.
 - Body text in every section: `font-size: 0.875rem; font-weight: 400; color: var(--text-secondary)`.
 - Empty state and muted hint text: `font-size: 0.875rem; font-weight: 400; color: var(--text-muted)`.
-- Status badges / score chips: `font-size: 0.75rem; font-weight: 600`.
+- Status badges / score chips: `font-size: 0.75rem; font-weight: 700`.
 - No other font sizes are introduced in this phase.
 
 Source: CONTEXT.md "Established Patterns — Section titles" and RESEARCH.md Open Questions §2 recommendation.
@@ -147,13 +147,13 @@ Source: `src/index.css` `:root` and `body.dark` blocks (lines 34–174). RESEARC
 └─────────────────────────────────────────────┘
 ```
 
-**Block header:** CSS class `.prognose-block-header`. Contains block name as text (`font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-faint)`) and an overall status chip using `.status-groen` / `.status-oranje` / `.status-rood`.
+**Block header:** CSS class `.prognose-block-header`. Contains block name as text (`font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-faint)`) and an overall status chip using `.status-groen` / `.status-oranje` / `.status-rood`.
 
 **Block container:** CSS class `.prognose-block`. Border: `1px solid var(--border-default)`. Radius: `var(--radius-md)`. Background: `var(--bg-surface-alt)`. Left border accent: `3px solid` using the block's overall status color (`var(--rag-groen)` / `var(--rag-oranje)` / `var(--rag-rood)`).
 
 **Criterion row:** CSS class `.prognose-criterion-row`. Layout: `display: flex; justify-content: space-between; align-items: center; padding: 4px 0`. Contains:
 - Left: label text (`font-size: 0.875rem; color: var(--text-secondary)`)
-- Center: `score / threshold` display (`font-size: 0.875rem; font-weight: 600; color: var(--text-primary)`)
+- Center: `score / threshold` display (`font-size: 0.875rem; font-weight: 700; color: var(--text-primary)`)
 - Right: status dot or small chip using `.status-groen` / `.status-oranje` / `.status-rood`
 
 **Empty state (no scores):** Each block body shows `"Nog geen scores beschikbaar"` in `var(--text-muted)` at `0.875rem`. The block header still renders with the block name; no status chip is shown.
