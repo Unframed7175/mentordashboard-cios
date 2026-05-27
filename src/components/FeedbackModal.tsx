@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { buildMailtoUrl } from '../../utils/feedback';
-import { open } from '@tauri-apps/plugin-opener';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 interface FeedbackModalProps {
   onClose: () => void;
@@ -17,7 +17,7 @@ export default function FeedbackModal({ onClose }: FeedbackModalProps) {
     setErrorMsg('');
     try {
       const url = await buildMailtoUrl(description.trim());
-      await open(url);
+      await openUrl(url);
       onClose();
     } catch {
       setLoading(false);
