@@ -4,13 +4,13 @@ milestone: v2.3
 milestone_name: Inzicht, Configuratie & Testers Onboarden
 status: executing
 last_updated: "2026-05-27T13:25:55.761Z"
-last_activity: 2026-05-28 -- Phase 29 wave 2 complete (plans 01-04 done)
+last_activity: 2026-05-28 -- Phase 29 all 5 plans complete, full suite green
 progress:
   total_phases: 25
   completed_phases: 23
   total_plans: 70
-  completed_plans: 69
-  percent: 98
+  completed_plans: 70
+  percent: 100
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-20)
 
 ## Current Position
 
-Phase: 29 (ui-streamlining-bugfixes) — EXECUTING
-Plan: 4 of 5 (Wave 3 pending)
-Status: Executing — Wave 3 queued
-Last activity: 2026-05-28 -- Plans 01-04 complete; Wave 3 (plan 05) queued
+Phase: 29 (ui-streamlining-bugfixes) — EXECUTED (awaiting verification)
+Plan: 5 of 5
+Status: All plans complete — verifier pending
+Last activity: 2026-05-28 -- All 5 plans executed; 204 tests green, 0 failures
 
 ## Progress Bar
 
