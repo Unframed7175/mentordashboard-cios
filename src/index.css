@@ -637,6 +637,58 @@ a:hover { text-decoration: underline; }
   color: var(--text-secondary);
 }
 
+/* Prognose block layout (PROG-01 — DoortstroomPrognoseSection block view) */
+.prognose-blocks-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.prognose-block {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-alt);
+  padding: 0.75rem 1rem;
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.prognose-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.prognose-block-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+}
+
+.prognose-criterion-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  gap: 0.5rem;
+}
+
+.prognose-criterion-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  flex: 1 1 auto;
+}
+
+.prognose-criterion-score {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
 .gap-items {
   display: flex;
   flex-wrap: wrap;
