@@ -1,216 +1,127 @@
-# Stack Research: v2.2 Feature Additions
+## Stack Research — v2.4
 
-**Project:** Mentordashboard CIOS
-**Milestone:** v2.2 — Onboarding, Export & Data Completeness
-**Researched:** 2026-05-19
-**Overall confidence:** HIGH (all key findings verified against official Tauri docs and Rust API docs)
+**Date:** 2026-05-28
+**Milestone:** v2.4 — Data Completeness, Keuzedelen & UI Polish
+**Scope:** What is needed for the six v2.4 features on top of the existing Tauri 2 + React 19 + Vite + Vitest + SheetJS 0.20.3 + tauri-plugin-store stack.
 
-> Note: This file supersedes the v2.0 migration stack research for purposes of v2.2 planning.
-> The existing stack (Tauri 2, React 19, TypeScript, Vite, SheetJS, pdfjs-dist, tauri-plugin-store, Vitest) is already installed and does not need to change.
+> Prior stack research for v2.2 (print-to-PDF, drag-drop fix, onboarding, BPV parser, R&N) is preserved in git history. This file is the v2.4 addendum.
 
 ---
 
-## Executive Summary
+### New dependencies needed
 
-**Net new stack additions for v2.2: zero.**
+**None.** Every v2.4 feature is implementable with the packages already in `package.json`.
 
-All five v2.2 features are achievable with the existing installed stack. The only change needed is a one-line `tauri.conf.json` key to fix drag-and-drop. No new npm packages, no new Cargo crates.
+| Feature | Required capability | Already available |
+|---------|--------------------|--------------------|
+| BPV real column matchers | SheetJS `sheet_to_json` + fuzzy header matching | `xlsx` 0.20.3 in devDependencies; `parseBpvExcel()` + `_bpvKolom()` already implemented in `utils/bpv.ts` |
+| Keuzedelen per student | Extend StudentRecord + `saveKlassen()` | `tauri-plugin-store` ^2.4.3; `saveKlassen()` in `utils/klassen.ts` serialises full student graph |
+| R&N badge on tiles | `normalizeRekenScore()` + presentational render | Both fields on StudentRecord; `normalizeRekenScore()` in `utils/schema.ts`; no new data |
+| KLS-DEL non-empty | `deleteKlas()` already handles all records | `deleteKlas()` in `utils/klassen.ts` unconditionally deletes students; only the UX confirmation dialog needs adding |
+| UI-DET (spider + section reorder) | CSS resize + JSX reorder | Pure CSS / JSX |
+| UI-NAV (banner 2x) | CSS height tweak on `#main-nav` + logo `height` | Pure CSS |
 
 ---
 
-## Print-to-PDF
+### SheetJS BPV column discovery pattern
 
-### Verdict: Use `window.print()` + CSS `@media print`. No new packages.
+`parseBpvExcel()` in `utils/bpv.ts` is structurally correct. The helper `_bpvKolom(rowObj, candidates)` iterates header keys case-insensitively and accepts substring matches. The gap is that the real SomToday BPV Excel column names are unknown until a real export file is supplied.
 
-**Confidence:** HIGH — confirmed via official Tauri 2 Rust API docs at `docs.rs/tauri/latest/tauri/webview/struct.Webview.html`
+**Diagnostic tool already present:** `debugBpvExcel(buffer)` (bottom of `utils/bpv.ts`) logs all sheet names and the first five rows of every sheet. Call it from the import handler before `parseBpvExcel()` to read exact headers from the console.
 
-The Tauri 2 `Webview` struct documentation states explicitly:
+Once the real file is available, update only the candidate string arrays in `parseBpvExcel()`. The five arrays to update:
 
-> "window.print() works on all platforms."
+```ts
+// 1. Student display name
+_bpvKolom(rowObj, ['<REAL_NAME_COL>', 'Student', 'Naam', 'Leerlingnaam', ...])
 
-On Windows, the Edge WebView2 (which Tauri 2 uses) routes `window.print()` to the native Windows print dialog, which includes "Save as PDF" / "Microsoft Print to PDF" as a destination. The mentor does not need silent/headless PDF generation — they just need a print dialog where they pick "Save as PDF". This is exactly what `window.print()` delivers.
+// 2. Student number / leerlingId
+_bpvKolom(rowObj, ['<REAL_ID_COL>', 'Studentnummer', 'Leerlingnummer', ...])
 
-### Integration pattern
+// 3. Goedgekeurde / gerealiseerde uren — this drives gerealiseerdeUren
+_bpvKolom(rowObj, ['<REAL_APPROVED_COL>', 'Gerealiseerde uren', 'Gerealiseerd',
+                   'Stage-uren goedgekeurd', 'Goedgekeurde uren', ...])
 
-Add a print button to `DetailWeergave.tsx` and a `@media print` block to `index.css`:
+// 4. Ingediende / ingeleverde uren
+_bpvKolom(rowObj, ['<REAL_SUBMITTED_COL>', 'Stage-uren ingeleverd', 'Uren ingeleverd', ...])
 
-```tsx
-// In DetailWeergave.tsx
-<button className="no-print" onClick={() => window.print()}>
-  Afdrukken / Opslaan als PDF
-</button>
+// 5. Placement location / leerbedrijf
+_bpvKolom(rowObj, ['<REAL_LOCATION_COL>', 'Leerbedrijf', 'Organisatie', ...])
 ```
 
-```css
-/* In index.css */
-@media print {
-  .no-print { display: none !important; }
-  .print-only { display: block !important; }
-  nav, .import-dropzone, .settings-btn { display: none !important; }
-  @page { size: A4; margin: 20mm; }
-  body { font-size: 11pt; color: #000; background: #fff; }
+**No SheetJS API changes needed.** `XLSX.read(buf, { type: 'array', cellDates: true })` handles both `.xls` (BIFF8) and `.xlsx`. The `cpexcel` codepage import at the top of `bpv.ts` must not be removed — it is required for `.xls` Dutch text encoding.
+
+**Risk to note:** SomToday sometimes exports with merged header cells, which `sheet_to_json({ header: 1 })` represents as empty strings for the merged continuation cells. If the real file shows empty header slots where data columns are expected, switch to `XLSX.utils.decode_range(sheet['!ref'])` + manual cell-address iteration to reconstruct headers. Do not preemptively change this until a real file confirms the problem.
+
+---
+
+### Data model extension approach
+
+#### Keuzedelen (KZLD)
+
+Add `keuzedelen` to the StudentRecord shape. No schema migration needed — absent field reads as `undefined`; guard everywhere with `student.keuzedelen ?? []`.
+
+```ts
+// Add to typedef comment block in utils/datamodel.ts:
+// @property {Keuzedeel[]} [keuzedelen] — per-student keuzedelen list (KZLD)
+
+interface Keuzedeel {
+  id: string;       // crypto.randomUUID() — same pattern as Actiepunt.id
+  naam: string;     // free text, e.g. "Sportmassage"
+  onTrack: boolean; // mentor checkbox: is this student on track?
 }
 ```
 
-The `@media print` block hides UI chrome (navigation, import dropzone, buttons) and formats only the mentorgesprekverslag content for print. No JavaScript PDF generation needed.
+**Write path:** mirror `RekenenNederlandsSection.handleChange()` — find all records for `leerlingId` by filtering `klas.students`, mutate in-place on every matching record (keuzedelen is student-level, not period-level), then call `saveKlassen()`. Using `splice`/`push` on the existing array rather than `filter()` preserves the array reference shared with `appState.students` (the bridge set by `switchActiveKlas()`).
 
-### What NOT to add
+**Storage:** `saveKlassen()` serialises `klassenState.klassen` as a whole via `JSON.stringify` + `invoke('encrypt_klassen')` — the new field is included automatically. No store key changes.
 
-| Package | Why to skip |
-|---------|-------------|
-| `@tauri-apps/plugin-printer` | Community plugin by chen-collab — not in official tauri-apps org, Windows-only, no stable release. The official print plugin feature request (plugins-workspace#293) is still open as of 2026-05. Unnecessary when `window.print()` works. |
-| `react-to-print` (v3.3.0) | Uses `window.print()` internally, but its docs explicitly state "printing within a WebView is known to generally not work." It adds indirection over a direct `window.print()` call with no benefit, and introduces a failure mode. |
-| `@react-pdf/renderer` or `react-pdf` | These generate PDFs programmatically via canvas (for complex programmatic layouts, e-invoices, etc.). For a print-preview use case, browser print-to-PDF is superior: preserves text selection, correct font rendering, no canvas rasterization. |
-| New Cargo crate (e.g. `printpdf`) | Server-side PDF generation in Rust is architecturally wrong for this use case. The mentor wants to print the current screen view, not regenerate content from Rust. |
+#### R&N badge on tiles (TEGEL-RN)
 
-### No new `package.json` entries needed.
-### No new `Cargo.toml` entries needed.
+No data model change. `rekenResultaat` and `nederlandsResultaat` already exist on StudentRecord (see `utils/datamodel.ts` typedef, lines 41–42). `normalizeRekenScore()` in `utils/schema.ts` already maps `'3F'/'2F'/'1F'` to `'goed'/'voldoende'/'onvoldoende'`.
 
----
+Implementation is entirely in `LeerlingTegel.tsx`:
 
-## Drag-and-Drop Fix
+1. Extend `StudentProps` interface to include `rekenResultaat?: string | null` and `nederlandsResultaat?: string | null`.
+2. Call `normalizeRekenScore()` on both values.
+3. Render a compact inline badge (e.g. "R: ✓" / "N: !" ) — style to match existing `status-badge` classes.
+4. In `KlasOverzicht.tsx`, pass the two fields through from the student object to `<LeerlingTegel>`.
 
-### Root cause
+#### KLS-DEL (non-empty class deletion)
 
-Tauri 2 intercepts OS-level file drop events at the webview level before they reach the HTML5 drag-and-drop system. The config key `dragDropEnabled` defaults to `true`, meaning Tauri's native handler consumes the drag event and the browser's `DataTransfer` never gets populated.
+`deleteKlas()` in `utils/klassen.ts` already deletes all students and switches to the next class — it is correct as-is for non-empty deletion.
 
-This is documented in the Tauri 2 reference:
+The only change is in the UI layer:
 
-> "Disabling it is required to use HTML5 drag and drop on the frontend on Windows."
+1. In `App.tsx`, change `canDelete: klas.students.length === 0` to `canDelete: true` (or rename to reflect that it now means "show delete button" regardless of whether the class has students).
+2. Replace the `window.confirm()` in `handleDeleteKlas` with a small React modal that includes a labelled checkbox: "Ik begrijp dat alle leerlingdata van de leerlingen in deze klas permanent wordt verwijderd." The confirm button is disabled until the checkbox is checked.
+3. Keep `deleteKlas()` call unchanged after confirmation.
 
-The `ImportPage.tsx` `onDrop` handler is correctly written — it reads `e.dataTransfer.files`. The bug is that `e.dataTransfer.files` is always empty because Tauri intercepts the event upstream.
-
-**Confidence:** HIGH — confirmed via `v2.tauri.app/reference/javascript/api/namespacewebview/` and GitHub issue #14373 (which documents the confusing naming and default-true behavior).
-
-### Fix: One-line change to `tauri.conf.json`
-
-Add `"dragDropEnabled": false` to the window object in `src-tauri/tauri.conf.json`:
-
-```json
-{
-  "app": {
-    "windows": [
-      {
-        "title": "Mentordashboard CIOS",
-        "width": 1200,
-        "height": 800,
-        "resizable": true,
-        "fullscreen": false,
-        "useHttpsScheme": true,
-        "dragDropEnabled": false
-      }
-    ]
-  }
-}
-```
-
-This disables Tauri's native handler and restores standard HTML5 `DataTransfer` behavior. The existing `onDrop` handler in `ImportPage.tsx` (lines 324–330) works correctly and requires no code changes.
-
-### Why not use Tauri's native `onDragDropEvent` API instead
-
-Tauri 2 offers an alternative API via `getCurrentWebview().onDragDropEvent()` (from `@tauri-apps/api/webview`) that provides `event.payload.paths: string[]` — OS absolute file paths. This approach keeps `dragDropEnabled: true`.
-
-Reason to reject it for this app: The existing parsers (`handlePDFs`, `handleExcel`, `handleBackup`) all accept `File` objects and use `FileReader`/`arrayBuffer()` — standard browser File API. Switching to path-based drag-drop would require rewriting all parser call sites to use `@tauri-apps/plugin-fs` to read files by path. That is substantial rework for zero functional gain. Option A (config flag) costs one line; Option B costs ~50–100 lines of parser refactoring.
-
-### No new `package.json` entries needed.
-### No new `Cargo.toml` entries needed.
+The confirmation modal can be either a new lightweight component (`KlasVerwijderenModal`) or an extension of the existing `KlasModal` pattern — approximately 40–60 lines of JSX.
 
 ---
 
-## Onboarding Wizard
+### No-change areas
 
-### Verdict: Custom React component, no npm package.
-
-**Confidence:** HIGH — standard React pattern assessment.
-
-The onboarding wizard is a 4–5 step linear flow:
-
-1. Klas aanmaken (class name input)
-2. Voortgang PDFs importeren (drag existing ImportPage component)
-3. Verzuim Excel importeren (drag existing ImportPage component)
-4. Stage Excel importeren (optional)
-5. Instellingen bevestigen (confirm/link to SettingsPage)
-
-This is `useState<number>` for `currentStep` plus a `completed: boolean[]` array — approximately 80–120 lines of React. All existing page components (`ImportPage`, `SettingsPage`) can be reused inside the wizard steps. A third-party library adds bundle weight and styling conflicts with the existing CIOS CSS variables.
-
-**First-run detection:** Use `tauri-plugin-store` (already installed at `^2.4.3`) to persist an `onboardingComplete: true` flag. Check in `App.tsx` on mount; show `OnboardingWizard` if flag is absent or false.
-
-```typescript
-// In App.tsx
-const store = new Store('app-data.json'); // already instantiated for class data
-const onboardingDone = await store.get<boolean>('onboardingComplete');
-if (!onboardingDone) setShowOnboarding(true);
-```
-
-### Packages evaluated and rejected
-
-| Package | Reason to skip |
-|---------|---------------|
-| `react-step-wizard` (v5.3.11) | Last published 4 years ago. Abandoned. |
-| `NextStepjs` | Requires Framer Motion as peer dependency. Heavyweight for a 5-step linear flow. |
-| `react-multistep` | Headless v6 is technically fine but adds abstraction with no gain over `useState`. |
-| `SmartStepper` | Requires react-hook-form + Zod. Overkill. |
-| Any library requiring `framer-motion` | Not installed, adds ~130 KB minified, overkill for CSS transitions. |
-
-### No new `package.json` entries needed.
-### No new `Cargo.toml` entries needed.
+| Area | Verdict |
+|------|---------|
+| `xlsx` version / API | Unchanged — 0.20.3 via CDN tarball, no upgrade needed |
+| `tauri-plugin-store` version | Unchanged — ^2.4.3 covers all write patterns |
+| `utils/klassen.ts` `deleteKlas()` | Unchanged — already correct for non-empty deletion |
+| `utils/schema.ts` `normalizeRekenScore()` | Unchanged |
+| `utils/bpv.ts` plumbing (`_bpvKolom`, header detection, format detection) | Unchanged — only candidate strings inside the arrays change |
+| `SpiderChartCard.tsx` logic | Unchanged — only the CSS `width`/`height` on the container changes |
+| `DetailWeergave.tsx` child component logic | Unchanged — only the JSX order of sections changes |
+| Tauri Rust backend (commands, capabilities) | Unchanged — no new IPC commands needed |
+| Vitest / jsdom test infrastructure | Unchanged |
+| `tauri.conf.json` | Unchanged — no new permissions or window config needed |
 
 ---
 
-## BPV Stage Excel Parser (SheetJS — already installed)
+### Implementation sequence recommendation
 
-SheetJS (`xlsx` 0.20.3) is already installed via CDN tarball. The BPV parser work is purely a code task: read the new `.xls` format, extract BPV hours per student. No stack change.
-
-The existing `cpexcel` codepage table import pattern (required for legacy `.xls` files) must be preserved — see the v2.0 STACK.md for detail on this pitfall.
-
-**No new packages needed.**
-
----
-
-## Rekenen & Nederlands Voortgang (pdfjs-dist — already installed)
-
-`pdfjs-dist` is already installed. Extending the PDF parser to extract Rekenen/Nederlands scores is a code task (add new regex/table extraction logic). The existing `workerSrc` setup must not be changed.
-
-**No new packages needed.**
-
----
-
-## Summary Table
-
-| Feature | npm change | Cargo.toml change | tauri.conf.json change | Work type |
-|---------|-----------|------------------|----------------------|-----------|
-| Print-to-PDF | None | None | None | CSS `@media print` block + `window.print()` button in `DetailWeergave.tsx` |
-| Drag-and-drop fix | None | None | Add `"dragDropEnabled": false` to `app.windows[0]` | Config only |
-| Onboarding wizard | None | None | None | New `OnboardingWizard` React component + `tauri-plugin-store` flag (already installed) |
-| BPV Excel parser | None | None | None | New parser logic using installed SheetJS |
-| Rekenen/NL PDF parser | None | None | None | Extend existing parser using installed pdfjs-dist |
-
----
-
-## What NOT to Add
-
-| Package/Crate | Category | Reason |
-|---------------|----------|--------|
-| `@tauri-apps/plugin-printer` | Print | Community plugin, not official, Windows-only, open feature request in tauri-apps/plugins-workspace#293 |
-| `react-to-print` | Print | Uses `window.print()` internally but documented as unreliable in WebViews — adds risk, not value |
-| `@react-pdf/renderer` | Print | Canvas-based PDF generation; browser print-to-PDF is superior for screen-to-print use case |
-| `printpdf` (Rust crate) | Print | Server-side PDF generation; wrong architecture for a print-preview feature |
-| `react-step-wizard` | Onboarding | Abandoned (4 years, no updates) |
-| `framer-motion` | Onboarding | Heavy dep, overkill for a simple wizard |
-| `@tauri-apps/plugin-fs` | Drag-drop | Not needed; Option A (config flag) restores HTML5 DataTransfer without FS plugin |
-
----
-
-## Sources
-
-- Tauri 2 Webview Rust API (`window.print()` confirmation): https://docs.rs/tauri/latest/tauri/webview/struct.Webview.html
-- Tauri 2 `onDragDropEvent` reference + `dragDropEnabled` note: https://v2.tauri.app/reference/javascript/api/namespacewebview/
-- `dragDropEnabled` confusing-naming issue (behavior confirmed): https://github.com/tauri-apps/tauri/issues/14373
-- `dragDropEnabled` v1→v2 rename discussion: https://github.com/tauri-apps/tauri/discussions/9696
-- Tauri print API feature request (still open): https://github.com/tauri-apps/tauri/issues/4917
-- Tauri plugins-workspace print plugin tracking issue (still open): https://github.com/tauri-apps/plugins-workspace/issues/293
-- `react-to-print` WebView caveat (v3.3.0 README): https://github.com/MatthewHerbst/react-to-print
-- chen-collab tauri-plugin-printer (community, Windows-only): https://github.com/chen-collab/tauri-plugin-printer
-- Tauri PDF generation feature request (Jan 2025, open): https://github.com/tauri-apps/tauri/issues/12284
-
-**Research date:** 2026-05-19
+1. **UI-NAV / UI-DET** — Pure CSS, zero risk, unblock immediately.
+2. **TEGEL-RN** — Read-only pass-through from existing data, very low risk.
+3. **KLS-DEL** — Small modal component, isolated change.
+4. **KZLD** — New data field + CRUD component, moderate scope but pattern is established.
+5. **BPV column matchers** — Blocked until real SomToday BPV export file is available. Place last or make conditional on file availability.

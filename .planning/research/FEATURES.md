@@ -1,521 +1,360 @@
-# Feature Landscape: v2.2 Onboarding, Export & Data Completeness
+## Features Research — v2.4
 
-**Domain:** Tauri desktop app — Dutch MBO mentor dashboard (CIOS Zuidwest-NL)
-**Researched:** 2026-05-19
-**Milestone:** v2.2 — four new feature areas + one bug fix
-**Confidence:** MEDIUM-HIGH (Dutch MBO norms verified via rijksoverheid.nl + examenbladmbo.nl; UX patterns verified via PatternFly + Eleken; Tauri print limitations verified via GitHub issues)
-
----
-
-## Context: What Already Exists
-
-This research covers *only* what is new in v2.2. The following are already shipped and must NOT be re-built:
-
-- Multi-class tabbladen, tab strip, klas modal (`KlasTabStrip`, `KlasModal`)
-- Import page with PDF + Excel drag-drop and file dialog (`ImportPage`)
-- Auto class detection from PDF header (Phase 16)
-- Settings panel with dark mode, deelgebieden config, drempelwaarden, BPV config (`SettingsPage`)
-- Student detail view with spider chart, KPI tiles, verzuim, deelgebieden matrix (`DetailWeergave`)
-- BPV progress section showing gerealiseerdeUren vs verwachteUren (`BpvProgressSection`)
-- Stage section showing organisatie, periode, goedgekeurde uren (`StageSection`)
-- Aanvullend section with manual taalniveau/rekenniveau dropdowns (`AanvullendSection`)
-- AES-256 encrypted local storage via Tauri plugin-store
-
-**Key architectural constraint:** The app already tracks `taalniveau` and `rekenniveau` as manual dropdown fields in `AanvullendSection`. The v2.2 Rekenen & Nederlands feature must *extend* this — not replace it.
+**Domain:** Tauri 2 desktop app — Dutch MBO mentor dashboard (CIOS Zuidwest-NL)
+**Researched:** 2026-05-28
+**Milestone:** v2.4 — BPV column matchers, keuzedelen, R&N on tiles, non-empty class deletion, UI polish
+**Confidence:** HIGH for deletion UX (well-established desktop patterns), MEDIUM for keuzedelen UX (no direct comparator — similar to checklist-per-record patterns in school tools), HIGH for R&N tile badge (follows existing score-telling pattern already in the codebase)
 
 ---
 
-## Feature 1: Onboarding Wizard (ONB-01..08)
+## Context: Existing Codebase Constraints
 
-### What It Does
+These are facts from reading the source — not assumptions:
 
-A multi-step modal flow that appears on first launch (no klassen present). Guides the mentor through klas aanmaken → voortgang PDFs uploaden → verzuim Excel → stage Excel (optioneel) → instellingen (optioneel).
+- `LeerlingTegel.tsx` receives `student: StudentProps` (naam, leerlingId, verzuim) and `status: StatusResult`. It does NOT receive the full `StudentRecord` — any new badge data must either be passed as a new prop or computed inside `KlasOverzicht` (which builds the status/trend maps).
+- `DetailWeergave.tsx` section order: DoortstroomPrognoseSection → RekenenNederlandsSection → FeedbackActiepuntenSection → SpiderChartCard row → DeelgebiedenMatrix → VerzuimSection → BpvProgressSection. The `FeedbackActiepuntenSection` is currently third from top; requirement is to move it to after `BpvProgressSection`.
+- `FeedbackActiepuntenSection` follows the inline-edit-list pattern (add/edit/remove rows, each row has subject + date + status badge). Keuzedelen will be a simpler variant of this pattern with only name + checkbox.
+- `StudentRecord` in `datamodel.ts` has `rekenResultaat` and `nederlandsResultaat` as `string | null` (`'3F' | '2F' | '1F' | null`). `normalizeRekenScore()` converts these to `'goed' | 'voldoende' | 'onvoldoende' | null`. This is what the tile badge will use.
+- `deleteKlas()` in `utils/klassen.ts` already performs the deletion and switches to remaining class. Only the guard in `App.tsx` line 156 (`canDelete: students.length === 0`) and the `canDelete` prop on `KlasTabStrip` need to change.
+- `handleDeleteKlas` in `App.tsx` already uses `window.confirm()` for the empty-class case. For non-empty classes this must be upgraded to a proper confirmation modal with a checkbox.
+- `KlasTabStrip.tsx` logo: `height: '36px'` → requirement is 2x = `72px`. Nav banner height is currently set by CSS `#main-nav`.
+- `SpiderChartCard` SVG size is currently unknown — need to find and double it.
 
-### Table Stakes (must have)
+---
+
+## Feature 1: BPV Real Column Matchers
+
+### What It Is
+
+The `parseBpvExcel()` function in `utils/bpv.ts` returns stubs (gerealiseerdeUren always 0). The real SomToday BPV Excel export has been received; the task is to identify the actual column name for "gerealiseerde uren" and write a real matcher.
+
+### Table Stakes
+
+| Requirement | Complexity | Notes |
+|-------------|------------|-------|
+| Identify exact column name(s) from real file | LOW | Read the file headers once; hardcode the match candidates |
+| Fuzzy match: case-insensitive, trimmed, includes-based | LOW | Same `findCol()` pattern already used in the verzuim parser |
+| Join on studentnummer (primary) or naam (fallback) | LOW | `normalizeNaam()` pattern already exists in `utils/datamodel.ts` |
+| Graceful fallback to 0 when column absent | LOW | Already the behavior; just fix the "always 0" path |
+| Debug logging of unrecognized columns | LOW | `console.log` on import; helps future column drift detection |
+
+### Out of Scope
+
+- Discovering new columns (organisatie, startdatum) in the same pass — only gerealiseerdeUren is the blocker. Other BPV fields can wait for a separate phase if the real file shows them.
+- Making the column mapping configurable in Settings — not needed; column names are fixed per SomToday version.
+
+### UX Pattern
+
+No new UX. This is a parser fix. `BpvProgressSection` already shows the progress bar; it just starts showing real numbers instead of 0/0.
+
+---
+
+## Feature 2: Keuzedelen Tracking
+
+### What It Is
+
+Per leerling: een vrije lijst van keuzedelen (naam als vrije tekst + on-track vinkje). Mentoren voegen handmatig toe, bewerken en verwijderen. Vergelijkbaar met hoe `FeedbackActiepuntenSection` werkt maar veel eenvoudiger.
+
+### Dutch MBO Context
+
+Keuzedelen zijn verplichte extra vakken in het MBO-curriculum (Wet educatie en beroepsonderwijs art. 7.2.2). Een student moet een bepaald aantal keuzedelen afronden naast het basisdeel. De mentor wil per leerling bijhouden welke keuzedelen zijn ingepland en of ze op schema liggen. Er is geen standaard digitaal systeem voor op dit schaalniveau — mentoren houden dit bij in notitieboekjes of Excel. Deze app vult die leemte.
+
+### Table Stakes
 
 | Requirement | Why Expected | Complexity | Notes |
 |-------------|--------------|------------|-------|
-| Progress indicator (step X of N) | Users need to know where they are; PatternFly + Eleken both identify this as the single most critical pattern | LOW | Numbered steps in left panel or top strip |
-| Linear forward/back navigation | Standard wizard navigation; users must be able to correct mistakes | LOW | Prev/Next buttons in footer |
-| Step 1 non-skippable: klas naam invoeren | Klas naam is required before any import can happen; existing `KlasModal` logic applies | LOW | Reuse existing `createKlas()` from `utils/klassen.ts` |
-| Step 2 non-skippable: voortgang PDFs | Core data source — app is empty without it | MEDIUM | Reuse existing `ImportPage` PDF logic |
-| Step 3 skippable: verzuim Excel | Verzuim is important but some mentors may not have the file yet | LOW | "Overslaan" button visible; must NOT block progress |
-| Step 4 skippable: stage Excel | BPV parser is new in v2.2; file may not be available | LOW | "Overslaan" button visible; note "kan later worden geïmporteerd" |
-| Step 5 skippable: instellingen | Default settings work out of the box | LOW | "Overslaan" button; links to settings panel later |
-| Wizard dismissal → dashboard opens | ONB-07: After "Voltooien" the wizard closes and dashboard shows with the new klas active | LOW | `setView('klas')` in `App.tsx` |
-| Never shows again when klassen exist | ONB-08: Check `Object.keys(klassenState.klassen).length > 0` at app startup | LOW | Add to `App.tsx` init logic |
+| Vrije tekst naam per keuzedeel | Keuzedelen variëren per student en instelling | LOW | `<input type="text" maxLength={100}>` |
+| On-track checkbox (ja/nee) | Core tracking boolean — is de leerling op schema? | LOW | `<input type="checkbox">` with label "Op schema" |
+| Meerdere keuzedelen per leerling | Een student heeft typisch 1–4 keuzedelen | LOW | Array, same as actiepunten |
+| Toevoegen + verwijderen | Minimale CRUD | LOW | + knop + × per rij |
+| Bewerken van naam (inline edit) | Tikfouten corrigeren | LOW | Click-to-edit on the name field |
+| Persist via saveKlassen() | Must survive app restart | LOW | Same save pattern as actiepunten |
+| Toon in DetailWeergave als aparte sectie | Mentor ziet alle data voor het gesprek | LOW | New `KeuzedelenSection.tsx` |
 
-### Differentiators (nice to have, not blocking)
+### Data Model
 
-| Feature | Value | Complexity | Notes |
-|---------|-------|------------|-------|
-| Inline file status per step (e.g., "3 leerlingen geladen") | Confirms success before moving on | MEDIUM | Show import result count in step footer |
-| "Later instellen" link on optional steps | Reassures mentor they can configure later | LOW | Link to settings panel from the relevant step |
-| Wizard re-trigger from Settings | Power-users may want to re-run onboarding for a new klas | LOW | "Wizard opnieuw starten" button in Settings |
+New field on `StudentRecord`:
+
+```typescript
+interface Keuzedeel {
+  id: string;           // crypto.randomUUID() or Date.now fallback
+  naam: string;         // vrije tekst, max 100 chars
+  onTrack: boolean;     // op schema ja/nee
+}
+
+// On StudentRecord:
+keuzedelen?: Keuzedeel[];
+```
+
+Storage: same as actiepunten — stored on the most-recent record per leerlingId, persisted via `saveKlassen()`. Because keuzedelen are student-level (not period-level), writes must update ALL records for the student (same `for (const rec of matching)` pattern as `RekenenNederlandsSection`).
+
+### UX Pattern: Inline Checklist
+
+The closest existing pattern in this app is `FeedbackActiepuntenSection`. Keuzedelen is simpler: no date field, no status dropdown — just a name and a checkbox.
+
+Recommended interaction model (derived from analyzing `FeedbackActiepuntenSection`):
+
+```
+┌─ Keuzedelen ──────────────────────────────────────────┐
+│  [x] Sport & Bewegen Basis                    [×]     │
+│  [ ] Sportcoach niveau 2                      [×]     │
+│  [ ] Schoolsport                              [×]     │
+│                                                       │
+│  [+ Keuzedeel toevoegen]                              │
+└───────────────────────────────────────────────────────┘
+```
+
+On "+ Keuzedeel toevoegen": shows an inline text input + checkbox + "Opslaan" button (same form pattern as actiepunten). The name input auto-focuses. Pressing Enter saves. Pressing Escape cancels.
+
+Toggling the checkbox saves immediately (no separate save button) — this follows the `RekenenNederlandsSection` pattern where select changes auto-save. The checkbox toggle is a single-field change; immediate save is the correct UX for boolean toggles in this app.
+
+The delete (×) button deletes immediately after a brief confirmation — or no confirmation at all, since a keuzedeel can be re-added trivially. Per the existing actiepunten pattern: immediate delete (no confirm), consistent with how lightweight the data is.
+
+### Differentiators (optional, not blocking)
+
+| Feature | Value | Complexity |
+|---------|-------|------------|
+| Count badge on section header ("3 keuzedelen, 2 op schema") | Quick scan for mentor | LOW |
+| Show keuzedelen count in DetailWeergave breadcrumb (not on tile — already crowded) | Quick reference | LOW |
 
 ### Anti-Features (do NOT build)
 
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| "Skip to finish" from non-optional steps | Step 2 (PDFs) cannot be skipped — app has no data without it | Disable skip on mandatory steps; enable only on optional ones |
-| Animated slide transitions | Adds complexity for no mentor value; Industry font + card layout conveys professionalism already | Plain step swap with `display: none / block` |
-| Wizard with 8+ steps | Cognitive overload; research shows 3-5 steps is optimal | Keep to 5 steps; steps 3-5 are lightweight (one upload each) |
-| Wizard that blocks importing additional klassen | Power user may want to skip wizard and use the existing import flow | Wizard is only shown on first run; subsequent klassen use existing modal + import flow |
+| Anti-Feature | Why Avoid |
+|--------------|-----------|
+| Keuzedelen badge op klasoverzicht-tegel | Tegel is al vol (naam, status, score-telling, verzuimbalk); R&N badge is al een nieuwe toevoeging — keuzedelen op de tegel is overkill |
+| Koppeling met keuzedelen-catalogus | Er is geen standaard MBO keuzedelencatalogus die we kunnen koppelen; vrije tekst is de juiste keuze |
+| Verplicht aantal keuzedelen instellen + voortgangsbalk | Doorstroomnorm voor keuzedelen is schoolspecifiek en niet in scope — dit is tracking, niet normering |
+| Status dropdown (open/lopend/afgerond) | Checkbox is voldoende; meer statussen zijn overkill voor een bullet-level tracking tool |
 
-### Step Flow (confirmed by ONB-01..08)
+### Placement in DetailWeergave
 
-```
-Step 1 — Klas aanmaken (REQUIRED)
-  Input: klasnaam tekstinvoer
-  Action: createKlas(naam) uit utils/klassen.ts
-  Next enabled: when naam.trim().length > 0
-
-Step 2 — Voortgang PDFs (REQUIRED)
-  Input: dropzone + bestandsknop (reuse ImportPage PDF logic)
-  Action: parseSinglePDF per file → addStudent
-  Next enabled: when at least 1 student parsed successfully
-
-Step 3 — Verzuim Excel (OPTIONAL)
-  Input: dropzone + bestandsknop voor .xls/.xlsx
-  Action: parseExcelFile → mergeVerzuim
-  Skip label: "Overslaan — later importeren via Import-tabblad"
-  Next enabled: always (skip or upload both advance)
-
-Step 4 — Stage Excel / BPV-uren (OPTIONAL)
-  Input: dropzone + bestandsknop voor .xls/.xlsx
-  Action: parseBpvExcel → saveBpvData (new v2.2 real parser)
-  Skip label: "Overslaan — nog geen stage-bestand"
-  Next enabled: always
-
-Step 5 — Instellingen (OPTIONAL)
-  Input: embedded mini-settings (drempelwaarden, BPV verwachte uren)
-  Action: links to existing settings state
-  Skip label: "Overslaan — standaardinstellingen gebruiken"
-  Finish button: "Dashboard openen"
-```
-
-### Skip Behavior (table stakes UX pattern)
-
-- Optional steps show a secondary "Overslaan" button alongside the primary "Volgende" button.
-- Skipped steps are not blocked from being completed later — all skip-able data can be imported via the existing Import tabblad or Settings panel.
-- The PatternFly pattern places the skip button as a tertiary action to the right; the primary "Volgende" button is always leftmost.
-- After the wizard completes (step 5 done or skipped), `App.tsx` transitions to `view = 'klas'`.
-
-### Dependencies on Existing Features
-
-- `createKlas()` from `utils/klassen.ts` — already exists
-- PDF import logic in `ImportPage.tsx` — can be extracted into a shared hook/function
-- Excel verzuim logic in `ImportPage.tsx` — same
-- `parseBpvExcel()` in `utils/bpv.ts` — currently stubbed, must be implemented as part of BPV feature (Feature 3)
-- `getBpvConfig()` + `saveBpvConfig()` from `utils/bpv.ts` — already functional
-
-### Complexity Assessment
-
-Overall: MEDIUM. The wizard is a UI shell wrapping logic that already exists. The hard part is extracting import logic from `ImportPage.tsx` into reusable units that work both inside the wizard and standalone. Step 4 depends on Feature 3 (BPV parser) being done first.
+Na `RekenenNederlandsSection`, vóór `FeedbackActiepuntenSection`. Rationale: keuzedelen zijn curriculumdata (net als R&N), niet een actiepunt vanuit het gesprek. De logische volgorde is: prognose → R&N → keuzedelen → feedback actiepunten → spider → matrix → verzuim → BPV.
 
 ---
 
-## Feature 2: Print-to-PDF Export — Mentorgesprekverslag (EXP-01..04)
+## Feature 3: R&N Status on Klasoverzicht Tiles
 
-### What It Does
+### What It Is
 
-A print-optimized view of a student's detail data, accessible via a "Afdrukken" button in `DetailWeergave`. Uses the browser's native print dialog (Ctrl+P equivalent) to produce an A4 PDF. No silent/headless PDF generation — browser print dialog is intentional.
+Toon een compacte Rekenen/Nederlands badge op de `LeerlingTegel` in het klasoverzicht. Geeft de mentor direct inzicht in wie problemen heeft met R&N zonder de detailweergave te openen.
 
-### What a Mentorgesprekverslag Contains
+### Data Available
 
-Based on Dutch MBO mentor practice and the existing `DetailWeergave` sections:
+`getActiveStudents()` returns a deduplicated student array. Each student has `rekenResultaat` and `nederlandsResultaat` as `string | null`. `normalizeRekenScore()` maps these to `'goed' | 'voldoende' | 'onvoldoende' | null`.
 
-| Section | Content | Source in App | Print Priority |
-|---------|---------|---------------|----------------|
-| Header | Leerlingnaam, datum gesprek, klasnaam, periode | student.naam, Date.now(), klassenState | Required |
-| Doorstroom prognose | RAG status + norm uitleg (positief/negatief/versneld) | `DoortstroomPrognoseSection` | Required |
-| Leerlijnen score | Score per leerlijn (lesgeven / organiseren / professioneel handelen) | `LeerlijnenSection` | Required |
-| Deelgebieden matrix | V/G/E per deelgebied, beide periodes | `DeelgebiedenMatrix` | Required |
-| Verzuim | Aanwezigheidspercentage, geoorloofd, ongeoorloofd, totaal | `VerzuimSection` | Required |
-| BPV-uren | Gerealiseerd vs. verwacht, percentage | `BpvProgressSection` | Required (show "geen data" if absent) |
-| Rekenen & Nederlands | Niveau + score/resultaat | New RNL section (Feature 4) | Required when data present |
-| Actiepunten | Open/opgepakt/herhaling per item | `FeedbackActiepuntenSection` | Required |
-| Notities | Freetekst notities mentor | `NotitiesTextarea` | Optional (privacy: show only if non-empty) |
-| Stage info | Organisatie, periode, goedgekeurde uren | `StageSection` | Optional (show if data present) |
-| Feed forward | Feedback tekst per vak | `VakkenSection` or `FeedbackActiepuntenSection` | Recommended |
-
-### CSS @media print Patterns for A4
-
-```css
-@media print {
-  /* Hide all screen chrome */
-  .nav-bar,
-  .detail-nav-btn,
-  .print-btn,
-  .klas-tab-strip,
-  .settings-btn {
-    display: none !important;
-  }
-
-  /* A4 page setup */
-  @page {
-    size: A4;
-    margin: 2cm;
-  }
-
-  /* Prevent orphaned sections */
-  .detail-section {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  /* Force section titles to stay with content */
-  .detail-section-title {
-    page-break-after: avoid;
-    break-after: avoid;
-  }
-
-  /* Tables: header rows repeat on new pages */
-  thead {
-    display: table-header-group;
-  }
-
-  /* Remove shadows and interactive colors */
-  .stat-card,
-  .detail-section {
-    box-shadow: none !important;
-    border: 1px solid #ddd;
-  }
-
-  /* Dark mode override for print */
-  body {
-    background: white !important;
-    color: black !important;
-  }
-
-  /* Hide empty sections */
-  .bpv-empty-state,
-  .stage-empty-state {
-    display: none;
-  }
-}
-```
-
-**Critical Tauri note (MEDIUM confidence):** Tauri does not have a native print API (GitHub issue #4917 and #5330 confirm this as an open feature request as of mid-2026). `window.print()` works in the Tauri WebView and triggers the OS print dialog, which includes "Save as PDF" on both Windows and macOS. This is the correct approach for EXP-01. Silent/headless PDF generation (without dialog) is NOT achievable without bundling wkhtmltopdf or using `react-pdf` — both are out of scope for v2.2.
-
-### Implementation Approach
-
-1. Add a print stylesheet to `index.css` (or a separate `print.css` imported globally).
-2. Add an "Afdrukken" button in `DetailWeergave` that calls `window.print()`.
-3. The print view renders the current student's detail sections. No separate route or component needed — CSS `@media print` shows/hides the right elements.
-4. Use `display: flex` → `display: block` in print media to avoid flex-model page-break bugs (known issue with react-to-print GitHub #324).
+`null` = niet ingevuld. Badge is only meaningful when at least one field is non-null.
 
 ### Table Stakes
 
-| Requirement | Complexity | Notes |
-|-------------|------------|-------|
-| "Afdrukken" button visible in DetailWeergave (EXP-04) | LOW | Single button, calls `window.print()` |
-| A4 layout with correct margins (EXP-03) | LOW | `@page { size: A4; margin: 2cm; }` |
-| Nav/buttons hidden in print (EXP-03) | LOW | `@media print { .nav-bar { display: none } }` |
-| Section headings stay with section body (EXP-03) | LOW | `page-break-inside: avoid` on `.detail-section` |
-| Header with leerlingnaam + datum + klas (EXP-02) | LOW | New print-only header element, `@media screen { display: none }` |
-| Doorstroomprognose + deelgebieden + verzuim in verslag (EXP-02) | LOW | These sections already exist in DetailWeergave |
-| Dark mode does not bleed into print output | LOW | `@media print { body { background: white; color: black } }` |
+| Requirement | Why Expected | Complexity | Notes |
+|-------------|--------------|------------|-------|
+| Badge tonen wanneer R en/of N onvoldoende | Mentoren willen problemen direct zien | LOW | Rode badge, compact |
+| Badge verbergen wanneer beide null | Geen data = geen verwarring | LOW | Conditional render |
+| Badge verbergen wanneer beide voldoende/goed | Tegel is al druk; groen = goed nieuws = geen actie vereist | LOW | Only show on problematic status |
+| Tegel behoudt bestaande structuur | naam, status-badge, score-telling, verzuimbalk moeten intact blijven | LOW | Add badge between score-telling and miniBar |
+
+### Recommended Badge Design
+
+```
+[R!]  — rekenen onvoldoende (rode achtergrond)
+[N!]  — nederlands onvoldoende (rode achtergrond)
+[R! N!] — beide onvoldoende
+```
+
+Compact tekst, 0.7rem, rood/oranje afhankelijk van ernst. Geen badge bij voldoende/goed — de tegel is al druk.
+
+Alternative: show only when `onvoldoende` (never show voldoende/goed on tile) — this keeps tiles clean. The detail view shows the full status. This is the right default.
+
+### Passing R&N Data to the Tile
+
+Two options:
+
+**Option A — Pass as prop:** `KlasOverzicht` already reads student data and builds `statusMap` + `trendMap`. Add a `rnMap: Map<string, {reken: string|null, nl: string|null}>` in the same `useMemo`. Pass to `LeerlingTegel` as `rnStatus` prop. `LeerlingTegel` renders the badge.
+
+**Option B — Pass full student:** `LeerlingTegel` already receives `student: StudentProps` — extend `StudentProps` to include `rekenResultaat` and `nederlandsResultaat`. No extra map needed.
+
+Recommendation: **Option B** — extend `StudentProps` inline (the component already has a note "intentionally kept inline per IN-01 review guidance"). This avoids a new map and keeps the badge logic inside the component where the rendering lives.
+
+### Out of Scope
+
+- R&N on the KPI strip — the strip already has Op schema / Let op / Risico / Verzuim / Onbekend. Adding R&N counts there requires design decisions that are out of scope for v2.4.
+- Sortable by R&N status in the klasoverzicht toolbar — not requested.
+
+---
+
+## Feature 4: Non-Empty Class Deletion
+
+### What It Is
+
+Currently `canDelete` is `students.length === 0` — the × button only appears on empty classes. The requirement is to allow deletion of any class with a safety checkbox confirmation.
+
+### Destructive Deletion UX Patterns in Desktop Apps
+
+Standard patterns across desktop and professional web apps (Notion, VS Code, GitHub, Figma, macOS):
+
+**Level 1 — Single confirmation dialog (window.confirm):**
+Used for: reversible or low-stakes operations. The current empty-class deletion already uses this. Not appropriate for non-empty classes because data loss is irreversible.
+
+**Level 2 — Modal with checkbox:**
+Used for: irreversible operations with significant data loss (GitHub repo deletion, VS Code workspace deletion). The modal:
+- Names what will be deleted (class name + student count)
+- Explains consequences explicitly ("alle leerlingdata wordt permanent verwijderd")
+- Requires a checkbox: "Ik begrijp dat dit niet ongedaan kan worden gemaakt"
+- The delete button is DISABLED until checkbox is checked
+- Delete button is styled destructively (red background)
+- Cancel is the prominent default / first tab stop
+
+**Level 3 — Type the name to confirm:**
+Used for: catastrophic operations (GitHub org deletion, database drop). Overkill for a single class with ~19 students — skip this.
+
+**Recommendation for KLS-DEL:** Level 2 modal with checkbox. This is the correct pattern for irreversible data loss in a single-user desktop app.
+
+### Table Stakes
+
+| Requirement | Why Expected | Complexity | Notes |
+|-------------|--------------|------------|-------|
+| × button visible on ALL classes (not just empty) | Core requirement | LOW | Remove `canDelete` guard or change to always true |
+| Confirmation modal (not window.confirm) | Irreversible operation requires explicit acknowledgment | MEDIUM | New modal component or inline in App.tsx |
+| Show class name + student count in modal | User must know exactly what they're deleting | LOW | `klas.naam` + `klas.students.length` |
+| Checkbox "Ik begrijp dat dit permanent is" | Industry standard for irreversible deletion | LOW | Disable button until checked |
+| Delete button disabled until checkbox checked | Prevents accidental click | LOW | Controlled state in modal |
+| Delete button styled red / destructive | Visual signal of danger | LOW | `btn-danger` class or inline style |
+| Cancel as the default action / first tab stop | Keyboard users should not accidentally delete | LOW | `autoFocus` on cancel button |
+| Navigation after deletion: switch to remaining class | Already handled by `deleteKlas()` | — | No change needed |
+| If only one class: after delete, show empty state / import | Already handled by `deleteKlas()` | — | No change needed |
+
+### Modal Content (Dutch, matching app language)
+
+```
+Klas "CSD2A" verwijderen
+
+Deze klas heeft 19 leerlingen. Alle leerlingdata, importhistorie en
+actiepunten worden permanent verwijderd. Dit kan niet ongedaan worden
+gemaakt.
+
+[ ] Ik begrijp dat alle data van klas "CSD2A" permanent wordt verwijderd.
+
+[Annuleren]   [Klas verwijderen]  ← disabled until checkbox
+```
+
+### Implementation
+
+The existing `KlasModal.tsx` provides the modal scaffold (overlay + centered card + form). A new `DeleteKlasModal.tsx` follows the same structure. `App.tsx` manages the open/close state, as it already does for `KlasModal` and `FeedbackModal`.
+
+The `canDelete` prop on `KlasTabStrip` becomes always `true` (or is renamed and its logic changed). The × click now opens the confirm modal instead of calling `handleDeleteKlas` directly.
 
 ### Anti-Features
 
 | Anti-Feature | Why Avoid |
 |--------------|-----------|
-| react-to-print library | Adds a dependency; `window.print()` + CSS is sufficient for this use case |
-| react-pdf / PDFKit | Requires separate render tree, complex layout code, additional bundle weight; no silent export needed |
-| Word/DOCX export | Explicitly out of scope per REQUIREMENTS.md |
-| Custom PDF header/footer via @page margin boxes | CSS @page margin boxes have inconsistent browser support in WebView2; stick to in-page header |
-
-### Dependencies
-
-- Existing `DetailWeergave.tsx` sections (all already exist)
-- New RNL section from Feature 4 (should be included in print when present)
-- BPV data from Feature 3 (already has empty-state handling in `BpvProgressSection`)
-
-### Complexity Assessment
-
-LOW-MEDIUM. Pure CSS + one button. The main work is writing and testing the print stylesheet across the sections. The print header (leerlingnaam, datum, klas) requires a new ~10-line component hidden in screen mode.
+| window.confirm() for non-empty class | Native dialogs can't be styled; no checkbox support; inconsistent with rest of app |
+| "Type the class name" confirmation | Overkill for ~19 students; Level 2 is sufficient |
+| Soft delete / undo | AES-256 encrypted store has no undo mechanism; introducing one is a major architecture change |
+| Disabling × on active class | User may want to delete the active class; the UI should allow it (deleteKlas already handles switching) |
 
 ---
 
-## Feature 3: BPV Stage Excel Parser (BPV-01..04)
+## Feature 5: UI Polish — Spiderweb Bigger + FeedbackActiepunten to Bottom
 
-### Current State (important context)
+### What It Is
 
-The BPV infrastructure is already fully built:
-- `utils/bpv.ts` — `parseBpvExcel()` exists but is **stubbed** (returns `{}` after magic-byte validation)
-- `BpvProgressSection.tsx` — shows gerealiseerdeUren vs verwachteUren with progress bar
-- `StageSection.tsx` — shows organisatie, periode, startdatum, einddatum, urenGoedgekeurd, urenIngeleverd
-- `BpvConfig` type: `{ verwachteUren: number }` (configured in Settings)
-- `BpvStudentRecord` type: `{ gerealiseerdeUren: number }` (currently only populated by stub)
+Two layout changes in `DetailWeergave`:
 
-The only thing missing is the actual Excel parser in `parseBpvExcel()`.
+1. `SpiderChartCard` SVG larger (exact target size to be determined from current SVG dimensions)
+2. `FeedbackActiepuntenSection` moved from position 3 (after R&N) to position last (after BPV)
 
-### Dutch MBO BPV Excel Format — What to Expect
+### Table Stakes: Spider Bigger
 
-SomToday (the school's student tracking system) can export student data in CSV or Excel via "Vrije Export". There is no fixed national BPV Excel format — schools customize their own export definitions. Based on Dutch MBO BPV practice and the existing data model:
+| Requirement | Complexity | Notes |
+|-------------|------------|-------|
+| Increase SVG viewBox / width and height | LOW | Find current size in SpiderChartCard.tsx; multiply by ~1.5–2x |
+| Ensure three spiders still fit in a row on 1280px | LOW | Check flex layout in `spider-charts-row` |
+| Responsive: on smaller screens, stack vertically | LOW | `flexWrap: 'wrap'` already exists in the layout |
 
-**High-probability columns (MEDIUM confidence — no sample file available):**
+### Table Stakes: FeedbackActiepunten to Bottom
 
-| Column Name Candidates | Field | Type | Notes |
-|------------------------|-------|------|-------|
-| Studentnummer / Leerlingnummer | leerlingId | string | Primary join key |
-| Naam / Achternaam | naam | string | Fallback join key |
-| Gerealiseerde uren / Uren gerealiseerd | gerealiseerdeUren | number | Core BPV metric |
-| Geplande uren / Uren gepland / Verwachte uren | (config-level, not per-student) | number | May or may not appear per-student |
-| Organisatie / Leerbedrijf / Stagebedrijf | organisatie | string | Stage company name |
-| Startdatum | startdatum | date string | ISO or Dutch format |
-| Einddatum | einddatum | date string | ISO or Dutch format |
-| Goedgekeurde uren | urenGoedgekeurd | number | Hours formally approved |
-| Ingediende uren / Ingediend | urenIngeleverd | number | Hours submitted by student |
+| Requirement | Complexity | Notes |
+|-------------|------------|-------|
+| Move `<FeedbackActiepuntenSection>` to after `<BpvProgressSection>` | LOW | One-line move in DetailWeergave.tsx |
+| New section order: Prognose → R&N → Keuzedelen → Spider → Matrix → Verzuim → BPV → Feedback | LOW | Follows logical flow: data first, mentor actions last |
+| Print CSS: feedback still appears on print (no print-hidden class on it) | LOW | No change needed — section has no print-specific classes |
 
-**Critical constraint:** No sample BPV Excel file is available. Per BPV-01 in REQUIREMENTS.md: "vereist echt voorbeeldbestand". The parser MUST be designed for real-world discovery:
+Rationale for moving feedback to bottom: mentor actiepunten are action items that result FROM reviewing the data above. Placing them at the bottom reinforces the workflow: read all data → make notes → assign action items. Currently the section appears before the spider/matrix which breaks this flow.
 
-1. Scan all column headers in row 0 for fuzzy matches (case-insensitive, trimmed)
-2. Log all unrecognized column names to console for debugging
-3. Fall back gracefully: if no "gerealiseerde uren" column found, `gerealiseerdeUren = 0`
-4. Ship with `debugExcelBestand()` (already in `parsers/excel.ts`) wired to a dev console call on import — this is how the real column names will be discovered
+---
 
-### Implementation Pattern
+## Feature 6: UI Polish — Nav Banner 2x Bigger
 
-Follow the existing `parseExcelFile()` pattern in `parsers/excel.ts`:
+### What It Is
 
-```typescript
-// Fuzzy column header matching (same pattern as verzuim parser)
-function findCol(headers: string[], candidates: string[]): number {
-  const norm = (s: string) => String(s).toLowerCase().trim().replace(/\s+/g, ' ');
-  for (const candidate of candidates) {
-    const idx = headers.findIndex(h => norm(h).includes(norm(candidate)));
-    if (idx >= 0) return idx;
-  }
-  return -1;
-}
-```
-
-The verzuim parser already uses `normalizeNaam()` + 4-strategy name matching — the BPV parser should reuse `normalizeNaam()` from `utils/datamodel.ts` for leerling matching.
-
-### Data Model Impact
-
-`BpvStudentRecord` currently only has `gerealiseerdeUren`. The `StageSection` expects `organisatie`, `startdatum`, `einddatum`, `urenGoedgekeurd`, `urenIngeleverd`. These are stored in `klas.stageData[leerlingId]` (separate from `bpv_data`). The v2.2 implementation must decide:
-
-**Option A:** Keep two separate data stores (current architecture): `bpv_data` for gerealiseerdeUren (used by BpvProgressSection), `klas.stageData` for organisatie/periode/uren (used by StageSection). Parser populates both from one Excel file.
-
-**Option B:** Merge into a single `stageData` record per student that contains all BPV fields. Simpler, but requires touching the `BpvStudentRecord` type and any existing code that reads `bpv_data`.
-
-Recommendation: Option A for minimum disruption. The parser writes to both stores in one pass.
+Top nav bar (`#main-nav`) and logo (`<img height='36px'>`) scaled up to 2x.
 
 ### Table Stakes
 
 | Requirement | Complexity | Notes |
 |-------------|------------|-------|
-| Magic-byte validation already exists | — | Already in stub; keep it |
-| Parse gerealiseerdeUren per leerling | MEDIUM | Core field; join on studentnummer or naam |
-| Fuzzy column header matching | MEDIUM | Column names will vary across school exports |
-| Graceful empty state on import failure | LOW | BPV-04 already handled by `BpvProgressSection` |
-| Import via existing ImportPage dropzone | LOW | BPV-03 — wire existing import UI to `parseBpvExcel()` |
-| Debug logging of unrecognized columns | LOW | Essential since no sample file exists |
+| Logo height: 36px → 72px | LOW | Single inline style change in `KlasTabStrip.tsx` |
+| `#main-nav` height adjusts automatically | LOW | Nav uses flex; content height drives container height |
+| Tab strip and icon buttons remain vertically centered | LOW | `alignItems: 'center'` already on nav flex container |
+| Logo still shows correct src (light/dark variant) | LOW | No change to src logic |
+| Print: nav is already hidden (`no-print` class implied by existing CSS) | LOW | Verify `#main-nav` has `display: none` in `@media print` |
 
-### Anti-Features
+### Out of Scope
 
-| Anti-Feature | Why Avoid |
-|--------------|-----------|
-| Hardcoding exact column names | Will break on first school export variation |
-| Assuming .xlsx only | School system may export .xls (same as verzuim) |
-| Blocking import if column not found | Should parse what it can and log warnings |
-
-### Critical Gap
-
-No sample BPV Excel file exists. This feature CANNOT be validated end-to-end without a real export from the school system. The implementation should be written to be debuggable: wire `debugExcelBestand()` to a dev console call on first import so column names can be discovered and fed back into the parser.
-
-### Complexity Assessment
-
-MEDIUM-HIGH. The parsing logic is mechanical once column names are known, but column names are unknown. The parser must be robust to variation. The data model split (two stores) adds minor complexity.
-
----
-
-## Feature 4: Rekenen & Nederlands (RNL-01..04)
-
-### Dutch MBO Norm Context
-
-**Confirmed (HIGH confidence — rijksoverheid.nl + examenbladmbo.nl):**
-
-- MBO niveau 1, 2, 3: verplicht Rekenen 2F en Nederlands 2F
-- MBO niveau 4: verplicht Rekenen 3F en Nederlands 3F
-- CIOS CSD2 is a level 3 program → norm is **2F** for both subjects
-- Scores are reported as: a cijfer (whole number for Rekenen, one decimal for Nederlands) derived from a vaardigheidsscore
-- Pass/fail thresholds (cesuren): Rekenen 2F = 44 points, Nederlands 2F = 53 points on their respective proficiency scales
-- A student either passes ("voldoende") or fails ("onvoldoende") each subject independently
-
-**Score formats in the app context:**
-- The current `AanvullendSection` stores manual dropdown values: taalniveau ∈ `{'', '2F', '3F'}` and rekenniveau ∈ `{'', 'MBO 3', 'MBO 4'}` — these represent the required level, not the achieved result
-- RNL-01..04 require tracking actual *results* (passed/failed/score) separately from the required level
-
-### What Already Exists vs. What's New
-
-| Existing | New (v2.2) |
-|----------|------------|
-| Manual taalniveau dropdown (2F/3F) — required level | Actual Rekenen result: cijfer, voldoende/onvoldoende |
-| Manual rekenniveau dropdown (MBO 3/MBO 4) — program level | Actual Nederlands result: cijfer, voldoende/onvoldoende |
-| Fields stored as `student.taalniveau` and `student.rekenniveau` | New fields: `student.rekenResultaat`, `student.nederlandsResultaat` |
-| PDF parser does NOT currently extract these from PDFs | PDF parser may be extended to extract these if present in PDF layout |
-
-### RNL-04: Source from Existing PDFs
-
-Per RNL-04: "Rekenen en Nederlands scores worden ingelezen uit de bestaande voortgang PDFs (geen apart bestand)."
-
-This is the most uncertain requirement. The existing PDF parser (`parsers/pdf.ts`) does not currently extract taalniveau or rekenniveau from the PDF. Whether the "Mijn voortgang" PDF contains Rekenen/Nederlands scores is unknown — it depends on how SomToday formats the report.
-
-**Possible PDF presence patterns (MEDIUM confidence — no sample to verify):**
-- The PDF may include a "Generieke vakken" or "Taal en Rekenen" section at the bottom
-- It may show "Rekenen 2F: Voldoende" or "Nederlands 2F: Niet beoordeeld"
-- If not in the PDF, data must be entered manually (dropdown in AanvullendSection)
-
-**Recommendation:** Design the feature to work in BOTH modes:
-1. Parser extends to extract RNL data from PDF if found (try; skip if section absent)
-2. Manual override dropdown in AanvullendSection as fallback (existing pattern)
-
-### Data Model Extension
-
-New fields on `StudentRecord`:
-
-```typescript
-interface StudentRecord {
-  // ... existing fields ...
-  
-  // RNL-01/02: Actual exam results (separate from required level)
-  rekenResultaat?: {
-    niveau: '2F' | '3F';          // which exam was taken
-    status: 'voldoende' | 'onvoldoende' | 'niet_afgenomen';
-    cijfer?: number;               // whole number (Rekenen has no decimals)
-  };
-  nederlandsResultaat?: {
-    niveau: '2F' | '3F';          // which exam was taken
-    status: 'voldoende' | 'onvoldoende' | 'niet_afgenomen';
-    cijfer?: number;               // one decimal (e.g., 6.5)
-  };
-}
-```
-
-### RNL-03: Own Doorstroomnorm
-
-Rekenen en Nederlands have a separate norm from the deelgebieden prognose:
-
-| Subject | Level | Norm | Consequence |
-|---------|-------|------|-------------|
-| Rekenen | 2F | Voldoende verplicht voor diploma MBO-3 | Separate indicator in detail view; does NOT affect deelgebieden RAG status |
-| Nederlands | 2F | Voldoende verplicht voor diploma MBO-3 | Same |
-
-The RNL norm should appear as a separate section in `DetailWeergave` (a new `RNlSection` component), distinct from `DoortstroomPrognoseSection`. It shows a simple "Voldaan / Niet voldaan" indicator per subject.
-
-### Display in DetailWeergave
-
-New component: `RNlSection.tsx`
-
-```
-┌─ Rekenen & Nederlands ──────────────────────┐
-│ Rekenen 2F    [Voldoende / Onvoldoende / —] │
-│ Nederlands 2F [Voldoende / Onvoldoende / —] │
-│                                              │
-│ (edit: klik om handmatig in te vullen)      │
-└─────────────────────────────────────────────┘
-```
-
-The section should be editable inline (like `AanvullendSection`) since automatic PDF extraction may not always work.
-
-### Table Stakes
-
-| Requirement | Complexity | Notes |
-|-------------|------------|-------|
-| RNL-01: Rekenen weergave in detailview | LOW | New RNlSection component |
-| RNL-02: Nederlands weergave in detailview | LOW | Same component |
-| RNL-03: Eigen norm (voldoende = diplomaeis) | LOW | Static norm per MBO level; no calculation needed for level 3 |
-| RNL-04: Probeer te extraheren uit bestaande PDFs | HIGH | PDF parser extension; uncertain if data is in PDF layout |
-| Manual override fallback | LOW | Extend AanvullendSection or add inline editing to RNlSection |
-| Opslaan via saveKlassen() | LOW | Same persistence pattern as existing fields |
-
-### Anti-Features
-
-| Anti-Feature | Why Avoid |
-|--------------|-----------|
-| Including RNL in the deelgebieden RAG prognose | These are nationally normed exams with separate pass/fail logic; mixing them with deelgebieden scores would produce incorrect doorstroom advice |
-| Adding a separate import file for RNL | RNL-04 explicitly says to use existing PDFs; no separate file |
-| Showing Rekenen cijfer as a decimal | Rekenen grades have no decimals (confirmed: examenbladmbo.nl); Nederlands has one decimal |
-
-### Complexity Assessment
-
-MEDIUM-HIGH. The data model extension and UI are LOW complexity. The PDF parser extension is HIGH uncertainty because it's unknown whether SomToday's "Mijn voortgang" PDF includes Rekenen/Nederlands. The parser must gracefully handle absence (fall back to manual entry). Real-world testing with an actual PDF is required.
-
----
-
-## Feature 5: Bug Fix — Drag-and-Drop (BUG-01)
-
-### Known Context
-
-Phase 16 UAT identified that drag-and-drop on the import field does not work. The existing `App.tsx` has document-level `dragover` and `drop` prevention handlers, but the ImportPage's drop zone may not be correctly receiving events.
-
-The v1.0 `KEY DECISIONS` table notes: "Document-level drop prevention — Voorkomt browsernavigatie bij per ongeluk droppen van PDF buiten dropzone." This fix was applied but the per-zone drop handling may have been broken in the Tauri migration.
-
-The fix is expected to involve Tauri's `onDragDropEvent` from `@tauri-apps/api/webview` — the correct approach for Tauri v2 (verified via Context7 in prior research). HTML `ondrop` / `event.dataTransfer.files` is the legacy pattern that may not work correctly in Tauri WebView.
-
-This is a prerequisite for the onboarding wizard's file upload steps working correctly.
+- Changing the nav layout (tab positions, button order) — just size change
+- Adding branding text next to logo — not requested
 
 ---
 
 ## Feature Dependency Map
 
 ```
-BUG-01 (drag-drop fix)
-  └─ Required by: ONB-03, ONB-04, ONB-05 (wizard file uploads)
+BPV column matchers (Feature 1)
+  — standalone, no dependencies
 
-BPV parser (Feature 3) — parseBpvExcel() real implementation
-  └─ Required by: ONB-05 (wizard step 4 BPV upload)
+Keuzedelen (Feature 2)
+  — requires: data model extension on StudentRecord
+  — no dependency on other v2.4 features
 
-RNL data model extension (Feature 4)
-  └─ Required by: EXP-02 (print verslag must include RNL section)
+R&N tile badge (Feature 3)
+  — requires: extend StudentProps in LeerlingTegel (trivial)
+  — data already exists: rekenResultaat/nederlandsResultaat on StudentRecord
 
-Onboarding wizard (Feature 1)
-  └─ Requires: BUG-01 + BPV parser working
+Non-empty class deletion (Feature 4)
+  — requires: new DeleteKlasModal component
+  — App.tsx changes: canDelete logic + modal state
 
-Print export (Feature 2)
-  └─ Requires: RNL section exists (to include in print)
-  └─ Soft dependency: BPV data visible (already has empty-state)
+UI: Spider bigger (Feature 5a)
+  — standalone, read SpiderChartCard.tsx for current dimensions
+
+UI: FeedbackActiepunten to bottom (Feature 5b)
+  — standalone, one-line move in DetailWeergave.tsx
+
+UI: Nav banner 2x (Feature 6)
+  — standalone, one inline style change in KlasTabStrip.tsx
 ```
 
-**Recommended build order:**
-1. BUG-01 — unblocks everything involving file drop
-2. BPV parser (Feature 3) — enables real data in wizard and detail view
-3. RNL section (Feature 4) — UI + data model; PDF extraction can be iterative
-4. Print export (Feature 2) — pure CSS + button; quick win; can use existing sections
-5. Onboarding wizard (Feature 1) — wraps existing features; best done last when all sub-features work standalone
+**No hard dependencies between v2.4 features.** All six can be built in parallel or sequentially in any order.
+
+**Recommended build order (lowest risk first):**
+1. UI changes (5a, 5b, 6) — pure layout, zero data risk, quick validation
+2. R&N tile badge (3) — read-only display of existing data, no data model change
+3. BPV column matchers (1) — parser fix, well-understood impact
+4. Keuzedelen (2) — new data model field + new component, highest complexity
+5. Non-empty class deletion (4) — destructive operation, test thoroughly last
 
 ---
 
-## MVP for v2.2
+## MVP for v2.4
 
-**Must ship (blocking milestone completion):**
-- BUG-01 drag-drop fix
-- ONB-01..08 onboarding wizard (full 5-step flow)
-- EXP-01..04 print-to-PDF (CSS + button)
-- BPV-01..04 real BPV parser (with graceful fallback when column names unknown)
-- RNL-01..03 Rekenen & Nederlands section with manual entry
+**All six features are in scope and achievable.** None require architectural changes. Complexity is LOW to MEDIUM across the board.
 
-**Can defer within milestone:**
-- RNL-04 PDF auto-extraction (depends on PDF layout; deliver as "best effort, manual fallback")
-- Onboarding wizard re-trigger from Settings
+**Highest risk items:**
+- Keuzedelen data model: the `for (const rec of matching)` write pattern must be used (same as RekenenNederlandsSection) to avoid the disconnected-object pitfall documented in DetailWeergave.tsx line 33–44.
+- Non-empty class deletion: the confirmation modal must genuinely disable the destructive action until the checkbox is checked — do not allow Enter-key bypass.
+- BPV column matchers: depends on the actual column names in the received SomToday file. If the column is not what is expected, the fallback to 0 must still work silently (no error thrown to the user).
 
-**Deferred to v2.3+:**
-- RNL in klasoverzicht-tegels (noted in REQUIREMENTS.md Future Requirements)
-- Silent PDF export without print dialog (Tauri does not support this yet)
-
----
-
-## Sources
-
-- [rijksoverheid.nl — Referentieniveaus taal en rekenen](https://www.rijksoverheid.nl/onderwerpen/basisvaardigheden/referentieniveaus-taal-en-rekenen) — HIGH confidence
-- [examenbladmbo.nl — Nederlands 3F 2025-26](https://www.examenbladmbo.nl/2025-26/mbo-4/vakken/nederlands-3f) — HIGH confidence
-- [examenbladmbo.nl — Beoordeling en vaststelling scores 2023-24](https://www.examenbladmbo.nl/2023-24/onderwerpen/beoordeling-vaststelling-scores) — HIGH confidence (cesuren confirmed)
-- [PatternFly wizard design guidelines](https://www.patternfly.org/components/wizard/design-guidelines/) — HIGH confidence (skip button pattern, optional step grouping)
-- [Eleken — Wizard UI pattern explained](https://www.eleken.co/blog-posts/wizard-ui-pattern-explained) — MEDIUM confidence (general UX patterns)
-- [Tauri GitHub #4917 + #5330 — print API feature requests](https://github.com/tauri-apps/tauri/issues/4917) — HIGH confidence (confirms no native print API)
-- [SomToday — Informatie exporteren](https://somtoday-servicedesk.zendesk.com/hc/nl/articles/4404430485905-Informatie-exporteren) — MEDIUM confidence (general export, no BPV-specific columns)
-- Existing codebase analysis: `utils/bpv.ts`, `StageSection.tsx`, `BpvProgressSection.tsx`, `AanvullendSection.tsx`, `parsers/excel.ts` — HIGH confidence (authoritative for current state)
+**Deferred (not in v2.4):**
+- Keuzedelen badge on klasoverzicht tegel (tiles are already information-dense)
+- R&N on the KPI strip
+- Soft delete / undo for class deletion

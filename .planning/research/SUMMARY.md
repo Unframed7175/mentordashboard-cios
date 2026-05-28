@@ -1,16 +1,16 @@
-# Research Summary: v2.2 Onboarding, Export & Data Completeness
+# Research Summary: v2.4 Data Completeness, Keuzedelen & UI Polish
 
 **Project:** Mentordashboard CIOS
-**Researched:** 2026-05-19
-**Confidence:** HIGH (stack/architecture/pitfalls); MEDIUM (BPV column names, RNL PDF format — missing sample files)
+**Researched:** 2026-05-28
+**Confidence:** HIGH (all features); LOW for BPV column names (blocked on real file)
 
 ---
 
 ## Executive Summary
 
-v2.2 adds five deliverables to the existing Tauri 2 + React + TypeScript app. **Zero new dependencies** — no new npm packages, no new Cargo crates. The only config change is one line in `tauri.conf.json` which resolves the drag-and-drop bug entirely.
+v2.4 adds six deliverables to the existing Tauri 2 + React + TypeScript app. **Zero new dependencies** — SheetJS, tauri-plugin-store, React, and plain CSS cover everything. All features are incremental additions with well-established patterns already in the codebase.
 
-Build order is driven by hard dependencies and risk: drag-drop fix first (unblocks all import paths), print-to-PDF second (zero-dependency quick win), BPV parser and RNL section third/fourth (both partially blocked on sample files), onboarding wizard last (wraps all other flows).
+BPV column matchers are the only feature blocked on an external deliverable (the real SomToday BPV Excel file). All other five features are fully implementable today.
 
 ---
 
@@ -18,113 +18,109 @@ Build order is driven by hard dependencies and risk: drag-drop fix first (unbloc
 
 **Verdict: No new dependencies.**
 
-| Feature | npm | Cargo.toml | tauri.conf.json |
-|---------|-----|-----------|----------------|
-| Drag-and-drop fix | None | None | `"dragDropEnabled": false` |
-| Print-to-PDF | None | None | None |
-| BPV Excel parser | None | None | None |
-| Rekenen & Nederlands | None | None | None |
-| Onboarding wizard | None | None | None |
-
-Explicitly rejected: `@tauri-apps/plugin-printer` (Windows-only, unstable), `react-to-print` (documented unreliable in WebViews), `react-step-wizard` (abandoned 4 years), `framer-motion` (130 KB overkill).
+| Feature | Existing capability used |
+|---------|------------------------|
+| BPV real column matchers | SheetJS 0.20.3 — `_bpvKolom()` in `utils/bpv.ts` (pattern established) |
+| Keuzedelen per student | `tauri-plugin-store` + `saveKlassen()` — same as `actiepunten` |
+| R&N badges on tiles | `normalizeRekenScore()` + `StudentRecord.rekenResultaat` (already present) |
+| Non-empty class deletion | `deleteKlas()` in `utils/klassen.ts` (already handles non-empty) |
+| UI-DET spider + section reorder | Pure CSS resize + JSX reorder |
+| UI-NAV banner 2x | Pure CSS height change |
 
 ---
 
 ## 2. Feature Table Stakes
 
-### BUG-01 — Drag-and-Drop
-- `"dragDropEnabled": false` in `app.windows[0]` in `tauri.conf.json`
-- Document-level `preventDefault` listeners in `App.tsx` must be **preserved** (prevent browser navigation on accidental drops — not the bug)
-- Requires `npm run tauri dev` restart after config change
+### BPV — Real column matchers
+- Run `debugBpvExcel(buffer)` on the real file first → logs exact column header names
+- Update only the 5 candidate string arrays in `_bpvKolom()` calls inside `parseBpvExcel()`
+- Must provide 2+ aliases per column (SomToday renames columns across school years)
+- Assert ≥3 key columns present after header detection (guards against merged title rows)
+- `gerealiseerdeUren` stays 0 until real file is provided — scaffold already in place
 
-### EXP — Print-to-PDF
-- `window.print()` works in Tauri 2 WebView2 (confirmed: docs.rs/tauri)
-- Print-only `<header>` showing leerlingnaam, klas, datum
-- `@media print { body > * { display: none; } .print-target { display: block !important; } }`
-- `@page { size: A4; margin: 2cm; }` — suppresses Chromium URL header/footer
-- `break-inside: avoid` on `.detail-section`
-- `print-color-adjust: exact` — preserves RAG badge colors
-- "Afdrukken" button in `DetailWeergave.tsx` header
+### KZLD — Keuzedelen per student
+- New type: `Keuzedeel { id: string; naam: string; onTrack: boolean }`
+- New field on StudentRecord: `keuzedelen?: Keuzedeel[]`
+- `?? []` guard at every read site (same as `rekenResultaat ?? null` pattern from Phase 23)
+- Mutate in-place + `saveKlassen()` — never spread (breaks `appState.students` bridge)
+- New `KeuzedeelSection.tsx` in DetailWeergave — after RekenenNederlandsSection, before FeedbackActiepunten
+- Add/remove/edit rows inline; checkbox for `onTrack` toggles immediately on click
 
-### BPV — Stage Excel Parser
-- Separate `parseBpvExcel()` in `utils/bpv.ts` — do NOT reuse `parseExcelFile`
-- Separate sheet-scoring keywords: `bpv` (+4), `stage` (+3), `uren` (+2)
-- `debugBpvExcel()` helper must run on real file before writing column matchers
-- `XLSX.read({ cellDates: true })` for date columns
-- Graceful fallback: `gerealiseerdeUren = 0` if column not found
+### TEGEL-RN — R&N on klasoverzicht tiles
+- Extend `LeerlingTegel` props: `rekenResultaat?: string | null`, `nederlandsResultaat?: string | null`
+- Render as single compact row: `R 2F · N 3F` — reuse `.score-telling` CSS class
+- Only show row when at least one field is non-null
+- Pass both fields from `KlasOverzicht` via the student object (data already present)
+- Mutations in `RekenenNederlandsSection` must write to ALL records for leerlingId (verzuim pattern)
 
-### RNL — Rekenen & Nederlands
-- MBO-3 national norms: Rekenen 2F voldoende, Nederlands 2F voldoende (rijksoverheid.nl confirmed)
-- New optional fields on `StudentRecord`: `rekenResultaat?: string | null`, `nederlandsResultaat?: string | null`
-- `AanvullendSection` manual dropdowns preserved unchanged
-- PDF extraction is best-effort (section absent from many PDFs) — `null` fallback, no throw
-- `normalizeRekenScore()` separate from `normalizeScore()` — score format may differ from V/G/E
+### KLS-DEL — Non-empty class deletion
+- `deleteKlas()` already correct for non-empty classes — no change needed
+- Change `canDelete` in App.tsx: `true` for all non-active classes (keep `false` for active class)
+- New `KlasVerwijderenModal.tsx` (~50 lines): checkbox "Ik begrijp dat alle leerlingdata wordt verwijderd" + disabled confirm button until checked
+- Confirm message includes student count: `Klas '${naam}' bevat ${count} leerlingen.`
+- After deletion of last class: `setView('import')`
 
-### ONB — Onboarding Wizard
-- 5 steps: klas aanmaken (required) → PDFs (required) → verzuim Excel (optional) → stage Excel (optional) → instellingen (optional)
-- Add `'onboarding'` to `view` union in `App.tsx`
-- First-run detection: `Object.keys(klassenState.klassen).length === 0` in startup `useEffect`
-- All wizard state lifted to parent `OnboardingWizard` — step components are purely presentational
-- "Overslaan" button on steps 3–5
-- **Do NOT mount full `<ImportPage />` inside wizard steps** — use stripped-down inline dropzones with wizard-internal handlers
-- `onboardingComplete: true` persisted to store only after final step
+### UI-DET — Spiderweb groter + FeedbackActiepunten naar onderkant
+- `.spider-card` width: `160px` → `280px` (or responsive); SVG needs `viewBox` + `width="100%"`
+- `FeedbackActiepuntenSection` moved to last position in `DetailWeergave.tsx` JSX
+- No logic changes — pure CSS + JSX reorder
 
----
-
-## 3. Architecture Decisions
-
-**New files:** `src/components/OnboardingWizard.tsx`, `src/components/RekenenNederlandsSection.tsx`
-
-**Modified files:** `src-tauri/tauri.conf.json`, `src/App.tsx`, `src/components/ImportPage.tsx`, `src/components/DetailWeergave.tsx`, `src/components/AanvullendSection.tsx`, `src/index.css`, `parsers/pdf.ts`, `utils/bpv.ts`, `utils/schema.ts`
-
-**`App.tsx` view union:** `'import' | 'klas' | 'detail' | 'settings'` → adds `'onboarding'`
-
-**BPV import routing:** Filename heuristic `/bpv|stage|praktijk/i.test(name)` routes to `handleBpvExcel()` in `ImportPage`; all other `.xls` → existing `handleExcel()`
-
-**RNL section placement:** After `AanvullendSection`, before `StageSection` in `DetailWeergave`
-
-**BPV storage:** `bpv_data` store key holds `{ [leerlingId]: { gerealiseerdeUren } }` — does not merge with `stageData` until real file confirms structure
+### UI-NAV — Nav banner + logo 2x
+- `#main-nav min-height: 52px` → `104px`
+- `.nav-stripe { height: 52px }` → `104px` (must always match `min-height`)
+- Logo `height` in `KlasTabStrip.tsx` inline style: `36px` → `72px`
+- Test diagonal stripe renders correctly after height change
 
 ---
 
-## 4. Watch Out For — Top 5 Pitfalls
+## 3. Architecture Integration
 
-**1. CRITICAL — Tauri drag-drop interceptor blocks HTML5 events**
-`e.dataTransfer.files` is always empty in Tauri 2 by default. Fix: `"dragDropEnabled": false` in `tauri.conf.json`. Do NOT remove document-level `preventDefault` listeners in `App.tsx`.
+**New files:** `KeuzedeelSection.tsx`, `KlasVerwijderenModal.tsx`
 
-**2. HIGH — `window.print()` captures full DOM, not just DetailWeergave**
-Fix: `.print-target` wrapper + `@media print { body > * { display: none; } }`. `@page { margin: 0 }` suppresses Chromium's injected URL in print header.
+**Modified files:**
+| File | Change |
+|------|--------|
+| `utils/datamodel.ts` | Add `Keuzedeel` type + `keuzedelen?` field on StudentRecord |
+| `utils/bpv.ts` | Update 5 candidate string arrays in `parseBpvExcel()` |
+| `src/components/LeerlingTegel.tsx` | Add R&N badge row |
+| `src/components/KlasOverzicht.tsx` | Pass `rekenResultaat` / `nederlandsResultaat` to LeerlingTegel |
+| `src/components/DetailWeergave.tsx` | Add KeuzedeelSection, reorder sections (FeedbackActiepunten last) |
+| `src/components/KlasTabStrip.tsx` | Logo height 2x |
+| `src/App.tsx` | `canDelete` logic update, mount `KlasVerwijderenModal` |
+| `src/index.css` | Nav height, spider-card size, nav-stripe height |
 
-**3. HIGH — Wizard step state lost on back navigation**
-`useState` in step components is destroyed on unmount. Fix: lift all state to parent `wizardState` — step components accept props, call `onUpdate(partial)`.
-
-**4. HIGH — BPV Excel selects wrong sheet**
-Existing sheet scorer keywords (`verzuim`, `totaal`, `overzicht`) miss BPV sheet names (`"BPV uren"`, `"Deelnemers"`). Fix: separate sheet-scoring function for BPV.
-
-**5. HIGH — Rekenen/Nederlands absent from many PDFs**
-Fields must be `string | null` everywhere. `?? null` fallback required on all deserialized old records (missing field on encrypted store data).
-
----
-
-## 5. Blocked Features
-
-| Feature | Blocked on | Impact if delayed |
-|---------|-----------|-------------------|
-| BPV column matchers (BPV-01) | Real BPV Excel export file | Scaffold proceeds; `gerealiseerdeUren` shows 0 until unblocked |
-| RNL PDF extraction (RNL-04) | Real PDF with Rekenen/Nederlands section | Manual entry works without it; extraction is additive |
+**Suggested build order:**
+1. UI-NAV + UI-DET (pure CSS/JSX, zero risk)
+2. TEGEL-RN (read-only, existing data)
+3. KLS-DEL (isolated modal, established pattern)
+4. KZLD (new field + component, moderate scope)
+5. BPV (blocked on real file — build when file arrives)
 
 ---
 
-## 6. Recommended Phase Order
+## 4. Critical Watch Out For
 
-| Phase | Feature | Rationale |
-|-------|---------|-----------|
-| 20 | BUG-01 Drag-and-Drop Fix | One config line; unblocks all file import paths |
-| 21 | EXP-01..04 Print-to-PDF | Zero dependencies; quick win |
-| 22 | BPV-01..04 Stage Excel Parser | Scaffold now, column matchers when sample file arrives |
-| 23 | RNL-01..04 Rekenen & Nederlands | Data model + UI now; PDF extraction additive |
-| 24 | ONB-01..08 Onboarding Wizard | Wraps all prior features; build last |
+**1. Nav stripe hardcoded to 52px** — `.nav-stripe { height }` must always equal `#main-nav { min-height }`. Update both together. Consider replacing `height: 52px` with `height: 100%` on the stripe element.
+
+**2. Spider SVG fixed at 160px** — Use `viewBox` + `width="100%"` on the SVG element so it fills the resized `.spider-card` container. Without this, the chart stays tiny in a larger box.
+
+**3. Keuzedelen field undefined on old records** — `student.keuzedelen ?? []` at every read site from day one. Never call `.length` or `.map()` without this guard. Same pattern as `rekenResultaat ?? null` (Phase 23).
+
+**4. BJ2 reactivity bug for R&N tiles** — `rekenResultaat` mutations must land on ALL records for a `leerlingId` (not just the current active record). Use the verzuim pattern: `appState.students.filter(s => s.leerlingId === id).forEach(s => s.rekenResultaat = value)`.
+
+**5. Hardcoded hex colors break dark mode** — After every new JSX file with `style={}`, grep `src/components/` for `#[0-9a-fA-F]`. Must return zero matches. Use only CSS variables (`var(--text-primary)`, `var(--status-groen-text)`, etc.).
 
 ---
 
-*Sources: Tauri 2 Rust API docs, tauri.conf.json schema, GitHub issues #9448 + #14373, rijksoverheid.nl, examenbladmbo.nl, PatternFly wizard design guidelines, direct codebase inspection.*
+## 5. Open Questions (resolve at plan time)
+
+| Question | Needed for | When |
+|----------|-----------|------|
+| Exact BPV column names in real SomToday export | BPV plan | When user provides file; run `debugBpvExcel()` |
+| Spider SVG current `width`/`height`/`viewBox` values | UI-DET plan | Read `SpiderChartCard.tsx` + `utils/spider.ts` |
+| Keuzedelen: student-level (all periods) or period-level? | KZLD plan | Student-level assumed (same as R&N pattern) |
+| `canDelete` on active class: keep false or use settings panel? | KLS-DEL plan | Keep false for active class (safer UX, simpler) |
+
+---
+
+*Sources: Direct codebase inspection of utils/klassen.ts, utils/bpv.ts, utils/datamodel.ts, utils/schema.ts, src/App.tsx, src/components/KlasTabStrip.tsx, src/components/LeerlingTegel.tsx, src/components/DetailWeergave.tsx, src/components/SpiderChartCard.tsx, src/index.css, .planning/STATE.md, phase summaries 22–29.*

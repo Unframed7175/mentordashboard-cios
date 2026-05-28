@@ -1,327 +1,209 @@
-# Domain Pitfalls: v2.2 Feature Addition
+## Pitfalls Research — v2.4
 
-**Domain:** Adding features to existing Tauri 2 + React + TypeScript + Vite app
-**Researched:** 2026-05-19
-**Scope:** Print-to-PDF, Onboarding Wizard, BPV Excel Parser, Rekenen/Nederlands, Drag-and-Drop fix
+**Project:** Mentordashboard CIOS
+**Milestone:** v2.4 — BPV real column matchers, Keuzedelen, R&N on klasoverzicht, Non-empty class deletion, CSS resizing
+**Researched:** 2026-05-28
+**Confidence:** HIGH — all findings are grounded in this codebase's actual history and source files
 
 ---
 
-## 1. Print-to-PDF in Tauri 2
+## Feature 1: BPV Real Column Matchers (SheetJS on real SomToday exports)
 
-### Pitfall 1.1: `window.print()` Opens a New Window on Windows (WebView2)
+### Pitfall 1-A: cpexcel registration is load-order sensitive and must not be assumed global
 
-**What goes wrong:** `window.print()` in Tauri 2 on Windows opens the Edge/Chromium **browser-style Print Preview dialog** as an overlay over the WebView. This works but cannot be controlled programmatically: you cannot set page title, suppress URL in header/footer, or pre-select "Save as PDF". The user sees the raw page URL in the print header.
+**What goes wrong:** `utils/bpv.ts` registers cpexcel at module load time with the identical 3-line block from `parsers/excel.ts`. The mechanism is load-order sensitive — `XLSX.set_cptable` must run before the first `XLSX.read()` call on the same JS module thread. If any future plan splits `parseBpvExcel` into a separate file or wraps it behind a lazy import, the registration does not carry over. SheetJS silently falls back to ASCII encoding. Dutch names with `ë`, `ij`, `ü` come out as mojibake, causing zero leerlingId matches. The symptom looks like a column-matcher bug but is actually an encoding bug.
 
-**Risk:** HIGH — the print output will show `tauri://localhost/` (or the internal origin) as the page URL in the browser-injected header/footer. The mentor report looks unprofessional.
+**What happened here:** Phase 22 Plan 01 explicitly documented copying the 3-line cpexcel block from `parsers/excel.ts` (`import * as XLSX from 'xlsx'`, `import * as cpexcel from 'xlsx/dist/cpexcel.full.mjs'`, `XLSX.set_cptable`).
+
+**Prevention:** Keep all `parseBpvExcel` logic in `utils/bpv.ts` where the registration already lives. Never lazy-import or re-export the function through an intermediate module without repeating the cpexcel registration before the first `XLSX.read()` call.
+
+---
+
+### Pitfall 1-B: `_bpvKolom()` fuzzy match silently returns 0 when column names change across school years
+
+**What goes wrong:** The current `_bpvKolom()` helper uses `toLowerCase().includes(candidate)`. Phase 22 Plan 01 Summary documents that the real file has `"Stage-uren goedgekeurd"` as the hours column. If SomToday renames the column to `"Goedgekeurde stage-uren"` or `"Uren goedgekeurd"` in a new export template, the candidate `"stage-uren goedgekeurd"` fails the includes check. `gerealiseerdeUren` returns 0 silently. The BPV progress bar shows 0% for all students and no error is raised.
+
+**Prevention:** Run `debugBpvExcel()` on the real file first — it logs the first 5 rows per sheet. Add a second candidate string for the hours column: both the confirmed name and likely aliases (e.g., `"stage-uren goedgekeurd"` and `"goedgekeurd"` as independent fallback candidates). The candidate list needs at least two independent aliases per critical column.
+
+**Phase:** The plan that wires up column matchers to a newly provided BPV export file. Must run `debugBpvExcel()` before writing any column candidates.
+
+---
+
+### Pitfall 1-C: Merged cells and multi-row headers cause header detection to pick the wrong row
+
+**What goes wrong:** The current header-row detection scans the first 20 rows and scores each row against `BPV_HEADER_KEYS`. SomToday exports sometimes have a merged title row above the real header (school name, export timestamp). SheetJS represents merged cells by only populating the top-left cell of the merge. A header detection loop that accepts the first row above a score threshold may stop at the merged title row and produce all-null column mappings.
+
+**Prevention:** After identifying a candidate header row, assert that at least 3 distinct key columns are present (`Student` or equivalent, `Studentnummer` or equivalent, `Stage-uren goedgekeurd` or equivalent). If fewer than 3 match, continue scanning. Also pass `{ sheetStubs: true }` to `XLSX.read()` so merged cells produce stub entries in the row array rather than gaps.
+
+**Phase:** BPV column matcher plan. Not blocking scaffold work.
+
+---
+
+### Pitfall 1-D: Summary sheet and detail sheet both pass the BPV scorer — hours get counted twice
+
+**What goes wrong:** `parseBpvExcel` accumulates `gerealiseerdeUren` across all rows per student. The sheet scorer (bpv+4, stage+3, uren+2, praktijk+2) picks the single highest-scoring sheet. If a SomToday export contains both a per-placement detail sheet and a totals summary sheet, and both pass the scorer within a close margin, only the top-scoring sheet is processed. But if future code ever processes multiple sheets (e.g., to collect per-placement breakdown), each student's hours will be counted twice. `gerealiseerdeUren > verwachteUren` from day one with no user-facing error.
+
+**Prevention:** Verify the sheet scorer always picks exactly one sheet. If two sheets score within 2 points of each other, log a warning via `debugBpvExcel` and use only the top-scoring one. Never accumulate across multiple sheets.
+
+---
+
+## Feature 2: Keuzedelen per Student (Extending StudentRecord Schema)
+
+### Pitfall 2-A: New optional field is `undefined` on all pre-existing records after deserialization — not `null`, not `[]`
+
+**What goes wrong:** `StudentRecord` is stored as AES-encrypted JSON in plugin-store via `saveKlassen()`. When a new optional field like `keuzedelen: string[]` is added, all records encrypted before the field existed will deserialize with that field absent (`undefined`), not `null` and not `[]`. Any code that calls `student.keuzedelen.length` without a null guard throws `TypeError: Cannot read properties of undefined`.
+
+**This exact pattern already happened in this codebase:** Phase 23 documented it for `rekenResultaat` and `nederlandsResultaat`. The established fix is `?? null` at every read site for nullable fields. For array fields the equivalent is `student.keuzedelen ?? []`.
 
 **Prevention:**
-- Use CSS `@media print` with `@page { margin: 0; }` combined with a print-specific padding container. Setting margin to 0 (or < 8mm) suppresses the Chromium header/footer URL line entirely.
-- Add `@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }` to preserve background colors (status badge colors, spider chart fill will be white without this).
-- If full header/footer control is needed, use Tauri's `@tauri-apps/plugin-shell` or a Rust command wrapping WebView2's `CoreWebView2.PrintToPdf` — but that adds Rust scope. Start with the CSS `@page margin: 0` approach first; it resolves 90% of the problem.
+- Read site: `const keuzedelen = student.keuzedelen ?? []`
+- Write site: `student.keuzedelen = updatedList` (full array replace, not mutation, so the key is present in the next serialization)
+- No migration pass needed — lazy initialization at read time is the established and safe pattern for this codebase. Do NOT add a migration loop inside `loadKlassen()` that re-encrypts all records on load.
+
+**Phase:** The plan that introduces the `keuzedelen` field. Apply `?? []` at every read site from day one.
 
 ---
 
-### Pitfall 1.2: Print Captures the Entire DOM, Not Just the Detail View
+### Pitfall 2-B: `null` vs `undefined` in JSON round-trip produces different behavior in tests
 
-**What goes wrong:** `window.print()` prints the **full page DOM** — including `KlasTabStrip`, the nav tabs, and any currently visible panels. The detail view component (`DetailWeergave`) is one child of `App.tsx`; there is no print isolation boundary by default.
+**What goes wrong:** `JSON.stringify(undefined)` omits the key entirely. `JSON.stringify(null)` writes `"keuzedelen":null`. After a round-trip through the store, a field initialized as `undefined` disappears; a field set to `null` survives as `null`. If component code checks `if (student.keuzedelen)` it evaluates false for all of `undefined`, `null`, and `[]`. But in Vitest tests, the behavior depends on which value was used in the fixture — test authors who write `{ keuzedelen: undefined }` in a fixture will get different results than those writing `{ keuzedelen: [] }`.
 
-**Risk:** HIGH — the printed output includes nav and unrelated UI chrome.
-
-**Prevention:**
-- Add a CSS rule: `@media print { body > * { display: none; } .print-target { display: block !important; } }`.
-- Wrap the content to print in a `<div className="print-target">`.
-- This approach works with the existing App.tsx view-conditional rendering. When `view === 'detail'`, only `DetailWeergave` is in the DOM (the others are conditionally excluded), so hiding everything except the print target is safe.
-- Do NOT use `document.body.innerHTML = ...` swaps — that destroys React state.
+**Prevention:** Never rely on truthiness for array fields. Use `Array.isArray(student.keuzedelen) ? student.keuzedelen : []` at every read. In Vitest fixtures, always set `keuzedelen: []` explicitly — do not omit the field unless the test specifically targets the missing-field path.
 
 ---
 
-### Pitfall 1.3: CSS Page Break Causes Truncated Sections
+### Pitfall 2-C: Object spread breaks the appState bridge — mutations must be in-place
 
-**What goes wrong:** `DetailWeergave` renders many stacked `detail-section` cards. Without explicit page break hints, Chromium's print engine will break mid-card — cutting a table or spider chart in half.
+**What goes wrong:** `klassenState.klassen[activeKlasId].students` shares its array reference with `appState.students` (the bridge set in `switchActiveKlas`, `utils/klassen.ts` line 88). A mutation `student.keuzedelen = newValue` followed by `saveKlassen()` updates the live array in memory and persists correctly. However, if a developer writes `appState.students[idx] = { ...student, keuzedelen: newValue }` to create a new object, the array element at `[idx]` is now a different object. The rest of the class persists correctly, but the replaced element's `leerlingId` bridge may be broken for any future mutation that searches for the student by reference.
 
-**Risk:** MEDIUM — cosmetic, but the primary value of the PDF is the "ready for the meeting" quality.
+**This is the established pattern:** Phase 27 (`renameKlas`) documents the same principle. Phase 23's `RekenenNederlandsSection` follows the `AanvullendSection` pattern: `rec[field] = value || null; await saveKlassen()`. No spread.
 
-**Prevention:**
-- Add `page-break-inside: avoid` (and the modern alias `break-inside: avoid`) to `.detail-section` in `@media print`.
-- Add `page-break-before: always` on the deelgebied matrix section specifically (it is the widest element and benefits from starting on a fresh page).
-- The spider charts row uses `flexWrap: wrap` — at A4 width (~794px print pixels) the three 180px charts still fit on one row. No change needed there.
+**Prevention:** Mutate in-place: `student.keuzedelen = newValue; await saveKlassen()`. Never create a new student object with object spread at the point of save.
 
 ---
 
-### Pitfall 1.4: macOS WebKit Treats `@page` Margin Differently
+## Feature 3: R&N on Klasoverzicht Tiles
 
-**What goes wrong:** On macOS Tauri (WebKit), `@page { margin: 0 }` may not suppress the Safari-injected header/footer in the same way Chromium does. WebKit has historically been more restrictive.
+### Pitfall 3-A: BJ2 reactivity bug — R&N mutation may land on the wrong periode record
 
-**Risk:** LOW for this project (primary users are on Windows), but worth noting if the mentor uses a MacBook.
+**What goes wrong:** `rekenResultaat` and `nederlandsResultaat` are written by `RekenenNederlandsSection` onto whatever `student` object was in scope during the mutation. The klasoverzicht tile reads from `getActiveStudents()`, which deduplicates to one record per leerlingId by sorting on `periode` descending and taking the first (most-recent). If a student has two import phases (BJ2 Fase 1 and BJ2 Fase 2), `getActiveStudents()` returns the Fase 2 record. If the mentor happened to open the detail view while Fase 1 was the "active student" reference, the R&N mutation lands on the Fase 1 record. The tile reads the Fase 2 record and shows no R&N badge. No error, wrong data.
 
-**Prevention:**
-- Test on macOS before signing off. If header persists, the fallback is `@page { margin: 15mm }` with a printed `<header>` element in the DOM that visually replaces the browser line (mentor name, class, date).
-- This is a known limitation with no CSS-only fix on WebKit; a custom printed header in the DOM is the industry standard workaround.
+**This is the BJ2 reactivity bug pattern referenced in `STATE.md` (Phase 23 design notes).** It also appeared in the `trendMap` computation in `KlasOverzicht` and was fixed in Phase 26 by using `getAllRecordsForStudent` and comparing oldest vs newest periods.
 
----
-
-## 2. Onboarding Wizard State Management
-
-### Pitfall 2.1: Step Data Lost on Back Navigation Due to Component Unmount
-
-**What goes wrong:** If each wizard step is its own conditionally rendered component (`{step === 1 && <Step1 />}`), navigating back unmounts Step 2 and its local `useState` is destroyed. Navigating forward again shows a blank Step 2.
-
-**Risk:** HIGH — the wizard's value comes from remembering partial input. A mentor who goes back to change the class name and then proceeds should not lose their uploaded PDFs.
-
-**Prevention:**
-- Store all wizard state in the **parent wizard component** (or in a `useReducer` at the wizard root), not inside individual step components.
-- Use a single `wizardState: { step, klasNaam, pdfFiles, excelFile, stageFile, settings }` object lifted to the wizard container.
-- Step components receive state as props and call `onUpdate(partial)` callbacks — they are pure presentational components.
-- This matches the existing pattern in `App.tsx` (global view state) and `ImportPage.tsx` (centralized `importState`). Follow the same pattern.
-
----
-
-### Pitfall 2.2: Partial Completion Leaves the App in an Inconsistent State
-
-**What goes wrong:** If the user closes the wizard partway (e.g., after creating the class but before importing PDFs), the app has an empty class with no students. On next launch the wizard should resume, but if it does not detect the partial state, the user sees the empty class UI with no explanation.
-
-**Risk:** MEDIUM — confusing for a first-run user.
-
-**Prevention:**
-- The wizard "done" flag should only be stored (via `plugin-store`) after the **final step completes** — not per-step.
-- Check on app launch: if a class exists but has zero students, treat it as "wizard incomplete" and re-show the wizard rather than the empty klas view.
-- The existing `App.tsx` already checks `getActiveStudents().length > 0` to decide between `'import'` and `'klas'` view. The wizard should hook into this same condition.
-
----
-
-### Pitfall 2.3: Wizard State Survives React StrictMode Double-Invoke
-
-**What goes wrong:** In development with React StrictMode (Vite default), `useEffect` runs twice on mount. If the wizard's initial step setup effect calls `createKlas()` on mount, it will create duplicate empty classes.
-
-**Risk:** LOW in production (StrictMode is dev-only), but causes confusing bugs during development and testing.
-
-**Prevention:**
-- Do NOT call `createKlas()` in a `useEffect` on mount. Trigger class creation only on explicit user action (button click — "Volgende" on the class-name step).
-- Follow the existing pattern in `ImportPage.tsx` where `autoDetectKlas` is called inside an event handler, never on mount.
-
----
-
-### Pitfall 2.4: Wizard Intercepts the Normal Import Flow
-
-**What goes wrong:** The wizard uses the same `parseSinglePDF` and `parseExcelFile` functions as `ImportPage`. If both the wizard and the normal import UI are mounted simultaneously (possible if the wizard is overlaid on top of the existing app), two concurrent `saveKlassen()` calls can interleave and corrupt the store.
-
-**Risk:** MEDIUM — the existing `ImportPage` already has a guard (`if (importState.status === 'processing') return`), but the wizard bypasses this if it is a separate code path.
-
-**Prevention:**
-- Render the wizard **exclusively** — when the wizard is active, do not render `ImportPage` or any other content-modifying UI.
-- The existing `view` state machine in `App.tsx` makes this natural: add `'onboarding'` as a view type and render it exclusively, the same way `'settings'` replaces the main content.
-- Reuse `handleFiles` logic from `ImportPage` rather than reimplementing it in the wizard.
-
----
-
-## 3. BPV Stage Excel Parser
-
-### Pitfall 3.1: Stage Excel Sheet Name Not Matching Scoring Keywords
-
-**What goes wrong:** The existing `parseExcelFile` scores sheets by keywords: `verzuim` (+3), `overzicht` (+2), `totaal` (+1), `leerling` (+1). A BPV stage export from a different system (e.g., Somtoday BPV module, Xedule, or a custom school export) likely has sheet names like `"Stage overzicht"`, `"BPV uren"`, `"Deelnemers"`, or `"Rapportage"`. None of these score high enough on the current verzuim keywords.
-
-**Risk:** HIGH — the wrong sheet (or the first sheet) will be parsed, returning empty or incorrect records.
-
-**Prevention:**
-- Implement a **separate BPV parser** (`parsers/bpv-excel.ts`) with its own sheet-selection scoring that scores BPV-relevant keywords: `bpv` (+4), `stage` (+3), `uren` (+2), `deelnemer` (+1), `organisatie` (+1).
-- Do NOT reuse `parseExcelFile` for BPV data — the column structures are entirely different.
-- Use `debugExcelBestand()` (already exists in `excel.ts`) on the real BPV export file before writing the parser to confirm sheet names and column layout.
-
----
-
-### Pitfall 3.2: BPV Hours May Be Stored as Numbers, Not as "107u24m" Strings
-
-**What goes wrong:** The existing `parseVerzuimTime` handles the Dutch `"107u24m"` format. BPV stage hours are typically stored as plain decimal numbers (e.g., `107.5`) or as separate integer columns (`Uren goedgekeurd: 107`, `Minuten: 30`). Feeding these to `parseVerzuimTime` will work for plain numbers but will fail for split-column layouts.
-
-**Risk:** MEDIUM — hours parse as 0 instead of the correct value.
-
-**Prevention:**
-- Inspect the actual BPV export file with `debugExcelBestand` before writing the parser.
-- Parse BPV hours as a plain float if the column is numeric: `parseFloat(String(val)) * 60` (convert to minutes for consistency), or store directly as decimal hours if the `StageSection` renders hours.
-- The `stageData` schema in `klassenState` currently has `urenGoedgekeurd` and `urenIngeleverd` fields — verify whether these are minutes or hours before writing the parser, then document the unit clearly.
-
----
-
-### Pitfall 3.3: Student Name Matching Between BPV Excel and Imported PDF Records
-
-**What goes wrong:** The BPV Excel will have student names in a format potentially different from the PDF-derived names in `klassenState`. The existing `mergeVerzuim` matches by `leerlingnummer`. If the BPV Excel does not include a student number column, or uses a different ID format, matching will fail silently — all BPV records show as "niet gevonden".
-
-**Risk:** HIGH — especially if the BPV export is from a different system than the verzuim export.
-
-**Prevention:**
-- Check the BPV export for a student number column. If absent, implement fuzzy name matching (normalize case + whitespace + vowel diacritics, then exact match or Levenshtein distance 1).
-- Log unmatched BPV records explicitly in the import result message (same pattern as `unmatched` in `mergeVerzuim`).
-- The `cpexcel` registration in `excel.ts` is module-scoped and runs on import. The BPV parser MUST import from the same module or re-register cpexcel — do not assume it is already active just because `excel.ts` was imported first (module execution order is not guaranteed across dynamic imports).
-
----
-
-### Pitfall 3.4: Dutch Date Columns Parsed as Excel Serial Numbers
-
-**What goes wrong:** SheetJS parses Excel date cells as serial numbers (days since 1900-01-01) when not configured otherwise. A `Startdatum` column containing `2025-09-01` may arrive as `46065` (the serial number). The existing parser passes raw values through without date conversion.
-
-**Risk:** MEDIUM — stage start/end dates will display as numbers in `StageSection`.
-
-**Prevention:**
-- Pass `{ cellDates: true }` to `XLSX.read()` in the BPV parser: `XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true })`. This tells SheetJS to convert date serials to JavaScript `Date` objects automatically.
-- Then call `.toISOString().split('T')[0]` to get `YYYY-MM-DD` string format, which `formatDutchDate()` in `StageSection.tsx` already handles.
-- Note: `cellDates: true` does not affect the existing `parseExcelFile` (verzuim) because that parser uses a separate `XLSX.read` call.
-
----
-
-## 4. Rekenen & Nederlands in PDF Parser
-
-### Pitfall 4.1: Rekenen/Nederlands Section Absent from Many PDFs
-
-**What goes wrong:** Not all students have a Rekenen or Nederlands entry in their PDF — some students may only have BPV-track vakken, or the section may not appear in certain periods. If the parser assumes these vakken always exist and accesses `vakken.find(v => v.naam === 'Rekenen')` unconditionally, it returns `undefined` and crashes downstream.
-
-**Risk:** HIGH — crashes the parser for a significant subset of students.
-
-**Prevention:**
-- Always treat `rekenen` and `nederlands` as **optional** fields on the student record: initialize to `null`.
-- In `parseSinglePDF`, after building the `vakken` array, do: `const rekenVak = vakken.find(v => /rekenen/i.test(v.naam)) ?? null`.
-- Never throw if absent. The doorstroomnorm calculation for Rekenen/Nederlands must gate on `rekenVak !== null`.
-- Display "Geen Rekenen/Nederlands data" in the UI when null, consistent with how `StageSection` handles `stageData === null`.
-
----
-
-### Pitfall 4.2: Rekenen/Nederlands Vak Name Varies Across PDF Generations
-
-**What goes wrong:** The vak heading in the PDF may appear as `"Rekenen"`, `"Rekenen & Nederlands"`, `"Nederlands"`, `"Taal/Rekenen"`, or abbreviated forms. The existing `parseVakSections` relies on font-size-based heading detection — the vak name is stored as-is. An exact string match will miss variations.
-
-**Risk:** MEDIUM — correct vak detected in test PDFs but fails in real-world exports.
-
-**Prevention:**
-- Use a regex for detection: `/rekenen|nederlands|taal/i.test(vak.naam)` rather than exact equality.
-- Store the raw vak name and add a derived `type: 'rekenen' | 'nederlands' | null` field based on the regex match.
-- Test against at least 3 real PDFs from different students/periods before shipping. Check if CIOS Zuidwest PDFs have separate "Rekenen" and "Nederlands" vak sections or a combined one.
-
----
-
-### Pitfall 4.3: Rekenen/Nederlands Uses a Different Score Schema Than Deelgebieden
-
-**What goes wrong:** The existing deelgebied scoring uses `V/G/E` (Voldoende/Goed/Excellent, mapped to `'onvoldoende'/'voldoende'/'goed'/'excellent'`). Rekenen/Nederlands may use a numeric scale (`1-10`), a pass/fail (`geslaagd/gezakt`), or a different letter grade. Feeding non-`V/G/E` scores into `normalizeScore()` returns `null`.
-
-**Risk:** HIGH — all Rekenen/Nederlands scores show as null if the schema differs.
-
-**Prevention:**
-- Inspect the actual Rekenen/Nederlands section in a real CIOS PDF before writing the doorstroomnorm calculation.
-- Add a separate `normalizeRekenScore(str)` function if the score format differs from the main deelgebied scale.
-- The doorstroomnorm for Rekenen/Nederlands is a distinct rule (separate from the >= 13 deelgebieden rule) — implement it as a separate function, not by adding Rekenen to the deelgebied score set.
-
----
-
-### Pitfall 4.4: Extending `StudentRecord` Type Breaks Encrypted Store Deserialization
-
-**What goes wrong:** Adding `rekenScore` and `nederlandsScore` fields to the `StudentRecord` TypeScript type will work for new imports. However, previously stored (encrypted) records that lack these fields will deserialize correctly in TypeScript (the fields will be `undefined`) but any code that accesses them without a `?? null` fallback will crash.
-
-**Risk:** MEDIUM — existing data migrated from v2.0/v2.1 will have undefined fields.
-
-**Prevention:**
-- Add new fields as optional with `null` default: `rekenScore?: RekenScore | null`.
-- In every component and calculation that reads these fields, use `student.rekenScore ?? null` — never assume presence.
-- This is the same pattern used when `stageData` was added: `klas?.stageData?.[leerlingId] ?? null` in `DetailWeergave.tsx`.
-
----
-
-## 5. Drag-and-Drop Fix in Tauri 2
-
-### Pitfall 5.1: Tauri's Internal Drag-Drop System Intercepts HTML5 Events
-
-**What goes wrong:** This is the root cause of the Phase 16 UAT drag-and-drop bug. Tauri 2 has an **internal drag-and-drop system** that is **enabled by default**. When this system is active, it intercepts OS-level file drop events and routes them through `tauri://file-drop` (a Tauri event), bypassing the HTML5 `ondragover`/`ondrop` DOM events entirely. The `onDrop` handler in `ImportPage.tsx` never fires because the event never reaches the DOM.
-
-**Risk:** CRITICAL — this is the current bug. The fix is a single config line.
-
-**Prevention:** Add `"dragDropEnabled": false` to the window configuration in `tauri.conf.json`:
-
-```json
-"app": {
-  "windows": [
-    {
-      "title": "Mentordashboard CIOS",
-      "dragDropEnabled": false,
-      ...
-    }
-  ]
-}
+**Prevention:** Apply R&N mutations to ALL records for a leerlingId simultaneously — the same pattern already used for `verzuim` in `datamodel.ts` lines 188–191:
 ```
+appState.students
+  .filter(s => s.leerlingId === student.leerlingId)
+  .forEach(s => { s.rekenResultaat = value; });
+await saveKlassen();
+```
+This ensures the mutation lands on both Fase 1 and Fase 2 records. The tile reads the Fase 2 record and gets the correct value regardless of which record the detail view was showing.
 
-With `dragDropEnabled: false`, Tauri's interceptor is disabled and the standard HTML5 `ondragover`/`ondrop` events fire normally in the WebView. The existing `onDragOver`, `onDrop`, and `onDragLeave` handlers in `ImportPage.tsx` will work without any JavaScript changes.
-
-**Verification:** After adding this config, rebuild with `npm run tauri dev` (config changes require a restart). Test by dragging a PDF onto the drop zone.
+**Phase:** The plan that adds R&N badges to `LeerlingTegel`. Define the mutation strategy explicitly before writing JSX.
 
 ---
 
-### Pitfall 5.2: Document-Level Drop Prevention Must Be Preserved
+### Pitfall 3-B: R&N tile row increases tile height and shifts the grid
 
-**What goes wrong:** `App.tsx` already registers document-level `dragover` and `drop` event listeners that call `e.preventDefault()` to prevent the browser from navigating away when a file is dropped outside the drop zone. This is correct and must not be removed.
+**What goes wrong:** `LeerlingTegel` uses `display: flex; flex-direction: column; gap: 0.75rem`. Adding an R&N row means a third visual line after the naam and the score-telling/trend row. If R&N badges render as two separate elements ("Rekenen: 2F" on one line, "Nederlands: 3F" on another), tile height increases significantly and the bento grid layout shifts unevenly, especially with mixed data (some students have R&N, some do not).
 
-**Risk:** LOW — already present. Risk is accidental removal during the drag-drop fix.
+**Prevention:** Render R&N as a single compact row — e.g., `R 2F · N 3F` — with the same `.score-telling` CSS class used for the score-telling/trend row (defined in `index.css` lines 539–549). Only show the R&N row when at least one of `rekenResultaat` or `nederlandsResultaat` is non-null. Do not add a new CSS block; reuse `.score-telling`.
+
+**Phase:** The LeerlingTegel plan. Define the R&N tile display format in the UI spec before writing JSX.
+
+---
+
+### Pitfall 3-C: Hardcoded hex colors in new badge JSX breaks dark mode immediately
+
+**What goes wrong:** Phase 29 UI-03 audited and replaced all hardcoded hex colors (`'#10b981'`, `'#9ca3af'`, `'#dc2626'`) in components with CSS variables. This was a cleanup of colors that leaked during Phase 14, 18, and 23. Every new component added in v2.4 that uses inline `style` with hex color values will break dark mode on its first day.
+
+**Prevention:** After writing any new JSX with inline `style`, grep `src/components/` for `#[0-9a-fA-F]` before committing — must return zero matches in new/modified files. Use only CSS variables from `src/index.css` `:root`:
+- Text: `var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`, `var(--text-faint)`
+- Status: `var(--status-groen-text)`, `var(--status-oranje-text)`, `var(--status-rood-text)`
+- RAG bars: `var(--rag-groen)`, `var(--rag-oranje)`, `var(--rag-rood)`
+
+**Phase:** Every plan that creates or modifies a component. Applies to all v2.4 phases.
+
+---
+
+## Feature 4: Non-Empty Class Deletion
+
+### Pitfall 4-A: `canDelete` prop in App.tsx currently hard-gates on empty students — lifting the guard requires updating three places
+
+**What goes wrong:** `App.tsx` line 156–158 computes `canDelete: Array.isArray(klas.students) && klas.students.length === 0`. This means the `×` button in `KlasTabStrip` is never rendered for non-empty classes. `deleteKlas()` in `utils/klassen.ts` has no such guard — it deletes any class without checking students. The guard is entirely in the UI layer. If v2.4 lifts the restriction, three changes are needed in concert: (1) update the `canDelete` computation in `App.tsx`, (2) update the `window.confirm` message in `handleDeleteKlas` to include student count, (3) verify `deleteKlas()` already handles the "delete active class" case correctly.
+
+**Verification of `deleteKlas()` correctness:** The function already handles deletion of the active class (lines 101–111 of `utils/klassen.ts`): it switches to the first remaining class or sets `activeKlasId = null` and `appState.students = []` if no classes remain. This is correct. No change needed in `utils/klassen.ts`.
 
 **Prevention:**
-- The document-level listeners in `App.tsx` (`preventNav` function) are a required companion to `dragDropEnabled: false`.
-- Without them, dropping a file outside the `ImportPage` drop zone causes Tauri WebView to navigate to a `file://` URL (the dropped file), crashing the React app.
-- Do not remove these listeners when fixing drag-drop. They serve a different purpose than the drop zone handlers.
+- The confirm message must clearly state how many students are deleted: `Klas '${naam}' bevat ${count} leerlingen en al hun data. Dit kan niet ongedaan worden gemaakt.`
+- After `deleteKlas()`, the existing `setRefreshKey` in `handleDeleteKlas` triggers re-render but does not change `view`. Add a `setView('import')` guard when `Object.keys(klassenState.klassen).length === 0` — this matches the existing pattern in `handleKlasSwitch`.
+
+**Phase:** The plan that modifies the delete interaction. All three changes (canDelete, confirm message, view fallback) must be in a single plan.
 
 ---
 
-### Pitfall 5.3: `dragDropEnabled: false` Has No Effect When Set on Dynamically Created Windows
+### Pitfall 4-B: Delete button renders on the active class tab when all classes become deletable
 
-**What goes wrong:** There is a documented Tauri 2 bug (issue #13761) where `dragDropEnabled` does not work when windows are created programmatically via `WebviewWindowBuilder` in Rust — only the `tauri.conf.json` declaration is reliable.
+**What goes wrong:** Currently the `×` button only appears when `canDelete === true`, which is only for empty classes. If `canDelete` becomes always true, the active class tab also shows `×`. The existing `onClick` on the `×` button calls `e.stopPropagation()` and `onDeleteKlas` directly. There is no additional debounce or disabled state. A user who accidentally clicks `×` on their active class will trigger the confirm dialog but may be startled to find themselves looking at the import screen after confirming.
 
-**Risk:** LOW — this project uses a single window declared in `tauri.conf.json`, not dynamic Rust window creation. Not applicable here, but relevant if the onboarding wizard creates a secondary window.
+**Prevention:** Either (a) keep `canDelete: false` for the active class specifically to prevent self-deletion via the tab UI (the safest UX), or (b) ensure the confirm dialog clearly states which class is being deleted and what happens next. Option (a) is simpler: `canDelete: klas.id !== klassenState.activeKlasId` (or add a separate delete button in a class settings panel rather than on the tab strip).
 
-**Prevention:**
-- Do not create secondary Tauri windows for the onboarding wizard. Use React conditional rendering within the single window (the existing view state machine approach).
-- If a second window is ever needed, set `dragDropEnabled: false` via `WebviewWindowBuilder` AND verify it works in a test build.
+**Phase:** Same plan as 4-A. Choose one approach and document it before implementation.
 
 ---
 
-### Pitfall 5.4: `e.dataTransfer.files` Is Empty on Some Tauri/WebView2 Configurations
+## Feature 5: CSS Resizing (Nav Banner Height, SpiderChart SVG)
 
-**What goes wrong:** Even after setting `dragDropEnabled: false`, some WebView2 versions may deliver `dataTransfer.files` as an empty `FileList` (zero items) while `dataTransfer.items` contains the file entries. This is a WebView2-specific quirk documented in community reports.
+### Pitfall 5-A: `.nav-stripe` height is hardcoded to 52px — breaks if `#main-nav min-height` changes
 
-**Risk:** LOW — most WebView2 versions handle `dataTransfer.files` correctly; this is an edge case on older Windows 10 installs.
+**What goes wrong:** The diagonal CIOS blue stripe is implemented as a `.nav-stripe` div (added in Phase 29 FIX-01, visible in current `KlasTabStrip.tsx` line 169 and `index.css` lines 276–285). Its CSS is `position: absolute; top: 0; right: 0; width: 140px; height: 52px` — hardcoded to match `#main-nav min-height: 52px`. Phase 29 PATTERNS.md explicitly documents this as the fix for the previous `::after` pseudo-element that failed to render in Tauri WebView. If any v2.4 plan changes `#main-nav min-height` (e.g., to accommodate a second tab row or a larger logo), the stripe clips or overflows at 52px.
 
-**Prevention:**
-- The `onDrop` handler in `ImportPage.tsx` checks `e.dataTransfer.files.length > 0` before calling `handleFiles`. If this is empty, add a fallback: read from `e.dataTransfer.items` instead.
-- Only add this fallback if `files.length === 0` is observed during manual testing. Do not add unnecessary complexity upfront.
+**Prevention:** Always update `.nav-stripe { height: }` in `index.css` whenever `#main-nav { min-height: }` changes — they must be equal. Consider replacing `height: 52px` in `.nav-stripe` with `height: 100%` and verifying the gradient renders correctly (the `to bottom-left` gradient direction is relative to the element, so 100% height should work as long as the parent has a defined height via `min-height`).
 
----
-
-## Phase Applicability Summary
-
-| Phase | Pitfall | Severity |
-|-------|---------|----------|
-| Print-to-PDF | 1.1 — Browser URL in print header | HIGH |
-| Print-to-PDF | 1.2 — Entire DOM printed, not detail view only | HIGH |
-| Print-to-PDF | 1.3 — Page break mid-card | MEDIUM |
-| Print-to-PDF | 1.4 — macOS WebKit `@page` margin difference | LOW |
-| Onboarding | 2.1 — Step state lost on back navigation | HIGH |
-| Onboarding | 2.2 — Partial completion leaves empty class | MEDIUM |
-| Onboarding | 2.3 — StrictMode double-invoke creates duplicate class | LOW |
-| Onboarding | 2.4 — Concurrent `saveKlassen()` from wizard + import | MEDIUM |
-| BPV Excel | 3.1 — Wrong sheet selected by scoring keywords | HIGH |
-| BPV Excel | 3.2 — Hours stored as decimals, not "107u24m" | MEDIUM |
-| BPV Excel | 3.3 — Student name/ID matching fails across systems | HIGH |
-| BPV Excel | 3.4 — Date columns parsed as serial numbers | MEDIUM |
-| Rekenen/NL | 4.1 — Section absent from many PDFs | HIGH |
-| Rekenen/NL | 4.2 — Vak name varies across PDF generations | MEDIUM |
-| Rekenen/NL | 4.3 — Different score schema than deelgebieden | HIGH |
-| Rekenen/NL | 4.4 — New schema fields break old deserialized records | MEDIUM |
-| Drag-drop fix | 5.1 — Tauri intercepts HTML5 drop (root cause) | CRITICAL |
-| Drag-drop fix | 5.2 — Document-level drop prevention must be preserved | LOW |
-| Drag-drop fix | 5.3 — Config only works in tauri.conf.json, not dynamic windows | LOW |
-| Drag-drop fix | 5.4 — `dataTransfer.files` empty in some WebView2 versions | LOW |
+**Phase:** Any plan that touches `#main-nav` sizing. Run a visual check of the stripe after every nav height change.
 
 ---
 
-## Sources
+### Pitfall 5-B: SpiderChartCard SVG is fixed at 160px — does not respond to container resize
 
-- [Tauri issue #9448: Drag & Drop events not firing on Windows](https://github.com/tauri-apps/tauri/issues/9448)
-- [Tauri issue #14373: dragDropEnabled naming and documentation](https://github.com/tauri-apps/tauri/issues/14373)
-- [Tauri issue #13761: dragDropEnabled not working with WebviewWindowBuilder](https://github.com/tauri-apps/tauri/issues/13761)
-- [Tauri issue #3066: window.print() not working](https://github.com/tauri-apps/tauri/issues/3066)
-- [Microsoft Learn: Printing from WebView2 apps](https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/print)
-- [Chrome for Developers: Add content to print margins using CSS](https://developer.chrome.com/blog/print-margins)
-- [Tauri 2 Configuration Reference](https://v2.tauri.app/reference/config/)
-- Codebase: `parsers/excel.ts`, `parsers/pdf.ts`, `src/components/ImportPage.tsx`, `src/App.tsx`, `src-tauri/tauri.conf.json` — all read directly (HIGH confidence)
+**What goes wrong:** `.spider-card { width: 160px }` is set in `index.css` section 26 (line 1380). `SpiderChartCard.tsx` calls `SpiderChart.buildSpiderSVG()` which generates a fixed-size SVG with hardcoded pixel dimensions. If any plan changes the layout containing `SpiderChartCard` (e.g., making the detail view full-width, or changing the spider section from a constrained column to a wider container), the SVG stays 160px wide inside a larger card. The visual result is a small chart with empty whitespace around it.
+
+**Prevention:** When changing any layout that contains `SpiderChartCard`, check the `width: 160px` constraint on `.spider-card`. To make the chart responsive, the SVG must use `width="100%" height="100%" preserveAspectRatio="xMidYMid meet" viewBox="0 0 W H"` — this preserves aspect ratio while filling the container. Do not change `SpiderChart.buildSpiderSVG` internals unless specifically tasked — flag this as a risk in any adjacent plan that resizes the container.
+
+**Phase:** Any plan that changes the width of the spider chart container.
+
+---
+
+### Pitfall 5-C: `@media print` blocks may conflict with new CSS sections added in v2.4
+
+**What goes wrong:** `src/index.css` already has `@media print` blocks (lines 1418–1477 from the print phase). If v2.4 adds new CSS sections with class names that have display rules, those classes need corresponding `@media print` overrides if they should appear in print output (e.g., a new R&N tile badge), or should be explicitly `display: none` in print if they are interactive-only elements (e.g., delete buttons on tiles).
+
+**Prevention:** When adding a new CSS class to `index.css` for a visual UI element that could appear in print (tile badges, detail view additions), check whether the existing `@media print` block handles it. The current rule `#root > * { display: none; } .print-target { display: block !important; }` means only the print target is shown. New tile-level elements inside `.print-target` will appear automatically — but interactive controls (delete buttons, dropdowns) should have `.no-print { display: none !important; }` applied.
+
+**Phase:** Any plan that adds CSS classes for interactive UI elements that appear inside `DetailWeergave` or `LeerlingTegel`.
+
+---
+
+## Phase-Specific Warnings Summary
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|---|---|---|
+| BPV column matchers (real file) | `_bpvKolom()` misses renamed column → silent zero hours | Run `debugBpvExcel()` first; extend candidate alias list to 2+ per column |
+| BPV column matchers (real file) | Merged title row causes header detection to stop too early | Assert ≥3 key columns present; use `{ sheetStubs: true }` |
+| BPV column matchers (real file) | cpexcel registration lost if file is refactored | Keep `parseBpvExcel` in `utils/bpv.ts`; repeat registration if moved |
+| Keuzedelen data model | Field absent on old records → `undefined` crash | `student.keuzedelen ?? []` at every read site from day one |
+| Keuzedelen save | Object spread breaks bridge reference | Mutate in-place: `student.field = value; saveKlassen()` |
+| Keuzedelen tests | Test fixture omits field → different behavior from production | Always set `keuzedelen: []` explicitly in fixtures |
+| R&N on tiles | BJ2 reactivity bug — mutation lands on wrong periode record | Apply mutations to ALL records for leerlingId (verzuim pattern) |
+| R&N on tiles | Tile grows too tall with 3rd row | Single compact row; reuse `.score-telling` CSS class |
+| R&N on tiles | New badge uses hardcoded hex → dark mode breaks | Post-write grep for `#[0-9a-fA-F]`; must be zero matches |
+| Non-empty class delete | Three places need updating in concert | `canDelete`, confirm message, view fallback in one plan |
+| Non-empty class delete | Active class shows `×` button — accidental self-deletion | Keep `canDelete: false` for active class, or use a settings panel |
+| Non-empty class delete | View stuck on 'klas' after last class deleted | `setView('import')` when `Object.keys(klassenState.klassen).length === 0` |
+| Nav height change | `.nav-stripe` hardcoded to 52px | Update `.nav-stripe { height }` whenever `#main-nav { min-height }` changes |
+| SpiderChart resize | SVG fixed at 160px inside larger container | Change to `width="100%"` + `viewBox`; flag risk in adjacent layout plans |
+| Any new component | `@media print` does not cover new interactive controls | Add `.no-print` to interactive elements inside `.print-target` |
+
+---
+
+*Sources: Direct inspection of `utils/klassen.ts`, `utils/datamodel.ts`, `utils/schema.ts`, `src/App.tsx`, `src/components/KlasTabStrip.tsx`, `src/components/KlasOverzicht.tsx`, `src/components/BpvProgressSection.tsx`, `src/components/SpiderChartCard.tsx`, `src/index.css`, `.planning/STATE.md`, `.planning/phases/22-bpv-stage-excel/22-01-SUMMARY.md`, `.planning/phases/22-bpv-stage-excel/22-02-SUMMARY.md`, `.planning/phases/23-rekenen-nederlands/23-01-SUMMARY.md`, `.planning/phases/23-rekenen-nederlands/23-02-SUMMARY.md`, `.planning/phases/27-klasbeheer/27-01-SUMMARY.md`, `.planning/phases/29-ui-streamlining-bugfixes/29-PATTERNS.md`*
