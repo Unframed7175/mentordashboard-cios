@@ -17,22 +17,22 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-20)
+See: .planning/PROJECT.md (updated 2026-05-28)
 
-**Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus: Phase 30 — Documentatie, Help & CI
+**Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek — nu ook voor collega-testers klaar met in-app help en CI.
+**Current focus:** v2.3 milestone archived — awaiting v2.4 definition
 
 ## Current Position
 
 Phase: 30 (documentatie-help-ci) — COMPLETE
 Plan: 4 of 4 complete
-Status: Verified and approved — v2.3 milestone complete
-Last activity: 2026-05-28 -- Phase 30 complete; 210 tests green, human UAT approved
+Status: v2.3 milestone archived — 36/36 requirements delivered, git tag v2.3 created
+Last activity: 2026-05-28 — v2.3 milestone complete, archived, tagged
 
 ## Progress Bar
 
 ```
-v2.3: [████________________] 50% (3/6 phases) — Phase 28 next
+v2.3: [████████████████████] 100% (6/6 phases) — SHIPPED ✅
 ```
 
 ## Performance Metrics
@@ -43,7 +43,7 @@ v1.2 phases completed: 1/1
 v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
 v2.2 phases completed: 5/5
-v2.3 phases completed: 2/6
+v2.3 phases completed: 6/6
 
 ## Accumulated Context
 
@@ -139,3 +139,5 @@ v2.3 phases completed: 2/6
 - 2026-05-23: Phase 26 complete — score-telling row in LeerlingTegel (trend prop, .score-telling CSS, grijs guard) + trendMap useMemo in KlasOverzicht (computeTrend: length/period/grijs/rank guards). TEGEL-01, TEGEL-02, TREND-01..04 fulfilled. 150 tests pass. Human UAT approved.
 - 2026-05-26: Phase 27 complete — renameKlas() in utils/klassen.ts (TDD: RNM-01 data-integrity, RNM-02 unknown-id guard, RNM-03 duplicate-name guard). KlasTabStrip rewritten: <div role="tab"> outer, hover/focus-within × delete, double-click inline rename with isCommittingRef guard. KlasOverzicht legacy delete removed (D-07). CSS .delete-tab-btn + .tab-rename-input. TAB-01..03 component tests. 158 tests pass. KLS-01..03 fulfilled.
 - 2026-05-28: Phase 30 Plan 01 executed — RED test gates. tests/HelpPage.test.tsx (4 RED tests: heading/onBack/importeren/fout melden), KlasTabStrip.test.tsx makeProps+2 RED tests (Help openen button). 204 existing tests green, 2 RED gates active. HELP-01/02 gates set. commits eb454f6, e0bebe5.
+- 2026-05-28: Phase 30 Plans 02–04 executed — HelpPage.tsx + App.tsx routing + KlasTabStrip ? button (GREEN), .github/workflows/ci.yml (Windows x64 + macOS aarch64), INSTRUCTIES.md (8 secties) + TESTPLAN.md (13 scenario's). 210/210 tests passing. Human UAT approved.
+- 2026-05-28: v2.3 milestone archived — v2.3-ROADMAP.md + v2.3-REQUIREMENTS.md created in .planning/milestones/. ROADMAP.md v2.3 section collapsed to <details> block. PROJECT.md + MILESTONES.md + STATE.md updated. REQUIREMENTS.md deleted. git tag v2.3 created and pushed.

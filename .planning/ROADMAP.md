@@ -65,16 +65,17 @@
 
 </details>
 
-### v2.3 Inzicht, Configuratie & Testers Onboarden
+<details>
+<summary>✅ v2.3 Inzicht, Configuratie & Testers Onboarden (Phases 25–30) — SHIPPED 2026-05-28</summary>
 
-- [x] **Phase 25: Doorstroomnorm Configuratie** — Mentor kan alle doorstroomdrempels instellen in de settings en deze worden opgeslagen tussen sessies
- (completed 2026-05-21)
-
+- [x] **Phase 25: Doorstroomnorm Configuratie** — Mentor kan alle doorstroomdrempels instellen in de settings en deze worden opgeslagen tussen sessies *(completed 2026-05-21)*
 - [x] **Phase 26: Tegel Score-telling & Fase-vergelijking** — Klasoverzicht-tegels tonen score-telling en een trend-pijl als beide fases aanwezig zijn *(completed 2026-05-23)*
 - [x] **Phase 27: Klasbeheer** — Mentor kan lege klassen verwijderen en bestaande klassen hernoemen zonder dataverlies *(completed 2026-05-26)*
-- [x] **Phase 28: Bug/Feedback Rapportage** — Mentor of tester kan met één klik een vooringevulde bugmelding e-mailen inclusief OS/versie en console errors (completed 2026-05-27)
+- [x] **Phase 28: Bug/Feedback Rapportage** — Mentor of tester kan met één klik een vooringevulde bugmelding e-mailen inclusief OS/versie en console errors *(completed 2026-05-27)*
 - [x] **Phase 29: UI Streamlining & Bugfixes** — Consistente spacing/typografie door de hele app, opgeschoond klasoverzicht en twee cosmetic bugfixes *(completed 2026-05-28)*
 - [x] **Phase 30: Documentatie, Help & CI** — In-app helppagina, uitgebreide INSTRUCTIES.md voor testers, en GitHub Actions CI builds op Windows en macOS *(completed 2026-05-28)*
+
+</details>
 
 ## Phase Details
 
@@ -727,9 +728,9 @@ Plans:
 | 22. BPV Stage Excel Parser | 2/2 | Complete | 2026-05-20 |
 | 23. Rekenen & Nederlands | 2/2 | Complete | 2026-05-20 |
 | 24. Onboarding Wizard | 3/3 | Complete | 2026-05-20 |
-| 25. Doorstroomnorm Configuratie | 4/4 | Complete    | 2026-05-22 |
-| 26. Tegel Score-telling & Fase-vergelijking | 0/? | Not started | - |
-| 27. Klasbeheer | 0/? | Not started | - |
-| 28. Bug/Feedback Rapportage | 2/2 | Complete   | 2026-05-27 |
+| 25. Doorstroomnorm Configuratie | 4/4 | Complete | 2026-05-21 |
+| 26. Tegel Score-telling & Fase-vergelijking | 2/2 | Complete | 2026-05-23 |
+| 27. Klasbeheer | 2/2 | Complete | 2026-05-26 |
+| 28. Bug/Feedback Rapportage | 2/2 | Complete | 2026-05-27 |
 | 29. UI Streamlining & Bugfixes | 5/5 | Complete | 2026-05-28 |
 | 30. Documentatie, Help & CI | 4/4 | Complete | 2026-05-28 |

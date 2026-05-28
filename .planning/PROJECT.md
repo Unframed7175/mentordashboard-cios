@@ -8,6 +8,28 @@ Een lokale webapplicatie voor mentoren van CIOS Zuidwest-NL die voortgang-PDFs p
 
 Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle info (voortgang + verzuim + doorstroomprognose) paraat voor elk mentorgesprek — zonder handmatig overschrijven.
 
+## Milestone: v2.3 Inzicht, Configuratie & Testers Onboarden — COMPLETE (2026-05-28)
+
+**Goal:** Het dashboard wordt informatiever en aanpasbaar voor mentoren, en klaar voor bredere tests door collega's — met configureerbare doorstroomdrempels, score-telling op tegels, fase-vergelijking, bug-rapportage, instructiedocumentatie en CI cross-platform builds.
+
+**Delivered:**
+- ✓ NORM — Doorstroomdrempels volledig configureerbaar in settings (SBL/SBC/BJ1-normen zonder code) — Phase 25
+- ✓ TEGEL — Score-telling op tegel: "14/19 ≥V · 1 O" + trend-pijl ↑↓ voor fase-vergelijking — Phase 26
+- ✓ KLS — Inline klas hernoemen (double-click) + lege klas verwijderen (hover × knop) — Phase 27
+- ✓ FEED — Bug/feedback rapportage: één klik → e-mail met OS, versie en console errors — Phase 28
+- ✓ UI — Consistente spacing/typografie, nav-stripe fix, BPV loading state fix, dark mode verfijnd — Phase 29
+- ✓ HELP — In-app helppagina (? knop, 4 secties) + INSTRUCTIES.md + TESTPLAN.md (13 scenario's) — Phase 30
+- ✓ TEST — GitHub Actions CI: automatische builds op Windows x64 + macOS Apple Silicon — Phase 30
+
+## Current Milestone: v2.4 (not yet defined)
+
+No active milestone. Run `/gsd:new-milestone` to define v2.4 goals and requirements.
+
+**Known deferred items from v2.3:**
+- RNL-04 — PDF extractie voor Rekenen/Nederlands (wacht op sample PDF met R&N sectie)
+- R&N scores in klasoverzicht-tegels
+- BPV column matchers (wacht op echt BPV Excel export bestand)
+
 ## Milestone: v2.2 Onboarding, Export & Data Completeness — COMPLETE (2026-05-20)
 
 **Goal:** Mentoren kunnen de app in één gestructureerde flow instellen en alle benodigde data compleet aanleveren — inclusief BPV-stage uren en Rekenen/Nederlands — en een mentorgesprekverslag afdrukken als PDF.
@@ -19,23 +41,6 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ Rekenen & Nederlands section — `normalizeRekenScore()` + norm badges, own doorstroomnorm (Phase 23)
 - ✓ 6-step onboarding wizard — first-run detection, ghost-class guard, abort flow, settings step (Phase 24)
 - ✓ PDF parser hardened — Unicode dash fix (U+2010), page-header row filtering
-
-## Current Milestone: v2.3 Inzicht, Configuratie & Testers Onboarden
-
-**Goal:** Het dashboard wordt informatiever en aanpasbaar voor mentoren, en klaar voor bredere tests door collega's — met configureerbare doorstroomdrempels, score-telling op tegels, fase-vergelijking, bug-rapportage, instructiedocumentatie en CI cross-platform builds.
-
-**Target features:**
-- ✓ NORM — Doorstroomdrempels configureerbaar in settings (13/15 ≥V, max 6/2 O, BJ1 versneld-SBC) — Phase 25 complete
-- ✓ TEGEL — Score-telling op tegel: "14/19 ≥V · 1 O" onder de status-badge — Phase 26 complete
-- ✓ TREND — Fase-vergelijking pijl ↑↓ op tegel (alleen als fase 1 én fase 2 geïmporteerd zijn) — Phase 26 complete
-- ✓ KLS — Lege klas → hover × delete; alle klassen → double-click inline rename — Phase 27 complete
-- BUG — Bug/feedback knop → mailto: met OS/versie/import-actie/console errors automatisch ingevuld
-- HELP — Kort helpscherm in-app + uitgebreid INSTRUCTIES.md bestand voor collega-testers
-- TEST — CI smoke tests op Windows + macOS (GitHub Actions) + handmatige testchecklist
-- UI — Consistente spacing/typografie, opgeschoond klasoverzicht, dark mode verfijnd, animaties
-- FIX — Nav diagonal stripe (CSS ::after), BPV loading vs empty state onderscheid
-
-**Active requirements:** See REQUIREMENTS.md
 
 ## Milestone: v2.1 Settings, Polish & Auto-class Detection — COMPLETE (2026-05-19)
 
@@ -120,13 +125,28 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ Auto class detection bij eerste import — Phase 16
 - ✓ UI polish (Industry font, CIOS blue, spider tooltips, responsive) — Phase 19
 
-### Active (v2.2 milestone)
+### Validated (v2.2 milestone — completed 2026-05-20)
 
-- [ ] Onboarding wizard — first-run stap-voor-stap klas + bestanden instellen
-- [ ] Print-to-PDF export voor mentorgesprekverslag (EXP-01–04)
-- [ ] BPV stage Excel parser — echte uren inlezen (vereist voorbeeldbestand)
-- [ ] Rekenen & Nederlands voortgang apart bijhouden met eigen doorstroomnorm
-- [ ] Fix drag-and-drop import (bug)
+- ✓ Onboarding wizard — first-run stap-voor-stap klas + bestanden instellen — Phase 24
+- ✓ Print-to-PDF export voor mentorgesprekverslag — Phase 21
+- ✓ BPV stage Excel parser — real uren extraction with per-placement breakdown — Phase 22
+- ✓ Rekenen & Nederlands voortgang apart bijhouden met eigen doorstroomnorm — Phase 23
+- ✓ Drag-and-drop import fix (BUG-01) — Phase 20
+
+### Validated (v2.3 milestone — completed 2026-05-28)
+
+- ✓ Doorstroomdrempels configureerbaar in settings (SBL/SBC/negatief/BJ1 versneld-SBC) — Phase 25
+- ✓ Score-telling op leerlingtegels ("14/19 ≥V · 1 O") — Phase 26
+- ✓ Fase-vergelijking trend-pijl ↑↓ op leerlingtegels — Phase 26
+- ✓ Inline klas hernoemen (double-click) + lege klas verwijderen — Phase 27
+- ✓ Bug/feedback rapportage knop → mailto: met OS/versie/console errors — Phase 28
+- ✓ UI streamlining: spacing/typografie, dark mode fix, nav-stripe fix, BPV loading state — Phase 29
+- ✓ In-app helppagina (? knop) + INSTRUCTIES.md + TESTPLAN.md — Phase 30
+- ✓ GitHub Actions CI op Windows x64 + macOS Apple Silicon — Phase 30
+
+### Active (v2.4 milestone)
+
+_Not yet defined. Run `/gsd:new-milestone` to start v2.4._
 
 ### Out of Scope
 
@@ -180,4 +200,4 @@ This document evolves at phase transitions and milestone boundaries.
 **After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
 
 ---
-*Last updated: 2026-05-23 — Phase 26 complete: score-telling + trend pijl op leerlingtegels*
+*Last updated: 2026-05-28 — v2.3 milestone complete: 36/36 requirements shipped across Phases 25–30*
