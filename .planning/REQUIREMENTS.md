@@ -44,8 +44,8 @@
 
 ## Testers: Documentatie & Help (HELP)
 
-- [ ] **HELP-01**: De app heeft een in-app helppagina of modal met een korte uitleg van de stappen (importeren → bekijken → afdrukken)
-- [ ] **HELP-02**: De helppagina is bereikbaar via een zichtbare "?" knop of "Help" link in de navigatie
+- [x] **HELP-01**: De app heeft een in-app helppagina of modal met een korte uitleg van de stappen (importeren → bekijken → afdrukken)
+- [x] **HELP-02**: De helppagina is bereikbaar via een zichtbare "?" knop of "Help" link in de navigatie
 - [ ] **HELP-03**: Er is een uitgebreid `INSTRUCTIES.md` bestand (of PDF) voor collega-testers dat: installatie, eerste gebruik, importeren, en bekende beperkingen beschrijft
 - [ ] **HELP-04**: `INSTRUCTIES.md` bevat contactinformatie en hoe een bug te melden (verwijst naar FEED-knop)
 

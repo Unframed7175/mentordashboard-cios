@@ -732,4 +732,4 @@ Plans:
 | 27. Klasbeheer | 0/? | Not started | - |
 | 28. Bug/Feedback Rapportage | 2/2 | Complete   | 2026-05-27 |
 | 29. UI Streamlining & Bugfixes | 0/? | Not started | - |
-| 30. Documentatie, Help & CI | 0/? | Not started | - |
+| 30. Documentatie, Help & CI | 1/4 | In Progress|  |
