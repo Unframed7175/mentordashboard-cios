@@ -186,6 +186,7 @@ body.dark .gap-info   { background: #1e3a5f; color: #93c5fd; }
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  .view-fade-in { animation: none; }
 }
 
 /* --------------------------------------------------------------------------
@@ -467,12 +468,12 @@ a:hover { text-decoration: underline; }
   background: var(--bg-surface);
   border: 1.5px solid var(--border-default);
   border-radius: var(--radius-md);
-  padding: 1rem 1.125rem;
+  padding: 1.25rem 1.5rem;
   cursor: pointer;
   transition: box-shadow var(--transition-base), transform var(--transition-base), border-color var(--transition-base);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
   outline: none;
   box-shadow: var(--shadow-sm);
   position: relative;
@@ -587,7 +588,7 @@ a:hover { text-decoration: underline; }
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   color: var(--text-faint);
   margin: 0 0 1rem;
 }
@@ -1337,6 +1338,16 @@ a:hover { text-decoration: underline; }
 @keyframes slideInFromRight {
   from { transform: translateX(100%); opacity: 0.7; }
   to   { transform: translateX(0);    opacity: 1;   }
+}
+
+/* --------------------------------------------------------------------------
+   28. View fade-in animation (Phase 29 — UI-04)
+   -------------------------------------------------------------------------- */
+.view-fade-in { animation: viewFadeIn var(--transition-base) ease forwards; }
+
+@keyframes viewFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ==========================================================================
