@@ -272,8 +272,7 @@ a:hover { text-decoration: underline; }
   z-index: 50;
 }
 
-#main-nav::after {
-  content: '';
+.nav-stripe {
   position: absolute;
   top: 0;
   right: 0;
