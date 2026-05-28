@@ -78,10 +78,10 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
     (p.leerlijnen ?? []).map((l: any) => [l.leerlijn, l])
   );
 
-  // Versneld SBC threshold field names (normen.ts uses versneldLesgeven etc.)
-  const bj1VersneldLesgeven = (n as any).bj1VersneldLesgeven ?? n.versneldLesgeven;
-  const bj1VersneldOrganiseren = (n as any).bj1VersneldOrganiseren ?? n.versneldOrganiseren;
-  const bj1VersneldProfHandelen = (n as any).bj1VersneldProfHandelen ?? n.versneldProfHandelen;
+  // Versneld SBC threshold field names (normen.ts: versneldLesgeven / versneldOrganiseren / versneldProfHandelen)
+  const bj1VersneldLesgeven = n.versneldLesgeven;
+  const bj1VersneldOrganiseren = n.versneldOrganiseren;
+  const bj1VersneldProfHandelen = n.versneldProfHandelen;
 
   // Negatief per-leerlijn rows (shared between BJ1 and BJ2)
   const negatiefPerLeerlijnen = (['lesgeven', 'organiseren', 'prof_handelen'] as const).map((l) => {
@@ -97,14 +97,16 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
     );
   });
 
-  const negatiefOverallNodig = p.isNegatief ? 3 : 0;
+  // Negatief totaal: how many onvoldoende over the threshold (0 = groen, >0 = direct rood — no oranje zone)
+  const negatiefTotaalNodig = Math.max(0, p.totaalOnvoldoende - n.negatiefTotaal);
+  const negatiefOverallNodig = negatiefTotaalNodig > 0 ? 3 : 0;
 
   const negatiefBlock = (
     <PrognoseBlock name="Negatief" overallNodig={negatiefOverallNodig} isEmpty={globalEmpty}>
       <CriterionRow
         label={`≤${n.negatiefTotaal} O totaal`}
         scoreDisplay={`${p.totaalOnvoldoende} / ${n.negatiefTotaal}`}
-        nodig={p.isNegatief ? 3 : 0}
+        nodig={negatiefTotaalNodig}
       />
       {negatiefPerLeerlijnen}
     </PrognoseBlock>
@@ -163,7 +165,7 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
               name="SBC"
               overallNodig={Math.max(
                 p.gaps.nodigSBC_deelgebieden,
-                p.gaps.nodigSBC_kern.length > 0 ? 3 : 0
+                p.gaps.nodigSBC_kern.length
               )}
               isEmpty={globalEmpty}
             >

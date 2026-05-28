@@ -118,7 +118,7 @@ export default function BpvProgressSection({ leerlingId }: BpvProgressSectionPro
                     textAlign: h === 'Locatie' ? 'left' : 'right',
                     fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase',
                     color: 'var(--text-muted)', letterSpacing: '0.07em',
-                    paddingBottom: 4, borderBottom: '1px solid var(--border-color)',
+                    paddingBottom: 4, borderBottom: '1px solid var(--border-default)',
                   }}>
                     {h}
                   </th>
@@ -129,7 +129,7 @@ export default function BpvProgressSection({ leerlingId }: BpvProgressSectionPro
               {plaatsen.map((p, i) => {
                 const inBehandeling = Math.max(0, p.ingeleverdUren - p.goedgekeurdeUren);
                 return (
-                  <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <tr key={i} style={{ borderBottom: '1px solid var(--border-default)' }}>
                     <td style={{ padding: '5px 0', color: 'var(--text-primary)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.locatie}
                     </td>

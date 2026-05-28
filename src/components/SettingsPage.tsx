@@ -427,7 +427,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
       <section className="detail-section">
         <h2 className="detail-section-title">Doorstroomdrempels</h2>
         {saveError && (
-          <p style={{ fontSize: '0.875rem', color: '#EF4444', marginTop: 4 }} role="alert">{saveError}</p>
+          <p style={{ fontSize: '0.875rem', color: 'var(--status-rood-text)', marginTop: 4 }} role="alert">{saveError}</p>
         )}
 
         {/* Sub-block 1 */}
