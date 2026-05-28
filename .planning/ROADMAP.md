@@ -8,7 +8,7 @@
 - ✅ **v2.0 Stack Modernisering** — Phases 10–15 (shipped 2026-05-16)
 - ✅ **v2.1 Settings, Polish & Auto-class Detection** — Phases 16–19 (shipped 2026-05-19)
 - ✅ **v2.2 Onboarding, Export & Data Completeness** — Phases 20–24 (shipped 2026-05-20) · [archive](.planning/milestones/v2.2-ROADMAP.md)
-- 🔄 **v2.3 Inzicht, Configuratie & Testers Onboarden** — Phases 25–30 (active)
+- ✅ **v2.3 Inzicht, Configuratie & Testers Onboarden** — Phases 25–30 (shipped 2026-05-28)
 
 ## Phases
 
@@ -73,8 +73,8 @@
 - [x] **Phase 26: Tegel Score-telling & Fase-vergelijking** — Klasoverzicht-tegels tonen score-telling en een trend-pijl als beide fases aanwezig zijn *(completed 2026-05-23)*
 - [x] **Phase 27: Klasbeheer** — Mentor kan lege klassen verwijderen en bestaande klassen hernoemen zonder dataverlies *(completed 2026-05-26)*
 - [x] **Phase 28: Bug/Feedback Rapportage** — Mentor of tester kan met één klik een vooringevulde bugmelding e-mailen inclusief OS/versie en console errors (completed 2026-05-27)
-- [ ] **Phase 29: UI Streamlining & Bugfixes** — Consistente spacing/typografie door de hele app, opgeschoond klasoverzicht en twee cosmetic bugfixes
-- [ ] **Phase 30: Documentatie, Help & CI** — In-app helppagina, uitgebreide INSTRUCTIES.md voor testers, en GitHub Actions CI builds op Windows en macOS
+- [x] **Phase 29: UI Streamlining & Bugfixes** — Consistente spacing/typografie door de hele app, opgeschoond klasoverzicht en twee cosmetic bugfixes *(completed 2026-05-28)*
+- [x] **Phase 30: Documentatie, Help & CI** — In-app helppagina, uitgebreide INSTRUCTIES.md voor testers, en GitHub Actions CI builds op Windows en macOS *(completed 2026-05-28)*
 
 ## Phase Details
 
@@ -731,5 +731,5 @@ Plans:
 | 26. Tegel Score-telling & Fase-vergelijking | 0/? | Not started | - |
 | 27. Klasbeheer | 0/? | Not started | - |
 | 28. Bug/Feedback Rapportage | 2/2 | Complete   | 2026-05-27 |
-| 29. UI Streamlining & Bugfixes | 0/? | Not started | - |
-| 30. Documentatie, Help & CI | 4/4 | In Progress | 2026-05-28 |
+| 29. UI Streamlining & Bugfixes | 5/5 | Complete | 2026-05-28 |
+| 30. Documentatie, Help & CI | 4/4 | Complete | 2026-05-28 |
