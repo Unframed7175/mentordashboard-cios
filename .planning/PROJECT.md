@@ -21,13 +21,19 @@ Een mentor opent het dashboard, importeert de bestanden, en heeft direct alle in
 - ✓ HELP — In-app helppagina (? knop, 4 secties) + INSTRUCTIES.md + TESTPLAN.md (13 scenario's) — Phase 30
 - ✓ TEST — GitHub Actions CI: automatische builds op Windows x64 + macOS Apple Silicon — Phase 30
 
-## Current Milestone: v2.4 (not yet defined)
+## Current Milestone: v2.4 Data Completeness, Keuzedelen & UI Polish
 
-No active milestone. Run `/gsd:new-milestone` to define v2.4 goals and requirements.
+**Goal:** Maak het dashboard volledig voor dagelijks mentorgebruik — echte BPV-uren, keuzedelen bijhouden, R&N op tegels, en een professionelere uitstraling met grotere nav-banner, groter spiderweb en feedback onderaan.
 
-**Known deferred items from v2.3:**
-- RNL-04 — PDF extractie voor Rekenen/Nederlands (wacht op sample PDF met R&N sectie)
-- R&N scores in klasoverzicht-tegels
+**Target features:**
+- BPV — Echte column matchers met het echte SomToday BPV Excel bestand (gerealiseerdeUren nu werkelijk ingelezen)
+- KZLD — Keuzedelen per leerling: vrije tekst, per leerling, met vinkje "on track" (ja/nee)
+- TEGEL-RN — Rekenen/Nederlands status op klasoverzicht-tegels
+- KLS-DEL — Niet-lege klas verwijderen met checkbox-bevestiging
+- UI-DET — Detailweergave: spiderweb groter + FeedbackActiepuntenSection naar de onderkant
+- UI-NAV — Top nav-banner + logo twee keer zo groot
+
+**Active requirements:** See REQUIREMENTS.md
 - BPV column matchers (wacht op echt BPV Excel export bestand)
 
 ## Milestone: v2.2 Onboarding, Export & Data Completeness — COMPLETE (2026-05-20)
@@ -146,7 +152,12 @@ No active milestone. Run `/gsd:new-milestone` to define v2.4 goals and requireme
 
 ### Active (v2.4 milestone)
 
-_Not yet defined. Run `/gsd:new-milestone` to start v2.4._
+- [ ] BPV — Echte gerealiseerdeUren ingelezen via echte SomToday BPV Excel column matchers
+- [ ] KZLD — Keuzedelen per leerling: naam (vrije tekst) + on-track vinkje
+- [ ] TEGEL-RN — Rekenen/Nederlands status tonen op klasoverzicht-tegels
+- [ ] KLS-DEL — Niet-lege klas verwijderen met checkbox-bevestiging
+- [ ] UI-DET — Spiderweb groter in detailweergave + FeedbackActiepuntenSection naar onderkant
+- [ ] UI-NAV — Top nav-banner + logo twee keer zo groot
 
 ### Out of Scope
 
@@ -200,4 +211,4 @@ This document evolves at phase transitions and milestone boundaries.
 **After each milestone:** Full review — Core Value, Out of Scope audit, Context update.
 
 ---
-*Last updated: 2026-05-28 — v2.3 milestone complete: 36/36 requirements shipped across Phases 25–30*
+*Last updated: 2026-05-28 — v2.4 milestone started: BPV, keuzedelen, R&N tegels, KLS-DEL, UI polish*

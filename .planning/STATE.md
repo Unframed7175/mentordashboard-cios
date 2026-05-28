@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.3
-milestone_name: Inzicht, Configuratie & Testers Onboarden
-status: complete
-last_updated: "2026-05-28T14:25:00.000Z"
+milestone: v2.4
+milestone_name: Data Completeness, Keuzedelen & UI Polish
+status: planning
+last_updated: "2026-05-28T00:00:00.000Z"
 last_activity: 2026-05-28
 progress:
-  total_phases: 25
-  completed_phases: 25
-  total_plans: 74
-  completed_plans: 74
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -19,20 +19,20 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-05-28)
 
-**Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek — nu ook voor collega-testers klaar met in-app help en CI.
-**Current focus:** v2.3 milestone archived — awaiting v2.4 definition
+**Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
+**Current focus:** v2.4 — BPV completeness, keuzedelen tracking, R&N tegels, UI polish
 
 ## Current Position
 
-Phase: 30 (documentatie-help-ci) — COMPLETE
-Plan: 4 of 4 complete
-Status: v2.3 milestone archived — 36/36 requirements delivered, git tag v2.3 created
-Last activity: 2026-05-28 — v2.3 milestone complete, archived, tagged
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-28 — Milestone v2.4 started
 
 ## Progress Bar
 
 ```
-v2.3: [████████████████████] 100% (6/6 phases) — SHIPPED ✅
+v2.4: [____________________] 0% (0/? phases) — requirements in progress
 ```
 
 ## Performance Metrics
@@ -44,6 +44,7 @@ v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
 v2.2 phases completed: 5/5
 v2.3 phases completed: 6/6
+v2.4 phases completed: 0/?
 
 ## Accumulated Context
 
