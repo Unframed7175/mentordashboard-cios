@@ -9,6 +9,7 @@
 - ✅ **v2.1 Settings, Polish & Auto-class Detection** — Phases 16–19 (shipped 2026-05-19)
 - ✅ **v2.2 Onboarding, Export & Data Completeness** — Phases 20–24 (shipped 2026-05-20) · [archive](.planning/milestones/v2.2-ROADMAP.md)
 - ✅ **v2.3 Inzicht, Configuratie & Testers Onboarden** — Phases 25–30 (shipped 2026-05-28)
+- 🔄 **v2.4 Data Completeness, Keuzedelen & UI Polish** — Phases 31–35 (active)
 
 ## Phases
 
@@ -76,6 +77,14 @@
 - [x] **Phase 30: Documentatie, Help & CI** — In-app helppagina, uitgebreide INSTRUCTIES.md voor testers, en GitHub Actions CI builds op Windows en macOS *(completed 2026-05-28)*
 
 </details>
+
+### v2.4 Data Completeness, Keuzedelen & UI Polish
+
+- [ ] **Phase 31: UI Polish — Nav & Spider** — Nav-banner en logo zijn twee keer zo groot; spiderweb chart is groter en FeedbackActiepuntenSection staat onderaan de detailweergave
+- [ ] **Phase 32: R&N Status op Tegels** — Elke leerlingtegel toont een compacte Rekenen/Nederlands statusregel wanneer die data aanwezig is
+- [ ] **Phase 33: Klas Verwijderen met Bevestiging** — Mentor kan een niet-lege klas verwijderen via een modal met checkbox-bevestiging en studententelling
+- [ ] **Phase 34: Keuzedelen per Leerling** — Mentor kan per leerling keuzedelen toevoegen, on-track status bijhouden en verwijderen — data overleeft herstart
+- [ ] **Phase 35: BPV Echte Column Matchers** — BPV-sectie toont werkelijke gerealiseerde uren uit het echte SomToday Excel bestand via gehardende column matchers
 
 ## Phase Details
 
@@ -574,16 +583,16 @@ Plans:
 Plans:
 **Wave 1**
 
-- [x] 25-01-PLAN.md � Wave 1: RED tests for utils/normen.ts (new file) + tests/prognosis.normen.test.ts (new isolated file, does NOT modify prognosis.test.ts) (NORM-01..07)
+- [x] 25-01-PLAN.md — Wave 1: RED tests for utils/normen.ts (new file) + tests/prognosis.normen.test.ts (new isolated file, does NOT modify prognosis.test.ts) (NORM-01..07)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 25-02-PLAN.md � Wave 2: utils/normen.ts (LazyStore + Number.isFinite validation + field-level logging + saveNormen failure logging) + utils/prognosis.ts refactor (8 hardcoded sites to normen.*) � turns Plan 01 RED tests GREEN
+- [x] 25-02-PLAN.md — Wave 2: utils/normen.ts (LazyStore + Number.isFinite validation + field-level logging + saveNormen failure logging) + utils/prognosis.ts refactor (8 hardcoded sites to normen.*) — turns Plan 01 RED tests GREEN
 
-**Wave 3** *(blocked on Wave 2 completion � Plans 03 and 04 can run in parallel)*
+**Wave 3** *(blocked on Wave 2 completion — Plans 03 and 04 can run in parallel)*
 
-- [x] 25-03-PLAN.md � Wave 3a: main.tsx pre-warm + App.tsx onNormenChanged wiring + SettingsPage Section 5 (8 inputs, SBC<SBL warning, reset, persistence-failure logging) + CSS rules + SettingsPage.test.tsx Section 5 coverage + human-verify checkpoint
-- [x] 25-04-PLAN.md � Wave 3b: DoortstroomPrognoseSection.tsx parameterization � replace hardcoded norm text with getNormenSync() reads (NORM-01..05)
+- [x] 25-03-PLAN.md — Wave 3a: main.tsx pre-warm + App.tsx onNormenChanged wiring + SettingsPage Section 5 (8 inputs, SBC<SBL warning, reset, persistence-failure logging) + CSS rules + SettingsPage.test.tsx Section 5 coverage + human-verify checkpoint
+- [x] 25-04-PLAN.md — Wave 3b: DoortstroomPrognoseSection.tsx parameterization — replace hardcoded norm text with getNormenSync() reads (NORM-01..05)
 
 ### Phase 26: Tegel Score-telling & Fase-vergelijking
 
@@ -604,11 +613,11 @@ Plans:
 
 **Wave 1**
 
-- [x] 26-01-PLAN.md � CSS classes (.score-telling, .trend-pijl, .trend-op, .trend-neer) + LeerlingTegel trend prop + score-telling render (TEGEL-01, TEGEL-02)
+- [x] 26-01-PLAN.md — CSS classes (.score-telling, .trend-pijl, .trend-op, .trend-neer) + LeerlingTegel trend prop + score-telling render (TEGEL-01, TEGEL-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 26-02-PLAN.md � KlasOverzicht trendMap useMemo + trend prop wiring to LeerlingTegel (TREND-01, TREND-02, TREND-03, TREND-04)
+- [x] 26-02-PLAN.md — KlasOverzicht trendMap useMemo + trend prop wiring to LeerlingTegel (TREND-01, TREND-02, TREND-03, TREND-04)
 
 ### Phase 27: Klasbeheer
 
@@ -628,11 +637,11 @@ Plans:
 
 **Wave 1**
 
-- [ ] 27-01-PLAN.md � renameKlas() utility function + RNM-01/RNM-02 unit tests (KLS-02, KLS-03)
+- [ ] 27-01-PLAN.md — renameKlas() utility function + RNM-01/RNM-02 unit tests (KLS-02, KLS-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 27-02-PLAN.md � KlasTabStrip hover � delete + double-click inline rename + KlasOverzicht cleanup + CSS (KLS-01, KLS-02, KLS-03)
+- [ ] 27-02-PLAN.md — KlasTabStrip hover — delete + double-click inline rename + KlasOverzicht cleanup + CSS (KLS-01, KLS-02, KLS-03)
 
 ### Phase 28: Bug/Feedback Rapportage
 
@@ -700,6 +709,81 @@ Plans:
 
 ---
 
+### Phase 31: UI Polish — Nav & Spider
+
+**Goal**: De navigatiebalk en het logo zijn twee keer zo groot, het spiderweb chart vult een bredere kaart, en FeedbackActiepuntenSection staat als laatste sectie onderaan de detailweergave
+**Depends on**: Phase 30
+**Requirements**: UI-05, UI-06, UI-07
+**Success Criteria** (what must be TRUE):
+
+  1. De nav-banner heeft een min-height van 104px en het CIOS-logo is 72px hoog — visueel twee keer zo groot als voorheen (was 52px / 36px)
+  2. Het spiderweb chart in de detailweergave is minimaal 280px breed en schaalt responsief via `viewBox` en `width="100%"` — het chart is niet meer klein in een grote kaart
+  3. FeedbackActiepuntenSection verschijnt als allerlaatste sectie in de detailweergave — na Keuzedelen, RekenenNederlands en alle andere secties
+  4. Na de wijzigingen zijn er nul hardcoded hex-kleuren toegevoegd in nieuwe of gewijzigde JSX-bestanden (grep `src/components/ for #[0-9a-fA-F]` geeft nul nieuwe matches)
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 32: R&N Status op Tegels
+
+**Goal**: Elke leerlingtegel in het klasoverzicht toont een compacte Rekenen/Nederlands statusregel wanneer die data voor de leerling aanwezig is
+**Depends on**: Phase 31
+**Requirements**: TEGEL-03, TEGEL-04
+**Success Criteria** (what must be TRUE):
+
+  1. Een leerlingtegel voor een leerling met Rekenen- en/of Nederlandsscore toont een compacte statusregel, bijv. "R 2F · N 3F"
+  2. De statusregel wordt verborgen (geen lege ruimte) wanneer een leerling geen Rekenen/Nederlands scores heeft
+  3. De R&N statusregel gebruikt uitsluitend CSS-variabelen voor kleuren — geen hardcoded hex-waarden
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 33: Klas Verwijderen met Bevestiging
+
+**Goal**: Mentor kan een niet-lege klas definitief verwijderen na expliciete checkbox-bevestiging, waarbij de modal de klasnaam en het aantal leerlingen toont
+**Depends on**: Phase 31
+**Requirements**: KLS-04, KLS-05, KLS-06, KLS-07
+**Success Criteria** (what must be TRUE):
+
+  1. De verwijderknop is zichtbaar voor alle niet-actieve klassen, ook als ze leerlingen bevatten — klikken opent een bevestigingsdialoog
+  2. De bevestigingsdialoog toont de klasnaam en het exacte aantal leerlingen dat verwijderd wordt (bijv. "Klas 'CSD2A' bevat 19 leerlingen")
+  3. De definitieve verwijderknop in de modal is uitgeschakeld totdat de mentor de checkbox "Ik begrijp dat alle leerlingdata wordt verwijderd" aanvinkt
+  4. Na verwijdering van de laatste klas navigeert de app automatisch naar het importscherm
+
+**Plans**: TBD
+
+### Phase 34: Keuzedelen per Leerling
+
+**Goal**: Mentor kan per leerling keuzedelen met naam en on-track status bijhouden in de detailweergave — data wordt opgeslagen en hersteld na herstart
+**Depends on**: Phase 31
+**Requirements**: KZLD-01, KZLD-02, KZLD-03, KZLD-04, KZLD-05
+**Success Criteria** (what must be TRUE):
+
+  1. De detailweergave van elke leerling toont een "Keuzedelen"-sectie met een knop om een keuzedeel toe te voegen via een vrije tekst naam
+  2. Per keuzedeel kan de mentor een vinkje "on track" aanklikken — de status togglet direct zichtbaar zonder opslaan-knop
+  3. Mentor kan een individueel keuzedeel verwijderen uit de lijst van een leerling
+  4. Na het sluiten en heropenen van de app zijn alle keuzedelen met hun on-track status intact voor alle leerlingen
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 35: BPV Echte Column Matchers
+
+**Goal**: De BPV-sectie toont werkelijke gerealiseerde uren ingelezen uit het echte SomToday BPV Excel bestand via gehardende column matchers met minimaal 2 aliassen per kolom
+**Depends on**: Phase 31
+**Requirements**: BPV-05, BPV-06, BPV-07
+**Success Criteria** (what must be TRUE):
+
+  1. Na het importeren van het echte SomToday BPV Excel bestand toont de BPV-sectie per leerling werkelijke gerealiseerde uren — niet langer "0 uren"
+  2. De column matchers herkennen minimaal 2 aliassen per kolomnaam zodat herbenoemingen in nieuwe SomToday exports de parser niet breken
+  3. Als geen herkenbare BPV-kolommen gevonden worden, toont de app "0 uren" graceful — geen crash, geen foutmelding
+
+**Plans**: TBD
+
+**Note**: Blocked on real SomToday BPV Excel export file. Run `debugBpvExcel()` on the real file first to log exact column header names before writing the matchers.
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -734,3 +818,8 @@ Plans:
 | 28. Bug/Feedback Rapportage | 2/2 | Complete | 2026-05-27 |
 | 29. UI Streamlining & Bugfixes | 5/5 | Complete | 2026-05-28 |
 | 30. Documentatie, Help & CI | 4/4 | Complete | 2026-05-28 |
+| 31. UI Polish — Nav & Spider | 0/TBD | Not started | - |
+| 32. R&N Status op Tegels | 0/TBD | Not started | - |
+| 33. Klas Verwijderen met Bevestiging | 0/TBD | Not started | - |
+| 34. Keuzedelen per Leerling | 0/TBD | Not started | - |
+| 35. BPV Echte Column Matchers | 0/TBD | Not started | - |

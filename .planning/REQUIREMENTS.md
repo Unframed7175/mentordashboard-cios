@@ -59,20 +59,20 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| BPV-05 | TBD | ○ Pending |
-| BPV-06 | TBD | ○ Pending |
-| BPV-07 | TBD | ○ Pending |
-| KZLD-01 | TBD | ○ Pending |
-| KZLD-02 | TBD | ○ Pending |
-| KZLD-03 | TBD | ○ Pending |
-| KZLD-04 | TBD | ○ Pending |
-| KZLD-05 | TBD | ○ Pending |
-| TEGEL-03 | TBD | ○ Pending |
-| TEGEL-04 | TBD | ○ Pending |
-| KLS-04 | TBD | ○ Pending |
-| KLS-05 | TBD | ○ Pending |
-| KLS-06 | TBD | ○ Pending |
-| KLS-07 | TBD | ○ Pending |
-| UI-05 | TBD | ○ Pending |
-| UI-06 | TBD | ○ Pending |
-| UI-07 | TBD | ○ Pending |
+| BPV-05 | Phase 35 | ○ Pending |
+| BPV-06 | Phase 35 | ○ Pending |
+| BPV-07 | Phase 35 | ○ Pending |
+| KZLD-01 | Phase 34 | ○ Pending |
+| KZLD-02 | Phase 34 | ○ Pending |
+| KZLD-03 | Phase 34 | ○ Pending |
+| KZLD-04 | Phase 34 | ○ Pending |
+| KZLD-05 | Phase 34 | ○ Pending |
+| TEGEL-03 | Phase 32 | ○ Pending |
+| TEGEL-04 | Phase 32 | ○ Pending |
+| KLS-04 | Phase 33 | ○ Pending |
+| KLS-05 | Phase 33 | ○ Pending |
+| KLS-06 | Phase 33 | ○ Pending |
+| KLS-07 | Phase 33 | ○ Pending |
+| UI-05 | Phase 31 | ○ Pending |
+| UI-06 | Phase 31 | ○ Pending |
+| UI-07 | Phase 31 | ○ Pending |

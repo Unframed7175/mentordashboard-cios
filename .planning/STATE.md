@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Data Completeness, Keuzedelen & UI Polish
-status: planning
+status: active
 last_updated: "2026-05-28T00:00:00.000Z"
 last_activity: 2026-05-28
 progress:
-  total_phases: 0
-  completed_phases: 0
+  total_phases: 35
+  completed_phases: 30
   total_plans: 0
   completed_plans: 0
   percent: 0
@@ -24,15 +24,15 @@ See: .planning/PROJECT.md (updated 2026-05-28)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 31 — UI Polish (Nav & Spider) — Not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-28 — Milestone v2.4 started
+Status: Roadmap created, ready to plan Phase 31
+Last activity: 2026-05-28 — Milestone v2.4 roadmap created (Phases 31–35)
 
 ## Progress Bar
 
 ```
-v2.4: [____________________] 0% (0/? phases) — requirements in progress
+v2.4: [____________________] 0% (0/5 phases) — roadmap ready, planning next
 ```
 
 ## Performance Metrics
@@ -44,7 +44,7 @@ v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
 v2.2 phases completed: 5/5
 v2.3 phases completed: 6/6
-v2.4 phases completed: 0/?
+v2.4 phases completed: 0/5
 
 ## Accumulated Context
 
@@ -90,12 +90,21 @@ v2.4 phases completed: 0/?
 - Phase 28 (FEED): Use `tauri-plugin-os` for OS info (already available in Tauri 2). App version readable from `tauri.conf.json` via `import { getVersion } from '@tauri-apps/api/app'`. Console errors must be intercepted via `window.onerror` + `console.error` patch at app init and stored in a ring buffer (last 10 entries). mailto: URL must be built client-side — no server call.
 - Phase 30 (TEST CI): GitHub Actions matrix should use `windows-latest` and `macos-latest` (Apple Silicon). Mirror Phase 15 CI pattern but trigger on push to main rather than on tag/release. Smoke test = exit code 0 from `npm run build` (no Rust test suite required for this phase).
 
+### v2.4 Design Notes
+
+- Phase 31 (UI-NAV): `#main-nav min-height: 52px` → `104px`; `.nav-stripe { height }` must match `min-height` (consider `height: 100%` to avoid double-maintenance). Logo `height` in KlasTabStrip.tsx inline style: `36px` → `72px`. Test diagonal stripe renders correctly after height change.
+- Phase 31 (UI-DET): `.spider-card` width `160px` → `280px`; SVG needs `viewBox` + `width="100%"` so chart fills container. `FeedbackActiepuntenSection` moved to last JSX position in `DetailWeergave.tsx` — pure reorder, no logic change. No hardcoded hex colors in any new/modified JSX.
+- Phase 32 (TEGEL-RN): Extend `LeerlingTegel` props: `rekenResultaat?: string | null`, `nederlandsResultaat?: string | null`. Render single compact row `R 2F · N 3F` — reuse `.score-telling` CSS class. Only show row when at least one field is non-null. Pass both fields from `KlasOverzicht` via student object (data already present). R&N mutations must write to ALL records for leerlingId (verzuim pattern — not just active period record).
+- Phase 33 (KLS-DEL): `deleteKlas()` in utils/klassen.ts already handles non-empty. Change `canDelete` in App.tsx: `true` for all non-active classes (keep `false` for active class). New `KlasVerwijderenModal.tsx` (~50 lines): checkbox + disabled confirm until checked. Confirm message: `Klas '${naam}' bevat ${count} leerlingen.` After last class deleted: `setView('import')`.
+- Phase 34 (KZLD): New type `Keuzedeel { id: string; naam: string; onTrack: boolean }`. New optional field on StudentRecord: `keuzedelen?: Keuzedeel[]`. `student.keuzedelen ?? []` guard at every read site — never call `.length` or `.map()` without this guard. Mutate in-place + `saveKlassen()` — never spread (breaks appState.students bridge). New `KeuzedeelSection.tsx` — place after RekenenNederlandsSection, before FeedbackActiepuntenSection. Add/remove/edit rows inline; checkbox toggles `onTrack` immediately.
+- Phase 35 (BPV): BLOCKED on real SomToday BPV Excel file. Run `debugBpvExcel(buffer)` on real file first — logs exact column header names. Then update the 5 candidate string arrays in `_bpvKolom()` calls inside `parseBpvExcel()`. Must provide 2+ aliases per column. Assert ≥3 key columns present after header detection (guards against merged title rows).
+
 ### Pending Todos
 
 - Verify SheetJS CDN tarball (0.20.3) license compliance for school distribution (before Phase 15)
 - Confirm SomToday export format is still .xls (not .xlsx) against a real file in Phase 11
-- Provide real BPV Excel export file to unblock Phase 22 column matchers (BPV-01)
-- Provide real voortgang PDF with Rekenen/Nederlands section to unblock Phase 23 PDF extraction (RNL-04)
+- Provide real BPV Excel export file to unblock Phase 35 column matchers (BPV-05)
+- Provide real voortgang PDF with Rekenen/Nederlands section to unblock RNL-04 (deferred)
 
 ### Blockers/Concerns
 
@@ -105,7 +114,7 @@ v2.4 phases completed: 0/?
 - [Phase 11] tsconfig.migrated.json (noImplicitAny:true, includes utils/**, parsers/**) satisfies D-11-05 without touching global tsconfig
 - [Phase 11] parseStageFile = parseSinglePDF (RESEARCH confirmed; no separate parser/parseStage.js exists)
 - [Phase 11] SheetJS cpexcel: import cpexcel from 'xlsx/dist/cpexcel.full.mjs'; XLSX.set_cptable(cpexcel.cptable)
-- [Phase 22 — OPEN] BPV column matchers blocked on real BPV Excel file. Scaffold proceeds; BPV-01 partially delivered until file provided.
+- [Phase 35 — OPEN] BPV column matchers blocked on real BPV Excel file. Phase 35 cannot be planned until file is provided.
 - [Phase 23 — OPEN] RNL PDF extraction blocked on real PDF with R&N section. Data model + UI proceeds; RNL-04 partially delivered until file provided.
 
 ## Session Log
@@ -142,3 +151,4 @@ v2.4 phases completed: 0/?
 - 2026-05-28: Phase 30 Plan 01 executed — RED test gates. tests/HelpPage.test.tsx (4 RED tests: heading/onBack/importeren/fout melden), KlasTabStrip.test.tsx makeProps+2 RED tests (Help openen button). 204 existing tests green, 2 RED gates active. HELP-01/02 gates set. commits eb454f6, e0bebe5.
 - 2026-05-28: Phase 30 Plans 02–04 executed — HelpPage.tsx + App.tsx routing + KlasTabStrip ? button (GREEN), .github/workflows/ci.yml (Windows x64 + macOS aarch64), INSTRUCTIES.md (8 secties) + TESTPLAN.md (13 scenario's). 210/210 tests passing. Human UAT approved.
 - 2026-05-28: v2.3 milestone archived — v2.3-ROADMAP.md + v2.3-REQUIREMENTS.md created in .planning/milestones/. ROADMAP.md v2.3 section collapsed to <details> block. PROJECT.md + MILESTONES.md + STATE.md updated. REQUIREMENTS.md deleted. git tag v2.3 created and pushed.
+- 2026-05-28: v2.4 milestone roadmap created — Phases 31–35 defined, 17 requirements mapped. Next: /gsd:plan-phase 31
