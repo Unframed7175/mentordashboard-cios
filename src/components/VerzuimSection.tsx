@@ -22,7 +22,7 @@ export default function VerzuimSection({ student }: VerzuimSectionProps) {
     return (
       <div className="detail-section">
         <p className="detail-section-title">Verzuim</p>
-        <p style={{ fontSize: '0.9rem', color: '#9ca3af' }}>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
           Geen verzuimdata — importeer de Excel verzuimexport om dit te zien.
         </p>
       </div>
@@ -55,7 +55,7 @@ export default function VerzuimSection({ student }: VerzuimSectionProps) {
         <div
           style={{
             width: `${pA}%`,
-            background: '#22c55e',
+            background: 'var(--rag-groen)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -69,7 +69,7 @@ export default function VerzuimSection({ student }: VerzuimSectionProps) {
         <div
           style={{
             width: `${pG}%`,
-            background: '#f97316',
+            background: 'var(--rag-oranje)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -83,7 +83,7 @@ export default function VerzuimSection({ student }: VerzuimSectionProps) {
         <div
           style={{
             width: `${pO}%`,
-            background: '#ef4444',
+            background: 'var(--rag-rood)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -105,7 +105,7 @@ export default function VerzuimSection({ student }: VerzuimSectionProps) {
         <div className="vl-item" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem' }}>
           <span
             className="vl-dot vl-dot-aanwezig"
-            style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }}
+            style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--rag-groen)', display: 'inline-block' }}
           />
           <span className="vl-titel">Aanwezig</span>
           <span className="vl-tijd">{minNaarUren(v.aanwezigheid || 0)}</span>
@@ -116,7 +116,7 @@ export default function VerzuimSection({ student }: VerzuimSectionProps) {
         <div className="vl-item" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem' }}>
           <span
             className="vl-dot vl-dot-geoorloofd"
-            style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f97316', display: 'inline-block' }}
+            style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--rag-oranje)', display: 'inline-block' }}
           />
           <span className="vl-titel">Geoorloofd afwezig</span>
           <span className="vl-tijd">{minNaarUren(v.geoorloofd || 0)}</span>
@@ -127,12 +127,12 @@ export default function VerzuimSection({ student }: VerzuimSectionProps) {
         <div className="vl-item" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem' }}>
           <span
             className="vl-dot vl-dot-ongeoorloofd"
-            style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }}
+            style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--rag-rood)', display: 'inline-block' }}
           />
           <span className="vl-titel">Ongeoorloofd afwezig</span>
           <span
             className="vl-tijd"
-            style={ongeoorloofdhoogVerzuim ? { color: '#991b1b', fontWeight: 700 } : undefined}
+            style={ongeoorloofdhoogVerzuim ? { color: 'var(--status-rood-text)', fontWeight: 700 } : undefined}
           >
             {minNaarUren(v.ongeoorloofd || 0)}
           </span>

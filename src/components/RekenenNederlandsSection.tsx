@@ -33,7 +33,7 @@ export default function RekenenNederlandsSection({ student }: RekenenNederlandsS
 
   function normBadge(status: ReturnType<typeof normalizeRekenScore>) {
     if (status === null) return null;
-    const kleur = status === 'onvoldoende' ? 'var(--status-rood-text)' : '#10b981';
+    const kleur = status === 'onvoldoende' ? 'var(--status-rood-text)' : 'var(--status-groen-text)';
     const label =
       status === 'goed' ? '3F — goed' :
       status === 'voldoende' ? '2F — voldoende (norm)' :
@@ -80,7 +80,7 @@ export default function RekenenNederlandsSection({ student }: RekenenNederlandsS
       </div>
       <p
         className="aanvullend-hint"
-        style={{ color: hint === 'saved' ? '#10b981' : undefined }}
+        style={{ color: hint === 'saved' ? 'var(--status-groen-text)' : undefined }}
       >
         {hint === 'saved' ? 'Opgeslagen' : (
           rekenStatus === null && nederlandsStatus === null

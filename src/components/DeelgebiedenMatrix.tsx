@@ -43,9 +43,9 @@ function GrowthBadge({ score1, score2 }: { score1: string | null | undefined; sc
   const r1 = scoreRank(score1);
   const r2 = scoreRank(score2);
   if (r1 < 0 || r2 < 0) return null;
-  if (r2 > r1) return <span className="growth-up" aria-label="gestegen" style={{ color: '#16a34a' }}>↑</span>;
-  if (r2 < r1) return <span className="growth-down" aria-label="gedaald" style={{ color: '#dc2626' }}>↓</span>;
-  return <span className="growth-same" aria-label="gelijk" style={{ color: '#9ca3af' }}>=</span>;
+  if (r2 > r1) return <span className="growth-up" aria-label="gestegen" style={{ color: 'var(--status-groen-text)' }}>↑</span>;
+  if (r2 < r1) return <span className="growth-down" aria-label="gedaald" style={{ color: 'var(--status-rood-text)' }}>↓</span>;
+  return <span className="growth-same" aria-label="gelijk" style={{ color: 'var(--text-muted)' }}>=</span>;
 }
 
 export default function DeelgebiedenMatrix({ student, leerlingId }: DeelgebiedenMatrixProps) {
@@ -94,7 +94,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
           <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '1100px' }}>
             <tbody>
               <tr>
-                <td colSpan={allDG.length + 1} style={{ color: '#9ca3af', padding: '0.75rem 1rem', fontSize: '0.85rem' }}>
+                <td colSpan={allDG.length + 1} style={{ color: 'var(--text-muted)', padding: '0.75rem 1rem', fontSize: '0.85rem' }}>
                   Geen datapunten gevonden
                 </td>
               </tr>

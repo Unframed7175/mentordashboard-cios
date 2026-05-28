@@ -154,8 +154,8 @@ describe('RekenenNederlandsSection — normBadge', () => {
     render(<RekenenNederlandsSection student={student} />);
     const badge = screen.getByText('3F — goed');
     expect(badge).toBeTruthy();
-    // jsdom normalizes #10b981 → rgb(16, 185, 129)
-    expect((badge as HTMLElement).style.color).toBe('rgb(16, 185, 129)');
+    // CSS variable — jsdom does not resolve var() to rgb
+    expect((badge as HTMLElement).style.color).toBe('var(--status-groen-text)');
   });
 
   it('shows "2F — voldoende (norm)" badge (green) when rekenResultaat is 2F', () => {
@@ -164,8 +164,8 @@ describe('RekenenNederlandsSection — normBadge', () => {
     render(<RekenenNederlandsSection student={student} />);
     const badge = screen.getByText('2F — voldoende (norm)');
     expect(badge).toBeTruthy();
-    // jsdom normalizes #10b981 → rgb(16, 185, 129)
-    expect((badge as HTMLElement).style.color).toBe('rgb(16, 185, 129)');
+    // CSS variable — jsdom does not resolve var() to rgb
+    expect((badge as HTMLElement).style.color).toBe('var(--status-groen-text)');
   });
 
   it('shows "Onder norm" badge (red) when nederlandsResultaat is 1F', () => {
@@ -208,9 +208,9 @@ describe('RekenenNederlandsSection — hint paragraph', () => {
     });
     const hint = screen.getByText('Opgeslagen');
     expect(hint).toBeTruthy();
-    // hint paragraph has green color — jsdom normalizes #10b981 → rgb(16, 185, 129)
+    // CSS variable — jsdom does not resolve var() to rgb
     const p = hint.closest('p');
-    expect(p?.style.color).toBe('rgb(16, 185, 129)');
+    expect(p?.style.color).toBe('var(--status-groen-text)');
   });
 
   it('does NOT show "Opgeslagen" when saveKlassen returns false', async () => {

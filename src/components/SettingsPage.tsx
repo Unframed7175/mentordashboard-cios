@@ -379,7 +379,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
           Importeer de BPV Excel om gerealiseerde uren per leerling bij te houden.
         </p>
         {bpvImportError && (
-          <p style={{ fontSize: '0.875rem', color: '#EF4444', marginTop: 8 }}>{bpvImportError}</p>
+          <p style={{ fontSize: '0.875rem', color: 'var(--status-rood-text)', marginTop: 8 }}>{bpvImportError}</p>
         )}
       </section>
     </main>
