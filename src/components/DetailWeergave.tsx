@@ -7,10 +7,7 @@ import SpiderChartCard from './SpiderChartCard';
 import DeelgebiedenMatrix from './DeelgebiedenMatrix';
 import VerzuimSection from './VerzuimSection';
 import BpvProgressSection from './BpvProgressSection';
-import VakkenSection from './VakkenSection';
-import NotitiesTextarea from './NotitiesTextarea';
 import RekenenNederlandsSection from './RekenenNederlandsSection';
-import LeerlijnenSection from './LeerlijnenSection';
 
 interface DetailWeergaveProps {
   leerlingId: string;
@@ -59,11 +56,11 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
   }
 
   return (
-    <div className="print-target" style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div className="print-target view-fade-in" style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1rem' }}>
       {/* Print-only header — hidden in browser, visible in print (EXP-02) */}
       <div className="print-header">
         <h2 style={{ margin: 0 }}>{student.naam}</h2>
-        <p style={{ margin: '0.25rem 0 0', fontSize: '0.9rem', color: '#475569' }}>
+        <p style={{ margin: '0.25rem 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
           Klas: {klas?.naam ?? '—'} &nbsp;|&nbsp; Datum: {new Date().toLocaleDateString('nl-NL')} &nbsp;|&nbsp; {meta || 'Geen periode'}
         </p>
       </div>
@@ -132,10 +129,7 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       {/* Section 4: FeedbackActiepuntenSection */}
       <FeedbackActiepuntenSection leerlingId={leerlingId} />
 
-      {/* Section 5: LeerlijnenSection */}
-      <LeerlijnenSection prognose={status.prognose} />
-
-      {/* Section 6: SpiderChartCard row */}
+      {/* Section 5: SpiderChartCard row */}
       <div className="detail-section">
         <p className="detail-section-title">Spiderweb overzicht</p>
         <div className="spider-charts-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'flex-start' }}>
@@ -169,14 +163,8 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       {/* Section 8: VerzuimSection */}
       <VerzuimSection student={student} />
 
-      {/* Section 8b: BpvProgressSection — per D-12, rendered between VerzuimSection and VakkenSection */}
+      {/* Section 8: BpvProgressSection */}
       <BpvProgressSection leerlingId={leerlingId} />
-
-      {/* Section 9: VakkenSection */}
-      <VakkenSection student={student} />
-
-      {/* Section 10: NotitiesTextarea */}
-      <NotitiesTextarea student={student} leerlingId={leerlingId} />
     </div>
   );
 }

@@ -65,7 +65,7 @@ export default function AanvullendSection({ student }: AanvullendSectionProps) {
       </div>
       <p
         className="aanvullend-hint"
-        style={{ color: hint === 'saved' ? '#10b981' : undefined }}
+        style={{ color: hint === 'saved' ? 'var(--status-groen-text)' : undefined }}
       >
         {hint === 'saved' ? 'Opgeslagen' : ''}
       </p>

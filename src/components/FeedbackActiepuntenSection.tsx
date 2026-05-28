@@ -174,7 +174,7 @@ export default function FeedbackActiepuntenSection({ leerlingId }: FeedbackActie
         <span
           style={{
             fontSize: '0.7rem',
-            color: '#9ca3af',
+            color: 'var(--text-muted)',
             transition: 'transform 0.15s',
             display: 'inline-block',
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
@@ -187,7 +187,7 @@ export default function FeedbackActiepuntenSection({ leerlingId }: FeedbackActie
       {isOpen && (
         <div className="feedback-body" style={{ marginTop: '1rem' }}>
           {saveError && (
-            <p style={{ color: '#dc2626', fontSize: '0.85rem', marginBottom: '0.5rem' }}>{saveError}</p>
+            <p style={{ color: 'var(--status-rood-text)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>{saveError}</p>
           )}
 
           {actiepunten.length === 0 && editingId !== 'new' && (
