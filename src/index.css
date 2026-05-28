@@ -1431,7 +1431,7 @@ a:hover { text-decoration: underline; }
     display: block;
     margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1.5px solid #009FE3;
+    border-bottom: 1.5px solid var(--accent);
   }
 
   .no-print {

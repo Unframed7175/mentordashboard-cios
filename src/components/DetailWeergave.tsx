@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { getAllRecordsForStudent, klassenState } from '../../utils/klassen';
 import { berekenStatus } from '../utils/status';
 import DoortstroomPrognoseSection from './DoortstroomPrognoseSection';
@@ -18,6 +18,9 @@ interface DetailWeergaveProps {
 }
 
 export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate, onBack }: DetailWeergaveProps) {
+  // revision counter — incremented by child edits (e.g. RekenenNederlandsSection) to trigger re-render
+  const [, setRevision] = useState(0);
+
   // getAllRecordsForStudent returns oldest-first; most-recent is last
   const records = getAllRecordsForStudent(leerlingId);
   if (records.length === 0) {
@@ -124,7 +127,7 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       <DoortstroomPrognoseSection student={student} status={status} />
 
       {/* Section 2: RekenenNederlandsSection — RNL-01..03 */}
-      <RekenenNederlandsSection student={student} />
+      <RekenenNederlandsSection student={student} onSaved={() => setRevision(r => r + 1)} />
 
       {/* Section 4: FeedbackActiepuntenSection */}
       <FeedbackActiepuntenSection leerlingId={leerlingId} />

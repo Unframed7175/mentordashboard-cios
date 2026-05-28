@@ -1,6 +1,7 @@
 import React from 'react';
 import { StatusResult, detectTraject } from '../utils/status';
 import { getNormenSync } from '../../utils/normen';
+import { normalizeRekenScore } from '../../utils/schema';
 
 interface DoortstroomPrognoseSectionProps {
   student: any;
@@ -12,6 +13,8 @@ const LEERLIJN_LABEL: Record<string, string> = {
   organiseren: 'Organiseren',
   prof_handelen: 'Professioneel handelen',
 };
+
+const KERN_NAMES = ['V&A', 'P&O', 'C&B', '1E&B'] as const;
 
 function criterionStatus(nodig: number): 'groen' | 'oranje' | 'rood' {
   if (nodig === 0) return 'groen';
@@ -83,6 +86,38 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
   const bj1VersneldOrganiseren = n.versneldOrganiseren;
   const bj1VersneldProfHandelen = n.versneldProfHandelen;
 
+  // Rekenen & Nederlands — read directly from student record (not from prognose)
+  const rekenStatus = normalizeRekenScore(student.rekenResultaat ?? null);
+  const nederlandsStatus = normalizeRekenScore(student.nederlandsResultaat ?? null);
+
+  function rnlNodig(score: ReturnType<typeof normalizeRekenScore>): number {
+    if (score === null) return 1;          // not entered → oranje
+    if (score === 'onvoldoende') return 3; // rood
+    return 0;                              // voldoende / goed → groen
+  }
+
+  const rekenNodig = rnlNodig(rekenStatus);
+  const nederlandsNodig = rnlNodig(nederlandsStatus);
+
+  const rnlBlock = (
+    <PrognoseBlock
+      name="Rekenen & Nederlands"
+      overallNodig={Math.max(rekenNodig, nederlandsNodig)}
+      isEmpty={false}
+    >
+      <CriterionRow
+        label="Rekenen ≥2F"
+        scoreDisplay={student.rekenResultaat ?? '—'}
+        nodig={rekenNodig}
+      />
+      <CriterionRow
+        label="Nederlands ≥2F"
+        scoreDisplay={student.nederlandsResultaat ?? '—'}
+        nodig={nederlandsNodig}
+      />
+    </PrognoseBlock>
+  );
+
   // Negatief per-leerlijn rows (shared between BJ1 and BJ2)
   const negatiefPerLeerlijnen = (['lesgeven', 'organiseren', 'prof_handelen'] as const).map((l) => {
     const ruimte = p.gaps.onvoldoendeRuimtePerLeerlijn?.[l] ?? 0;
@@ -128,29 +163,30 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
             <PrognoseBlock
               name="Versneld SBC"
               overallNodig={Math.max(
-                p.gaps.nodigVersneld_lesgeven,
-                p.gaps.nodigVersneld_organiseren,
-                p.gaps.nodigVersneld_profHandelen
+                p.gaps.nodigVersneld_lesgeven ?? 0,
+                p.gaps.nodigVersneld_organiseren ?? 0,
+                p.gaps.nodigVersneld_profHandelen ?? 0
               )}
               isEmpty={globalEmpty}
             >
               <CriterionRow
                 label={`≥${bj1VersneldLesgeven} ≥G lesgeven`}
                 scoreDisplay={`${llMap['lesgeven']?.goedOfHoger ?? 0} / ${bj1VersneldLesgeven}`}
-                nodig={p.gaps.nodigVersneld_lesgeven}
+                nodig={p.gaps.nodigVersneld_lesgeven ?? 0}
               />
               <CriterionRow
                 label={`≥${bj1VersneldOrganiseren} ≥G organiseren`}
                 scoreDisplay={`${llMap['organiseren']?.goedOfHoger ?? 0} / ${bj1VersneldOrganiseren}`}
-                nodig={p.gaps.nodigVersneld_organiseren}
+                nodig={p.gaps.nodigVersneld_organiseren ?? 0}
               />
               <CriterionRow
                 label={`≥${bj1VersneldProfHandelen} ≥G professioneel handelen`}
                 scoreDisplay={`${llMap['prof_handelen']?.goedOfHoger ?? 0} / ${bj1VersneldProfHandelen}`}
-                nodig={p.gaps.nodigVersneld_profHandelen}
+                nodig={p.gaps.nodigVersneld_profHandelen ?? 0}
               />
             </PrognoseBlock>
             {negatiefBlock}
+            {rnlBlock}
           </>
         ) : (
           <>
@@ -165,7 +201,7 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
               name="SBC"
               overallNodig={Math.max(
                 p.gaps.nodigSBC_deelgebieden,
-                p.gaps.nodigSBC_kern.length
+                (p.gaps.nodigSBC_kern ?? []).length
               )}
               isEmpty={globalEmpty}
             >
@@ -174,13 +210,17 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
                 scoreDisplay={`${p.totaalVoldoendeOfHoger} / ${n.sbc}`}
                 nodig={p.gaps.nodigSBC_deelgebieden}
               />
-              <CriterionRow
-                label="Kerndeelgebieden ≥V"
-                scoreDisplay={`${4 - p.gaps.nodigSBC_kern.length} / 4`}
-                nodig={p.gaps.nodigSBC_kern.length}
-              />
+              {KERN_NAMES.map((kd) => (
+                <CriterionRow
+                  key={kd}
+                  label={`${kd} ≥V`}
+                  scoreDisplay={(p.gaps.nodigSBC_kern ?? []).includes(kd) ? '< V' : '≥ V'}
+                  nodig={(p.gaps.nodigSBC_kern ?? []).includes(kd) ? 3 : 0}
+                />
+              ))}
             </PrognoseBlock>
             {negatiefBlock}
+            {rnlBlock}
           </>
         )}
       </div>

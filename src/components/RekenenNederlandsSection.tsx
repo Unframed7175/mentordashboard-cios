@@ -4,9 +4,10 @@ import { normalizeRekenScore } from '../../utils/schema';
 
 interface RekenenNederlandsSectionProps {
   student: any;
+  onSaved?: () => void;
 }
 
-export default function RekenenNederlandsSection({ student }: RekenenNederlandsSectionProps) {
+export default function RekenenNederlandsSection({ student, onSaved }: RekenenNederlandsSectionProps) {
   const [hint, setHint] = useState<'idle' | 'saved'>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -17,15 +18,21 @@ export default function RekenenNederlandsSection({ student }: RekenenNederlandsS
   }, []);
 
   async function handleChange(field: 'rekenResultaat' | 'nederlandsResultaat', value: string) {
-    const klas = klassenState.klassen[klassenState.activeKlasId!];
-    const rec = klas?.students?.find((s: any) => s.leerlingId === student.leerlingId);
-    if (!rec) return;
-    rec[field] = value || null;
+    if (!klassenState.activeKlasId) return;
+    const klas = klassenState.klassen[klassenState.activeKlasId];
+    // Update ALL records for this student — R&N is student-level, not period-level.
+    // Using find() would only update the oldest record (first match); DetailWeergave
+    // displays the most-recent one, so writes and reads would land on different objects
+    // for students with two periods imported (e.g. a BJ2 student with fase 1 + fase 2).
+    const matching = klas?.students?.filter((s: any) => s.leerlingId === student.leerlingId) ?? [];
+    if (matching.length === 0) return;
+    for (const rec of matching) rec[field] = value || null;
     const saved = await saveKlassen();
     if (saved === false) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     setHint('saved');
     timerRef.current = setTimeout(() => setHint('idle'), 1500);
+    onSaved?.();
   }
 
   const rekenStatus = normalizeRekenScore(student.rekenResultaat ?? null);
