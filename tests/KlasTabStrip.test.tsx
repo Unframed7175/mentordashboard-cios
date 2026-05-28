@@ -19,7 +19,9 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
+        onHelp={vi.fn()}
         isSettingsActive={false}
+        isHelpActive={false}
         isDark={false}
       />
     );
@@ -38,7 +40,9 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
+        onHelp={vi.fn()}
         isSettingsActive={false}
+        isHelpActive={false}
         isDark={false}
       />
     );
@@ -57,7 +61,9 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
+        onHelp={vi.fn()}
         isSettingsActive={true}
+        isHelpActive={false}
         isDark={false}
       />
     );
@@ -76,7 +82,9 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
+        onHelp={vi.fn()}
         isSettingsActive={false}
+        isHelpActive={false}
         isDark={false}
       />
     );

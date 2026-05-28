@@ -6,12 +6,13 @@ import FeedbackModal from './components/FeedbackModal';
 import KlasOverzicht from './components/KlasOverzicht';
 import DetailWeergave from './components/DetailWeergave';
 import SettingsPage from './components/SettingsPage';
+import HelpPage from './components/HelpPage';
 import OnboardingWizard from './components/OnboardingWizard';
 import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted, deleteKlas, renameKlas } from '../utils/klassen';
 import { loadSettings, applyTheme } from '../utils/settings';
 
 function App() {
-  const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings' | 'onboarding'>(
+  const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings' | 'onboarding' | 'help'>(
     () => (klassenState.onboardingCompleted || Object.values(klassenState.klassen).some((k: any) => k.students?.length > 0))
       ? 'import' : 'onboarding'
   );
@@ -79,6 +80,19 @@ function App() {
   }
 
   function handleBackFromSettings() {
+    setView(prevView);
+  }
+
+  function handleOpenHelp() {
+    // CR-02: guard against non-content views (settings/onboarding/help) being stored as prevView
+    const safeView = (view === 'import' || view === 'klas' || view === 'detail')
+      ? view
+      : 'klas';
+    setPrevView(safeView);
+    setView('help');
+  }
+
+  function handleBackFromHelp() {
     setView(prevView);
   }
 
@@ -150,6 +164,8 @@ function App() {
         onRenameKlas={handleRenameKlas}
         isSettingsActive={view === 'settings'}
         isDark={isDark}
+        onHelp={handleOpenHelp}
+        isHelpActive={view === 'help'}
       />
       {showModal && (
         <KlasModal
@@ -186,6 +202,11 @@ function App() {
             onToggleDark={handleToggleDark}
             onNormenChanged={handleNormenChanged}
           />
+        </div>
+      )}
+      {view === 'help' && (
+        <div className="view-slide-in-right" style={{ overflow: 'hidden' }}>
+          <HelpPage onBack={handleBackFromHelp} />
         </div>
       )}
       {view === 'onboarding' && (

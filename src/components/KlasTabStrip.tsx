@@ -13,6 +13,8 @@ interface KlasTabStripProps {
   onRenameKlas: (klasId: string, newNaam: string) => void;
   isSettingsActive: boolean;
   isDark: boolean;
+  onHelp: () => void;
+  isHelpActive: boolean;
 }
 
 // WR-01: klassen passed as explicit prop from App.tsx (derived from klassenState.klassen at
@@ -29,6 +31,8 @@ export default function KlasTabStrip({
   onRenameKlas,
   isSettingsActive,
   isDark,
+  onHelp,
+  isHelpActive,
 }: KlasTabStripProps) {
   const [editingKlasId, setEditingKlasId] = React.useState<string | null>(null);
   const [editValue, setEditValue] = React.useState('');
@@ -141,6 +145,14 @@ export default function KlasTabStrip({
           <path d="M9 10h6"/>
           <path d="M9 13h6"/>
         </svg>
+      </button>
+      <button
+        className={`nav-tab${isHelpActive ? ' active' : ''}`}
+        title="Help"
+        aria-label="Help openen"
+        onClick={onHelp}
+      >
+        ?
       </button>
       <button
         className={`nav-tab${isSettingsActive ? ' active' : ''}`}
