@@ -84,7 +84,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
   });
 });
 
-// Shared test props factory for Phase 27 tests
+// Shared test props factory for Phase 27+ tests
 function makeProps(overrides?: Partial<Parameters<typeof KlasTabStrip>[0]>) {
   return {
     klassen: [
@@ -98,7 +98,9 @@ function makeProps(overrides?: Partial<Parameters<typeof KlasTabStrip>[0]>) {
     onFeedback: vi.fn(),
     onDeleteKlas: vi.fn(),
     onRenameKlas: vi.fn(),
+    onHelp: vi.fn(),
     isSettingsActive: false,
+    isHelpActive: false,
     isDark: false,
     ...overrides,
   };
@@ -175,5 +177,19 @@ describe('KlasTabStrip — feedback button (Phase 28)', () => {
     render(<KlasTabStrip {...makeProps({ onFeedback })} />);
     fireEvent.click(screen.getByRole('button', { name: 'Fout melden' }));
     expect(onFeedback).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('KlasTabStrip — help button (Phase 30)', () => {
+  it('renders a button with aria-label "Help openen"', () => {
+    render(<KlasTabStrip {...makeProps()} />);
+    expect(screen.getByRole('button', { name: 'Help openen' })).toBeTruthy();
+  });
+
+  it('calls onHelp when ? button is clicked', () => {
+    const onHelp = vi.fn();
+    render(<KlasTabStrip {...makeProps({ onHelp })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Help openen' }));
+    expect(onHelp).toHaveBeenCalledTimes(1);
   });
 });
