@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Data Completeness, Keuzedelen & UI Polish
-status: ready_to_plan
+status: ready_to_execute
 last_updated: "2026-05-29T00:00:00.000Z"
-last_activity: 2026-05-29 — Phase 31 complete (2/2 plans, 9/9 must-haves)
+last_activity: 2026-05-29 — Phase 32 planned (1 plan, 1 wave — TDD: LeerlingTegel R&N row)
 progress:
   total_phases: 30
   completed_phases: 26
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-28)
 
 ## Current Position
 
-Phase: 31 — UI Polish (Nav & Spider) — Complete
-Plan: 31-02 (last)
-Status: verified 9/9 must-haves, ready for next phase
-Last activity: 2026-05-29 — Phase 31 executed and verified (2/2 plans complete)
+Phase: 32 — R&N Status op Tegels — Planned
+Plan: 32-01 (ready)
+Status: 1 plan ready, ready to execute
+Last activity: 2026-05-29 — Phase 32 planned (32-01: LeerlingTegel R&N row — TDD)
 
 ## Progress Bar
 
