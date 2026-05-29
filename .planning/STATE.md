@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Data Completeness, Keuzedelen & UI Polish
-status: active
-last_updated: "2026-05-28T00:00:00.000Z"
-last_activity: 2026-05-28
+status: planning
+last_updated: "2026-05-29T06:29:37.006Z"
+last_activity: 2026-05-28 — Milestone v2.4 roadmap created (Phases 31–35)
 progress:
-  total_phases: 35
-  completed_phases: 30
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 30
+  completed_phases: 25
+  total_plans: 74
+  completed_plans: 74
+  percent: 83
 ---
 
 # Project State
