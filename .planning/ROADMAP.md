@@ -80,7 +80,7 @@
 
 ### v2.4 Data Completeness, Keuzedelen & UI Polish
 
-- [ ] **Phase 31: UI Polish — Nav & Spider** — Nav-banner en logo zijn twee keer zo groot; spiderweb chart is groter en FeedbackActiepuntenSection staat onderaan de detailweergave
+- [x] **Phase 31: UI Polish — Nav & Spider** — Nav-banner en logo zijn twee keer zo groot; spiderweb chart is groter en FeedbackActiepuntenSection staat onderaan de detailweergave *(completed 2026-05-29)*
 - [ ] **Phase 32: R&N Status op Tegels** — Elke leerlingtegel toont een compacte Rekenen/Nederlands statusregel wanneer die data aanwezig is
 - [ ] **Phase 33: Klas Verwijderen met Bevestiging** — Mentor kan een niet-lege klas verwijderen via een modal met checkbox-bevestiging en studententelling
 - [ ] **Phase 34: Keuzedelen per Leerling** — Mentor kan per leerling keuzedelen toevoegen, on-track status bijhouden en verwijderen — data overleeft herstart
