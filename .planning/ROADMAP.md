@@ -745,8 +745,12 @@ Plans:
   2. De statusregel wordt verborgen (geen lege ruimte) wanneer een leerling geen Rekenen/Nederlands scores heeft
   3. De R&N statusregel gebruikt uitsluitend CSS-variabelen voor kleuren — geen hardcoded hex-waarden
 
-**Plans**: TBD
+**Plans**: 1 plan
 **UI hint**: yes
+
+Plans:
+
+- [ ] 32-01-PLAN.md — R&N statusregel in LeerlingTegel (TDD: RED tests + GREEN implementatie)
 
 ### Phase 33: Klas Verwijderen met Bevestiging
 
@@ -829,7 +833,7 @@ Plans:
 | 29. UI Streamlining & Bugfixes | 5/5 | Complete | 2026-05-28 |
 | 30. Documentatie, Help & CI | 4/4 | Complete | 2026-05-28 |
 | 31. UI Polish — Nav & Spider | 0/TBD | Not started | - |
-| 32. R&N Status op Tegels | 0/TBD | Not started | - |
+| 32. R&N Status op Tegels | 0/1 | Not started | - |
 | 33. Klas Verwijderen met Bevestiging | 0/TBD | Not started | - |
 | 34. Keuzedelen per Leerling | 0/TBD | Not started | - |
 | 35. BPV Echte Column Matchers | 0/TBD | Not started | - |
