@@ -1018,6 +1018,7 @@ a:hover { text-decoration: underline; }
   transition: box-shadow var(--transition-base);
 }
 .spider-card:hover { box-shadow: var(--shadow-md); }
+.spider-card svg { width: 100%; height: auto; aspect-ratio: 1 / 1; }
 
 .spider-empty {
   font-size: 0.8125rem;

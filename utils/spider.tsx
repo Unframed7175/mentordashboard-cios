@@ -30,7 +30,7 @@ function scoreToRadius(score: string | null): number {
 /**
  * HoverState — tooltip position data passed to onHover callbacks.
  * axisIndex: index into the axes array.
- * x, y: rendered pixel coordinates (0–160) relative to .spider-card.
+ * x, y: rendered pixel coordinates (0–280) relative to .spider-card.
  */
 export type HoverState = { axisIndex: number; x: number; y: number } | null;
 
@@ -52,7 +52,7 @@ export const SpiderChart = {
    * @param fillVar  - CSS variabele naam voor opvulkleur (bijv. '--spider-lesgeven')
    * @param strokeVar - CSS variabele naam voor lijnkleur (bijv. '--spider-lesgeven-stroke')
    * @param onHover  - Optional callback called with HoverState on hit-circle mouse enter/leave.
-   *   Receives { axisIndex, x, y } on enter (coords in rendered px, 0–160), null on leave.
+   *   Receives { axisIndex, x, y } on enter (coords in rendered px, 0–280), null on leave.
    *   JSX rendering (Phase 19) eliminates the previous dangerouslySetInnerHTML injection surface.
    * @returns JSX.Element — a fully rendered <svg> element
    */
