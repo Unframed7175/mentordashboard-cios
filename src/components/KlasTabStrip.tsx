@@ -62,7 +62,7 @@ export default function KlasTabStrip({
 
   return (
     <nav id="main-nav">
-      <img src={isDark ? logoDark : logoLight} alt="CIOS Zuidwest logo" style={{ height: '36px', width: 'auto', marginRight: '16px' }} />
+      <img src={isDark ? logoDark : logoLight} alt="CIOS Zuidwest logo" style={{ height: '72px', width: 'auto', marginRight: '16px' }} />
       {klassen.map(klas => (
         <div
           key={klas.id}

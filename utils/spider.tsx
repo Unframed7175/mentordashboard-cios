@@ -66,7 +66,7 @@ export const SpiderChart = {
     const n = axes.length;
 
     if (n === 0) {
-      return <svg width="160" height="160" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" />;
+      return <svg width="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" />;
     }
 
     const centerX = 100;
@@ -134,8 +134,8 @@ export const SpiderChart = {
     const safeStroke = sanitizeCssVar(strokeVar);
 
     // Hit circles for tooltip interaction (D-11)
-    // cx/cy are in SVG viewBox space (0–200). Scale factor 160/200 converts to
-    // rendered pixel space (0–160), matching the SVG's width="160" attribute.
+    // cx/cy are in SVG viewBox space (0–200). Scale factor 280/200 converts to
+    // rendered pixel space (0–280), matching the .spider-card width of 280px.
     const hitCircles = axes.map((axis, i) => {
       const score = scores[axis.key] ?? null;
       const radius = scoreToRadius(score) * maxRadius;
@@ -145,13 +145,13 @@ export const SpiderChart = {
       return (
         <circle key={`hit-${i}`} cx={cx} cy={cy} r={6}
           className="spider-hit-circle"
-          onMouseEnter={() => onHover?.({ axisIndex: i, x: cx * (160 / 200), y: cy * (160 / 200) })}
+          onMouseEnter={() => onHover?.({ axisIndex: i, x: cx * (280 / 200), y: cy * (280 / 200) })}
           onMouseLeave={() => onHover?.(null)} />
       );
     });
 
     return (
-      <svg width="160" height="160" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <svg width="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
         {gridRings}
         {gridLines}
         {axisLabels}

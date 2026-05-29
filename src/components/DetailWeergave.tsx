@@ -129,9 +129,6 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       {/* Section 2: RekenenNederlandsSection — RNL-01..03 */}
       <RekenenNederlandsSection student={student} onSaved={() => setRevision(r => r + 1)} />
 
-      {/* Section 4: FeedbackActiepuntenSection */}
-      <FeedbackActiepuntenSection leerlingId={leerlingId} />
-
       {/* Section 5: SpiderChartCard row */}
       <div className="detail-section">
         <p className="detail-section-title">Spiderweb overzicht</p>
@@ -168,6 +165,9 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
 
       {/* Section 8: BpvProgressSection */}
       <BpvProgressSection leerlingId={leerlingId} />
+
+      {/* Section 9: FeedbackActiepuntenSection */}
+      <FeedbackActiepuntenSection leerlingId={leerlingId} />
     </div>
   );
 }
