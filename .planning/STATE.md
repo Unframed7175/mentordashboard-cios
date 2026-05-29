@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Data Completeness, Keuzedelen & UI Polish
-status: ready_to_execute
-last_updated: "2026-05-29T00:00:00.000Z"
-last_activity: 2026-05-29 — Phase 32 planned (1 plan, 1 wave — TDD: LeerlingTegel R&N row)
+status: ready_to_plan
+last_updated: "2026-05-29T18:50:00.000Z"
+last_activity: 2026-05-29 — Phase 32 complete (TEGEL-03/04 delivered, CSS grid fix applied)
 progress:
   total_phases: 30
   completed_phases: 26
@@ -24,15 +24,14 @@ See: .planning/PROJECT.md (updated 2026-05-28)
 
 ## Current Position
 
-Phase: 32 — R&N Status op Tegels — Planned
-Plan: 32-01 (ready)
-Status: 1 plan ready, ready to execute
-Last activity: 2026-05-29 — Phase 32 planned (32-01: LeerlingTegel R&N row — TDD)
+Phase: 33 — Klas Verwijderen met Bevestiging — Not started
+Status: Phase 32 complete, ready to plan phase 33
+Last activity: 2026-05-29 — Phase 32 complete (TEGEL-03/04, CSS grid fix)
 
 ## Progress Bar
 
 ```
-v2.4: [####________________] 20% (1/5 phases) — phase 31 complete
+v2.4: [########____________] 40% (2/5 phases) — phase 32 complete
 ```
 
 ## Performance Metrics
@@ -44,7 +43,7 @@ v2.0 phases completed: 6/6
 v2.1 phases completed: 4/4
 v2.2 phases completed: 5/5
 v2.3 phases completed: 6/6
-v2.4 phases completed: 0/5
+v2.4 phases completed: 2/5
 
 ## Accumulated Context
 
@@ -95,6 +94,7 @@ v2.4 phases completed: 0/5
 - Phase 31 (UI-NAV): `#main-nav min-height: 52px` → `104px`; `.nav-stripe { height }` must match `min-height` (consider `height: 100%` to avoid double-maintenance). Logo `height` in KlasTabStrip.tsx inline style: `36px` → `72px`. Test diagonal stripe renders correctly after height change.
 - Phase 31 (UI-DET): `.spider-card` width `160px` → `280px`; SVG needs `viewBox` + `width="100%"` so chart fills container. `FeedbackActiepuntenSection` moved to last JSX position in `DetailWeergave.tsx` — pure reorder, no logic change. No hardcoded hex colors in any new/modified JSX.
 - Phase 32 (TEGEL-RN): Extend `LeerlingTegel` props: `rekenResultaat?: string | null`, `nederlandsResultaat?: string | null`. Render single compact row `R 2F · N 3F` — reuse `.score-telling` CSS class. Only show row when at least one field is non-null. Pass both fields from `KlasOverzicht` via student object (data already present). R&N mutations must write to ALL records for leerlingId (verzuim pattern — not just active period record).
+- Phase 32 (TEGEL-RN): `align-items: start` toegevoegd aan `#klas-grid` in index.css — zonder dit kregen tegels in dezelfde rij lege ruimte als een buurman een rnRow had (CSS Grid stretch default). LeerlingTegel.tsx StudentProps inline uitgebreid (IN-01 patroon). KlasOverzicht.tsx niet gewijzigd — student={s} pass-through was al correct.
 - Phase 33 (KLS-DEL): `deleteKlas()` in utils/klassen.ts already handles non-empty. Change `canDelete` in App.tsx: `true` for all non-active classes (keep `false` for active class). New `KlasVerwijderenModal.tsx` (~50 lines): checkbox + disabled confirm until checked. Confirm message: `Klas '${naam}' bevat ${count} leerlingen.` After last class deleted: `setView('import')`.
 - Phase 34 (KZLD): New type `Keuzedeel { id: string; naam: string; onTrack: boolean }`. New optional field on StudentRecord: `keuzedelen?: Keuzedeel[]`. `student.keuzedelen ?? []` guard at every read site — never call `.length` or `.map()` without this guard. Mutate in-place + `saveKlassen()` — never spread (breaks appState.students bridge). New `KeuzedeelSection.tsx` — place after RekenenNederlandsSection, before FeedbackActiepuntenSection. Add/remove/edit rows inline; checkbox toggles `onTrack` immediately.
 - Phase 35 (BPV): BLOCKED on real SomToday BPV Excel file. Run `debugBpvExcel(buffer)` on real file first — logs exact column header names. Then update the 5 candidate string arrays in `_bpvKolom()` calls inside `parseBpvExcel()`. Must provide 2+ aliases per column. Assert ≥3 key columns present after header detection (guards against merged title rows).
