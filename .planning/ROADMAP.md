@@ -721,8 +721,18 @@ Plans:
   3. FeedbackActiepuntenSection verschijnt als allerlaatste sectie in de detailweergave — na Keuzedelen, RekenenNederlands en alle andere secties
   4. Na de wijzigingen zijn er nul hardcoded hex-kleuren toegevoegd in nieuwe of gewijzigde JSX-bestanden (grep `src/components/ for #[0-9a-fA-F]` geeft nul nieuwe matches)
 
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
+
+Plans:
+
+**Wave 1**
+
+- [ ] 31-01-PLAN.md — Wave 1: CSS sizing changes (index.css — nav 104px, nav-stripe 100%, spider-card 280px)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 31-02-PLAN.md — Wave 2: Component changes (KlasTabStrip logo 72px, spider SVG width=100%, DetailWeergave section reorder)
 
 ### Phase 32: R&N Status op Tegels
 

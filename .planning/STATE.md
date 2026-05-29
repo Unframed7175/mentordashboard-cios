@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Data Completeness, Keuzedelen & UI Polish
-status: planning
-last_updated: "2026-05-29T06:29:37.006Z"
-last_activity: 2026-05-28 — Milestone v2.4 roadmap created (Phases 31–35)
+status: ready_to_execute
+last_updated: "2026-05-29T00:00:00.000Z"
+last_activity: 2026-05-29 — Phase 31 planned (2 plans, 2 waves)
 progress:
   total_phases: 30
   completed_phases: 25
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-28)
 
 ## Current Position
 
-Phase: 31 — UI Polish (Nav & Spider) — Not started
+Phase: 31 — UI Polish (Nav & Spider) — Planned
 Plan: —
-Status: Roadmap created, ready to plan Phase 31
-Last activity: 2026-05-28 — Milestone v2.4 roadmap created (Phases 31–35)
+Status: 2 plans ready, ready to execute
+Last activity: 2026-05-29 — Phase 31 planned (31-01: CSS changes Wave 1, 31-02: component changes Wave 2)
 
 ## Progress Bar
 
