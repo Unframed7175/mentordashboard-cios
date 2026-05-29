@@ -17,6 +17,8 @@ interface StudentProps {
     geoorloofd: number;
     ongeoorloofd: number;
   };
+  rekenResultaat?: string | null;
+  nederlandsResultaat?: string | null;
 }
 
 interface LeerlingTegelProps {
@@ -81,6 +83,14 @@ export default function LeerlingTegel({ student, status, onClick, trend }: Leerl
     }
   }
 
+  // R&N statusregel (Phase 32 — TEGEL-03/TEGEL-04)
+  const rPart = student.rekenResultaat ? `R ${student.rekenResultaat}` : null;
+  const nPart = student.nederlandsResultaat ? `N ${student.nederlandsResultaat}` : null;
+  const rnParts = [rPart, nPart].filter(Boolean);
+  const rnRow: React.ReactNode = rnParts.length > 0
+    ? <div className="score-telling">{rnParts.join(' · ')}</div>
+    : null;
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault(); // prevent page scroll on Space
@@ -102,6 +112,7 @@ export default function LeerlingTegel({ student, status, onClick, trend }: Leerl
       <span className="klas-tile-naam">{student.naam}</span>
       <span className={`status-badge status-${status.kleur}`}>{status.label}</span>
       {scoreTelling}
+      {rnRow}
       {miniBar}
     </div>
   );
