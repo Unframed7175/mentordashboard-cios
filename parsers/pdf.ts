@@ -626,13 +626,14 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
       continue;
     }
 
-    // The remaining items are potential score cells
-    const scoreItems = sorted.slice(1);
-
-    // Try to assign scores to columns
+    // The remaining items are either score cells or label-continuation text.
+    // Items that normalise to a score value AND are close to a column → score.
+    // Items not near any column → part of the datapunt label (multi-item names).
+    const remainingItems = sorted.slice(1);
+    const labelContinuation: string[] = [];
     const scores: Record<string, string | null> = {};
 
-    for (const item of scoreItems) {
+    for (const item of remainingItems) {
       const level = normalizeScore(item.str);
       if (level !== null) {
         const col = assignScoreToColumn(item, columnMap);
@@ -641,10 +642,19 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
         } else {
           console.warn(`[pdf.ts] Score "${item.str}" at x=${item.x.toFixed(1)} did not match any column`);
         }
+      } else {
+        // Not a recognised score — label continuation if not near any score column
+        if (assignScoreToColumn(item, columnMap) === null) {
+          labelContinuation.push(item.str.trim());
+        }
       }
     }
 
-    datapunten.push({ vak: currentVak, datapunt: labelText, scores });
+    const fullLabel = labelContinuation.length > 0
+      ? [labelText, ...labelContinuation].filter(Boolean).join(' ')
+      : labelText;
+
+    datapunten.push({ vak: currentVak, datapunt: fullLabel, scores });
   }
 
   // -----------------------------------------------------------------------
@@ -670,6 +680,64 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
   );
 
   return { datapunten, deelgebiedScores };
+}
+
+// ---------------------------------------------------------------------------
+// Parse-time enrichment: attach inleverstatus to each datapunt (R-02)
+// ---------------------------------------------------------------------------
+
+/**
+ * Aggressive normaliser for status matching.
+ * Strips dash prefix, "Opdracht N:" prefix and leading "N." prefix so that
+ * "1. Lesontwerp", "- 1. Lesontwerp" and "Opdracht 1: Lesontwerp" all
+ * normalise to the same key.
+ */
+function _normForStatusMatch(s: string): string {
+  return s
+    .replace(/^[-‐‑‒–—―−]\s*/, '')          // strip dash prefix
+    .replace(/^opdracht\s*\d+[.:]\s*/i, '')   // strip "Opdracht N:" / "Opdracht N."
+    .replace(/^\d+[.:]\s*/, '')               // strip "1." / "1:"
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Enrich each datapunt with the inleverstatus from the matching vakken
+ * opdracht.  Runs at parse-time inside parseSinglePDF when both structures
+ * are available.
+ *
+ * Matching strategy (in order):
+ *   1. Exact match on aggressively normalised name.
+ *   2. Substring containment (one normalised key contains the other) —
+ *      handles code-prefixed labels like "LO01 Sportles" vs "Sportles".
+ *
+ * Modifies datapunten in-place by setting dp.status.
+ */
+function enrichDatapuntenStatus(
+  vakken: Array<{ naam: string; opdrachten: Array<{ naam: string; status: string }> }>,
+  datapunten: any[]
+): void {
+  const entries: Array<{ key: string; status: string }> = [];
+  for (const vak of vakken) {
+    for (const op of (vak.opdrachten || [])) {
+      if (op.naam && op.status) {
+        entries.push({ key: _normForStatusMatch(op.naam), status: op.status });
+      }
+    }
+  }
+  if (entries.length === 0) return;
+
+  for (const dp of datapunten) {
+    const dpKey = _normForStatusMatch(dp.datapunt);
+    // 1. Exact match
+    let found = entries.find(e => e.key === dpKey);
+    // 2. Substring fallback (min 4 chars to avoid false positives)
+    if (!found && dpKey.length >= 4) {
+      found = entries.find(e => e.key.length >= 4 && (e.key.includes(dpKey) || dpKey.includes(e.key)));
+    }
+    if (found) dp.status = found.status;
+  }
 }
 
 /**
@@ -722,6 +790,9 @@ async function parseSinglePDF(file: File): Promise<any> {
     // A PDF with a valid deelgebied table but no parseable vak lines is unusual
     // but should not discard the scores that were already collected.
     console.warn(`[pdf.ts] Geen vakken gevonden in ${file.name}`);
+  } else {
+    // R-02: attach inleverstatus to each datapunt at parse time
+    enrichDatapuntenStatus(vakken, datapunten);
   }
 
   const record = {

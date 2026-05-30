@@ -171,7 +171,9 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                   </tr>
                 )}
                 {groep.datapunten.map((dp: any, i: number) => {
-                  const status = statusMap.get(normalizeDpNaam(dp.datapunt));
+                  // dp.status is set at parse-time by enrichDatapuntenStatus (new imports).
+                  // Fall back to runtime map lookup for records imported before this fix.
+                  const status = dp.status || statusMap.get(normalizeDpNaam(dp.datapunt));
                   return (
                     <tr key={`${gi}-${i}`}>
                       <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', whiteSpace: 'nowrap' }}>
