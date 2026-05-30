@@ -1,17 +1,16 @@
 # STATE.md — Mentordashboard CIOS
 
-> Gegenereerd op: 2026-05-30  
-> GSD retroactief geïnitialiseerd op een bestaand project (652 commits)
+> Laatste update: 2026-05-30 (sessie 2)
 
 ---
 
 ## Huidige fase
 
-**Fase 0 → Fase 1 overgang**
+**Fase 2 · Executie — M34 gestart**
 
-Het project is volwassen maar GSD wordt nu voor het eerst ingezet.
-Fase 0 (ontdekking) is in de praktijk al doorlopen — er liggen beslissingen en architectuur vast in de code zelf.
-De volgende stap is Fase 1 (spec) om bestaande kennis te documenteren in `.gsd/PROJECT.md`, `.gsd/REQUIREMENTS.md` en `.gsd/DECISIONS.md`.
+Office hours (GStack) heeft de scope van M34 en M35 vastgelegd.
+De eerste M34-taken zijn geïmplementeerd en gecommit.
+Actieve prioriteit: prognose-betrouwbaarheid afronden, daarna UI-verbeteringen.
 
 ---
 
@@ -23,69 +22,132 @@ De volgende stap is Fase 1 (spec) om bestaande kennis te documenteren in `.gsd/P
 | Type | Tauri v2 desktop app (Windows + macOS) |
 | Stack | Tauri 2 · React 19 · TypeScript · Vite · Vitest |
 | Versie | 2.0.0 |
-| Totale commits | 652 |
-| Laatste commit | `75a32ac` — chore: add CLAUDE.md, planning artifacts, VSCode config, and Claude settings |
+| Totale commits | 655 |
+| Laatste commit | `cccde00` — feat: opdracht-statusbadges + parser fixes (M34 start) |
+| Status uitrol | Nog niet uitgerold — prognose-betrouwbaarheid is de blokkade |
 
 ---
 
-## Wat is dit product
+## Milestone M34 — voortgang
 
-Een offline desktopapplicatie voor mentoren op MBO-scholen (CIOS Zuid-West).
-Mentoren kunnen SomToday-exports importeren (PDF voortgang, Excel verzuim, Excel BPV)
-en zien per leerling: doorstroomprognose, deelgebieden, verzuim, BPV-voortgang en leerlijnscores.
-Geen internetverbinding vereist. Data versleuteld opgeslagen op de lokale computer.
+**Doel:** Reliability + visuele verbeteringen + QOL → uitrolbaar product
+
+### Prioriteit 1 · Reliability
+
+| ID | Taak | Status |
+|---|---|---|
+| R-01 | Prognose-diagnose met echte PDF-fixtures | 🔄 In progress — fixture-dump actief, testbestand aangemaakt |
+| R-01a | Parser-bug: `leerjaar` altijd "1" voor BJ2-leerlingen | ✅ Opgelost — leerjaar afgeleid uit periode |
+| R-02 | Datapunten-overzicht compleet + fase-onderscheid | ⬜ Niet gestart |
+| R-03 | BPV-uren weergave herzien | ⬜ Niet gestart |
+
+### Prioriteit 2 · Visuele verbeteringen
+
+| ID | Taak | Status |
+|---|---|---|
+| V-01 | Spider chart groter (280px → ~380px) | ⬜ Niet gestart |
+| V-02 | Kleuren SBL/SBC herzien (blauw voelt niet passend) | ⬜ Niet gestart |
+| V-03 | Fase-onderscheid in datapunten-overzicht | ⬜ Niet gestart |
+| V-04 | Opdracht-statusbadges (kleurgecodeerd) | ✅ Geïmplementeerd |
+
+### Prioriteit 3 · QOL
+
+| ID | Taak | Status |
+|---|---|---|
+| Q-01 | Zoeken/filteren in klasoverzicht | 🔄 Gedeeltelijk — KlasOverzicht heeft al zoekfunctionaliteit (refreshKey-gebaseerd) |
+| Q-02 | Klas-aanmaak wizard altijd starten + Overslaan-knop stap 2 | ✅ Overslaan-knop geïmplementeerd |
 
 ---
 
-## Codebase overzicht
+## Milestone M35 — gepland
 
-```
-src/
-  components/    23 React-componenten (KlasOverzicht, DetailWeergave, OnboardingWizard, …)
-  utils/         status.ts (prognose-logica)
-  App.tsx        Hoofdcomponent — klas-state, import-handlers, routing
-tests/           29 testbestanden (Vitest)
-parsers/         PDF + Excel parsers (SomToday-formaten)
-src-tauri/       Rust backend (Tauri v2)
-```
+**Doel:** Schema-configurabiliteit — DEELGEBIEDEN en leerlijnen data-driven
+
+| Onderdeel | Status |
+|---|---|
+| DEELGEBIEDEN naar plugin-store | ⬜ Niet gestart |
+| Settings-UI voor schema-beheer | ⬜ Niet gestart |
+| Schooljaarversie op studentrecord | ⬜ Niet gestart |
+| Parser async schema laden | ⬜ Niet gestart |
+
+M35 start **na uitrol van M34** — eerst echte gebruikersfeedback ophalen.
 
 ---
 
-## Laaste voltooide fase: Fase 33
+## Geïmplementeerd deze sessie (commits)
 
-**Onderwerp:** KlasVerwijderenModal — klas verwijderen met bevestigingsdialoog
+| Commit | Inhoud |
+|---|---|
+| `2f39ead` | GSD-infrastructuur: PROJECT, REQUIREMENTS, DECISIONS, KNOWLEDGE, STATE |
+| `cccde00` | Parser-fixes + statusbadges (M34 start) |
 
-**UAT-resultaat:** 11/12 geslaagd  
-**Openstaand punt:** 1 UAT-scenario niet geslaagd (details in git log fase 33)
-
-**Relevante commits (selectie):**
-- `4bfcd82` test(33): complete UAT re-verification — 11/12 pass, phase complete
-- `163baa0` fix(33-03): guard null/missing leerlingId in countUniekeLeerlingen (WR-04)
-- `9b9f986` fix(33): WR-01 remove unused canDelete prop from KlasTabStripProps
+**Details `cccde00`:**
+- `parsers/pdf-status.ts` — STATUS_STRINGS losgekoppeld van PDF.js-vendor
+- `parsers/pdf.ts` — 4 ontbrekende SomToday-statussen toegevoegd; `leerjaar` afgeleid uit `periode`
+- `src/components/VakkenSection.tsx` — kleurgecodeerde StatusBadge (groen/oranje/rood/grijs)
+- `src/components/OnboardingWizard.tsx` — Overslaan-knop op stap 2 PDF-upload
+- `utils/datamodel.ts` — tijdelijke fixture-dump log voor prognose-diagnose (**verwijderen na gebruik**)
+- `tests/prognose.diagnose.test.ts` — diagnosetests + regressietests leerjaar + STATUS_STRINGS
 
 ---
 
 ## Openstaande punten
 
-- [ ] 1 UAT-scenario fase 33 nog niet geslaagd — nader te onderzoeken
-- [x] `.gsd/PROJECT.md` aangemaakt (product scope en doelgroep)
-- [x] `.gsd/REQUIREMENTS.md` aangemaakt (15 functionele eisen, 5 NF-eisen)
-- [x] `.gsd/DECISIONS.md` aangemaakt (12 ADRs vastgelegd)
-- [x] `.gsd/KNOWLEDGE.md` aangemaakt (patronen, valkuilen, datamodel)
+- [ ] **R-01 afronden:** prognose-bug exacte locatie vinden met fixture + echte PDF
+  - Testbestand: `tests/prognose.diagnose.test.ts`
+  - Fixture-dump actief in `utils/datamodel.ts` (verwijderen na diagnose)
+  - Startcommando: `npm run dev` → importeer PDF → F12 → `[fixture-dump]`
+- [ ] **R-02:** datapunten-overzicht compleet + fase-onderscheid (2 fases)
+- [ ] **R-03:** BPV-uren weergave definiëren en implementeren
+- [ ] **V-01:** Spider chart groter
+- [ ] **V-02:** Kleuren SBL/SBC herzien
+- [ ] **V-03:** Fase-onderscheid datapunten-overzicht (hangt samen met R-02)
+- [ ] **1 UAT-scenario fase 33** — nog steeds open
 
 ---
 
-## Volgende stap
+## Kennis opgedaan deze sessie
 
-1. **Fase 34 starten:** nieuwe feature definiëren via `/office-hours` (GStack Fase 0)
-2. **Of:** UAT-issue fase 33 oplossen voor verdere iteratie
+### Traject-detectie keten
+```
+student.periode  (primair)  →  detectTraject()  →  'bj1' | 'bj2'
+student.leerjaar (fallback)                     ↗
+    ↓
+berekenPrognose(student, traject)
+    ↓
+BJ1: 'naar_bj2' | 'versneld_sbc' | 'neutraal' | 'negatief'
+BJ2: 'sbl'      | 'sbc'          | 'neutraal' | 'negatief'
+    ↓
+berekenStatus()  →  RAG-kleur + label
+    ↓
+DoortstroomPrognoseSection  →  BJ1-blokken of BJ2-blokken
+```
+
+### Parser-gedrag SomToday
+- SomToday exporteert altijd `Leerjaar 1` in de PDF-header, ook voor BJ2-leerlingen
+- Fix: `leerjaar` wordt nu afgeleid uit `periode` als die "BJ1"/"BJ2" bevat
+- Gevaarlijke case: `periode` bevat geen traject-indicator → `leerjaar` fallback → was altijd "1" → nu alleen nog bij echt ambigue periodes
+
+### STATUS_STRINGS volledig
+Alle 7 SomToday-statussen nu herkend. Eerder ontbraken: `Te laat ingeleverd en wel/niet beoordeeld`, `Niet beoordeelbaar`, `Zelfevaluatie, niet afgerond`.
 
 ---
 
 ## Handoff log
 
-### Handoff 2026-05-30
-Van: Pre-GSD — geen framework  
-Naar: GSD — Fase 0/1 overgang  
-Status: Project bestaand en functioneel, fase 33 afgerond (11/12 UAT), GSD retroactief geïnstalleerd  
-Openstaand: GSD-documenten invullen, beslissen over volgende feature
+### Handoff 2026-05-30 (sessie 1)
+Van: Pre-GSD  
+Naar: GSD Fase 0/1  
+Status: GSD retroactief geïnstalleerd, fase 33 afgerond  
+Openstaand: GSD-documenten, beslissing volgende feature
+
+### Handoff 2026-05-30 (sessie 2)
+Van: GSD Fase 0 + GStack office hours  
+Naar: GSD Fase 2 · Executie M34  
+Status: M34-scope vastgelegd, 2 commits geleverd, prognose-diagnose actief  
+Openstaand voor volgende sessie:
+1. R-01 afronden — fixture vullen met echte PDF, bug lokaliseren in `berekenPrognose()` of parser
+2. R-02 — datapunten-overzicht fase-onderscheid
+3. R-03 — BPV-uren weergave definitie
+4. V-01/V-02/V-03 — visuele verbeteringen (klein werk, hoge zichtbaarheid)
+5. Fixture-dump verwijderen uit `utils/datamodel.ts` zodra diagnose klaar is
