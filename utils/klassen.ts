@@ -256,6 +256,12 @@ async function _migrateLocalStorageToStore(): Promise<boolean> {
   }
 }
 
+// ── countUniekeLeerlingen(students) — pure count helper ───────────────────────
+export function countUniekeLeerlingen(students: any): number {
+  if (!Array.isArray(students)) return 0;
+  return new Set(students.map((s: any) => s.leerlingId)).size;
+}
+
 // ── getActiveStudents() — convenience getter ──────────────────────────────────
 export function getActiveStudents(): any[] {
   if (!klassenState.activeKlasId) return [];
