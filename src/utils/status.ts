@@ -20,8 +20,9 @@ export const STATUS_VOLGORDE: Record<string, number> = {
   rood:   0,
   oranje: 1,
   groen:  2,
-  blauw:  3,
-  grijs:  4,
+  paars:  3,
+  blauw:  4,
+  grijs:  5,
 };
 
 /**
@@ -34,13 +35,14 @@ export const RAG_BORDER: Record<string, string> = {
   rood:   '#ef4444',
   grijs:  '#d1d5db',
   blauw:  '#3b82f6',
+  paars:  '#7c3aed',
 };
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-export type StatusKleur = 'groen' | 'oranje' | 'rood' | 'blauw' | 'grijs';
+export type StatusKleur = 'groen' | 'oranje' | 'rood' | 'blauw' | 'paars' | 'grijs';
 
 export interface StatusResult {
   kleur:    StatusKleur;
@@ -101,9 +103,9 @@ export function detectTraject(student: any): string {
  *   2. negatief prognose → rood / Risico
  *   3. neutraal prognose → oranje / Let op
  *   4. ongeoorloofd > 600 min → oranje / Verzuim
- *   5. sbc → blauw / Profieljaar SBC
+ *   5. sbc → paars / Profieljaar SBC
  *   6. sbl → groen / Op koers
- *   7. versneld_sbc → blauw / Versneld SBC
+ *   7. versneld_sbc → paars / Versneld SBC
  *   8. naar_bj2 → groen / Op koers BJ2
  *   9. fallback → groen / Op koers
  *
@@ -124,10 +126,10 @@ export function berekenStatus(student: any, traject?: string, thresholds?: { geo
   if (ongeoorloofd > resolvedThresholds.ongeoorloofd || geoorloofd > resolvedThresholds.geoorloofd)
                                    return { kleur: 'oranje', label: 'Verzuim',         prognose: p };
   // BJ2 outcomes
-  if (p.label === 'sbc')           return { kleur: 'blauw',  label: 'Profieljaar SBC', prognose: p };
+  if (p.label === 'sbc')           return { kleur: 'paars',  label: 'Profieljaar SBC', prognose: p };
   if (p.label === 'sbl')           return { kleur: 'groen',  label: 'Op koers',        prognose: p };
   // BJ1 outcomes
-  if (p.label === 'versneld_sbc')  return { kleur: 'blauw',  label: 'Versneld SBC',    prognose: p };
+  if (p.label === 'versneld_sbc')  return { kleur: 'paars',  label: 'Versneld SBC',    prognose: p };
   if (p.label === 'naar_bj2')      return { kleur: 'groen',  label: 'Op koers BJ2',    prognose: p };
   return                                  { kleur: 'groen',  label: 'Op koers',        prognose: p };
 }

@@ -127,10 +127,11 @@ test('detectTraject: periode="2e jaar" → "bj2"', () => {
 // STATUS_VOLGORDE smoke test
 // ---------------------------------------------------------------------------
 
-test('STATUS_VOLGORDE: rood < oranje < groen < blauw < grijs', () => {
+test('STATUS_VOLGORDE: rood < oranje < groen < paars < blauw < grijs', () => {
   expect(STATUS_VOLGORDE['rood']).toBeLessThan(STATUS_VOLGORDE['oranje']);
   expect(STATUS_VOLGORDE['oranje']).toBeLessThan(STATUS_VOLGORDE['groen']);
-  expect(STATUS_VOLGORDE['groen']).toBeLessThan(STATUS_VOLGORDE['blauw']);
+  expect(STATUS_VOLGORDE['groen']).toBeLessThan(STATUS_VOLGORDE['paars']);
+  expect(STATUS_VOLGORDE['paars']).toBeLessThan(STATUS_VOLGORDE['blauw']);
   expect(STATUS_VOLGORDE['blauw']).toBeLessThan(STATUS_VOLGORDE['grijs']);
 });
 

@@ -58,7 +58,7 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent }: KlasOverz
       const fase1Status = berekenStatus(sorted[0]);
       const fase2Status = berekenStatus(sorted[sorted.length - 1]);
 
-      // Grijs guard (D-09): only compare two real RAG colours (rood/oranje/groen/blauw)
+      // Grijs guard (D-09): only compare two real RAG colours (rood/oranje/groen/paars/blauw)
       if (fase1Status.kleur === 'grijs' || fase2Status.kleur === 'grijs') return null;
 
       const rank1 = STATUS_VOLGORDE[fase1Status.kleur];
@@ -83,14 +83,14 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent }: KlasOverz
   // Fix: use statusMap values directly rather than re-mapping via allStudents
   // to ensure we count from the same dataset the map was built from.
   const allStatuses = Array.from(statusMap.values());
-  const opSchemaCount = allStatuses.filter(st => st.kleur === 'groen' || st.kleur === 'blauw').length;
+  const opSchemaCount = allStatuses.filter(st => st.kleur === 'groen' || st.kleur === 'paars' || st.kleur === 'blauw').length;
   const risicoCount   = allStatuses.filter(st => st.kleur === 'rood').length;
   const letOpCount    = allStatuses.filter(st => st.kleur === 'oranje' && st.label === 'Let op').length;
   const verzuimCount  = allStatuses.filter(st => st.kleur === 'oranje' && st.label === 'Verzuim').length;
   const grijsCount    = allStatuses.filter(st => st.kleur === 'grijs').length;
 
   // pctOpSchema denominator excludes grijs (unscored) students so the percentage
-  // reflects only students whose status is actually known (rood/oranje/groen/blauw).
+  // reflects only students whose status is actually known (rood/oranje/groen/paars/blauw).
   // Shows "--" when no scored students exist yet.
   const scoredCount = allStudents.length - grijsCount;
   const pctOpSchema = scoredCount > 0 ? Math.round((opSchemaCount / scoredCount) * 100) : null;
