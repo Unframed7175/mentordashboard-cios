@@ -1,11 +1,11 @@
 ---
-status: diagnosed
+status: resolved
 phase: 33-klas-verwijderen-bevestiging
 source:
   - .planning/phases/33-klas-verwijderen-bevestiging/33-01-SUMMARY.md
   - .planning/phases/33-klas-verwijderen-bevestiging/33-02-SUMMARY.md
 started: "2026-05-30T08:35:00Z"
-updated: "2026-05-30T08:50:00Z"
+updated: "2026-05-30T09:00:00Z"
 ---
 
 ## Current Test
@@ -59,7 +59,7 @@ skipped: 0
 ## Gaps
 
 - truth: "Modal toont het werkelijke unieke leerlingaantal — niet verdubbeld bij leerlingen met 2 fases"
-  status: failed
+  status: resolved
   reason: "User reported: wanneer er 2 fases per leerling in zitten dan wordt het aantal verdubbeld."
   severity: major
   test: 3
