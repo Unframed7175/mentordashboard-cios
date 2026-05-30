@@ -114,19 +114,15 @@ function makeProps(overrides?: Partial<Parameters<typeof KlasTabStrip>[0]>) {
   };
 }
 
-describe('KlasTabStrip — TAB-01: delete button visibility (Phase 27)', () => {
-  it('TAB-01: renders × button only for klas with canDelete === true', () => {
+describe('KlasTabStrip — TAB-01: delete button visibility (Phase 33)', () => {
+  it('TAB-01: renders × button voor ALLE klassen ongeacht canDelete prop', () => {
     render(<KlasTabStrip {...makeProps()} />);
-    // Only k1 (canDelete: true) should have a delete button
+    // makeProps heeft k1 (canDelete: true) en k2 (canDelete: false)
+    // Na Phase 33 toont de component × voor BEIDE klassen
     const deleteButtons = screen.getAllByRole('button', { name: /verwijderen/i });
-    expect(deleteButtons).toHaveLength(1);
+    expect(deleteButtons).toHaveLength(2);
     expect(deleteButtons[0].getAttribute('aria-label')).toMatch(/Klas A verwijderen/i);
-  });
-
-  it('TAB-01: no × button for klas with canDelete === false', () => {
-    render(<KlasTabStrip {...makeProps()} />);
-    // Klas B (canDelete: false) should have no delete button
-    expect(screen.queryByRole('button', { name: /Klas B verwijderen/i })).toBeNull();
+    expect(deleteButtons[1].getAttribute('aria-label')).toMatch(/Klas B verwijderen/i);
   });
 });
 
