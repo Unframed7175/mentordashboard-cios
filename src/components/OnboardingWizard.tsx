@@ -400,13 +400,22 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
           )}
 
           {step === 2 && (
-            <button
-              className={pdfsUploaded > 0 && !processing ? 'btn-primary-accent' : 'detail-nav-btn'}
-              onClick={nextStep}
-              disabled={pdfsUploaded === 0 || processing}
-            >
-              Volgende →
-            </button>
+            <>
+              <button
+                className="detail-nav-btn"
+                onClick={nextStep}
+                disabled={processing}
+              >
+                Overslaan
+              </button>
+              <button
+                className="btn-primary-accent"
+                onClick={nextStep}
+                disabled={pdfsUploaded === 0 || processing}
+              >
+                Volgende →
+              </button>
+            </>
           )}
 
           {(step === 3 || step === 4) && (

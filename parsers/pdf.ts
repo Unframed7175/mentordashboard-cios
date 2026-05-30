@@ -24,12 +24,7 @@ const Y_TOLERANCE = 3;
  * Known status strings (per D-11).
  * Matched case-insensitively with whitespace tolerance.
  */
-const STATUS_STRINGS = [
-  'Op tijd ingeleverd en wel beoordeeld',
-  'Zelfevaluatie afgerond',
-  'Niet ingeleverd',
-  'Beoordeeld',
-];
+import { STATUS_STRINGS } from './pdf-status';
 
 /**
  * Known vak group heading strings as they appear in SomToday PDFs.
@@ -222,6 +217,17 @@ function extractHeader(lines: any[][]): { naam: string; leerlingId: string; peri
       const m = text.match(/Leerjaar\s+(\d+)/i);
       if (m) result.leerjaar = m[1];
     }
+  }
+
+  // SomToday exporteert altijd "Leerjaar 1" in de header, ook voor BJ2-leerlingen
+  // (het getal geeft het jaar binnen het huidige traject aan, niet het totale studiejaar).
+  // Leid leerjaar daarom af uit periode wanneer die het traject expliciet benoemt.
+  if (result.periode) {
+    const p = result.periode.toLowerCase();
+    const isBJ2 = ['bj2', '2e jaar', 'jaar 2', 'leerjaar 2', 'bj 2', 'klas 2'].some(pat => p.includes(pat));
+    const isBJ1 = ['bj1', '1e jaar', 'jaar 1', 'leerjaar 1', 'bj 1', 'klas 1'].some(pat => p.includes(pat));
+    if (isBJ2) result.leerjaar = '2';
+    else if (isBJ1) result.leerjaar = '1';
   }
 
   return result;
@@ -756,7 +762,7 @@ export {
 
   // Constants
   Y_TOLERANCE,
-  STATUS_STRINGS,
+  STATUS_STRINGS,   // re-exported from ./pdf-status
   VAK_HEADINGS,
   MIN_HEADER_MATCHES,
   COLUMN_X_TOLERANCE,
