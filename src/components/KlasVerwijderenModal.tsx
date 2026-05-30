@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface KlasVerwijderenModalProps {
   klasNaam: string;
@@ -15,12 +15,16 @@ export default function KlasVerwijderenModal({
 }: KlasVerwijderenModalProps) {
   const [checked, setChecked] = useState(false);
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onCancel();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onCancel]);
+
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) onCancel();
-  }
-
-  function handleOverlayKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'Escape') onCancel();
   }
 
   return (
@@ -34,7 +38,6 @@ export default function KlasVerwijderenModal({
         justifyContent: 'center',
         zIndex: 1000,
       }}
-      onKeyDown={handleOverlayKeyDown}
       onClick={handleOverlayClick}
     >
       <div
