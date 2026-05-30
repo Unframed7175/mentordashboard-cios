@@ -82,7 +82,8 @@
 
 - [x] **Phase 31: UI Polish — Nav & Spider** — Nav-banner en logo zijn twee keer zo groot; spiderweb chart is groter en FeedbackActiepuntenSection staat onderaan de detailweergave *(completed 2026-05-29)*
 - [x] **Phase 32: R&N Status op Tegels** — Elke leerlingtegel toont een compacte Rekenen/Nederlands statusregel wanneer die data aanwezig is *(completed 2026-05-29)*
-- [x] **Phase 33: Klas Verwijderen met Bevestiging** — Mentor kan een niet-lege klas verwijderen via een modal met checkbox-bevestiging en studententelling (completed 2026-05-30)
+- [x] **Phase 33: Klas Verwijderen met Bevestiging** — Mentor kan een niet-lege klas verwijderen via een modal met checkbox-bevestiging en studententelling
+ (completed 2026-05-30)
 - [ ] **Phase 34: Keuzedelen per Leerling** — Mentor kan per leerling keuzedelen toevoegen, on-track status bijhouden en verwijderen — data overleeft herstart
 - [ ] **Phase 35: BPV Echte Column Matchers** — BPV-sectie toont werkelijke gerealiseerde uren uit het echte SomToday Excel bestand via gehardende column matchers
 
@@ -764,7 +765,7 @@ Plans:
   3. De definitieve verwijderknop in de modal is uitgeschakeld totdat de mentor de checkbox "Ik begrijp dat alle leerlingdata wordt verwijderd" aanvinkt
   4. Na verwijdering van de laatste klas navigeert de app automatisch naar het importscherm
 
-**Plans**: 2 plans
+**Plans**: 3 plans (incl. 1 gap closure)
 
 Plans:
 
@@ -775,6 +776,10 @@ Plans:
 **Wave 1** *(blocked on Wave 0 completion)*
 
 - [x] 33-02-PLAN.md — Wave 1: KlasVerwijderenModal.tsx + KlasTabStrip canDelete guard removal + App.tsx wiring (KLS-04..07)
+
+**Gap Closure** *(UAT test 3 — count dubbeltelling bij multi-periode leerlingen)*
+
+- [ ] 33-03-PLAN.md — Gap closure: countUniekeLeerlingen() helper + handleDeleteKlas fix (KLS-05)
 
 ### Phase 34: Keuzedelen per Leerling
 
