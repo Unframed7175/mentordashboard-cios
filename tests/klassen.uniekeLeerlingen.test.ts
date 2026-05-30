@@ -35,4 +35,13 @@ describe('countUniekeLeerlingen', () => {
     ];
     expect(countUniekeLeerlingen(students)).toBe(3);
   });
+
+  it('telt records zonder leerlingId niet mee', () => {
+    const students = [
+      { leerlingId: 'a' },
+      { leerlingId: null },
+      {},
+    ];
+    expect(countUniekeLeerlingen(students)).toBe(1);
+  });
 });

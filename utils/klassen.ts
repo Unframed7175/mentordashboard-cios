@@ -259,7 +259,7 @@ async function _migrateLocalStorageToStore(): Promise<boolean> {
 // ── countUniekeLeerlingen(students) — pure count helper ───────────────────────
 export function countUniekeLeerlingen(students: any): number {
   if (!Array.isArray(students)) return 0;
-  return new Set(students.map((s: any) => s.leerlingId)).size;
+  return new Set(students.map((s: any) => s.leerlingId).filter(Boolean)).size;
 }
 
 // ── getActiveStudents() — convenience getter ──────────────────────────────────
