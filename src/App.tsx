@@ -9,7 +9,7 @@ import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
 import OnboardingWizard from './components/OnboardingWizard';
 import KlasVerwijderenModal from './components/KlasVerwijderenModal';
-import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted, deleteKlas, renameKlas } from '../utils/klassen';
+import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted, deleteKlas, renameKlas, countUniekeLeerlingen } from '../utils/klassen';
 import { loadSettings, applyTheme } from '../utils/settings';
 
 function App() {
@@ -130,7 +130,7 @@ function App() {
   function handleDeleteKlas(klasId: string): void {
     const klas = klassenState.klassen[klasId];
     const naam = klas?.naam ?? klasId;
-    const count = Array.isArray(klas?.students) ? klas.students.length : 0;
+    const count = countUniekeLeerlingen(klas?.students);
     setShowDeleteModal({ klasId, naam, count });
   }
 
