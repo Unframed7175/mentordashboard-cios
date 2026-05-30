@@ -82,7 +82,7 @@
 
 - [x] **Phase 31: UI Polish — Nav & Spider** — Nav-banner en logo zijn twee keer zo groot; spiderweb chart is groter en FeedbackActiepuntenSection staat onderaan de detailweergave *(completed 2026-05-29)*
 - [x] **Phase 32: R&N Status op Tegels** — Elke leerlingtegel toont een compacte Rekenen/Nederlands statusregel wanneer die data aanwezig is *(completed 2026-05-29)*
-- [ ] **Phase 33: Klas Verwijderen met Bevestiging** — Mentor kan een niet-lege klas verwijderen via een modal met checkbox-bevestiging en studententelling
+- [x] **Phase 33: Klas Verwijderen met Bevestiging** — Mentor kan een niet-lege klas verwijderen via een modal met checkbox-bevestiging en studententelling (completed 2026-05-30)
 - [ ] **Phase 34: Keuzedelen per Leerling** — Mentor kan per leerling keuzedelen toevoegen, on-track status bijhouden en verwijderen — data overleeft herstart
 - [ ] **Phase 35: BPV Echte Column Matchers** — BPV-sectie toont werkelijke gerealiseerde uren uit het echte SomToday Excel bestand via gehardende column matchers
 
@@ -774,7 +774,7 @@ Plans:
 
 **Wave 1** *(blocked on Wave 0 completion)*
 
-- [ ] 33-02-PLAN.md — Wave 1: KlasVerwijderenModal.tsx + KlasTabStrip canDelete guard removal + App.tsx wiring (KLS-04..07)
+- [x] 33-02-PLAN.md — Wave 1: KlasVerwijderenModal.tsx + KlasTabStrip canDelete guard removal + App.tsx wiring (KLS-04..07)
 
 ### Phase 34: Keuzedelen per Leerling
 
@@ -844,6 +844,6 @@ Plans:
 | 30. Documentatie, Help & CI | 4/4 | Complete | 2026-05-28 |
 | 31. UI Polish — Nav & Spider | 0/TBD | Not started | - |
 | 32. R&N Status op Tegels | 0/1 | Not started | - |
-| 33. Klas Verwijderen met Bevestiging | 1/2 | In Progress|  |
+| 33. Klas Verwijderen met Bevestiging | 2/2 | Complete   | 2026-05-30 |
 | 34. Keuzedelen per Leerling | 0/TBD | Not started | - |
 | 35. BPV Echte Column Matchers | 0/TBD | Not started | - |
