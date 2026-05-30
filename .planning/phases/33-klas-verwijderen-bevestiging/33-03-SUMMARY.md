@@ -7,6 +7,7 @@ completed: "2026-05-30"
 commits:
   - 7c6a1f4
   - 00991c2
+  - 163baa0
 ---
 
 # Plan 33-03 Summary — Gap Closure: countUniekeLeerlingen
@@ -39,8 +40,8 @@ key-files.created:
   - src/App.tsx — uses `countUniekeLeerlingen` in `handleDeleteKlas`
 
 Automated checks:
-  - `npx vitest run tests/klassen.uniekeLeerlingen.test.ts` — 5/5 passed
-  - `npx vitest run` — 223/223 passed, 0 regressions
+  - `npx vitest run tests/klassen.uniekeLeerlingen.test.ts` — 6/6 passed (incl. null/missing leerlingId guard)
+  - `npx vitest run` — 224/224 passed, 0 regressions
   - `npx tsc --noEmit -p tsconfig.migrated.json` — 0 errors
 
 Requirements covered: KLS-05
