@@ -1,6 +1,6 @@
 // tests/datapuntStatus.test.ts — TDD for R-02
 import { describe, it, expect } from 'vitest';
-import { normalizeDpNaam, buildDpStatusMap } from '../utils/datapuntStatus';
+import { normalizeDpNaam, buildDpStatusMap, lookupDpStatus } from '../utils/datapuntStatus';
 
 describe('normalizeDpNaam', () => {
   it('strips ASCII hyphen-minus prefix', () => {
@@ -21,6 +21,26 @@ describe('normalizeDpNaam', () => {
 
   it('lowercases and trims', () => {
     expect(normalizeDpNaam('  Opdracht A  ')).toBe('opdracht a');
+  });
+
+  it('strips "Opdracht N:" prefix', () => {
+    expect(normalizeDpNaam('Opdracht 1: Lesontwerp')).toBe('lesontwerp');
+  });
+
+  it('strips "Opdracht N." prefix', () => {
+    expect(normalizeDpNaam('Opdracht 2. Uitvoering')).toBe('uitvoering');
+  });
+
+  it('strips leading number-dot prefix', () => {
+    expect(normalizeDpNaam('1. Lesontwerp')).toBe('lesontwerp');
+  });
+
+  it('strips dash + number-dot prefix combined', () => {
+    expect(normalizeDpNaam('- 1. Lesontwerp')).toBe('lesontwerp');
+  });
+
+  it('strips dash + "Opdracht N:" combined', () => {
+    expect(normalizeDpNaam('- Opdracht 1: Lesontwerp')).toBe('lesontwerp');
   });
 });
 
@@ -46,8 +66,9 @@ describe('buildDpStatusMap', () => {
       },
     ];
     const map = buildDpStatusMap(records);
-    expect(map.get('opdracht 1: lesontwerp')).toBe('op tijd ingeleverd en wel beoordeeld');
-    expect(map.get('opdracht 2: uitvoering')).toBe('te laat ingeleverd en wel beoordeeld');
+    // Both strip to bare name after "Opdracht N:" removal
+    expect(map.get('lesontwerp')).toBe('op tijd ingeleverd en wel beoordeeld');
+    expect(map.get('uitvoering')).toBe('te laat ingeleverd en wel beoordeeld');
   });
 
   it('dash-stripped datapunt label matches the map key', () => {
@@ -108,5 +129,35 @@ describe('buildDpStatusMap', () => {
     ];
     const map = buildDpStatusMap(records);
     expect(map.has('opdracht x')).toBe(false);
+  });
+});
+
+describe('lookupDpStatus', () => {
+  it('returns exact match', () => {
+    const map = new Map([['lesontwerp', 'op tijd ingeleverd en wel beoordeeld']]);
+    expect(lookupDpStatus(map, '- 1. Lesontwerp')).toBe('op tijd ingeleverd en wel beoordeeld');
+  });
+
+  it('returns undefined when no match', () => {
+    const map = new Map([['lesontwerp', 'op tijd ingeleverd en wel beoordeeld']]);
+    expect(lookupDpStatus(map, '- uitvoering')).toBeUndefined();
+  });
+
+  it('substring fallback: datapunt key is contained in map key', () => {
+    // datapunt "praktijkles" is substring of opdracht "praktijkles geven aan kinderen"
+    const map = new Map([['praktijkles geven aan kinderen', 'op tijd ingeleverd en wel beoordeeld']]);
+    expect(lookupDpStatus(map, '- praktijkles')).toBe('op tijd ingeleverd en wel beoordeeld');
+  });
+
+  it('substring fallback: map key is contained in datapunt key', () => {
+    // code-prefixed label: datapunt "lo01 sportles geven" contains opdracht "sportles geven"
+    const map = new Map([['sportles geven', 'te laat ingeleverd en wel beoordeeld']]);
+    expect(lookupDpStatus(map, '- LO01 Sportles geven')).toBe('te laat ingeleverd en wel beoordeeld');
+  });
+
+  it('does not substring-match on map keys shorter than 4 chars', () => {
+    // 'les' (3 chars) is a substring of 'sportles geven' but too short for fallback
+    const map = new Map([['les', 'op tijd ingeleverd en wel beoordeeld']]);
+    expect(lookupDpStatus(map, 'sportles geven')).toBeUndefined();
   });
 });

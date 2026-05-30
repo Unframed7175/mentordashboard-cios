@@ -1,12 +1,19 @@
 // utils/datapuntStatus.ts — Status lookup for datapunten in DeelgebiedenMatrix (R-02)
 
 /**
- * Strip the leading dash prefix (SomToday uses Unicode hyphens in the
- * Overzicht Deelgebieden table) and normalize for case-insensitive matching.
- * The same character set as DATAPUNT_PREFIX in parsers/pdf.ts.
+ * Normalize an opdracht/datapunt name for matching.
+ * Strips leading dash, "Opdracht N:" prefix, and leading "N." number prefix
+ * so that "1. Lesontwerp", "- 1. Lesontwerp" and "Opdracht 1: Lesontwerp"
+ * all normalise to the same key ("lesontwerp").
  */
 export function normalizeDpNaam(naam: string): string {
-  return naam.replace(/^[-‐‑‒–—―−]\s*/, '').toLowerCase().trim();
+  return naam
+    .replace(/^[-‐‑‒–—―−]\s*/, '')           // strip leading dash (table row prefix)
+    .replace(/^opdracht\s*\d+[.:]\s*/i, '')    // strip "Opdracht N:" / "Opdracht N."
+    .replace(/^\d+[.:]\s*/, '')                // strip "1." / "1:"
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
@@ -29,4 +36,27 @@ export function buildDpStatusMap(allRecords: any[]): Map<string, string> {
     }
   }
   return map;
+}
+
+/**
+ * Look up the delivery status for a datapunt label.
+ *
+ * Strategy:
+ *   1. Exact match on normalised key.
+ *   2. Substring containment — one key contains the other (min 4 chars).
+ *      Handles truncated datapunt labels from older imports and code-prefixed
+ *      labels like "LO01 Sportles" matching "Sportles geven".
+ */
+export function lookupDpStatus(map: Map<string, string>, dpNaam: string): string | undefined {
+  const key = normalizeDpNaam(dpNaam);
+  const exact = map.get(key);
+  if (exact) return exact;
+  if (key.length >= 4) {
+    for (const [mapKey, status] of map) {
+      if (mapKey.length >= 4 && (key.includes(mapKey) || mapKey.includes(key))) {
+        return status;
+      }
+    }
+  }
+  return undefined;
 }

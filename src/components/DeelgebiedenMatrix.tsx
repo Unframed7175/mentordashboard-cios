@@ -4,7 +4,7 @@ import { getAllRecordsForStudent } from '../../utils/klassen';
 import { DEELGEBIEDEN, SCORE_LEVELS, normalizeScore } from '../../utils/schema';
 import { getDeelgebiedenConfigSync, type DeelgebiedConfig } from '../../utils/deelgebieden';
 import { getLeerlijnenMappingSync } from '../../utils/leerlijnen';
-import { buildDpStatusMap, normalizeDpNaam } from '../../utils/datapuntStatus';
+import { buildDpStatusMap, lookupDpStatus } from '../../utils/datapuntStatus';
 import StatusBadge from './StatusBadge';
 
 interface DeelgebiedenMatrixProps {
@@ -172,8 +172,9 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                 )}
                 {groep.datapunten.map((dp: any, i: number) => {
                   // dp.status is set at parse-time by enrichDatapuntenStatus (new imports).
-                  // Fall back to runtime map lookup for records imported before this fix.
-                  const status = dp.status || statusMap.get(normalizeDpNaam(dp.datapunt));
+                  // Fall back to runtime lookupDpStatus (aggressive norm + substring) for
+                  // records imported before this fix.
+                  const status = dp.status || lookupDpStatus(statusMap, dp.datapunt);
                   return (
                     <tr key={`${gi}-${i}`}>
                       <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', whiteSpace: 'nowrap' }}>
