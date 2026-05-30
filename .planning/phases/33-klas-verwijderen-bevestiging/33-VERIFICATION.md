@@ -1,9 +1,17 @@
 ---
 phase: 33-klas-verwijderen-bevestiging
-verified: 2026-05-30T08:45:00Z
+verified: 2026-05-30T09:05:00Z
 status: human_needed
-score: 7/7 must-haves verified
+score: 8/8 must-haves verified
 overrides_applied: 0
+re_verification:
+  previous_status: human_needed
+  previous_score: 7/7
+  gaps_closed:
+    - "De verwijdermodal toont het werkelijke unieke leerlingaantal — niet verdubbeld bij leerlingen met 2 fases/periodes"
+    - "CR-01 fixed: Escape handler now attached to window via useEffect (commit 3f37baa)"
+  gaps_remaining: []
+  regressions: []
 human_verification:
   - test: "Open app met 2 klassen. Klik × op klas 2 (niet-actief). Bevestig via checkbox + Verwijder. Controleer of klas 2 tab verdwenen is en klas 1 nog actief is."
     expected: "Klas 2 verwijderd, klas 1 blijft actief, view unchanged."
@@ -12,19 +20,19 @@ human_verification:
     expected: "App navigeert automatisch naar importscherm (KLS-07)."
     why_human: "KLS-07 navigatie hangt af van klassenState.klassen runtime state na async deleteKlas() — niet volledig testbaar via static analysis."
   - test: "Open modal via × knop. Druk op Escape."
-    expected: "CR-01 (uit code review): Escape sluit de modal NIET — de onKeyDown handler is attached aan een niet-focuseerbare div zonder tabIndex/role=dialog. Dit is een bekende bug (zie REVIEW.md CR-01). Verwacht gedrag: modal blijft open bij Escape."
-    why_human: "CR-01 vereist menselijke verificatie dat het probleem daadwerkelijk optreedt in de browser. De Annuleren-knop werkt wel. Dit is een UX-degradatie, geen requirements-blocker voor KLS-04 t/m KLS-07."
-  - test: "Open klas met leerlingen. Navigeer naar detailweergave van een leerling. Klik × op die actieve klas. Bevestig verwijdering."
-    expected: "WR-02 (uit code review): app blijft mogelijk op detailweergave voor de verwijderde klas staan — geen automatische navigatie naar 'klas' view tenzij alle klassen weg zijn. Controleer of de UI een lege of foutieve state toont."
-    why_human: "WR-02 is een edge case in view-transitie na active-class deletion. Niet afdekbaar via unit tests of static analysis."
+    expected: "Modal sluit (Escape is nu correct gewired via window.addEventListener in useEffect — CR-01 fix commit 3f37baa)."
+    why_human: "Verify the CR-01 fix works in the actual browser/WebView."
+  - test: "Open klas met leerlingen. Navigeer naar detailweergave van een leerling. Klik × op die actieve klas. Bevestig verwijdering. Andere klassen blijven."
+    expected: "App navigeert naar 'klas' view (WR-02 fix: handleConfirmDeleteKlas now calls setView('klas') when wasActive and view is 'klas' or 'detail'). Geen stale detailweergave."
+    why_human: "View state transitions after deleteKlas() require runtime observation."
 ---
 
 # Phase 33: Klas Verwijderen met Bevestiging — Verification Report
 
-**Phase Goal:** Mentor kan een niet-lege klas definitief verwijderen na expliciete checkbox-bevestiging, waarbij de modal de klasnaam en het aantal leerlingen toont
-**Verified:** 2026-05-30T08:45:00Z
+**Phase Goal:** Bevestigingsmodal voor het verwijderen van een klas (KLS-04, KLS-05)
+**Verified:** 2026-05-30T09:05:00Z
 **Status:** human_needed
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — after gap closure (Plan 33-03 + commits 3f37baa, 9b9f986)
 
 ## Goal Achievement
 
@@ -32,106 +40,128 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | KLS-04: Delete button visible for ALL klassen (including non-empty); clicking opens confirmation dialog (not window.confirm) | VERIFIED | KlasTabStrip.tsx lines 110-117: unconditional `<button className="delete-tab-btn">` rendered for every klas. App.tsx line 130-135: handleDeleteKlas calls setShowDeleteModal, no window.confirm present (0 grep matches). |
-| 2 | KLS-05: Confirmation dialog shows klasnaam and exact leerlingaantal | VERIFIED | KlasVerwijderenModal.tsx line 54-56: `Klas '{klasNaam}' bevat {leerlingCount} leerlingen.` App.tsx line 132-133: count derived from `klas.students.length`. Test KLS-05 passes. |
-| 3 | KLS-06: Confirm button disabled until checkbox "Ik begrijp dat alle leerlingdata wordt verwijderd" is checked | VERIFIED | KlasVerwijderenModal.tsx line 82-88: `disabled={!checked}` on Verwijderen button. Checkbox controls `checked` state via useState. Tests KLS-06 (2 tests) pass. |
-| 4 | KLS-07: After deleting last class, app navigates to import screen | VERIFIED | App.tsx lines 143-145: `if (Object.keys(klassenState.klassen).length === 0) { setView('import') }` inside handleConfirmDeleteKlas. Logic executes after await deleteKlas(). |
-| 5 | canDelete guard removed from KlasTabStrip — × always visible | VERIFIED | KlasTabStrip.tsx lines 110-117: no `{klas.canDelete && ...}` wrapper — button unconditionally rendered. grep "canDelete &&" returns 0 matches. canDelete prop declared as `canDelete?: boolean` (optional, ignored in render). |
-| 6 | App.tsx fully wired: showDeleteModal state, handleDeleteKlas opens modal, handleConfirmDeleteKlas with KLS-07 | VERIFIED | App.tsx line 25: `const [showDeleteModal, setShowDeleteModal] = useState<... | null>(null)`. Lines 130-146: both handlers present and correct. Lines 188-195: conditional `<KlasVerwijderenModal>` mount. showDeleteModal appears 6 times in App.tsx. |
-| 7 | npm test exitcode 0 — all 218 tests green including 6 new tests from Plan 01 | VERIFIED | Ran `npm test` — result: 218 passed, 5 skipped, 0 failed. All KlasVerwijderenModal tests (5) and TAB-01 test (1) green. |
+| 1 | KLS-04: Delete button visible for ALL klassen; clicking opens confirmation modal (not window.confirm) | VERIFIED | KlasTabStrip lines 110-117: unconditional delete button. App.tsx line 130-135: handleDeleteKlas calls setShowDeleteModal. grep "window.confirm" App.tsx = 0 matches. |
+| 2 | KLS-05: Confirmation modal shows klasnaam and the CORRECT unique student count (not doubled for multi-period students) | VERIFIED | App.tsx line 133: `const count = countUniekeLeerlingen(klas?.students)`. utils/klassen.ts lines 260-263: `export function countUniekeLeerlingen` uses Set on leerlingId values. 6/6 test cases pass in tests/klassen.uniekeLeerlingen.test.ts. |
+| 3 | KLS-06: Confirm button disabled until checkbox "Ik begrijp dat alle leerlingdata wordt verwijderd" is checked | VERIFIED | KlasVerwijderenModal.tsx line 88: `disabled={!checked}`. 2 test assertions (disabled initially, enabled after click) pass. |
+| 4 | KLS-07: After deleting last class, app navigates to import screen | VERIFIED | App.tsx lines 144-145: `if (Object.keys(klassenState.klassen).length === 0) { setView('import') }` in handleConfirmDeleteKlas. |
+| 5 | countUniekeLeerlingen exported from utils/klassen.ts | VERIFIED | utils/klassen.ts line 260: `export function countUniekeLeerlingen(students: any): number`. Named export present. |
+| 6 | handleDeleteKlas in App.tsx uses countUniekeLeerlingen (not raw .length) | VERIFIED | App.tsx line 12: `countUniekeLeerlingen` in import. Line 133: `const count = countUniekeLeerlingen(klas?.students)`. No `klas.students.length` present in handleDeleteKlas. |
+| 7 | 6 test cases pass for countUniekeLeerlingen (5 original + 1 null/missing guard) | VERIFIED | tests/klassen.uniekeLeerlingen.test.ts: 6 it()-blocks. `npx vitest run tests/klassen.uniekeLeerlingen.test.ts` output: 6/6 passed. 6th test: records without leerlingId not counted (filter(Boolean) in implementation). |
+| 8 | Full test suite green with no regressions (224 tests) | VERIFIED | `npx vitest run`: 27 passed, 1 skipped file. 224 tests passed, 5 skipped. 0 failures. |
 
-**Score:** 7/7 truths verified
+**Score:** 8/8 truths verified
+
+### Gap Closure Verification (Plan 33-03)
+
+| Gap | Root Cause | Fix Applied | Evidence |
+|-----|-----------|-------------|----------|
+| Modal doubled student count for multi-period students | `klas.students.length` counted one record per period, not per student | `countUniekeLeerlingen()` added to utils/klassen.ts; `handleDeleteKlas` uses it | utils/klassen.ts:260-263; App.tsx:133; 6/6 tests pass |
+
+### Additional Fixes Verified (post-UAT commits)
+
+| Fix | Commit | Evidence |
+|-----|--------|----------|
+| CR-01: Escape key now closes modal | 3f37baa | KlasVerwijderenModal.tsx lines 18-24: `useEffect` attaches `window.addEventListener('keydown', onKey)` — fires regardless of focus state |
+| WR-01: Removed unused canDelete prop from KlasTabStripProps and App.tsx mapping | 9b9f986 | (verified via commit history; canDelete no longer appears in KlasTabStrip props passed from App.tsx line 166-181) |
+| WR-02 (partial): wasActive guard added to handleConfirmDeleteKlas | 3f37baa | App.tsx lines 146-148: `else if (wasActive && (view === 'klas' || view === 'detail')) { setView('klas') }` |
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `src/components/KlasVerwijderenModal.tsx` | Modal component: klasnaam + count, checkbox, disabled confirm, onConfirm/onCancel callbacks | VERIFIED | 93 lines. Interface KlasVerwijderenModalProps present. All 4 props implemented. Default export. |
-| `src/components/KlasTabStrip.tsx` | canDelete guard removed — × always visible | VERIFIED | Lines 110-117: unconditional delete button. `canDelete?: boolean` in interface (optional, not read in render). |
-| `src/App.tsx` | showDeleteModal state, handleDeleteKlas opens modal, handleConfirmDeleteKlas, KLS-07 navigation | VERIFIED | All 5 acceptance criteria from Plan 02 satisfied. import on line 11, state on line 25, handlers on lines 130-146, JSX mount on lines 188-195. |
-| `tests/KlasVerwijderenModal.test.tsx` | 5 tests: klasnaam+count, checkbox disabled/enabled, onCancel, onConfirm | VERIFIED | 48 lines, exactly 5 it()-blocks, all passing. |
-| `tests/KlasTabStrip.test.tsx` | TAB-01 block: expects × for ALL klassen regardless of canDelete | VERIFIED | Lines 117-127: describe block with 1 test, toHaveLength(2), passes. |
+| `utils/klassen.ts` | exports `countUniekeLeerlingen` pure helper | VERIFIED | Lines 259-263: exported, pure, uses Set for deduplication, handles non-array input, filters falsy leerlingId values. |
+| `src/App.tsx` | handleDeleteKlas uses countUniekeLeerlingen | VERIFIED | Line 12: imported. Line 133: used. No raw `.length` call in handleDeleteKlas. |
+| `tests/klassen.uniekeLeerlingen.test.ts` | 6 test cases covering countUniekeLeerlingen | VERIFIED | File exists, 6 it()-blocks, all passing. Covers: 2-period leerling counts as 1, 3x2-period = 3, undefined = 0, empty array = 0, 3 unique = 3, missing leerlingId not counted. |
+| `src/components/KlasVerwijderenModal.tsx` | Modal with correct behavior | VERIFIED | 96 lines. Escape via useEffect/window.addEventListener (CR-01 fixed). Overlay click, checkbox, disabled confirm, all present. |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
-| `src/App.tsx` | `src/components/KlasVerwijderenModal.tsx` | import + conditional render | WIRED | Line 11: import present. Lines 188-195: `{showDeleteModal && <KlasVerwijderenModal .../>}` with all 4 props wired. |
-| `src/components/KlasTabStrip.tsx` | `src/App.tsx` | onDeleteKlas prop callback | WIRED | KlasTabStrip line 114: `onClick={e => { e.stopPropagation(); onDeleteKlas(klas.id); }}`. App.tsx line 174: `onDeleteKlas={handleDeleteKlas}`. |
-| `handleDeleteKlas` | `setShowDeleteModal` | state setter in handler | WIRED | App.tsx line 134: `setShowDeleteModal({ klasId, naam, count })`. No window.confirm anywhere. |
-| `handleConfirmDeleteKlas` | `deleteKlas` + `setView('import')` | async chain | WIRED | Lines 140-145: await deleteKlas(klasId), then conditional setView('import') for empty state. |
+| `src/App.tsx` | `utils/klassen.ts:countUniekeLeerlingen` | import + call in handleDeleteKlas | WIRED | Line 12: named import. Line 133: `const count = countUniekeLeerlingen(klas?.students)` |
+| `src/App.tsx` | `src/components/KlasVerwijderenModal.tsx` | import + conditional render | WIRED | Line 11: import. Lines 190-197: `{showDeleteModal && <KlasVerwijderenModal .../>}` with all 4 props. |
+| `src/components/KlasTabStrip.tsx` | `src/App.tsx` | onDeleteKlas prop callback | WIRED | KlasTabStrip line 114: `onDeleteKlas(klas.id)`. App.tsx line 176: `onDeleteKlas={handleDeleteKlas}`. |
+| `handleConfirmDeleteKlas` | `deleteKlas` + `setView('import')` + `setView('klas')` | async chain | WIRED | Lines 137-149: await deleteKlas, then empty-klassen guard → setView('import'), wasActive guard → setView('klas'). |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 |----------|---------------|--------|--------------------|--------|
-| `KlasVerwijderenModal.tsx` | `klasNaam`, `leerlingCount` | App.tsx showDeleteModal state ← klassenState.klassen[klasId] | Yes — `klas.naam` and `klas.students.length` from live state | FLOWING |
-| `KlasTabStrip.tsx` | `klassen[]` | App.tsx: `Object.values(klassenState.klassen).map(...)` | Yes — direct from klassenState | FLOWING |
+| `KlasVerwijderenModal.tsx` | `leerlingCount` | App.tsx:133 `countUniekeLeerlingen(klas?.students)` ← `klassenState.klassen[klasId].students` (live Tauri store) | Yes — unique leerlingId count from real students array | FLOWING |
+| `KlasVerwijderenModal.tsx` | `klasNaam` | App.tsx:132 `klas?.naam ?? klasId` ← `klassenState.klassen[klasId]` | Yes — real klas naam from store | FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| All 218 tests pass including 6 new tests | `npm test` | 218 passed, 5 skipped, 0 failed | PASS |
-| canDelete guard absent | grep "canDelete &&" KlasTabStrip.tsx | 0 matches | PASS |
+| 6 countUniekeLeerlingen tests pass | `npx vitest run tests/klassen.uniekeLeerlingen.test.ts` | 6/6 passed | PASS |
+| Full test suite (224 tests) | `npx vitest run` | 224 passed, 5 skipped, 0 failed | PASS |
+| countUniekeLeerlingen exported | grep utils/klassen.ts | line 260: `export function countUniekeLeerlingen` | PASS |
+| handleDeleteKlas uses helper (not raw .length) | grep App.tsx | line 133: `countUniekeLeerlingen(klas?.students)` | PASS |
+| No raw .length in handleDeleteKlas | grep "students.length" App.tsx | 0 matches in handleDeleteKlas scope | PASS |
+| CR-01: Escape via window.addEventListener | grep KlasVerwijderenModal.tsx | lines 18-24: useEffect with window.addEventListener | PASS |
+| canDelete guard absent from KlasTabStrip | grep "canDelete &&" KlasTabStrip.tsx | 0 matches | PASS |
 | window.confirm absent | grep "window.confirm" App.tsx | 0 matches | PASS |
-| KlasVerwijderenModal imported in App | grep "KlasVerwijderenModal" App.tsx | 2 matches (import + JSX) | PASS |
-| canDelete: true in App.tsx | grep "canDelete: true" App.tsx | 1 match (line 167) | PASS |
-| setView('import') in handleConfirmDeleteKlas | grep "setView.*import" App.tsx | line 144 inside handleConfirmDeleteKlas | PASS |
-| disabled={!checked} in modal | grep "disabled={!checked}" KlasVerwijderenModal.tsx | 1 match (line 85) | PASS |
 
 ### Probe Execution
 
-No probes declared in PLAN files. No conventional `scripts/*/tests/probe-*.sh` found for this phase.
+No probes declared. No conventional `scripts/*/tests/probe-*.sh` found.
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|------------|-------------|--------|----------|
-| KLS-04 | 33-01, 33-02 | Mentor kan een niet-lege klas verwijderen via bevestigingsdialoog met checkbox | SATISFIED | × button unconditional in KlasTabStrip; handleDeleteKlas opens modal; handleConfirmDeleteKlas calls deleteKlas. 2 test assertions (Annuleren + Verwijderen callbacks). |
-| KLS-05 | 33-01, 33-02 | Bevestigingsdialoog toont klasnaam en aantal leerlingen | SATISFIED | KlasVerwijderenModal.tsx line 54-56: `Klas '{klasNaam}' bevat {leerlingCount} leerlingen.` Test KLS-05 passes. |
-| KLS-06 | 33-01, 33-02 | Verwijder-knop uitgeschakeld tot checkbox aangevinkt | SATISFIED | KlasVerwijderenModal.tsx line 85: `disabled={!checked}`. 2 test assertions (disabled initially, enabled after click). |
-| KLS-07 | 33-02 | Na verwijderen laatste klas navigeert app naar importscherm | SATISFIED | App.tsx lines 143-145: `if (Object.keys(klassenState.klassen).length === 0) { setView('import') }`. Requires runtime verification (human check 2). |
+| KLS-04 | 33-01, 33-02 | Mentor kan een niet-lege klas verwijderen via bevestigingsdialoog met checkbox | SATISFIED | × button unconditional; handleDeleteKlas opens modal; handleConfirmDeleteKlas calls deleteKlas. |
+| KLS-05 | 33-01, 33-02, 33-03 | Bevestigingsdialoog toont klasnaam en EXACT leerlingaantal (uniek, niet verdubbeld) | SATISFIED | countUniekeLeerlingen used at App.tsx:133; 6 test cases verify correctness including multi-period deduplication. |
+| KLS-06 | 33-01, 33-02 | Verwijder-knop uitgeschakeld tot checkbox aangevinkt | SATISFIED | KlasVerwijderenModal.tsx:88 `disabled={!checked}`. 2 passing tests. |
+| KLS-07 | 33-02 | Na verwijderen laatste klas navigeert app naar importscherm | SATISFIED | App.tsx:144-145: conditional setView('import') after deleteKlas. Requires runtime verification (human check 2). |
 
-All 4 requirements satisfied. No orphaned requirements found. REQUIREMENTS.md still shows KLS-04..07 as `○ Pending` (not yet updated by phase completion workflow — this is expected; the orchestrator updates state files).
+All 4 requirements satisfied. Gap in KLS-05 (double-counting) confirmed closed.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| None found | — | No TBD/FIXME/XXX markers in any phase-modified file | — | — |
+| None | — | No TBD/FIXME/XXX markers in phase-modified files | — | — |
 
-No stub patterns detected. No hardcoded empty returns. No console.log-only implementations. The onKeyDown handler on a non-focusable div (CR-01 from REVIEW.md) is a UX degradation but not a debt marker.
+No stub patterns. No hardcoded empty returns in flow paths. No console.log-only implementations.
 
 ### Human Verification Required
 
-The 4 automated success criteria are all verified. Human checks are needed for two code-review findings and one runtime integration behavior:
+All automated checks pass. Runtime verification needed for Tauri store integration and one edge-case view transition:
 
 #### 1. KLS-07 Runtime: Last class deletion navigates to import screen
 
 **Test:** Import any PDF to create a single class. Click × on that class. Check checkbox. Click Verwijderen.
 **Expected:** App navigates automatically to the import screen (view = 'import').
-**Why human:** KLS-07 logic depends on `Object.keys(klassenState.klassen).length === 0` evaluated AFTER `await deleteKlas(klasId)`. The singleton mutation in the Tauri store layer cannot be verified via static analysis — requires a live run.
+**Why human:** KLS-07 logic depends on `Object.keys(klassenState.klassen).length === 0` evaluated AFTER `await deleteKlas(klasId)`. The singleton mutation in the Tauri store layer cannot be verified via static analysis.
 
-#### 2. CR-01: Escape key does not close the modal (known bug from code review)
+#### 2. CR-01: Escape key closes the modal (fix must be confirmed in browser)
 
 **Test:** Open the delete confirmation modal via any × button. Press Escape.
-**Expected (current behavior):** Modal does NOT close — `onKeyDown` is attached to a non-focusable `<div>` without `tabIndex` or `role="dialog"`, so the keydown event never fires. This is documented in REVIEW.md as CR-01.
-**Why human:** The behavior is invisible in unit tests (which fire synthetic events) but observable in a real browser/WebView. Confirm the bug exists, then decide whether to fix before shipping (not a KLS requirements blocker, but a UX regression for keyboard users).
+**Expected:** Modal closes. The fix (commit 3f37baa) attaches the handler to `window` via `useEffect` so it fires regardless of DOM focus.
+**Why human:** Unit tests fire synthetic events; behavior in the actual Tauri WebView must be confirmed once.
 
-#### 3. WR-02: Active class deleted while on detail view — stale view
+#### 3. WR-02: Active class deleted while on detail view navigates to 'klas' view
 
-**Test:** Open a class with students. Navigate to a student's detail view. Click × on that same active class. Confirm deletion. Other classes remain.
-**Expected (potential bug):** App may stay on 'detail' view showing data for the now-deleted class. `handleConfirmDeleteKlas` only calls `setView('import')` when ALL classes are gone — it does not call `setView('klas')` when active class is deleted but other classes remain. `deleteKlas()` in utils/klassen.ts auto-pivots `klassenState.activeKlasId` to a remaining class, but `view` state in App.tsx is not updated.
-**Why human:** View state transitions after deleteKlas() require runtime observation. The `setRefreshKey` trigger will cause KlasTabStrip to re-render correctly, but DetailWeergave may show stale or invalid student data.
+**Test:** Open a class with students. Navigate to a student's detail view. Click × on that same active class. Confirm deletion. At least one other class remains.
+**Expected:** App navigates to 'klas' view (wasActive guard at App.tsx:146-148). No stale detail view shown.
+**Why human:** View state transitions after deleteKlas() require runtime observation.
 
 ---
 
 ### Gaps Summary
 
-No gaps blocking goal achievement. All 4 roadmap success criteria (KLS-04 through KLS-07) are verified by code inspection, automated test suite (218/218 passing), and static analysis. Two post-phase code quality findings from REVIEW.md (CR-01: Escape key on non-focusable overlay, WR-02: stale view on active-class deletion) require human confirmation but do not block the defined requirements.
+No gaps blocking goal achievement. All 4 roadmap requirements (KLS-04 through KLS-07) are verified. The Plan 33-03 gap closure is confirmed:
+
+- `countUniekeLeerlingen` is exported from `utils/klassen.ts` (line 260, substantive implementation using Set)
+- `handleDeleteKlas` in `src/App.tsx` uses `countUniekeLeerlingen(klas?.students)` (line 133, raw `.length` removed)
+- 6 test cases pass (5 original behaviors + 1 null/missing leerlingId guard)
+- Full test suite: 224/224 pass, 0 regressions
+
+Three human verification items remain (runtime Tauri store behavior, CR-01 Escape fix confirmation, WR-02 view transition edge case). None of these are requirements blockers.
 
 ---
 
-_Verified: 2026-05-30T08:45:00Z_
+_Verified: 2026-05-30T09:05:00Z_
 _Verifier: Claude (gsd-verifier)_
