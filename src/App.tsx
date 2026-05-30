@@ -8,6 +8,7 @@ import DetailWeergave from './components/DetailWeergave';
 import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
 import OnboardingWizard from './components/OnboardingWizard';
+import KlasVerwijderenModal from './components/KlasVerwijderenModal';
 import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted, deleteKlas, renameKlas } from '../utils/klassen';
 import { loadSettings, applyTheme } from '../utils/settings';
 
@@ -21,6 +22,7 @@ function App() {
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null);
   const [detailStudentList, setDetailStudentList] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<{ klasId: string; naam: string; count: number } | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [settingsOpenCount, setSettingsOpenCount] = useState(0);
   const [isDark, setIsDark] = useState<boolean>(false);
@@ -125,13 +127,22 @@ function App() {
     setShowModal(false);
   }
 
-  async function handleDeleteKlas(klasId: string): Promise<void> {
-    const confirmed = window.confirm(
-      `Klas '${klassenState.klassen[klasId]?.naam ?? klasId}' verwijderen? Dit kan niet ongedaan worden gemaakt.`
-    );
-    if (!confirmed) return;
+  function handleDeleteKlas(klasId: string): void {
+    const klas = klassenState.klassen[klasId];
+    const naam = klas?.naam ?? klasId;
+    const count = Array.isArray(klas?.students) ? klas.students.length : 0;
+    setShowDeleteModal({ klasId, naam, count });
+  }
+
+  async function handleConfirmDeleteKlas(): Promise<void> {
+    if (!showDeleteModal) return;
+    const { klasId } = showDeleteModal;
     await deleteKlas(klasId);
+    setShowDeleteModal(null);
     setRefreshKey(k => k + 1);
+    if (Object.keys(klassenState.klassen).length === 0) {
+      setView('import');
+    }
   }
 
   async function handleRenameKlas(klasId: string, newNaam: string): Promise<void> {
@@ -153,7 +164,7 @@ function App() {
         klassen={Object.values(klassenState.klassen).map((klas: any) => ({
           id: klas.id,
           naam: klas.naam,
-          canDelete: Array.isArray(klas.students) && klas.students.length === 0,
+          canDelete: true,
         }))}
         activeKlasId={klassenState.activeKlasId}
         onSwitch={handleKlasSwitch}
@@ -174,6 +185,14 @@ function App() {
         />
       )}
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
+      {showDeleteModal && (
+        <KlasVerwijderenModal
+          klasNaam={showDeleteModal.naam}
+          leerlingCount={showDeleteModal.count}
+          onConfirm={handleConfirmDeleteKlas}
+          onCancel={() => setShowDeleteModal(null)}
+        />
+      )}
       {view === 'import' && (
         <ImportPage onImportComplete={handleImportComplete} />
       )}

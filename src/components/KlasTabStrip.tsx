@@ -3,7 +3,7 @@ import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
 
 interface KlasTabStripProps {
-  klassen: Array<{ id: string; naam: string; canDelete: boolean }>;
+  klassen: Array<{ id: string; naam: string; canDelete?: boolean }>;
   activeKlasId: string | null;
   onSwitch: (klasId: string) => void;
   onCreateKlas: () => void;
@@ -107,8 +107,7 @@ export default function KlasTabStrip({
               {klas.naam}
             </span>
           )}
-          {klas.canDelete && (
-            <button
+          <button
               className="delete-tab-btn"
               title="Klas verwijderen"
               aria-label={`Klas ${klas.naam} verwijderen`}
@@ -116,7 +115,6 @@ export default function KlasTabStrip({
             >
               ×
             </button>
-          )}
         </div>
       ))}
       <button
