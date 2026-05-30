@@ -137,11 +137,14 @@ function App() {
   async function handleConfirmDeleteKlas(): Promise<void> {
     if (!showDeleteModal) return;
     const { klasId } = showDeleteModal;
+    const wasActive = klasId === klassenState.activeKlasId;
     await deleteKlas(klasId);
     setShowDeleteModal(null);
     setRefreshKey(k => k + 1);
     if (Object.keys(klassenState.klassen).length === 0) {
       setView('import');
+    } else if (wasActive && (view === 'klas' || view === 'detail')) {
+      setView('klas');
     }
   }
 
@@ -164,7 +167,6 @@ function App() {
         klassen={Object.values(klassenState.klassen).map((klas: any) => ({
           id: klas.id,
           naam: klas.naam,
-          canDelete: true,
         }))}
         activeKlasId={klassenState.activeKlasId}
         onSwitch={handleKlasSwitch}

@@ -3,7 +3,7 @@ import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
 
 interface KlasTabStripProps {
-  klassen: Array<{ id: string; naam: string; canDelete?: boolean }>;
+  klassen: Array<{ id: string; naam: string }>;
   activeKlasId: string | null;
   onSwitch: (klasId: string) => void;
   onCreateKlas: () => void;
@@ -92,7 +92,7 @@ export default function KlasTabStrip({
                   isCommittingRef.current = false;
                 }
               }}
-              onBlur={() => commitRename(klas.id)}
+              onBlur={() => { setEditingKlasId(null); isCommittingRef.current = false; }}
               onClick={e => e.stopPropagation()}
             />
           ) : (
