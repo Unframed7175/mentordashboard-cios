@@ -779,7 +779,7 @@ Plans:
 
 **Gap Closure** *(UAT test 3 — count dubbeltelling bij multi-periode leerlingen)*
 
-- [ ] 33-03-PLAN.md — Gap closure: countUniekeLeerlingen() helper + handleDeleteKlas fix (KLS-05)
+- [x] 33-03-PLAN.md — Gap closure: countUniekeLeerlingen() helper + handleDeleteKlas fix (KLS-05)
 
 ### Phase 34: Keuzedelen per Leerling
 

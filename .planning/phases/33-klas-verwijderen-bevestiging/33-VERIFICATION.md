@@ -1,7 +1,7 @@
 ---
 phase: 33-klas-verwijderen-bevestiging
 verified: 2026-05-30T09:05:00Z
-status: human_needed
+status: complete
 score: 8/8 must-haves verified
 overrides_applied: 0
 re_verification:
