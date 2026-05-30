@@ -4,6 +4,8 @@ import { getAllRecordsForStudent } from '../../utils/klassen';
 import { DEELGEBIEDEN, SCORE_LEVELS, normalizeScore } from '../../utils/schema';
 import { getDeelgebiedenConfigSync, type DeelgebiedConfig } from '../../utils/deelgebieden';
 import { getLeerlijnenMappingSync } from '../../utils/leerlijnen';
+import { buildDpStatusMap, normalizeDpNaam } from '../../utils/datapuntStatus';
+import StatusBadge from './StatusBadge';
 
 interface DeelgebiedenMatrixProps {
   student: any;
@@ -58,6 +60,15 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
   // period's rows, so ~half the rows were invisible when 2 PDFs were imported.
   const datapunten: any[] = allRecords.flatMap((r: any) => r.datapunten || []);
 
+  // R-02: group datapunten by source record for fase-separator rows in tbody
+  const datapuntGroepen = allRecords
+    .map((r: any) => ({ periode: r.periode, datapunten: r.datapunten || [] }))
+    .filter((g: any) => g.datapunten.length > 0);
+
+  // R-02: status lookup — maps normalized datapunt name → delivery status
+  const statusMap = buildDpStatusMap(allRecords);
+  const showFaseSeparator = datapuntGroepen.length > 1;
+
   // Active-deelgebied filter + runtime leerlijn-mapping group assignment (Phase 18 SET-03/SET-04)
   // Uses sync accessors — pre-warm in main.tsx guarantees populated caches at render time.
   const dgConfig = getDeelgebiedenConfigSync();
@@ -86,15 +97,18 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
   const scores1: Record<string, string | null> = oldest ? (oldest.deelgebiedScores || {}) : {};
   const scores2: Record<string, string | null> = newest ? (newest.deelgebiedScores || {}) : {};
 
+  // +2 = Datapunt column + Status column
+  const totalCols = allDG.length + 2;
+
   if (!datapunten || datapunten.length === 0) {
     return (
       <div className="detail-section">
         <p className="detail-section-title">Beoordelingen per datapunt × deelgebied</p>
         <div className="dg-matrix-wrap" style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
-          <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '1100px' }}>
+          <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '1200px' }}>
             <tbody>
               <tr>
-                <td colSpan={allDG.length + 1} style={{ color: 'var(--text-muted)', padding: '0.75rem 1rem', fontSize: '0.85rem' }}>
+                <td colSpan={totalCols} style={{ color: 'var(--text-muted)', padding: '0.75rem 1rem', fontSize: '0.85rem' }}>
                   Geen datapunten gevonden
                 </td>
               </tr>
@@ -109,11 +123,14 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
     <div className="detail-section">
       <p className="detail-section-title">Beoordelingen per datapunt × deelgebied</p>
       <div className="dg-matrix-wrap" style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
-        <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '1100px' }}>
+        <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '1200px' }}>
           <thead>
             <tr>
               <th className="col-naam" rowSpan={2} style={{ padding: '0.5rem 0.75rem', textAlign: 'left', whiteSpace: 'nowrap' }}>
                 Datapunt
+              </th>
+              <th rowSpan={2} style={{ padding: '0.5rem 0.5rem', textAlign: 'left', whiteSpace: 'nowrap', fontWeight: 600, fontSize: '0.77rem' }}>
+                Status
               </th>
               {GROEPEN.map(g => (
                 <th
@@ -134,17 +151,44 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
             </tr>
           </thead>
           <tbody>
-            {datapunten.map((dp: any, i: number) => (
-              <tr key={i}>
-                <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', whiteSpace: 'nowrap' }}>
-                  <span className="cell-dp">{dp.datapunt}</span>
-                </td>
-                {allDG.map(dg => (
-                  <td key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
-                    <DmChip score={dp.scores ? (dp.scores[dg.label] || null) : null} />
-                  </td>
-                ))}
-              </tr>
+            {datapuntGroepen.map((groep: any, gi: number) => (
+              <React.Fragment key={gi}>
+                {showFaseSeparator && (
+                  <tr>
+                    <td
+                      colSpan={totalCols}
+                      style={{
+                        background: 'var(--bg-subtle)',
+                        fontWeight: 600,
+                        padding: '0.3rem 0.75rem',
+                        fontSize: '0.78rem',
+                        color: 'var(--text-muted)',
+                        borderTop: gi > 0 ? '2px solid var(--border-default)' : undefined,
+                      }}
+                    >
+                      {groep.periode}
+                    </td>
+                  </tr>
+                )}
+                {groep.datapunten.map((dp: any, i: number) => {
+                  const status = statusMap.get(normalizeDpNaam(dp.datapunt));
+                  return (
+                    <tr key={`${gi}-${i}`}>
+                      <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', whiteSpace: 'nowrap' }}>
+                        <span className="cell-dp">{dp.datapunt}</span>
+                      </td>
+                      <td style={{ padding: '0.2rem 0.5rem', whiteSpace: 'nowrap' }}>
+                        {status && <StatusBadge status={status} />}
+                      </td>
+                      {allDG.map(dg => (
+                        <td key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
+                          <DmChip score={dp.scores ? (dp.scores[dg.label] || null) : null} />
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </React.Fragment>
             ))}
           </tbody>
           <tfoot>
@@ -154,6 +198,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                   <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', fontWeight: 700 }}>
                     <strong>{oldest?.periode || 'Periode 1'}</strong>
                   </td>
+                  <td /> {/* status column — leeg in voettekst */}
                   {allDG.map(dg => (
                     <td key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
                       <DmChip score={scores1[dg.label] || null} />
@@ -164,6 +209,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                   <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', fontWeight: 700 }}>
                     <strong>{newest?.periode || 'Periode 2'}</strong>
                   </td>
+                  <td /> {/* status column — leeg in voettekst */}
                   {allDG.map(dg => {
                     const s1 = scores1[dg.label] || null;
                     const s2 = scores2[dg.label] || null;
@@ -181,6 +227,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                 <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', fontWeight: 700 }}>
                   <strong>Eindoordeel</strong>
                 </td>
+                <td /> {/* status column — leeg in voettekst */}
                 {allDG.map(dg => (
                   <td key={dg.id} className="vote-count-cell" style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
                     <DmChip score={aggregationDetail[dg.label] || null} />
