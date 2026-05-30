@@ -36,7 +36,7 @@ Actieve prioriteit: prognose-betrouwbaarheid afronden, daarna UI-verbeteringen.
 
 | ID | Taak | Status |
 |---|---|---|
-| R-01 | Prognose-diagnose met echte PDF-fixtures | 🔄 In progress — fixture-dump actief, testbestand aangemaakt |
+| R-01 | Prognose-diagnose met echte PDF-fixtures | ✅ Opgelost — berekening correct, fixture-dump verwijderd |
 | R-01a | Parser-bug: `leerjaar` altijd "1" voor BJ2-leerlingen | ✅ Opgelost — leerjaar afgeleid uit periode |
 | R-02 | Datapunten-overzicht compleet + fase-onderscheid | ⬜ Niet gestart |
 | R-03 | BPV-uren weergave herzien | ⬜ Niet gestart |
@@ -93,10 +93,7 @@ M35 start **na uitrol van M34** — eerst echte gebruikersfeedback ophalen.
 
 ## Openstaande punten
 
-- [ ] **R-01 afronden:** prognose-bug exacte locatie vinden met fixture + echte PDF
-  - Testbestand: `tests/prognose.diagnose.test.ts`
-  - Fixture-dump actief in `utils/datamodel.ts` (verwijderen na diagnose)
-  - Startcommando: `npm run dev` → importeer PDF → F12 → `[fixture-dump]`
+- [x] **R-01 afgerond:** `berekenPrognose()` correct geverifieerd met live PDF-fixture (Bos, V. BJ2 → sbl, 13/19 ≥V). Fixture-dump verwijderd. Regressietest bewaard als `tests/prognose.diagnose.test.ts`.
 - [ ] **R-02:** datapunten-overzicht compleet + fase-onderscheid (2 fases)
 - [ ] **R-03:** BPV-uren weergave definiëren en implementeren
 - [ ] **V-01:** Spider chart groter

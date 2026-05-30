@@ -83,14 +83,6 @@ export function addStudent(student: any): void {
   } else {
     appState.students.push(student);
   }
-  // TIJDELIJK — diagnose prognose-fixture dump (verwijder na gebruik)
-  console.log('[fixture-dump]', JSON.stringify({
-    naam:              student.naam,
-    periode:           student.periode,
-    leerjaar:          student.leerjaar,
-    deelgebiedScores:  student.deelgebiedScores,
-    verzuim:           student.verzuim ?? { geoorloofd: 0, ongeoorloofd: 0 },
-  }, null, 2));
 }
 
 console.log('[datamodel.ts] Data model loaded');

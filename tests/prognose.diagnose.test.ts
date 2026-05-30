@@ -21,27 +21,27 @@ import { STATUS_STRINGS } from '../parsers/pdf-status';
 // ---------------------------------------------------------------------------
 
 const student: any = {
-  naam:     'Gijzen, L. (Lara)',
+  naam:     'Bos, V. (Viggo)',
   periode:  'BJ2 Fase 3 DD',
-  leerjaar: '1',   // LET OP: leerjaar=1 maar periode zegt BJ2 — zie analyse hieronder
+  leerjaar: '2',
   deelgebiedScores: {
-    'V&A':  'goed',
-    'M&M':  'excellent',
-    'INS':  'goed',
+    'V&A':  'voldoende',
+    'M&M':  'voldoende',
+    'INS':  'voldoende',
     'O&DW': 'goed',
-    'C&B':  'goed',
-    '1E&B': null,      // niet beoordeeld
-    'P&O':  null,      // niet beoordeeld — hele organiseren-leerlijn is null
+    'C&B':  'excellent',
+    '1E&B': 'voldoende',
+    'P&O':  null,
     'S&O':  null,
-    'ORG':  null,
+    'ORG':  'voldoende',
     'I&B':  null,
     '2E&B': null,
     'PrCo': 'voldoende',
     'VSK':  null,
-    'LOB':  null,
+    'LOB':  'goed',
     'INFO': 'voldoende',
-    'DESK': null,
-    'BS':   'goed',
+    'DESK': 'voldoende',
+    'BS':   'voldoende',
     'TOW':  'voldoende',
     'BH':   null,
   },
@@ -49,27 +49,18 @@ const student: any = {
 };
 
 // VERWACHTE uitkomst op basis van handmatige berekening:
-//   traject:  'bj2'  (periode "BJ2 Fase 3 DD" bevat 'bj2' → detectTraject geeft bj2)
-//   totaalV:  9      (lesgeven 5/6 + organiseren 0/5 + prof_handelen 4/8)
+//   traject:  'bj2'  (periode "BJ2 Fase 3 DD" → detectTraject geeft bj2)
+//   leerjaar: '2'    — correct afgeleid uit periode (R-01a fix werkt)
+//   totaalV:  13     (lesgeven 6/6 + organiseren 1/5 + prof_handelen 6/8)
 //   totaalO:  0
-//   SBL vereist ≥13 → 9 < 13 → GEEN SBL
-//   SBC vereist ≥15 + kern (V&A/P&O/C&B/1E&B elk ≥V) → P&O en 1E&B zijn null → GEEN SBC
-//   negatief-trigger: totaalO (0) > 6 → NEE
-//   → label = 'neutraal'  →  Oranje / "Let op"
+//   isNegatief: 0 > 6 → NEE; per leerlijn: 0 > 2 → NEE
+//   SBL vereist ≥13 → 13 ≥ 13 → JA
+//   SBC vereist ≥15 → 13 < 15 → NEE; kern: P&O=null → NEE
+//   → label = 'sbl'  →  Groen / "On track"
 //
-// VERDACHTE AANWIJZING:
-//   leerjaar="1" maar periode="BJ2 Fase 3 DD"
-//   Dit kan twee dingen betekenen:
-//     A) De PDF-parser leest leerjaar verkeerd uit (is 2, staat als 1)
-//     B) De student zit in fase 3 van BJ2 maar is pas in leerjaar 1
-//   In beide gevallen is traject='bj2' waarschijnlijk correct.
-//
-//   BELANGRIJKSTE VRAAG: zijn de null-scores (organiseren-leerlijn volledig null,
-//   1E&B null, VSK/LOB/DESK/BH null) correct — d.w.z. nog niet beoordeeld in Fase 3?
-//   Of had de parser deze scores WEL moeten inlezen uit de PDF?
-//
-// Verander 'neutraal' hieronder als je een ander resultaat verwacht:
-const verwachtLabel = 'neutraal';
+// Null-scores (P&O, S&O, I&B, 2E&B, VSK, BH): pedagogisch correct voor BJ2 Fase 3.
+// Organiseren-leerlijn wordt in latere fasen beoordeeld; ORG scoort al wel.
+const verwachtLabel = 'sbl';
 
 // ---------------------------------------------------------------------------
 
