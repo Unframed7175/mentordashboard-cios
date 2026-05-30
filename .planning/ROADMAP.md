@@ -764,7 +764,17 @@ Plans:
   3. De definitieve verwijderknop in de modal is uitgeschakeld totdat de mentor de checkbox "Ik begrijp dat alle leerlingdata wordt verwijderd" aanvinkt
   4. Na verwijdering van de laatste klas navigeert de app automatisch naar het importscherm
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+
+**Wave 0**
+
+- [x] 33-01-PLAN.md — Wave 0: RED test scaffolds (KlasVerwijderenModal.test.tsx + TAB-01 update)
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [ ] 33-02-PLAN.md — Wave 1: KlasVerwijderenModal.tsx + KlasTabStrip canDelete guard removal + App.tsx wiring (KLS-04..07)
 
 ### Phase 34: Keuzedelen per Leerling
 
@@ -834,6 +844,6 @@ Plans:
 | 30. Documentatie, Help & CI | 4/4 | Complete | 2026-05-28 |
 | 31. UI Polish — Nav & Spider | 0/TBD | Not started | - |
 | 32. R&N Status op Tegels | 0/1 | Not started | - |
-| 33. Klas Verwijderen met Bevestiging | 0/TBD | Not started | - |
+| 33. Klas Verwijderen met Bevestiging | 1/2 | In Progress|  |
 | 34. Keuzedelen per Leerling | 0/TBD | Not started | - |
 | 35. BPV Echte Column Matchers | 0/TBD | Not started | - |

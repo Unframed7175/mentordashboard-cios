@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Data Completeness, Keuzedelen & UI Polish
-status: ready_to_plan
-last_updated: "2026-05-29T18:50:00.000Z"
-last_activity: 2026-05-29 — Phase 32 complete (TEGEL-03/04 delivered, CSS grid fix applied)
+status: executing
+last_updated: "2026-05-30T06:09:03.071Z"
+last_activity: 2026-05-30 -- Phase 33 execution started
 progress:
   total_phases: 30
-  completed_phases: 26
-  total_plans: 76
-  completed_plans: 76
-  percent: 87
+  completed_phases: 27
+  total_plans: 79
+  completed_plans: 77
+  percent: 90
 ---
 
 # Project State
@@ -20,13 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-28)
 
 **Core value:** Mentor heeft in <2 minuten voortgang + verzuim + doorstroomprognose per leerling paraat voor mentorgesprek.
-**Current focus:** v2.4 — BPV completeness, keuzedelen tracking, R&N tegels, UI polish
+**Current focus:** Phase 33 — klas-verwijderen-bevestiging
 
 ## Current Position
 
-Phase: 33 — Klas Verwijderen met Bevestiging — Not started
-Status: Phase 32 complete, ready to plan phase 33
-Last activity: 2026-05-29 — Phase 32 complete (TEGEL-03/04, CSS grid fix)
+Phase: 33 (klas-verwijderen-bevestiging) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 33
+Last activity: 2026-05-30 -- Phase 33 execution started
 
 ## Progress Bar
 
