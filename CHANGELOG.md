@@ -1,6 +1,6 @@
 # Changelog — Mentordashboard CIOS
 
-## [2.1.0] — 2026-05-31
+## [2.3.1] — 2026-05-31
 
 ### Reliability
 - **R-01** — Prognose-algoritme geverifieerd met live PDF-fixtures; `berekenPrognose()` klopt voor BJ1 en BJ2 trajecten
