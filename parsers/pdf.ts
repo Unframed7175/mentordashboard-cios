@@ -3,13 +3,17 @@
 
 // @ts-ignore — vendor bundle heeft geen TypeScript declaraties; pdfjs-dist npm types gelden hier niet
 import * as pdfjsLib from '../vendor/pdf.min.mjs';
+// @ts-ignore — Vite ?url suffix: emits file as static asset and returns its URL string
+import pdfWorkerUrl from '../vendor/pdf.worker.min.mjs?url';
 import { DEELGEBIEDEN, normalizeScore } from '../utils/schema';
 
 // pdfjs-dist 5.x internally does: new Worker(workerSrc, {type:'module'})
-// so setting workerSrc to our .mjs file is all that's needed.
+// ?url import guarantees Vite emits the worker to dist/assets/ and resolves it correctly
+// on both Windows (WebView2) and macOS (WKWebView). new URL(…, import.meta.url) can
+// produce a wrong path on macOS in production builds when the parser is outside src/.
 // Do NOT use workerPort — that code path (#gr) resolves the worker promise immediately
 // before the module worker has finished bootstrapping, causing silent message loss.
-(pdfjsLib as any).GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.mjs', import.meta.url).href;
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 console.log('[pdf.ts] PDF.js initialized, version:', (pdfjsLib as any).version);
 
