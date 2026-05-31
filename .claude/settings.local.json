@@ -53,7 +53,8 @@
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:docs.rs)",
       "Skill(gsd-audit-milestone)",
-      "Skill(gsd-audit-milestone:*)"
+      "Skill(gsd-audit-milestone:*)",
+      "Skill(gstack)"
     ]
   }
 }

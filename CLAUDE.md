@@ -13,11 +13,16 @@ Bij elke nieuwe sessie of na `/compact`, voer dit uit **vóór** je iets anders 
 1. **Lees** `.gsd/STATE.md` → bepaal de huidige fase
 2. **Lees** `.gsd/DECISIONS.md` → herstel architectuurkennis
 3. **Lees** `.gsd/KNOWLEDGE.md` → herstel projectregels en patronen
-4. **Roep** Claude Mem aan → haal relevante sessieherinneringen op
+4. **Roep** Claude Mem aan → haal relevante sessieherinneringen op (zie sectie 3)
 5. **Meld** aan de gebruiker: huidige fase, openstaande taken, last commit
 
 Als `.gsd/STATE.md` niet bestaat → bevind je je in **Fase 0: Ontdekking**.
 Maak de `.gsd/` map aan en start met GStack `/office-hours`.
+
+**Als de SessionStart hook faalt of Claude Mem niet reageert:**
+→ Log een waarschuwing in `STATE.md` onder `## Mem-fout [datum]`  
+→ Ga verder zonder geheugeninjectie — gebruik alleen GSD-bestanden als context  
+→ Vraag de gebruiker aan het einde van de sessie om de hook te controleren via sectie 10
 
 ---
 
@@ -54,11 +59,16 @@ Geen twee frameworks spawnen tegelijkertijd subagents.
 **UI UX Pro Max:** uitgeschakeld  
 **Blokkeer code:** geen regel code totdat fase 0 is afgesloten met `DECISIONS.md`
 
+**✓ Definition of Done — Fase 0 is klaar als:**
+- `.gsd/DECISIONS.md` bestaat en minimaal één architectuurkeuze bevat
+- `/plan-eng-review` is afgerond en akkoord gegeven
+- Handoff-bericht is geschreven in `STATE.md` (zie sectie 5)
+
 ---
 
 ### Fase 1 · Spec & context
 **Eigenaar:** GSD  
-**Trigger:** beslissingen zijn vastgelegd, bouwen kan beginnen  
+**Trigger:** `.gsd/DECISIONS.md` bestaat en Fase 0 DoD is afgevinkt  
 **Actie:**
 - GSD schrijft `.gsd/PROJECT.md`, `.gsd/REQUIREMENTS.md`, `.gsd/DECISIONS.md`
 - GSD maakt milestone-map aan: `.gsd/milestones/M001-*/`
@@ -74,13 +84,19 @@ GSD beheert welke taken klaar zijn voor executie. Zodra een milestone-slice gere
 is in `S01-PLAN.md`, geeft GSD het stokje over aan Superpowers.
 GSD spawnt **geen eigen executie-subagents** zodra Superpowers actief is.
 
+**✓ Definition of Done — Fase 1 is klaar als:**
+- `.gsd/PROJECT.md`, `.gsd/REQUIREMENTS.md` bestaan en zijn ingevuld
+- Minimaal één milestone-map `.gsd/milestones/M001-*/` bestaat
+- `S01-PLAN.md` bestaat in die milestone-map met concrete taken
+- Handoff-bericht is geschreven in `STATE.md`
+
 ---
 
 ### Fase 2 · Executie
 **Eigenaar:** Superpowers  
-**Trigger:** GSD heeft `S01-PLAN.md` klaar, slice is scoped en beperkt  
+**Trigger:** `S01-PLAN.md` bestaat en Fase 1 DoD is afgevinkt  
 **Actie:**
-- Superpowers leest het GSD-plan en start de TDD-cyclus
+- Superpowers leest `S01-PLAN.md` en verifieert dat het bestand compleet is vóór start
 - Volgorde: **RED** (schrijf falende test) → **GREEN** (minimale code) → **REFACTOR**
 - Superpowers mag hier subagents spawnen via `subagent-driven-development`
 - Elke subagent krijgt een verse context — max één slice per subagent
@@ -98,6 +114,18 @@ GSD onderbreekt deze flow niet. Wacht tot de gate gesloten is.
 **GStack tijdens executie:**  
 - `/review` mag na voltooide slice — maar pas nadat Superpowers klaar is
 - Geen nieuwe planning-skills tijdens actieve executie
+
+**✓ Definition of Done — Fase 2 is klaar als:**
+- Alle taken in `S01-PLAN.md` zijn afgevinkt in `S01-SUMMARY.md`
+- Alle tests slagen (`npm test` / equivalent geeft geen rode output)
+- `verification-before-completion` is uitgevoerd en akkoord
+- Handoff-bericht is geschreven in `STATE.md`
+
+**⚠ Foutherstel Fase 2 — als een subagent of taak mislukt:**
+1. Schrijf de fout naar `S01-SUMMARY.md` onder `## Fout [datum]: [taaknaam]`
+2. Bepaal oorzaak: is het een scope-probleem (→ terug naar GSD, Fase 1) of een implementatieprobleem (→ nieuwe subagent, zelfde slice)?
+3. Start **nooit** een nieuwe subagent zonder de fout eerst gedocumenteerd te hebben
+4. Bij meer dan twee mislukte pogingen op dezelfde taak: pauzeer en vraag de gebruiker om input
 
 ---
 
@@ -121,11 +149,17 @@ GStack maakt systeem-niveau design (typografie, kleurpalet, merkidentiteit → `
 UI UX Pro Max werkt op component-niveau (implementatie, stijlkeuzes per scherm).
 Ze overlappen niet — GStack eerst, UI UX Pro Max daarna.
 
+**✓ Definition of Done — Fase 3 is klaar als:**
+- `.gsd/DESIGN.md` bestaat en is gevuld door het search-script
+- `/plan-design-review` is afgerond en akkoord gegeven door GStack
+- Pre-delivery checks van UI UX Pro Max geven geen blokkerende bevindingen
+- Handoff-bericht is geschreven in `STATE.md`
+
 ---
 
 ### Fase 4 · Review & ship
 **Eigenaar:** GStack  
-**Trigger:** executie-slice is voltooid, tests zijn groen  
+**Trigger:** Fase 2 DoD afgevinkt en tests groen  
 **Actie:**
 - `/review` — code review door Staff Engineer persona
 - `/qa` — browser-test via Playwright (persistent Chromium process)
@@ -136,11 +170,71 @@ Ze overlappen niet — GStack eerst, UI UX Pro Max daarna.
 **Superpowers:** uitgeschakeld na `/ship`  
 **GSD:** schrijft `M001-LEARNINGS.md` na voltooide milestone
 
+**✓ Definition of Done — Fase 4 is klaar als:**
+- `/review` geeft geen blokkerende opmerkingen
+- `/qa` geeft geen falende browser-tests
+- PR is aangemaakt en CHANGELOG is bijgewerkt
+- `M001-LEARNINGS.md` is geschreven door GSD
+
+---
+
+### Fase 5 · Foutherstel (altijd beschikbaar)
+**Eigenaar:** GStack (coördineert), GSD (documenteert)  
+**Trigger:** vastgelopen fase, crashende subagent, ontbrekend bestand, meer dan twee mislukte pogingen
+
+**Escalatiepad:**
+```
+Probleem gedetecteerd
+  ↓
+Schrijf naar STATE.md: ## Blokkade [datum]: [omschrijving]
+  ↓
+Bepaal terugkeerzone:
+  • Ontbrekende spec of gewijzigde scope  → terug naar Fase 1
+  • Implementatiefout, tests falen        → terug naar Fase 2 (nieuwe subagent)
+  • Design klopt niet                     → terug naar Fase 3
+  • Review blokkeert                      → terug naar Fase 2 (fix)
+  ↓
+Schrijf handoff in STATE.md met reden van terugkeer
+  ↓
+Informeer gebruiker vóór herstart
+```
+
+**Parallelle features (meerdere features tegelijk in development):**
+- Elke feature krijgt een eigen milestone-map: `M001-feature-a/`, `M002-feature-b/`
+- Slechts één milestone is tegelijk actief in Fase 2 — de rest staat op `WACHT`
+- Volgorde wordt bepaald in `STATE.md` onder `## Prioriteitsvolgorde`
+- GStack `/office-hours` bepaalt bij conflict welke feature prioriteit krijgt
+
+**Wanneer handmatige interventie vereist is:**
+- Meer dan twee foutherstelcycli op dezelfde taak
+- `STATE.md` ontbreekt en kan niet worden hersteld
+- Tegenstrijdige instructies tussen `DECISIONS.md` en een subagent-uitkomst
+
 ---
 
 ## 3. Memory — Claude Mem integratie
 
-Claude Mem draait **passief op de achtergrond** tijdens alle fases.
+Claude Mem draait als **achtergrondhook** tijdens alle fases en injecteert context bij sessiestart.
+
+### Geheugenformaat
+Elke memory heeft de volgende structuur:
+```
+type:       [beslissing | patroon | bug | workaround | les]
+fase:       [0 | 1 | 2 | 3 | 4]
+onderwerp:  [korte omschrijving, max 10 woorden]
+inhoud:     [de feitelijke herinnering, max 3 zinnen]
+datum:      [YYYY-MM-DD]
+```
+
+### Injectiemaximum
+- De SessionStart hook injecteert maximaal **800 tokens** aan memories
+- Selectiecriterium: meest recente memories van het huidige project eerst, daarna op type `beslissing`
+- Bij meer dan 800 tokens: oudste memories worden weggelaten, niet afgekapt
+
+### Conflictresolutie tussen Claude Mem en GSD
+Als een Claude Mem memory tegenstrijdig is met een GSD-bestand:
+→ Het GSD-bestand wint altijd — GSD bevat de laatste bekrachtigde staat  
+→ Schrijf de tegenstrijdigheid als notitie in `KNOWLEDGE.md` voor review
 
 ### Wat Claude Mem vastlegt
 - Architectuurbeslissingen genomen in fase 0
@@ -162,8 +256,9 @@ Ze schrijven naar verschillende locaties en conflicteren niet.
 ### Sessieherstel
 Bij sessiestart:
 1. Claude Mem injecteert relevante herinneringen automatisch (SessionStart hook)
-2. GSD levert de huidige STATE.md
-3. Samen geven ze volledige continuïteit — je hoeft niets opnieuw uit te leggen
+2. GSD levert de huidige `STATE.md`
+3. Bij conflicten wint GSD — zie conflictresolutie hierboven
+4. Als de hook faalt: zie fallback in sectie 0
 
 ---
 
@@ -189,7 +284,23 @@ Als GSD een nieuwe orchestrator wil starten terwijl Superpowers een subagent run
 
 ## 5. Communicatie tussen frameworks
 
-De frameworks communiceren via bestanden, niet via directe aanroepen:
+De frameworks communiceren via bestanden, niet via directe aanroepen.
+
+### Schrijfrechten per framework
+
+| Bestand / map | Schrijft | Leest | Mag niet schrijven |
+|---|---|---|---|
+| `.gsd/DECISIONS.md` | GStack (fase 0), GSD (fase 1) | Superpowers, Claude Mem | UI UX Pro Max |
+| `.gsd/milestones/*/` | GSD | Superpowers | GStack, UI UX Pro Max |
+| `docs/superpowers/specs/` | Superpowers | GSD | Overige frameworks |
+| `.gsd/DESIGN.md` | UI UX Pro Max | GStack | GSD, Superpowers |
+| `~/.claude-mem/` | Claude Mem | Claude Mem (injectie) | Alle andere frameworks |
+| `.gsd/STATE.md` | GSD, GStack (handoff) | Alle frameworks | Superpowers (alleen-lezen) |
+| `.gsd/KNOWLEDGE.md` | GSD | Alle frameworks | Superpowers |
+
+Elk framework schrijft uitsluitend naar zijn eigen kolom. Race conditions zijn niet mogelijk zolang slechts één framework per fase actief is (zie sectie 4).
+
+### Bestandsoverdracht
 
 ```
 GStack beslissingen    →  .gsd/DECISIONS.md       (GSD leest dit)
@@ -206,6 +317,7 @@ Van: [Framework A] — Fase [X]
 Naar: [Framework B] — Fase [Y]
 Status: [wat is klaar]
 Openstaand: [wat de volgende fase moet weten]
+DoD afgevinkt: [ja / nee — welke punten ontbreken]
 ```
 
 ---
@@ -220,10 +332,17 @@ UI UX Pro Max skill:              laadt bij UI-keywords, daarna weer weg
 Claude Mem SessionStart injectie: max 800 tokens samenvattingsindex
 ```
 
-Als je voelt dat de context vol raakt (>50%):
-1. Laat GSD `STATE.md` bijwerken
+### Hoe contextgebruik meten
+Claude heeft geen directe toegang tot een tokenteller. Gebruik deze indicatoren:
+- Als de totale conversatiehistory meer dan ~15 berichten bevat → waarschijnlijk >40%
+- Als GSD meerdere grote bestanden heeft ingeladen in één sessie → waarschuwing
+- Als Superpowers meer dan 3 subagents heeft gespawnd → /compact overwegen
+
+### Actie bij overschrijding (>50%)
+1. Laat GSD `STATE.md` bijwerken met huidige voortgang
 2. Voer `/compact` uit
 3. De SessionStart hook herstelt GSD-state en Claude Mem context automatisch
+4. Als `/compact` niet beschikbaar is: start een nieuwe sessie — STATE.md garandeert continuïteit
 
 ---
 
@@ -252,15 +371,17 @@ CLAUDE.md           Dit bestand — hoogste prioriteit
 
 ## 8. Wanneer welk framework te negeren
 
-| Situatie | Negeer |
-|---|---|
-| Kleine bugfix (<10 regels) | Superpowers brainstorm-gates, GSD fase-overhead |
-| Snel prototype / spike | GStack planning-reviews, GSD milestone-structuur |
-| Pure UI-taak zonder logica | Superpowers TDD (geen testbare logica) |
-| Architectuurwijziging | Sla fase 0 niet over — altijd GStack eerst |
-| Sessie <30 min, helder doel | Claude Mem sessie-injectie is optioneel |
+Gebruik onderstaande **objectieve drempelwaarden** — niet het gevoel van "dit is klein".
 
-Bij twijfel: **start altijd in Fase 0 met GStack `/office-hours`**.
+| Situatie | Objectief criterium | Negeer |
+|---|---|---|
+| Kleine bugfix | ≤2 bestanden geraakt, geen nieuwe tests nodig, fix past in één commit | Superpowers brainstorm-gates, GSD fase-overhead |
+| Snel prototype / spike | Wegwerpcode, wordt niet gemerged, geen tests vereist | GStack planning-reviews, GSD milestone-structuur |
+| Pure UI-taak zonder logica | Geen functies, geen state, alleen markup/stijl | Superpowers TDD (geen testbare logica) |
+| Architectuurwijziging | Raakt ≥3 bestanden of introduceert een nieuwe dependency | Sla fase 0 **nooit** over — altijd GStack eerst |
+| Korte sessie | Doel is uitgeschreven in één zin, geen afhankelijkheden van andere taken | Claude Mem sessie-injectie is optioneel |
+
+**Bij twijfel of een situatie in de tabel past: sla deze tabel over en start in Fase 0.**  
 Het kost 5 minuten en voorkomt uren herstelwerk.
 
 ---
@@ -296,6 +417,10 @@ python3 .claude/skills/ui-ux-pro-max/scripts/search.py \
 /ship                   Releasen
 /retro                  Terugblik
 /document-release       Docs bijwerken
+
+# FASE 5 — Foutherstel
+# Geen commando — volg het escalatiepad in sectie 2 (Fase 5)
+# Schrijf altijd eerst naar STATE.md vóór je iets herstart
 ```
 
 ---
@@ -321,11 +446,37 @@ npx get-shit-done-cc --version
 # Claude Mem
 # Controleer of de SessionStart hook actief is:
 cat .claude/settings.json | grep SessionStart
+# Verwachte output: "SessionStart": "claude-mem inject"
+# Bij lege output: hook is niet geconfigureerd — zie docs/stack-setup.md
 ```
 
 Als een tool ontbreekt, zie de installatiegids in `docs/stack-setup.md`.
 
 ---
 
-*Laatste update: gegenereerd op basis van Superpowers v5+, GStack v1.26+,
+## 11. Governance van dit bestand
+
+CLAUDE.md heeft de hoogste prioriteit in het project, maar heeft zelf ook een eigenaar en updateprocedure.
+
+**Eigenaar:** de projectlead (persoon, niet een framework)  
+**Locatie:** altijd in de projectroot, nooit in een submap  
+**Bewerkingsrechten:** alleen handmatig door de eigenaar — geen enkel framework schrijft naar dit bestand
+
+### Updateprocedure
+1. Maak een branch aan: `docs/claude-md-[onderwerp]`
+2. Pas het bestand aan
+3. Noteer de wijziging in de changelog hieronder
+4. Laat reviewen door minimaal één andere teamlid
+5. Merge naar main
+
+### Changelog
+
+| Datum | Versie | Auteur | Wijziging |
+|---|---|---|---|
+| *(invullen bij eerste gebruik)* | 1.0 | *(naam)* | Initiële versie gegenereerd |
+| *(invullen)* | 1.1 | *(naam)* | Suggesties geïmplementeerd: DoD per fase, Fase 5 foutherstel, objectieve drempelwaarden sectie 8, Claude Mem API-contract, schrijfrechten sectie 5, governance sectie 11 |
+
+---
+
+*Versie: 1.1 — gegenereerd op basis van Superpowers v5+, GStack v1.26+,
 UI UX Pro Max v2.5+, GSD v1.40+, Claude Mem v12+*

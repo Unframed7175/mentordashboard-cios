@@ -38,16 +38,16 @@ Actieve prioriteit: prognose-betrouwbaarheid afronden, daarna UI-verbeteringen.
 |---|---|---|
 | R-01 | Prognose-diagnose met echte PDF-fixtures | ✅ Opgelost — berekening correct, fixture-dump verwijderd |
 | R-01a | Parser-bug: `leerjaar` altijd "1" voor BJ2-leerlingen | ✅ Opgelost — leerjaar afgeleid uit periode |
-| R-02 | Datapunten-overzicht compleet + fase-onderscheid | ⬜ Niet gestart |
-| R-03 | BPV-uren weergave herzien | ⬜ Niet gestart |
+| R-02 | Datapunten-overzicht compleet + fase-onderscheid | ✅ Opgelost — fase-separatoren + inleverstatus-badge per rij |
+| R-03 | BPV-uren weergave herzien | ✅ Voldaan — bestaande weergave volstaat |
 
 ### Prioriteit 2 · Visuele verbeteringen
 
 | ID | Taak | Status |
 |---|---|---|
-| V-01 | Spider chart groter (280px → ~380px) | ⬜ Niet gestart |
-| V-02 | Kleuren SBL/SBC herzien (blauw voelt niet passend) | ⬜ Niet gestart |
-| V-03 | Fase-onderscheid in datapunten-overzicht | ⬜ Niet gestart |
+| V-01 | Spider chart groter (280px → ~380px) | ✅ Geïmplementeerd — 380px + schaalfactor bijgewerkt |
+| V-02 | Kleuren SBL/SBC herzien (blauw voelt niet passend) | ✅ Geïmplementeerd — SBC/versneld_sbc nu paars (violet) |
+| V-03 | Fase-onderscheid in datapunten-overzicht | ✅ Opgelost via R-02 |
 | V-04 | Opdracht-statusbadges (kleurgecodeerd) | ✅ Geïmplementeerd |
 
 ### Prioriteit 3 · QOL
@@ -94,8 +94,8 @@ M35 start **na uitrol van M34** — eerst echte gebruikersfeedback ophalen.
 ## Openstaande punten
 
 - [x] **R-01 afgerond:** `berekenPrognose()` correct geverifieerd met live PDF-fixture (Bos, V. BJ2 → sbl, 13/19 ≥V). Fixture-dump verwijderd. Regressietest bewaard als `tests/prognose.diagnose.test.ts`.
-- [ ] **R-02:** datapunten-overzicht compleet + fase-onderscheid (2 fases)
-- [ ] **R-03:** BPV-uren weergave definiëren en implementeren
+- [x] **R-02 afgerond:** StatusBadge extracted, datapunten gegroepeerd per periode (fase-scheidingsrij bij ≥2 records), inleverstatus-badge per datapunt via buildDpStatusMap(). 11 nieuwe tests groen.
+- [x] **R-03 afgevinkt:** bestaande weergave (voortgangsbalk + stats + plaatsingen-tabel) voldoet
 - [ ] **V-01:** Spider chart groter
 - [ ] **V-02:** Kleuren SBL/SBC herzien
 - [ ] **V-03:** Fase-onderscheid datapunten-overzicht (hangt samen met R-02)
