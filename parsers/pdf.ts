@@ -25,6 +25,11 @@ const Y_TOLERANCE = 3;
  * Matched case-insensitively with whitespace tolerance.
  */
 import { STATUS_STRINGS } from './pdf-status';
+import {
+  matchStatus,
+  enrichDatapuntenStatus,
+  enrichByProximity as _enrichByProximity,
+} from './pdf-enrich';
 
 /**
  * Known vak group heading strings as they appear in SomToday PDFs.
@@ -158,18 +163,6 @@ function lineToText(line: any[]): string {
 // ---------------------------------------------------------------------------
 // Task 01-02-02: Header + vak/opdracht/feedforward parsing
 // ---------------------------------------------------------------------------
-
-/**
- * Match a raw text string against the known status values.
- * Returns the canonical status string or '' if none matches.
- *
- * @param text
- * @returns {string}
- */
-function matchStatus(text: string): string {
-  const normalized = text.replace(/\s+/g, ' ').trim().toLowerCase();
-  return STATUS_STRINGS.find(s => normalized.includes(s.toLowerCase())) || '';
-}
 
 /**
  * Extract header fields from the grouped lines of a PDF.
@@ -684,61 +677,9 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
 
 // ---------------------------------------------------------------------------
 // Parse-time enrichment: attach inleverstatus to each datapunt (R-02)
+// (enrichDatapuntenStatus and enrichByProximity are imported from ./pdf-enrich)
 // ---------------------------------------------------------------------------
 
-/**
- * Aggressive normaliser for status matching.
- * Strips dash prefix, "Opdracht N:" prefix and leading "N." prefix so that
- * "1. Lesontwerp", "- 1. Lesontwerp" and "Opdracht 1: Lesontwerp" all
- * normalise to the same key.
- */
-function _normForStatusMatch(s: string): string {
-  return s
-    .replace(/^[-‐‑‒–—―−]\s*/, '')          // strip dash prefix
-    .replace(/^opdracht\s*\d+[.:]\s*/i, '')   // strip "Opdracht N:" / "Opdracht N."
-    .replace(/^\d+[.:]\s*/, '')               // strip "1." / "1:"
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/**
- * Enrich each datapunt with the inleverstatus from the matching vakken
- * opdracht.  Runs at parse-time inside parseSinglePDF when both structures
- * are available.
- *
- * Matching strategy (in order):
- *   1. Exact match on aggressively normalised name.
- *   2. Substring containment (one normalised key contains the other) —
- *      handles code-prefixed labels like "LO01 Sportles" vs "Sportles".
- *
- * Modifies datapunten in-place by setting dp.status.
- */
-function enrichDatapuntenStatus(
-  vakken: Array<{ naam: string; opdrachten: Array<{ naam: string; status: string }> }>,
-  datapunten: any[]
-): void {
-  const entries: Array<{ key: string; status: string }> = [];
-  for (const vak of vakken) {
-    for (const op of (vak.opdrachten || [])) {
-      if (op.naam && op.status) {
-        entries.push({ key: _normForStatusMatch(op.naam), status: op.status });
-      }
-    }
-  }
-  if (entries.length === 0) return;
-
-  for (const dp of datapunten) {
-    const dpKey = _normForStatusMatch(dp.datapunt);
-    // 1. Exact match
-    let found = entries.find(e => e.key === dpKey);
-    // 2. Substring fallback (min 4 chars to avoid false positives)
-    if (!found && dpKey.length >= 4) {
-      found = entries.find(e => e.key.length >= 4 && (e.key.includes(dpKey) || dpKey.includes(e.key)));
-    }
-    if (found) dp.status = found.status;
-  }
-}
 
 /**
  * Main entry point: parse a single voortgang PDF File into a complete StudentRecord.
@@ -786,13 +727,18 @@ async function parseSinglePDF(file: File): Promise<any> {
   }
 
   if (!vakken || vakken.length === 0) {
-    // Warn rather than throw: deelgebied data was already parsed successfully above.
-    // A PDF with a valid deelgebied table but no parseable vak lines is unusual
-    // but should not discard the scores that were already collected.
     console.warn(`[pdf.ts] Geen vakken gevonden in ${file.name}`);
   } else {
-    // R-02: attach inleverstatus to each datapunt at parse time
+    // R-02: attach inleverstatus to each datapunt at parse time (vakken-based)
     enrichDatapuntenStatus(vakken, datapunten);
+  }
+
+  // R-02 fallback: proximity search for PDFs where vakken name-matching fails
+  // (e.g., BJ2 PDFs with plain-text opdracht names lacking number/dash prefix)
+  const unenriched = datapunten.filter((dp: any) => !dp.status).length;
+  if (unenriched > 0) {
+    const texts = lines.map(l => lineToText(l));
+    _enrichByProximity(texts, datapunten);
   }
 
   const record = {

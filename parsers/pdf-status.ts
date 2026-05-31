@@ -6,6 +6,7 @@ export const STATUS_STRINGS = [
   'Te laat ingeleverd en wel beoordeeld',
   'Te laat ingeleverd en niet beoordeeld',
   'Niet beoordeelbaar (voldoet niet aan de minimale eisen)',
+  'Niet beoordeelbaar',
   'Niet ingeleverd',
   'Zelfevaluatie afgerond',
   'Zelfevaluatie, niet afgerond',
