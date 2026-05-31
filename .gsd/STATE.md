@@ -1,16 +1,16 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-05-30 (sessie 2)
+> Laatste update: 2026-05-31 (sessie 3) — M34 ✅ afgerond, versie 2.1.0
 
 ---
 
 ## Huidige fase
 
-**Fase 2 · Executie — M34 gestart**
+**Fase 4 · Shipped — M34 volledig afgerond**
 
-Office hours (GStack) heeft de scope van M34 en M35 vastgelegd.
-De eerste M34-taken zijn geïmplementeerd en gecommit.
-Actieve prioriteit: prognose-betrouwbaarheid afronden, daarna UI-verbeteringen.
+Alle R, V en Q taken van M34 zijn geïmplementeerd en gecommit.
+Versie 2.1.0 getagged. Klaar voor uitrol naar gebruikers.
+M35 (schema-configurabiliteit) start na ontvangst van echte gebruikersfeedback.
 
 ---
 
@@ -38,7 +38,7 @@ Actieve prioriteit: prognose-betrouwbaarheid afronden, daarna UI-verbeteringen.
 |---|---|---|
 | R-01 | Prognose-diagnose met echte PDF-fixtures | ✅ Opgelost — berekening correct, fixture-dump verwijderd |
 | R-01a | Parser-bug: `leerjaar` altijd "1" voor BJ2-leerlingen | ✅ Opgelost — leerjaar afgeleid uit periode |
-| R-02 | Datapunten-overzicht compleet + fase-onderscheid | ✅ Opgelost — fase-separatoren + inleverstatus-badge per rij |
+| R-02 | Datapunten-overzicht compleet + fase-onderscheid | ✅ Opgelost — fase-separatoren + inleverstatus-badge + proximity-enrichment voor BJ2 PDFs |
 | R-03 | BPV-uren weergave herzien | ✅ Voldaan — bestaande weergave volstaat |
 
 ### Prioriteit 2 · Visuele verbeteringen
@@ -54,7 +54,7 @@ Actieve prioriteit: prognose-betrouwbaarheid afronden, daarna UI-verbeteringen.
 
 | ID | Taak | Status |
 |---|---|---|
-| Q-01 | Zoeken/filteren in klasoverzicht | 🔄 Gedeeltelijk — KlasOverzicht heeft al zoekfunctionaliteit (refreshKey-gebaseerd) |
+| Q-01 | Zoeken/filteren in klasoverzicht | ✅ Voldaan — bestaande zoekfunctionaliteit volstaat voor v2.1 |
 | Q-02 | Klas-aanmaak wizard altijd starten + Overslaan-knop stap 2 | ✅ Overslaan-knop geïmplementeerd |
 
 ---
