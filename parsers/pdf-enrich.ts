@@ -121,7 +121,18 @@ export function enrichByProximity(texts: string[], datapunten: any[]): void {
     for (let i = 0; i < texts.length; i++) {
       const lineKey = normForStatusMatch(texts[i]);
       if (lineKey.length < 4) continue;
-      if (lineKey !== dpKey && !lineKey.includes(dpKey) && !dpKey.includes(lineKey)) continue;
+      if (lineKey !== dpKey) {
+        // Substring containment: the shorter key must start at a word boundary inside the
+        // longer one.  This prevents "vormen" from matching "bewegingsvormen ahv doelstelling"
+        // (appears mid-word), while still allowing "sportles geven" to match
+        // "lo01 sportles geven" (preceded by a space).
+        const longer  = lineKey.length >= dpKey.length ? lineKey : dpKey;
+        const shorter = lineKey.length <  dpKey.length ? lineKey : dpKey;
+        const idx     = longer.indexOf(shorter);
+        if (idx === -1) continue;
+        const wordBoundary = idx === 0 || longer[idx - 1] === ' ';
+        if (!wordBoundary) continue;
+      }
 
       nameFoundAt = i;
 
