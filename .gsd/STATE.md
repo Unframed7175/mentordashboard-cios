@@ -1,6 +1,6 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-05-31 (sessie 3) — M34 ✅ afgerond, versie 2.1.0
+> Laatste update: 2026-06-01 (sessie 4) — M34 ✅ afgerond + macOS PDF-fix, versie 2.4.0
 
 ---
 
@@ -21,7 +21,7 @@ M35 (schema-configurabiliteit) start na ontvangst van echte gebruikersfeedback.
 | Naam | Mentordashboard CIOS |
 | Type | Tauri v2 desktop app (Windows + macOS) |
 | Stack | Tauri 2 · React 19 · TypeScript · Vite · Vitest |
-| Versie | 2.0.0 |
+| Versie | 2.4.0 |
 | Totale commits | 655 |
 | Laatste commit | `cccde00` — feat: opdracht-statusbadges + parser fixes (M34 start) |
 | Status uitrol | Nog niet uitgerold — prognose-betrouwbaarheid is de blokkade |
