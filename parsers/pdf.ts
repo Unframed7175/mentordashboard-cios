@@ -7,6 +7,26 @@ import * as pdfjsLib from '../vendor/pdf.min.mjs';
 import pdfWorkerUrl from '../vendor/pdf.worker.min.mjs?url';
 import { DEELGEBIEDEN, normalizeScore } from '../utils/schema';
 
+// WKWebView polyfill: ReadableStream.prototype[Symbol.asyncIterator] was added in Safari 17.4.
+// PDF.js 5.x uses `for await...of` on ReadableStream internally (getTextContent/streamTextContent).
+// If Symbol.asyncIterator is missing, JSCore throws "undefined is not a function" instead of
+// "is not iterable" (V8 style). This polyfill makes ReadableStream async-iterable on all WebViews.
+if (typeof ReadableStream !== 'undefined' && !(Symbol.asyncIterator in ReadableStream.prototype)) {
+  (ReadableStream.prototype as any)[Symbol.asyncIterator] = async function* () {
+    const reader = (this as ReadableStream).getReader();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) return;
+        yield value;
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  };
+  console.log('[pdf.ts] ReadableStream asyncIterator polyfill toegepast');
+}
+
 // pdfjs-dist 5.x internally does: new Worker(workerSrc, {type:'module'})
 // ?url import guarantees Vite emits the worker to dist/assets/ and resolves it correctly
 // on both Windows (WebView2) and macOS (WKWebView). new URL(…, import.meta.url) can
@@ -81,8 +101,10 @@ async function extractAllTextItems(file: File): Promise<any[]> {
     const page = await pdf.getPage(pageNum);
     const content = await page.getTextContent();
 
-    for (const item of content.items) {
-      if (!item.str || item.str.trim() === '') continue;
+    const rawItems: any[] = Array.isArray(content?.items) ? content.items : [];
+    for (const item of rawItems) {
+      if (item == null || item.type !== undefined) continue; // skip TextMarkedContent (no str)
+      if (!item.str || typeof item.str !== 'string' || item.str.trim() === '') continue;
       allItems.push({
         str:      item.str,
         x:        item.transform[4],
@@ -700,14 +722,8 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
 async function parseSinglePDF(file: File): Promise<any> {
   const items = await extractAllTextItems(file);
   const lines = groupIntoLines(items);
-
   const header = extractHeader(lines);
   const vakken = parseVakSections(lines);
-
-  // --- Plan 01-03: parse Overzicht Deelgebieden table FIRST ---
-  // (deelgebied data is structurally independent of vakken; parsing it before
-  //  the vakken guard ensures a PDF with a valid deelgebied table but no
-  //  parseable vak lines still returns a useful record instead of throwing.)
   const deelgebiedStart = findDeelgebiedSection(lines);
   let deelgebiedScores: Record<string, string | null> = {};
   let datapunten: any[] = [];
@@ -717,13 +733,9 @@ async function parseSinglePDF(file: File): Promise<any> {
     deelgebiedScores = result.deelgebiedScores;
     datapunten       = result.datapunten;
   } else {
-    // Per PDF-08: throw specific error so the batch importer can report it
     throw new Error('Overzicht Deelgebieden tabel niet gevonden');
   }
 
-  // Filename fallback for naam (per plan spec)
-  // Must run after deelgebied parse (so deelgebied data is available regardless of naam)
-  // and before the vakken guard so the fallback naam appears in any error messages.
   let naam = header.naam;
   if (!naam) {
     const m = file.name.replace(/\.pdf$/i, '').match(/DD-(.+)$/i);
@@ -733,19 +745,16 @@ async function parseSinglePDF(file: File): Promise<any> {
   if (!vakken || vakken.length === 0) {
     console.warn(`[pdf.ts] Geen vakken gevonden in ${file.name}`);
   } else {
-    // R-02: attach inleverstatus to each datapunt at parse time (vakken-based)
     enrichDatapuntenStatus(vakken, datapunten);
   }
 
-  // R-02 fallback: proximity search for PDFs where vakken name-matching fails
-  // (e.g., BJ2 PDFs with plain-text opdracht names lacking number/dash prefix)
   const unenriched = datapunten.filter((dp: any) => !dp.status).length;
   if (unenriched > 0) {
     const texts = lines.map(l => lineToText(l));
     _enrichByProximity(texts, datapunten);
   }
 
-  const record = {
+  return {
     naam,
     leerlingId:  header.leerlingId || '',
     periode:     header.periode    || '',
@@ -755,8 +764,6 @@ async function parseSinglePDF(file: File): Promise<any> {
     deelgebiedScores,
     datapunten,
   };
-
-  return record;
 }
 
 // ---------------------------------------------------------------------------
