@@ -29,4 +29,15 @@ describe('normalizeRekenScore', () => {
 
   // Unknown → null
   it('returns null for unknown value', () => expect(normalizeRekenScore('unknown')).toBe(null));
+
+  // Numeric grades — 999.9: ≥5.5 → voldoende, <5.5 → onvoldoende
+  it('returns voldoende for numeric 5.5', () => expect(normalizeRekenScore('5.5')).toBe('voldoende'));
+  it('returns voldoende for numeric 6.0', () => expect(normalizeRekenScore('6.0')).toBe('voldoende'));
+  it('returns voldoende for numeric 10', () => expect(normalizeRekenScore('10')).toBe('voldoende'));
+  it('returns voldoende for numeric 5.6', () => expect(normalizeRekenScore('5.6')).toBe('voldoende'));
+  it('returns onvoldoende for numeric 5.4', () => expect(normalizeRekenScore('5.4')).toBe('onvoldoende'));
+  it('returns onvoldoende for numeric 1', () => expect(normalizeRekenScore('1')).toBe('onvoldoende'));
+  it('returns onvoldoende for numeric 0', () => expect(normalizeRekenScore('0')).toBe('onvoldoende'));
+  it('returns voldoende for numeric number (not string) 7', () => expect(normalizeRekenScore(7)).toBe('voldoende'));
+  it('returns onvoldoende for numeric number (not string) 3', () => expect(normalizeRekenScore(3)).toBe('onvoldoende'));
 });

@@ -17,73 +17,191 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
     };
   }, []);
 
-  async function handleChange(field: 'rekenResultaat' | 'nederlandsResultaat', value: string) {
+  function showSaved() {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setHint('saved');
+    timerRef.current = setTimeout(() => setHint('idle'), 1500);
+  }
+
+  async function handleChange(field: 'rekenResultaat', value: string) {
     if (!klassenState.activeKlasId) return;
     const klas = klassenState.klassen[klassenState.activeKlasId];
     // Update ALL records for this student — R&N is student-level, not period-level.
-    // Using find() would only update the oldest record (first match); DetailWeergave
-    // displays the most-recent one, so writes and reads would land on different objects
-    // for students with two periods imported (e.g. a BJ2 student with fase 1 + fase 2).
     const matching = klas?.students?.filter((s: any) => s.leerlingId === student.leerlingId) ?? [];
     if (matching.length === 0) return;
     for (const rec of matching) rec[field] = value || null;
     const saved = await saveKlassen();
     if (saved === false) return;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setHint('saved');
-    timerRef.current = setTimeout(() => setHint('idle'), 1500);
+    showSaved();
+    onSaved?.();
+  }
+
+  async function handleNlOnderdeel(
+    field: 'nlLezen' | 'nlSpreken' | 'nlGesprekvoeren' | 'nlSchrijven',
+    value: string
+  ) {
+    if (!klassenState.activeKlasId) return;
+    const klas = klassenState.klassen[klassenState.activeKlasId];
+    const matching = klas?.students?.filter((s: any) => s.leerlingId === student.leerlingId) ?? [];
+    if (matching.length === 0) return;
+    for (const rec of matching) {
+      rec[field] = value || null;
+      const lezen = parseFloat(rec.nlLezen ?? '');
+      const spreken = parseFloat(rec.nlSpreken ?? '');
+      const gesprekvoeren = parseFloat(rec.nlGesprekvoeren ?? '');
+      const schrijven = parseFloat(rec.nlSchrijven ?? '');
+      rec.nederlandsResultaat = (!isNaN(lezen) && !isNaN(spreken) && !isNaN(gesprekvoeren) && !isNaN(schrijven))
+        ? ((lezen + spreken + gesprekvoeren + schrijven) / 2).toFixed(1)
+        : null;
+    }
+    const saved = await saveKlassen();
+    if (saved === false) return;
+    showSaved();
     onSaved?.();
   }
 
   const rekenStatus = normalizeRekenScore(student.rekenResultaat ?? null);
   const nederlandsStatus = normalizeRekenScore(student.nederlandsResultaat ?? null);
 
-  function normBadge(status: ReturnType<typeof normalizeRekenScore>) {
+  function normBadge(status: ReturnType<typeof normalizeRekenScore>, rawValue?: string | null) {
     if (status === null) return null;
     const kleur = status === 'onvoldoende' ? 'var(--status-rood-text)' : 'var(--status-groen-text)';
-    const label =
-      status === 'goed' ? '3F — goed' :
-      status === 'voldoende' ? '2F — voldoende (norm)' :
-      'Onder norm';
+    const raw = String(rawValue ?? '').trim().toUpperCase();
+    let label: string;
+    if (raw === '3F') label = '3F — goed';
+    else if (raw === '2F') label = '2F — voldoende (norm)';
+    else if (raw === '1F') label = 'Onder norm';
+    else label = status === 'onvoldoende' ? 'Onvoldoende' : 'Voldoende';
     return <span style={{ fontSize: '0.75rem', fontWeight: 600, color: kleur, marginLeft: '0.5rem' }}>{label}</span>;
   }
+
+  // Compute display eindcijfer from student prop values
+  const lezenVal = parseFloat(student.nlLezen ?? '');
+  const sprekenVal = parseFloat(student.nlSpreken ?? '');
+  const gesprekvorenVal = parseFloat(student.nlGesprekvoeren ?? '');
+  const schrijvenVal = parseFloat(student.nlSchrijven ?? '');
+  const nederlandsEindcijfer = (!isNaN(lezenVal) && !isNaN(sprekenVal) && !isNaN(gesprekvorenVal) && !isNaN(schrijvenVal))
+    ? (lezenVal + sprekenVal + gesprekvorenVal + schrijvenVal) / 2
+    : null;
+
+  const inputStyle: React.CSSProperties = {
+    padding: '0.4375rem 0.75rem',
+    border: '1.5px solid var(--border-default)',
+    borderRadius: 'var(--radius-sm)',
+    background: 'var(--bg-surface)',
+    color: 'var(--text-primary)',
+    fontSize: '0.875rem',
+    outline: 'none',
+    boxShadow: 'var(--shadow-xs)',
+    width: '100%',
+    boxSizing: 'border-box' as const,
+  };
+
+  const subLabelStyle: React.CSSProperties = {
+    fontSize: '0.75rem',
+    color: 'var(--text-muted)',
+    fontWeight: 600,
+    letterSpacing: '0.02em',
+    marginBottom: '0.3rem',
+    display: 'block',
+  };
 
   return (
     <div className="detail-section">
       <p className="detail-section-title">Rekenen &amp; Nederlands</p>
       <div className="aanvullend-grid">
+
+        {/* 999.9: Rekenen — numeric grade input */}
         <div className="aanvullend-veld">
           <label htmlFor="rnl-rekenen">
             Rekenen
-            {normBadge(rekenStatus)}
+            {normBadge(rekenStatus, student.rekenResultaat)}
           </label>
-          <select
+          <input
+            type="number"
             id="rnl-rekenen"
+            min="1"
+            max="10"
+            step="0.1"
+            placeholder="bijv. 6.5"
             value={student.rekenResultaat ?? ''}
+            style={inputStyle}
             onChange={e => handleChange('rekenResultaat', e.target.value)}
-          >
-            <option value="">— niet ingevuld —</option>
-            <option value="3F">3F</option>
-            <option value="2F">2F (norm)</option>
-            <option value="1F">1F — onder norm</option>
-          </select>
+          />
         </div>
-        <div className="aanvullend-veld">
-          <label htmlFor="rnl-nederlands">
+
+        {/* 999.10: Nederlands — 4 onderdelen + auto-computed eindcijfer */}
+        <div className="aanvullend-veld" style={{ gridColumn: '1 / -1' }}>
+          <label>
             Nederlands
-            {normBadge(nederlandsStatus)}
+            {normBadge(nederlandsStatus, student.nederlandsResultaat)}
           </label>
-          <select
-            id="rnl-nederlands"
-            value={student.nederlandsResultaat ?? ''}
-            onChange={e => handleChange('nederlandsResultaat', e.target.value)}
-          >
-            <option value="">— niet ingevuld —</option>
-            <option value="3F">3F</option>
-            <option value="2F">2F (norm)</option>
-            <option value="1F">1F — onder norm</option>
-          </select>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.35rem' }}>
+            <div>
+              <span style={subLabelStyle}>Lezen / Luisteren</span>
+              <input
+                type="number"
+                id="rnl-nl-lezen"
+                min="0"
+                max="10"
+                step="0.1"
+                placeholder="bijv. 3.5"
+                value={student.nlLezen ?? ''}
+                style={inputStyle}
+                onChange={e => handleNlOnderdeel('nlLezen', e.target.value)}
+              />
+            </div>
+            <div>
+              <span style={subLabelStyle}>Spreken</span>
+              <input
+                type="number"
+                id="rnl-nl-spreken"
+                min="0"
+                max="10"
+                step="0.1"
+                placeholder="bijv. 3.5"
+                value={student.nlSpreken ?? ''}
+                style={inputStyle}
+                onChange={e => handleNlOnderdeel('nlSpreken', e.target.value)}
+              />
+            </div>
+            <div>
+              <span style={subLabelStyle}>Gesprekvoeren</span>
+              <input
+                type="number"
+                id="rnl-nl-gesprekvoeren"
+                min="0"
+                max="10"
+                step="0.1"
+                placeholder="bijv. 3.5"
+                value={student.nlGesprekvoeren ?? ''}
+                style={inputStyle}
+                onChange={e => handleNlOnderdeel('nlGesprekvoeren', e.target.value)}
+              />
+            </div>
+            <div>
+              <span style={subLabelStyle}>Schrijven</span>
+              <input
+                type="number"
+                id="rnl-nl-schrijven"
+                min="0"
+                max="10"
+                step="0.1"
+                placeholder="bijv. 3.5"
+                value={student.nlSchrijven ?? ''}
+                style={inputStyle}
+                onChange={e => handleNlOnderdeel('nlSchrijven', e.target.value)}
+              />
+            </div>
+          </div>
+          {nederlandsEindcijfer !== null && (
+            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', marginBottom: 0 }}>
+              <span style={{ fontWeight: 600 }}>Eindcijfer: {nederlandsEindcijfer.toFixed(1)}</span>
+              {normBadge(nederlandsStatus, student.nederlandsResultaat)}
+            </p>
+          )}
         </div>
+
       </div>
       <p
         className="aanvullend-hint"
@@ -91,7 +209,7 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
       >
         {hint === 'saved' ? 'Opgeslagen' : (
           rekenStatus === null && nederlandsStatus === null
-            ? <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Norm: Rekenen 2F · Nederlands 2F (MBO-3 landelijk)</span>
+            ? <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Norm: Rekenen ≥5.5 · Nederlands eindcijfer ≥5.5 (som / 2)</span>
             : null
         )}
       </p>

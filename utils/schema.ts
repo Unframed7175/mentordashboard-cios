@@ -71,5 +71,8 @@ export function normalizeRekenScore(raw: unknown): 'goed' | 'voldoende' | 'onvol
   if (u === '3f' || u === 'goed' || u === 'g')                          return 'goed';
   if (u === '2f' || u === 'voldoende' || u === 'v')                     return 'voldoende';
   if (u === '1f' || u === 'onvoldoende' || u === 'o' || u === 'onv')    return 'onvoldoende';
+  // Numeric grade (999.9): ≥5.5 → voldoende, <5.5 → onvoldoende
+  const n = typeof raw === 'number' ? raw : parseFloat(u);
+  if (!isNaN(n)) return n >= 5.5 ? 'voldoende' : 'onvoldoende';
   return null;
 }
