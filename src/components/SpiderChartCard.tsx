@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { SpiderChart } from '../../utils/spider';
+import type { HoverState } from '../../utils/spider';
 import { DEELGEBIEDEN } from '../../utils/schema';
 import { getDeelgebiedenConfigSync } from '../../utils/deelgebieden';
 
@@ -22,8 +23,6 @@ function scoreDisplay(score: string | null): string {
 }
 
 export default function SpiderChartCard({ group, scores, fillVar, strokeVar, title }: SpiderChartCardProps) {
-  // Active-deelgebied filter (Phase 18 SET-03): only render active deelgebieden
-  // Uses sync accessor — pre-warm in main.tsx guarantees populated cache at render time.
   const dgConfig = getDeelgebiedenConfigSync();
   const activeIds = new Set(dgConfig.filter(c => c.active).map(c => c.id));
   const labelById = new Map(dgConfig.map(c => [c.id, c.label]));
@@ -37,16 +36,24 @@ export default function SpiderChartCard({ group, scores, fillVar, strokeVar, tit
       label: labelById.get(dg.id) ?? dg.label,  // custom label for display only
     }));
 
-  // Tooltip state for hit-circle hover (D-11, Phase 19 POL-02)
   const [tooltip, setTooltip] = useState<{ axisIndex: number; x: number; y: number } | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  function handleHover(state: HoverState) {
+    if (state === null) { setTooltip(null); return; }
+    // Convert SVG-viewport coords (0–200) to pixel offset within the card
+    const w = cardRef.current?.clientWidth ?? 380;
+    const scale = w / 200;
+    setTooltip({ axisIndex: state.axisIndex, x: state.x * scale, y: state.y * scale });
+  }
 
   if (axes.length === 0) {
     return <div className="spider-empty">Geen scores beschikbaar</div>;
   }
 
   return (
-    <div className="spider-card">
-      {SpiderChart.buildSpiderSVG(axes, scores, fillVar, strokeVar, setTooltip)}
+    <div className="spider-card" ref={cardRef}>
+      {SpiderChart.buildSpiderSVG(axes, scores, fillVar, strokeVar, handleHover)}
       {tooltip && (
         <div
           className="spider-tooltip"

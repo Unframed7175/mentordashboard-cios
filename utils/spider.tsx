@@ -27,11 +27,7 @@ function scoreToRadius(score: string | null): number {
   }
 }
 
-/**
- * HoverState — tooltip position data passed to onHover callbacks.
- * axisIndex: index into the axes array.
- * x, y: rendered pixel coordinates (0–280) relative to .spider-card.
- */
+// x, y: ruwe SVG-viewport-coördinaten (0–200); aanroeper converteert naar px via actuele kaartbreedte
 export type HoverState = { axisIndex: number; x: number; y: number } | null;
 
 /**
@@ -134,8 +130,7 @@ export const SpiderChart = {
     const safeStroke = sanitizeCssVar(strokeVar);
 
     // Hit circles for tooltip interaction (D-11)
-    // cx/cy are in SVG viewBox space (0–200). Scale factor 380/200 converts to
-    // rendered pixel space (0–380), matching the .spider-card width of 380px.
+    // cx/cy are in SVG viewBox space (0–200). Caller converts to px via actual card width.
     const hitCircles = axes.map((axis, i) => {
       const score = scores[axis.key] ?? null;
       const radius = scoreToRadius(score) * maxRadius;
@@ -145,7 +140,7 @@ export const SpiderChart = {
       return (
         <circle key={`hit-${i}`} cx={cx} cy={cy} r={6}
           className="spider-hit-circle"
-          onMouseEnter={() => onHover?.({ axisIndex: i, x: cx * (380 / 200), y: cy * (380 / 200) })}
+          onMouseEnter={() => onHover?.({ axisIndex: i, x: cx, y: cy })}
           onMouseLeave={() => onHover?.(null)} />
       );
     });
