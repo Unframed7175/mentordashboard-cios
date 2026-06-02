@@ -1395,7 +1395,7 @@ a:hover { text-decoration: underline; }
 }
 
 /* Section 26 — Spider chart (Phase 19) */
-.spider-card { width: 380px; position: relative; }
+.spider-card { min-width: 280px; flex: 1 1 280px; max-width: 380px; position: relative; }
 .spider-tooltip { position: absolute; background: var(--bg-surface); border: 1.5px solid var(--border-default); border-radius: var(--radius-sm); padding: 4px 8px; font-size: 12px; color: var(--text-primary); box-shadow: var(--shadow-md); pointer-events: none; white-space: nowrap; z-index: 10; transform: translate(-50%, -100%); opacity: 1; transition: opacity var(--transition-fast); }
 .spider-hit-circle { fill: transparent; cursor: pointer; transition: fill var(--transition-fast); }
 .spider-hit-circle:hover { fill: rgba(0, 0, 0, 0.08); }
