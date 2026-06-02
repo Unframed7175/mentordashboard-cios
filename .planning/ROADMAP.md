@@ -909,3 +909,30 @@ Plans:
 
 Plans:
 - [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
+
+### Phase 999.9: Rekenen cijfer invoer met voldoende-grens (BACKLOG)
+
+**Goal:** Mentor kan per leerling een cijfer voor Rekenen invoeren; 5.5 of hoger wordt automatisch als voldoende beschouwd en meegenomen in de prognose
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
+
+### Phase 999.10: Nederlands examen — meerdere onderdelen + eindcijferberekening (BACKLOG)
+
+**Goal:** Nederlands-examen opsplitsen in vier onderdelen (Lezen/Luisteren, Spreken, Gesprekvoeren, Schrijven) met apart cijfer per onderdeel; eindcijfer automatisch berekenen via de formule: (Schrijven + Spreken + Gesprekvoeren + Lezen/Luisteren) / 2
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
+
+### Phase 999.11: Meerdere keuzedelen per leerling — handmatige invoer (BACKLOG)
+
+**Goal:** Een leerling kan meerdere keuzedelen hebben; mentor voert elk keuzedeel handmatig in (naam + status); koppelen aan bestaande prognoselogica (zie ook 999.6)
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
