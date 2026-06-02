@@ -729,11 +729,11 @@ Plans:
 
 **Wave 1**
 
-- [ ] 31-01-PLAN.md — Wave 1: CSS sizing changes (index.css — nav 104px, nav-stripe 100%, spider-card 280px)
+- [x] 31-01-PLAN.md — Wave 1: CSS sizing changes (index.css — nav 104px, nav-stripe 100%, spider-card 280px)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 31-02-PLAN.md — Wave 2: Component changes (KlasTabStrip logo 72px, spider SVG width=100%, DetailWeergave section reorder)
+- [x] 31-02-PLAN.md — Wave 2: Component changes (KlasTabStrip logo 72px, spider SVG width=100%, DetailWeergave section reorder) *(completed 2026-06-02)*
 
 ### Phase 32: R&N Status op Tegels
 
@@ -847,7 +847,7 @@ Plans:
 | 28. Bug/Feedback Rapportage | 2/2 | Complete | 2026-05-27 |
 | 29. UI Streamlining & Bugfixes | 5/5 | Complete | 2026-05-28 |
 | 30. Documentatie, Help & CI | 4/4 | Complete | 2026-05-28 |
-| 31. UI Polish — Nav & Spider | 0/TBD | Not started | - |
+| 31. UI Polish — Nav & Spider | 1/1 | Complete | 2026-06-02 |
 | 32. R&N Status op Tegels | 0/1 | Not started | - |
 | 33. Klas Verwijderen met Bevestiging | 2/2 | Complete   | 2026-05-30 |
 | 34. Keuzedelen per Leerling | 0/TBD | Not started | - |
