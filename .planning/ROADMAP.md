@@ -890,3 +890,12 @@ Plans:
 
 Plans:
 - [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
+
+### Phase 999.7: SBC profieljaar → SBC examenjaar doorstroom (BACKLOG)
+
+**Goal:** Functionaliteit toevoegen voor de overgang van SBC profieljaar naar SBC examenjaar — inclusief doorstroomeisen, automatische route-herkenning en specifieke logica rondom examenstatus per leerling
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
