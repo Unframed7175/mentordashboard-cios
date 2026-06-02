@@ -2,6 +2,7 @@ import React from 'react';
 import { StatusResult, detectTraject } from '../utils/status';
 import { getNormenSync } from '../../utils/normen';
 import { normalizeRekenScore } from '../../utils/schema';
+import { aggregateKdStatus } from '../../utils/keuzedelen';
 
 interface DoortstroomPrognoseSectionProps {
   student: any;
@@ -99,7 +100,9 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
   const rekenNodig = rnlNodig(rekenStatus);
   const nederlandsNodig = rnlNodig(nederlandsStatus);
 
-  const kdStatus = student.kdStatus ?? null;
+  // keuzedelen array takes precedence; fall back to legacy kdStatus for existing data
+  const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
+  const kdStatus = keuzedelen.length > 0 ? aggregateKdStatus(keuzedelen) : (student.kdStatus ?? null);
   // BJ2 doorstroom: behaald of haalbaar volstaat
   const kdNodigBJ2 = kdStatus === 'behaald' || kdStatus === 'haalbaar' ? 0 : kdStatus === 'niet_behaald' ? 3 : 1;
   // Versneld SBC / BJ2 SBC: alleen behaald volstaat

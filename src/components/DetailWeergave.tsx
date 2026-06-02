@@ -8,6 +8,7 @@ import DeelgebiedenMatrix from './DeelgebiedenMatrix';
 import VerzuimSection from './VerzuimSection';
 import BpvProgressSection from './BpvProgressSection';
 import RekenenNederlandsSection from './RekenenNederlandsSection';
+import KeuzedeelSection from './KeuzedeelSection';
 
 interface DetailWeergaveProps {
   leerlingId: string;
@@ -128,6 +129,9 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
 
       {/* Section 2: RekenenNederlandsSection — RNL-01..03 */}
       <RekenenNederlandsSection student={student} onSaved={() => setRevision(r => r + 1)} />
+
+      {/* Section 3: KeuzedeelSection */}
+      <KeuzedeelSection student={student} onSaved={() => setRevision(r => r + 1)} />
 
       {/* Section 5: SpiderChartCard row */}
       <div className="detail-section">

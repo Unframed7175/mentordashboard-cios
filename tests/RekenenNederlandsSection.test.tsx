@@ -52,6 +52,7 @@ describe('RekenenNederlandsSection — rendering', () => {
     const student = makeStudent();
     mountState(student);
     render(<RekenenNederlandsSection student={student} />);
+    // HTML entity &amp; renders as literal &
     expect(screen.getByText('Rekenen & Nederlands')).toBeTruthy();
   });
 
