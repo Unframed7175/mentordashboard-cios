@@ -154,8 +154,8 @@ function App() {
   }
 
   async function handleOnboardingComplete(klasId: string) {
-    await saveOnboardingCompleted();
-    await switchActiveKlas(klasId);
+    try { await saveOnboardingCompleted(); } catch { /* Tauri niet beschikbaar in browser */ }
+    try { await switchActiveKlas(klasId); } catch { /* Tauri niet beschikbaar in browser */ }
     setRefreshKey(k => k + 1);
     setView('klas');
   }

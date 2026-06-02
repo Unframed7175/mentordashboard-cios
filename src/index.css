@@ -125,9 +125,9 @@
   --dm-organiseren-text:   #166534;
   --dm-organiseren-border: #bbf7d0;
 
-  --dm-profhandelen-bg:    #faf5ff;
-  --dm-profhandelen-text:  #6b21a8;
-  --dm-profhandelen-border:#e9d5ff;
+  --dm-profhandelen-bg:    #f0f9ff;
+  --dm-profhandelen-text:  #0369a1;
+  --dm-profhandelen-border:#bae6fd;
 }
 
 /* Dark mode — JS-controlled via body.dark class (Plan 17-01) */
@@ -172,9 +172,9 @@ body.dark {
   --dm-organiseren-text:   #86efac;
   --dm-organiseren-border: #15803d;
 
-  --dm-profhandelen-bg:    #3b0764;
-  --dm-profhandelen-text:  #d8b4fe;
-  --dm-profhandelen-border:#7e22ce;
+  --dm-profhandelen-bg:    #082f49;
+  --dm-profhandelen-text:  #7dd3fc;
+  --dm-profhandelen-border:#0284c7;
 }
 
 body.dark .score-o { background: #450a0a; color: #fca5a5; }

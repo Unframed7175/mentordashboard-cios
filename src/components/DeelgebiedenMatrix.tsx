@@ -104,8 +104,8 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
     return (
       <div className="detail-section">
         <p className="detail-section-title">Beoordelingen per datapunt × deelgebied</p>
-        <div className="dg-matrix-wrap" style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
-          <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '1200px' }}>
+        <div className="dg-matrix-wrap" style={{ borderRadius: '8px', border: '1px solid var(--border-default)' }}>
+          <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%' }}>
             <tbody>
               <tr>
                 <td colSpan={totalCols} style={{ color: 'var(--text-muted)', padding: '0.75rem 1rem', fontSize: '0.85rem' }}>
@@ -122,14 +122,14 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
   return (
     <div className="detail-section">
       <p className="detail-section-title">Beoordelingen per datapunt × deelgebied</p>
-      <div className="dg-matrix-wrap" style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-default)' }}>
-        <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', minWidth: '1200px' }}>
+      <div className="dg-matrix-wrap" style={{ borderRadius: '8px', border: '1px solid var(--border-default)' }}>
+        <table className="dg-matrix" style={{ borderCollapse: 'collapse', fontSize: '0.77rem', width: '100%', tableLayout: 'fixed' }}>
           <thead>
             <tr>
-              <th className="col-naam" rowSpan={2} style={{ padding: '0.5rem 0.75rem', textAlign: 'left', whiteSpace: 'nowrap' }}>
+              <th className="col-naam" rowSpan={2} style={{ padding: '0.5rem 0.75rem', textAlign: 'left', width: '22%' }}>
                 Datapunt
               </th>
-              <th rowSpan={2} style={{ padding: '0.5rem 0.5rem', textAlign: 'left', whiteSpace: 'nowrap', fontWeight: 600, fontSize: '0.77rem' }}>
+              <th rowSpan={2} style={{ padding: '0.5rem 0.5rem', textAlign: 'left', fontWeight: 600, fontSize: '0.77rem', width: '7%' }}>
                 Status
               </th>
               {GROEPEN.map(g => (
@@ -144,7 +144,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
             </tr>
             <tr>
               {allDG.map(dg => (
-                <th key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                <th key={dg.id} style={{ padding: '0.3rem 0.2rem', textAlign: 'center', fontWeight: 600, fontSize: '0.7rem' }}>
                   {labelById.get(dg.id) ?? dg.label}
                 </th>
               ))}
@@ -177,14 +177,14 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                   const status = dp.status || lookupDpStatus(statusMap, dp.datapunt);
                   return (
                     <tr key={`${gi}-${i}`}>
-                      <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', wordBreak: 'break-word' }}>
                         <span className="cell-dp">{dp.datapunt}</span>
                       </td>
-                      <td style={{ padding: '0.2rem 0.5rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '0.2rem 0.3rem' }}>
                         {status && <StatusBadge status={status} />}
                       </td>
                       {allDG.map(dg => (
-                        <td key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
+                        <td key={dg.id} style={{ padding: '0.3rem 0.2rem', textAlign: 'center' }}>
                           <DmChip score={dp.scores ? (dp.scores[dg.label] || null) : null} />
                         </td>
                       ))}
@@ -203,7 +203,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                   </td>
                   <td /> {/* status column — leeg in voettekst */}
                   {allDG.map(dg => (
-                    <td key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
+                    <td key={dg.id} style={{ padding: '0.3rem 0.2rem', textAlign: 'center' }}>
                       <DmChip score={scores1[dg.label] || null} />
                     </td>
                   ))}
@@ -217,7 +217,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                     const s1 = scores1[dg.label] || null;
                     const s2 = scores2[dg.label] || null;
                     return (
-                      <td key={dg.id} style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
+                      <td key={dg.id} style={{ padding: '0.3rem 0.2rem', textAlign: 'center' }}>
                         <DmChip score={s2} />
                         <GrowthBadge score1={s1} score2={s2} />
                       </td>
@@ -232,7 +232,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                 </td>
                 <td /> {/* status column — leeg in voettekst */}
                 {allDG.map(dg => (
-                  <td key={dg.id} className="vote-count-cell" style={{ padding: '0.3rem 0.4rem', textAlign: 'center' }}>
+                  <td key={dg.id} className="vote-count-cell" style={{ padding: '0.3rem 0.2rem', textAlign: 'center' }}>
                     <DmChip score={aggregationDetail[dg.label] || null} />
                   </td>
                 ))}

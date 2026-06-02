@@ -17,7 +17,7 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
     };
   }, []);
 
-  async function handleChange(field: 'rekenResultaat' | 'nederlandsResultaat', value: string) {
+  async function handleChange(field: 'rekenResultaat' | 'nederlandsResultaat' | 'kdStatus', value: string) {
     if (!klassenState.activeKlasId) return;
     const klas = klassenState.klassen[klassenState.activeKlasId];
     // Update ALL records for this student — R&N is student-level, not period-level.
@@ -48,9 +48,18 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
     return <span style={{ fontSize: '0.75rem', fontWeight: 600, color: kleur, marginLeft: '0.5rem' }}>{label}</span>;
   }
 
+  const kdStatus = student.kdStatus ?? '';
+  const kdBadge = kdStatus === 'behaald'
+    ? <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--status-groen-text)', marginLeft: '0.5rem' }}>behaald</span>
+    : kdStatus === 'haalbaar'
+    ? <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--rag-oranje)', marginLeft: '0.5rem' }}>haalbaar</span>
+    : kdStatus === 'niet_behaald'
+    ? <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--status-rood-text)', marginLeft: '0.5rem' }}>niet behaald</span>
+    : null;
+
   return (
     <div className="detail-section">
-      <p className="detail-section-title">Rekenen &amp; Nederlands</p>
+      <p className="detail-section-title">Rekenen, Nederlands &amp; Keuzedeel</p>
       <div className="aanvullend-grid">
         <div className="aanvullend-veld">
           <label htmlFor="rnl-rekenen">
@@ -82,6 +91,22 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
             <option value="3F">3F</option>
             <option value="2F">2F (norm)</option>
             <option value="1F">1F — onder norm</option>
+          </select>
+        </div>
+        <div className="aanvullend-veld">
+          <label htmlFor="rnl-kd">
+            Keuzedeel (KD)
+            {kdBadge}
+          </label>
+          <select
+            id="rnl-kd"
+            value={kdStatus}
+            onChange={e => handleChange('kdStatus', e.target.value)}
+          >
+            <option value="">— niet ingevuld —</option>
+            <option value="behaald">Behaald</option>
+            <option value="haalbaar">Haalbaar (vóór 1 dec.)</option>
+            <option value="niet_behaald">Niet behaald / haalbaar</option>
           </select>
         </div>
       </div>

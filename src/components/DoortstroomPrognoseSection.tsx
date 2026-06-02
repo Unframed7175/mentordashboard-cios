@@ -99,24 +99,11 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
   const rekenNodig = rnlNodig(rekenStatus);
   const nederlandsNodig = rnlNodig(nederlandsStatus);
 
-  const rnlBlock = (
-    <PrognoseBlock
-      name="Rekenen & Nederlands"
-      overallNodig={Math.max(rekenNodig, nederlandsNodig)}
-      isEmpty={false}
-    >
-      <CriterionRow
-        label="Rekenen ≥2F"
-        scoreDisplay={student.rekenResultaat ?? '—'}
-        nodig={rekenNodig}
-      />
-      <CriterionRow
-        label="Nederlands ≥2F"
-        scoreDisplay={student.nederlandsResultaat ?? '—'}
-        nodig={nederlandsNodig}
-      />
-    </PrognoseBlock>
-  );
+  const kdStatus = student.kdStatus ?? null;
+  // BJ2 doorstroom: behaald of haalbaar volstaat
+  const kdNodigBJ2 = kdStatus === 'behaald' || kdStatus === 'haalbaar' ? 0 : kdStatus === 'niet_behaald' ? 3 : 1;
+  // Versneld SBC / BJ2 SBC: alleen behaald volstaat
+  const kdNodigSBC = kdStatus === 'behaald' ? 0 : kdStatus === 'niet_behaald' ? 3 : 1;
 
   // Negatief per-leerlijn rows (shared between BJ1 and BJ2)
   const negatiefPerLeerlijnen = (['lesgeven', 'organiseren', 'prof_handelen'] as const).map((l) => {
@@ -153,11 +140,30 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
       <div className="prognose-blocks-container">
         {traject === 'bj1' ? (
           <>
-            <PrognoseBlock name="BJ2 doorstroom" overallNodig={p.gaps.nodigBJ2} isEmpty={globalEmpty}>
+            <PrognoseBlock
+              name="BJ2 doorstroom"
+              overallNodig={Math.max(p.gaps.nodigBJ2, rekenNodig, nederlandsNodig, kdNodigBJ2)}
+              isEmpty={globalEmpty}
+            >
               <CriterionRow
                 label={`≥${n.bj1Positief} deelgebieden ≥V`}
                 scoreDisplay={`${p.totaalVoldoendeOfHoger} / ${n.bj1Positief}`}
                 nodig={p.gaps.nodigBJ2}
+              />
+              <CriterionRow
+                label="Nederlands op weg naar 2F"
+                scoreDisplay={student.nederlandsResultaat ?? '—'}
+                nodig={nederlandsNodig}
+              />
+              <CriterionRow
+                label="Rekenen ≥3 domeinen MBO3"
+                scoreDisplay={student.rekenResultaat ?? '—'}
+                nodig={rekenNodig}
+              />
+              <CriterionRow
+                label="KD behaald of haalbaar (vóór 1 dec.)"
+                scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
+                nodig={kdNodigBJ2}
               />
             </PrognoseBlock>
             <PrognoseBlock
@@ -165,7 +171,10 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
               overallNodig={Math.max(
                 p.gaps.nodigVersneld_lesgeven ?? 0,
                 p.gaps.nodigVersneld_organiseren ?? 0,
-                p.gaps.nodigVersneld_profHandelen ?? 0
+                p.gaps.nodigVersneld_profHandelen ?? 0,
+                rekenNodig,
+                nederlandsNodig,
+                kdNodigSBC
               )}
               isEmpty={globalEmpty}
             >
@@ -184,24 +193,34 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
                 scoreDisplay={`${llMap['prof_handelen']?.goedOfHoger ?? 0} / ${bj1VersneldProfHandelen}`}
                 nodig={p.gaps.nodigVersneld_profHandelen ?? 0}
               />
+              <CriterionRow
+                label="Nederlands op weg naar 3F"
+                scoreDisplay={student.nederlandsResultaat ?? '—'}
+                nodig={nederlandsNodig}
+              />
+              <CriterionRow
+                label="Rekenen ≥3 domeinen MBO4"
+                scoreDisplay={student.rekenResultaat ?? '—'}
+                nodig={rekenNodig}
+              />
+              <CriterionRow
+                label="KD afgerond"
+                scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
+                nodig={kdNodigSBC}
+              />
             </PrognoseBlock>
             {negatiefBlock}
-            {rnlBlock}
           </>
         ) : (
           <>
-            <PrognoseBlock name="SBL" overallNodig={p.gaps.nodigSBL} isEmpty={globalEmpty}>
-              <CriterionRow
-                label={`≥${n.sbl} deelgebieden ≥V`}
-                scoreDisplay={`${p.totaalVoldoendeOfHoger} / ${n.sbl}`}
-                nodig={p.gaps.nodigSBL}
-              />
-            </PrognoseBlock>
             <PrognoseBlock
               name="SBC"
               overallNodig={Math.max(
                 p.gaps.nodigSBC_deelgebieden,
-                (p.gaps.nodigSBC_kern ?? []).length
+                (p.gaps.nodigSBC_kern ?? []).length,
+                rekenNodig,
+                nederlandsNodig,
+                kdNodigSBC
               )}
               isEmpty={globalEmpty}
             >
@@ -210,17 +229,52 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
                 scoreDisplay={`${p.totaalVoldoendeOfHoger} / ${n.sbc}`}
                 nodig={p.gaps.nodigSBC_deelgebieden}
               />
-              {KERN_NAMES.map((kd) => (
+              {KERN_NAMES.map((kern) => (
                 <CriterionRow
-                  key={kd}
-                  label={`${kd} ≥V`}
-                  scoreDisplay={(p.gaps.nodigSBC_kern ?? []).includes(kd) ? '< V' : '≥ V'}
-                  nodig={(p.gaps.nodigSBC_kern ?? []).includes(kd) ? 3 : 0}
+                  key={kern}
+                  label={`${kern} ≥V`}
+                  scoreDisplay={(p.gaps.nodigSBC_kern ?? []).includes(kern) ? '< V' : '≥ V'}
+                  nodig={(p.gaps.nodigSBC_kern ?? []).includes(kern) ? 3 : 0}
                 />
               ))}
+              <CriterionRow
+                label="Rekenen ≥2F"
+                scoreDisplay={student.rekenResultaat ?? '—'}
+                nodig={rekenNodig}
+              />
+              <CriterionRow
+                label="Nederlands ≥2F"
+                scoreDisplay={student.nederlandsResultaat ?? '—'}
+                nodig={nederlandsNodig}
+              />
+              <CriterionRow
+                label="KD afgerond"
+                scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
+                nodig={kdNodigSBC}
+              />
+            </PrognoseBlock>
+            <PrognoseBlock
+              name="SBL"
+              overallNodig={Math.max(p.gaps.nodigSBL, rekenNodig, nederlandsNodig)}
+              isEmpty={globalEmpty}
+            >
+              <CriterionRow
+                label={`≥${n.sbl} deelgebieden ≥V`}
+                scoreDisplay={`${p.totaalVoldoendeOfHoger} / ${n.sbl}`}
+                nodig={p.gaps.nodigSBL}
+              />
+              <CriterionRow
+                label="Rekenen ≥2F"
+                scoreDisplay={student.rekenResultaat ?? '—'}
+                nodig={rekenNodig}
+              />
+              <CriterionRow
+                label="Nederlands ≥2F"
+                scoreDisplay={student.nederlandsResultaat ?? '—'}
+                nodig={nederlandsNodig}
+              />
             </PrognoseBlock>
             {negatiefBlock}
-            {rnlBlock}
           </>
         )}
       </div>
