@@ -48,7 +48,7 @@ export const SpiderChart = {
    * @param fillVar  - CSS variabele naam voor opvulkleur (bijv. '--spider-lesgeven')
    * @param strokeVar - CSS variabele naam voor lijnkleur (bijv. '--spider-lesgeven-stroke')
    * @param onHover  - Optional callback called with HoverState on hit-circle mouse enter/leave.
-   *   Receives { axisIndex, x, y } on enter (coords in rendered px, 0–280), null on leave.
+   *   Receives { axisIndex, x, y } on enter (coords in SVG viewBox space, 0–200), null on leave.
    *   JSX rendering (Phase 19) eliminates the previous dangerouslySetInnerHTML injection surface.
    * @returns JSX.Element — a fully rendered <svg> element
    */
