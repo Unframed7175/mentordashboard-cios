@@ -899,3 +899,13 @@ Plans:
 
 Plans:
 - [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
+
+### Phase 999.8: Native Apple Silicon build — Rosetta afschaffing (BACKLOG)
+
+**Goal:** App opnieuw builden als native arm64 binary zodat deze blijft werken wanneer Apple Rosetta 2 afschaft (Intel x86-emulatie verdwijnt in toekomstige macOS-versie)
+**Referentie:** https://support.apple.com/en-us/102527
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
