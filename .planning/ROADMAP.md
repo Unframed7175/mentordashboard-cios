@@ -852,3 +852,32 @@ Plans:
 | 33. Klas Verwijderen met Bevestiging | 2/2 | Complete   | 2026-05-30 |
 | 34. Keuzedelen per Leerling | 0/TBD | Not started | - |
 | 35. BPV Echte Column Matchers | 0/TBD | Not started | - |
+
+## Backlog
+
+### Phase 999.3: Cross-platform prognose weergave (BACKLOG)
+
+**Goal:** Onderzoeken en repareren waarom prognose-weergave verschilt tussen macOS en Windows
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
+
+### Phase 999.4: Auto-update notificatie bij GitHub release (BACKLOG)
+
+**Goal:** Bij opstarten dashboard controleren of er een nieuwere versie beschikbaar is op GitHub; gebruiker een melding tonen als update beschikbaar is
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
+
+### Phase 999.5: App-icoon CIOS Zuidwest NL logo (BACKLOG)
+
+**Goal:** Het bureaubladicoon van de app vervangen door het CIOS Zuidwest NL logo op zwarte achtergrond
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
