@@ -881,3 +881,12 @@ Plans:
 
 Plans:
 - [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
+
+### Phase 999.6: Keuzedeel invoer + status in prognose (BACKLOG)
+
+**Goal:** Plek bieden om per leerling een keuzedeel toe te voegen inclusief status (bijv. behaald/niet behaald/lopend), en deze status meenemen in de prognoseberekening
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
