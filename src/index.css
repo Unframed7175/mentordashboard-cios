@@ -219,6 +219,17 @@ input, button, select, textarea { font-family: inherit; font-size: inherit; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+/* Cross-platform scrollbar normalisation (999.3)
+   Windows WebView2 shows native 15-17px scrollbars that steal layout space,
+   causing prognose-blocks to wrap differently than on macOS WKWebView.
+   scrollbar-gutter: stable reserves space consistently so layout is identical
+   on both platforms; thin scrollbars keep the visual footprint small. */
+* { scrollbar-width: thin; scrollbar-color: var(--border-default) transparent; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-focus); }
+
 /* --------------------------------------------------------------------------
    3. Buttons
    -------------------------------------------------------------------------- */
