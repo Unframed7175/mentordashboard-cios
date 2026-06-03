@@ -24,10 +24,10 @@ const HELP_CONTENT: Record<number, HelpContent> = {
     ],
   },
   3: {
-    title: 'Verzuim Excel exporteren uit Cumlaude',
+    title: 'Verzuim Excel exporteren uit Osiris',
     videoSrc: '/help/stap3-verzuim.mov',
     tekst: [
-      'Open Cumlaude en ga naar Registratie → Absenties.',
+      'Open Osiris en ga naar Registratie → Absenties.',
       'Stel de gewenste periode in (bijv. heel schooljaar).',
       "Klik op het export-icoon rechtsboven en kies 'Excel'.",
       'Sla het bestand op en upload het hier in de wizard.',
@@ -81,7 +81,7 @@ const STEP_TITLES: Record<number, string> = {
 const STEP_SUBS: Record<number, string> = {
   1: 'Maak je eerste klas aan om te beginnen.',
   2: 'Upload de voortgang PDF(s) van je leerlingen. Je kunt meerdere bestanden tegelijk uploaden.',
-  3: 'Upload de verzuim Excel vanuit Cumlaude. Dit is optioneel — je kunt dit later doen.',
+  3: 'Upload de verzuim Excel vanuit Osiris. Dit is optioneel — je kunt dit later doen.',
   4: 'Upload de stage Excel (BPV-logboek) van je leerlingen. Dit is optioneel — je kunt dit later doen.',
   5: 'Stel drempelwaarden in voor verzuimwaarschuwingen. Je kunt dit overslaan — de standaardwaarden worden dan gebruikt.',
   6: 'Je klas is aangemaakt en je gegevens zijn geladen. Je kunt nu aan de slag!',
