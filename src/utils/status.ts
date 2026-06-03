@@ -7,6 +7,7 @@
 
 import { berekenPrognose } from '../../utils/prognosis';
 import { getVerzuimDrempelsSync } from '../../utils/verzuimDrempels';
+import { aggregateKdStatus } from '../../utils/keuzedelen';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -119,6 +120,10 @@ export function berekenStatus(student: any, traject?: string, thresholds?: { geo
   const geoorloofd   = student.verzuim?.geoorloofd ?? 0;
   const heeftScores  = p.totaalVoldoendeOfHoger + p.totaalOnvoldoende > 0;
   const resolvedThresholds = thresholds ?? getVerzuimDrempelsSync();
+  const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
+  const kdStatus = keuzedelen.length > 0
+    ? aggregateKdStatus(keuzedelen)
+    : (student.kdStatus ?? null);
 
   if (!heeftScores)                return { kleur: 'grijs',  label: 'Onbekend',        prognose: p };
   if (p.label === 'negatief')      return { kleur: 'rood',   label: 'Risico',          prognose: p };
@@ -126,10 +131,23 @@ export function berekenStatus(student: any, traject?: string, thresholds?: { geo
   if (ongeoorloofd > resolvedThresholds.ongeoorloofd || geoorloofd > resolvedThresholds.geoorloofd)
                                    return { kleur: 'oranje', label: 'Verzuim',         prognose: p };
   // BJ2 outcomes
-  if (p.label === 'sbc')           return { kleur: 'paars',  label: 'Profieljaar SBC', prognose: p };
-  if (p.label === 'sbl')           return { kleur: 'groen',  label: 'Op koers',        prognose: p };
+  if (p.label === 'sbc') {
+    if (kdStatus === 'niet_behaald' || kdStatus === 'haalbaar')
+      return { kleur: 'oranje', label: 'Let op — KD',      prognose: p };
+    return                     { kleur: 'paars',  label: 'Profieljaar SBC', prognose: p };
+  }
+  if (p.label === 'sbl')
+    return                     { kleur: 'groen',  label: 'Op koers',        prognose: p };
   // BJ1 outcomes
-  if (p.label === 'versneld_sbc')  return { kleur: 'paars',  label: 'Versneld SBC',    prognose: p };
-  if (p.label === 'naar_bj2')      return { kleur: 'groen',  label: 'Op koers BJ2',    prognose: p };
+  if (p.label === 'versneld_sbc') {
+    if (kdStatus === 'niet_behaald' || kdStatus === 'haalbaar')
+      return { kleur: 'oranje', label: 'Let op — KD',      prognose: p };
+    return                     { kleur: 'paars',  label: 'Versneld SBC',    prognose: p };
+  }
+  if (p.label === 'naar_bj2') {
+    if (kdStatus === 'niet_behaald')
+      return { kleur: 'oranje', label: 'Let op — KD',      prognose: p };
+    return                     { kleur: 'groen',  label: 'Op koers BJ2',    prognose: p };
+  }
   return                                  { kleur: 'groen',  label: 'Op koers',        prognose: p };
 }
