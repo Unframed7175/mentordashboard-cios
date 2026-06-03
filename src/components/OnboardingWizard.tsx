@@ -552,7 +552,7 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
           onClick={() => setHelpStep(null)}
         >
           <div
-            style={{ background: 'var(--bg-surface)', borderRadius: '12px', padding: '1.5rem', maxWidth: '480px', width: '90%', boxShadow: 'var(--shadow-lg)' }}
+            style={{ background: 'var(--bg-surface)', borderRadius: '14px', padding: '2.25rem', maxWidth: '85vw', width: '92%', maxHeight: '88vh', overflowY: 'auto', boxShadow: 'var(--shadow-lg)' }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
