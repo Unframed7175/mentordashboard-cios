@@ -29,10 +29,12 @@ const HELP_CONTENT: Record<number, HelpContent> = {
     title: 'Verzuim Excel exporteren uit Osiris',
     videoSrc: '/help/stap3-verzuim.mov',
     tekst: [
-      'Open Osiris en ga naar Registratie → Absenties.',
-      'Stel de gewenste periode in (bijv. heel schooljaar).',
-      "Klik op het export-icoon rechtsboven en kies 'Excel'.",
-      'Sla het bestand op en upload het hier in de wizard.',
+      "Klik op 'Menu' en ga naar Rapportage.",
+      "Klik op 'Totaal overzicht verzuim'.",
+      'Voer bij Studiegroep de gewenste studiegroep in.',
+      "Klik op 'Uitvoeren'.",
+      'Na enkele seconden wordt er een Excel bestand gedownload.',
+      'Upload dit bestand in het dashboard.',
     ],
   },
   4: {
