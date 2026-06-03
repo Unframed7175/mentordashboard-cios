@@ -86,6 +86,12 @@
  (completed 2026-05-30)
 - [x] **Phase 34: Keuzedelen per Leerling** — Mentor kan per leerling keuzedelen toevoegen, on-track status bijhouden en verwijderen — data overleeft herstart *(completed 2026-06-02)*
 - [x] **Phase 35: BPV Echte Column Matchers** — BPV-sectie toont werkelijke gerealiseerde uren uit het echte SomToday Excel bestand via gehardende column matchers *(completed 2026-06-03)*
+- [ ] **Phase 36: Cross-platform prognose weergave** — Onderzoeken en repareren waarom prognose-weergave verschilt tussen macOS en Windows
+- [ ] **Phase 37: Auto-update notificatie** — Bij opstarten dashboard controleren of er een nieuwere versie beschikbaar is op GitHub; gebruiker een melding tonen als update beschikbaar is
+- [ ] **Phase 38: App-icoon CIOS Zuidwest NL logo** — Het bureaubladicoon van de app vervangen door het CIOS Zuidwest NL logo op zwarte achtergrond
+- [ ] **Phase 39: Keuzedeel invoer + status in prognose** — Plek bieden om per leerling een keuzedeel toe te voegen inclusief status, en deze status meenemen in de prognoseberekening
+- [ ] **Phase 40: Rekenen cijfer invoer met voldoende-grens** — Mentor kan per leerling een cijfer voor Rekenen invoeren; 5.5 of hoger wordt automatisch als voldoende beschouwd en meegenomen in de prognose
+- [ ] **Phase 41: Nederlands examen — meerdere onderdelen + eindcijferberekening** — Nederlands-examen opsplitsen in vier onderdelen (Lezen/Luisteren, Spreken, Gesprekvoeren, Schrijven) met apart cijfer; eindcijfer automatisch berekend via formule
 
 ## Phase Details
 
@@ -813,6 +819,54 @@ Plans:
 
 ---
 
+### Phase 36: Cross-platform prognose weergave
+
+**Goal**: Onderzoeken en repareren waarom prognose-weergave verschilt tussen macOS en Windows
+**Depends on**: Phase 35
+**Requirements**: TBD
+
+---
+
+### Phase 37: Auto-update notificatie
+
+**Goal**: Bij opstarten dashboard controleren of er een nieuwere versie beschikbaar is op GitHub; gebruiker een melding tonen als update beschikbaar is
+**Depends on**: Phase 35
+**Requirements**: TBD
+
+---
+
+### Phase 38: App-icoon CIOS Zuidwest NL logo
+
+**Goal**: Het bureaubladicoon van de app vervangen door het CIOS Zuidwest NL logo op zwarte achtergrond
+**Depends on**: Phase 35
+**Requirements**: TBD
+
+---
+
+### Phase 39: Keuzedeel invoer + status in prognose
+
+**Goal**: Plek bieden om per leerling een keuzedeel toe te voegen inclusief status (bijv. behaald/niet behaald/lopend), en deze status meenemen in de prognoseberekening
+**Depends on**: Phase 34
+**Requirements**: TBD
+
+---
+
+### Phase 40: Rekenen cijfer invoer met voldoende-grens
+
+**Goal**: Mentor kan per leerling een cijfer voor Rekenen invoeren; 5.5 of hoger wordt automatisch als voldoende beschouwd en meegenomen in de prognose
+**Depends on**: Phase 23
+**Requirements**: TBD
+
+---
+
+### Phase 41: Nederlands examen — meerdere onderdelen + eindcijferberekening
+
+**Goal**: Nederlands-examen opsplitsen in vier onderdelen (Lezen/Luisteren, Spreken, Gesprekvoeren, Schrijven) met apart cijfer per onderdeel; eindcijfer automatisch berekenen via de formule: (Schrijven + Spreken + Gesprekvoeren + Lezen/Luisteren) / 2
+**Depends on**: Phase 23
+**Requirements**: TBD
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -852,44 +906,14 @@ Plans:
 | 33. Klas Verwijderen met Bevestiging | 2/2 | Complete   | 2026-05-30 |
 | 34. Keuzedelen per Leerling | 1/1 | Complete | 2026-06-02 |
 | 35. BPV Echte Column Matchers | 1/1 | Complete | 2026-06-03 |
+| 36. Cross-platform prognose weergave | 0/TBD | Not started | - |
+| 37. Auto-update notificatie | 0/TBD | Not started | - |
+| 38. App-icoon CIOS Zuidwest NL logo | 0/TBD | Not started | - |
+| 39. Keuzedeel invoer + status in prognose | 0/TBD | Not started | - |
+| 40. Rekenen cijfer invoer met voldoende-grens | 0/TBD | Not started | - |
+| 41. Nederlands examen — onderdelen + eindcijfer | 0/TBD | Not started | - |
 
 ## Backlog
-
-### Phase 999.3: Cross-platform prognose weergave (BACKLOG)
-
-**Goal:** Onderzoeken en repareren waarom prognose-weergave verschilt tussen macOS en Windows
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
-
-### Phase 999.4: Auto-update notificatie bij GitHub release (BACKLOG)
-
-**Goal:** Bij opstarten dashboard controleren of er een nieuwere versie beschikbaar is op GitHub; gebruiker een melding tonen als update beschikbaar is
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
-
-### Phase 999.5: App-icoon CIOS Zuidwest NL logo (BACKLOG)
-
-**Goal:** Het bureaubladicoon van de app vervangen door het CIOS Zuidwest NL logo op zwarte achtergrond
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
-
-### Phase 999.6: Keuzedeel invoer + status in prognose (BACKLOG)
-
-**Goal:** Plek bieden om per leerling een keuzedeel toe te voegen inclusief status (bijv. behaald/niet behaald/lopend), en deze status meenemen in de prognoseberekening
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
 
 ### Phase 999.7: SBC profieljaar → SBC examenjaar doorstroom (BACKLOG)
 
@@ -904,24 +928,6 @@ Plans:
 
 **Goal:** App opnieuw builden als native arm64 binary zodat deze blijft werken wanneer Apple Rosetta 2 afschaft (Intel x86-emulatie verdwijnt in toekomstige macOS-versie)
 **Referentie:** https://support.apple.com/en-us/102527
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
-
-### Phase 999.9: Rekenen cijfer invoer met voldoende-grens (BACKLOG)
-
-**Goal:** Mentor kan per leerling een cijfer voor Rekenen invoeren; 5.5 of hoger wordt automatisch als voldoende beschouwd en meegenomen in de prognose
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote met /gsd:review-backlog wanneer klaar)
-
-### Phase 999.10: Nederlands examen — meerdere onderdelen + eindcijferberekening (BACKLOG)
-
-**Goal:** Nederlands-examen opsplitsen in vier onderdelen (Lezen/Luisteren, Spreken, Gesprekvoeren, Schrijven) met apart cijfer per onderdeel; eindcijfer automatisch berekenen via de formule: (Schrijven + Spreken + Gesprekvoeren + Lezen/Luisteren) / 2
 **Requirements:** TBD
 **Plans:** 0 plans
 
