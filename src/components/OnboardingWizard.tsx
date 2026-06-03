@@ -34,10 +34,10 @@ const HELP_CONTENT: Record<number, HelpContent> = {
     ],
   },
   4: {
-    title: 'Stage Excel exporteren uit Cumlaude (BPV)',
+    title: 'Stage Excel exporteren uit Onstage (BPV)',
     videoSrc: '/help/stap4-bpv.mov',
     tekst: [
-      'Open Cumlaude en ga naar BPV → Logboek voortgang.',
+      'Open Onstage en ga naar BPV → Logboek voortgang.',
       'Selecteer alle leerlingen van jouw klas.',
       "Klik op 'Exporteren' en kies het Excel-formaat.",
       'Upload het gedownloade bestand hier in de wizard.',
@@ -82,7 +82,7 @@ const STEP_SUBS: Record<number, string> = {
   1: 'Maak je eerste klas aan om te beginnen.',
   2: 'Upload de voortgang PDF(s) van je leerlingen. Je kunt meerdere bestanden tegelijk uploaden.',
   3: 'Upload de verzuim Excel vanuit Osiris. Dit is optioneel — je kunt dit later doen.',
-  4: 'Upload de stage Excel (BPV-logboek) van je leerlingen. Dit is optioneel — je kunt dit later doen.',
+  4: 'Upload de stage Excel (BPV-logboek) vanuit Onstage. Dit is optioneel — je kunt dit later doen.',
   5: 'Stel drempelwaarden in voor verzuimwaarschuwingen. Je kunt dit overslaan — de standaardwaarden worden dan gebruikt.',
   6: 'Je klas is aangemaakt en je gegevens zijn geladen. Je kunt nu aan de slag!',
 };
