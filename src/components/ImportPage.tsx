@@ -6,6 +6,7 @@ import { saveKlassen, klassenState, switchActiveKlas, createKlas } from '../../u
 import { addStudent, mergeVerzuim } from '../../utils/datamodel';
 import { parseBpvExcel, saveBpvData, getBpvData } from '../../utils/bpv';
 import { setLastImport } from '../../utils/feedback';
+import { extractPdfsFromZip } from '../../utils/zipPdfs';
 
 interface ImportState {
   status: 'idle' | 'processing' | 'done' | 'error';
@@ -365,10 +366,15 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
       }));
     }
 
-    // Serialize: backup is exclusive (return after restore), then PDFs, then Excel
+    // Zip: peek inside — PDF-zip → uitpakken en als PDFs verwerken, anders → backup restore
     if (backup) {
-      await handleBackup(backup);
-      return;
+      const zippedPdfs = await extractPdfsFromZip(backup);
+      if (zippedPdfs.length > 0) {
+        pdfs.push(...zippedPdfs);
+      } else {
+        await handleBackup(backup);
+        return;
+      }
     }
     if (pdfs.length > 0) await handlePDFs(pdfs);
     if (excel) await handleExcel(excel);

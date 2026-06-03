@@ -4,6 +4,7 @@ import { parseSinglePDF } from '../../parsers/pdf';
 import { parseExcelFile } from '../../parsers/excel';
 import { addStudent, mergeVerzuim } from '../../utils/datamodel';
 import { parseBpvExcel, saveBpvData, getBpvData } from '../../utils/bpv';
+import { extractPdfsFromZip } from '../../utils/zipPdfs';
 import { loadVerzuimDrempels, saveVerzuimDrempels, DEFAULT_VERZUIM_DREMPELS } from '../../utils/verzuimDrempels';
 
 interface HelpContent {
@@ -160,8 +161,20 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
     if (files.length === 0 || processing) return;
     setProcessing(true);
     clearFeedback();
-    let ok = 0;
+
+    // Zip-bestanden uitpakken naar losse PDFs
+    const expanded: File[] = [];
     for (const f of files) {
+      if (f.name.toLowerCase().endsWith('.zip')) {
+        const extracted = await extractPdfsFromZip(f);
+        expanded.push(...extracted);
+      } else {
+        expanded.push(f);
+      }
+    }
+
+    let ok = 0;
+    for (const f of expanded) {
       try {
         addStudent(await parseSinglePDF(f));
         ok++;
@@ -306,7 +319,7 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
 
         {step === 2 && (
           <div
-            {...dropProps(handlePDFs, ['.pdf'])}
+            {...dropProps(handlePDFs, ['.pdf', '.zip'])}
             onClick={() => pdfRef.current?.click()}
             style={{
               border: '2px dashed var(--border-default)',
@@ -321,7 +334,7 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
             <input
               ref={pdfRef}
               type="file"
-              accept=".pdf"
+              accept=".pdf,.zip"
               multiple
               style={{ display: 'none' }}
               onChange={e => {
@@ -332,7 +345,7 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
             />
             {pdfsUploaded > 0
               ? <p style={{ color: 'var(--accent)', fontWeight: 600 }}>{pdfsUploaded} PDF{pdfsUploaded > 1 ? 's' : ''} geüpload ✓</p>
-              : <p>Klik of sleep PDF-bestanden hier naartoe</p>
+              : <p>Klik of sleep PDF-bestanden of een .zip hier naartoe</p>
             }
           </div>
         )}
