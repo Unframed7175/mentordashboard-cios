@@ -10,6 +10,8 @@ import OnboardingWizard from './components/OnboardingWizard';
 import KlasVerwijderenModal from './components/KlasVerwijderenModal';
 import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted, deleteKlas, renameKlas, countUniekeLeerlingen } from '../utils/klassen';
 import { loadSettings, applyTheme } from '../utils/settings';
+import { checkForUpdate, UpdateInfo } from '../utils/updateCheck';
+import UpdateBanner from './components/UpdateBanner';
 
 function App() {
   const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings' | 'onboarding' | 'help'>(
@@ -25,6 +27,7 @@ function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [settingsOpenCount, setSettingsOpenCount] = useState(0);
   const [isDark, setIsDark] = useState<boolean>(false);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -38,6 +41,9 @@ function App() {
       } catch {
         // On load failure: leave defaults (light mode)
       }
+      // Check for update in the background — silent on failure
+      const info = await checkForUpdate();
+      if (info) setUpdateInfo(info);
     })();
   }, []);
 
@@ -162,6 +168,13 @@ function App() {
   return (
     <>
       <div id="storage-error-banner" style={{ display: 'none' }} />
+      {updateInfo && (
+        <UpdateBanner
+          version={updateInfo.version}
+          url={updateInfo.url}
+          onDismiss={() => setUpdateInfo(null)}
+        />
+      )}
       <KlasTabStrip
         klassen={Object.values(klassenState.klassen).map((klas: any) => ({
           id: klas.id,
