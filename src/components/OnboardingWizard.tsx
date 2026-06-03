@@ -15,7 +15,7 @@ interface HelpContent {
 const HELP_CONTENT: Record<number, HelpContent> = {
   2: {
     title: "Voortgang PDF's exporteren uit SomToday",
-    videoSrc: '/help/stap2-pdf.mp4',
+    videoSrc: '/help/stap2-pdf.mov',
     tekst: [
       'Open SomToday en ga naar het menu Leerlingen.',
       "Selecteer de leerlingen van jouw klas en klik op 'Rapportage'.",
@@ -25,7 +25,7 @@ const HELP_CONTENT: Record<number, HelpContent> = {
   },
   3: {
     title: 'Verzuim Excel exporteren uit SomToday',
-    videoSrc: '/help/stap3-verzuim.mp4',
+    videoSrc: '/help/stap3-verzuim.mov',
     tekst: [
       'Open SomToday en ga naar Registratie → Absenties.',
       'Stel de gewenste periode in (bijv. heel schooljaar).',
@@ -35,7 +35,7 @@ const HELP_CONTENT: Record<number, HelpContent> = {
   },
   4: {
     title: 'Stage Excel exporteren uit SomToday (BPV)',
-    videoSrc: '/help/stap4-bpv.mp4',
+    videoSrc: '/help/stap4-bpv.mov',
     tekst: [
       'Open SomToday en ga naar BPV → Logboek voortgang.',
       'Selecteer alle leerlingen van jouw klas.',
