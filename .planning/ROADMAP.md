@@ -91,7 +91,7 @@
 - [ ] **Phase 38: App-icoon CIOS Zuidwest NL logo** — Het bureaubladicoon van de app vervangen door het CIOS Zuidwest NL logo op zwarte achtergrond
 - [x] **Phase 39: Keuzedeel invoer + status in prognose** — Plek bieden om per leerling een keuzedeel toe te voegen inclusief status, en deze status meenemen in de prognoseberekening *(completed 2026-06-03)*
 - [x] **Phase 40: Rekenen cijfer invoer met voldoende-grens** — Mentor kan per leerling een cijfer voor Rekenen invoeren; 5.5 of hoger wordt automatisch als voldoende beschouwd en meegenomen in de prognose *(completed 2026-06-03)*
-- [ ] **Phase 41: Nederlands examen — meerdere onderdelen + eindcijferberekening** — Nederlands-examen opsplitsen in vier onderdelen (Lezen/Luisteren, Spreken, Gesprekvoeren, Schrijven) met apart cijfer; eindcijfer automatisch berekend via formule
+- [x] **Phase 41: Nederlands examen — meerdere onderdelen + eindcijferberekening** — Nederlands-examen opsplitsen in vier onderdelen (Lezen/Luisteren, Spreken, Gesprekvoeren, Schrijven) met apart cijfer; eindcijfer automatisch berekend via formule *(completed 2026-06-03)*
 
 ## Phase Details
 
@@ -911,7 +911,7 @@ Plans:
 | 38. App-icoon CIOS Zuidwest NL logo | 0/TBD | Not started | - |
 | 39. Keuzedeel invoer + status in prognose | 1/1 | Complete | 2026-06-03 |
 | 40. Rekenen cijfer invoer met voldoende-grens | 1/1 | Complete | 2026-06-03 |
-| 41. Nederlands examen — onderdelen + eindcijfer | 0/TBD | Not started | - |
+| 41. Nederlands examen — onderdelen + eindcijfer | 1/1 | Complete | 2026-06-03 |
 
 ## Backlog
 
