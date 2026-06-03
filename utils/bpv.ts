@@ -222,7 +222,7 @@ export function parseBpvExcel(buffer: ArrayBuffer): BpvData {
   let headerRowIdx = 0;
   let headerScore  = 0;
   for (let ri = 0; ri < Math.min(rawRows.length, 20); ri++) {
-    const rowLower = rawRows[ri].map((c: any) => String(c || '').toLowerCase().trim());
+    const rowLower = rawRows[ri].map((c: any) => String(c || '').replace(/​/g, '').toLowerCase().trim());
     let score = 0;
     rowLower.forEach((c: string) => {
       BPV_HEADER_KEYS.forEach((k: string) => { if (c.includes(k)) score++; });
