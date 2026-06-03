@@ -17,10 +17,12 @@ const HELP_CONTENT: Record<number, HelpContent> = {
     title: "Voortgang PDF's exporteren uit Cumlaude",
     videoSrc: '/help/stap2-pdf.mov',
     tekst: [
-      'Open Cumlaude en ga naar het menu Leerlingen.',
-      "Selecteer de leerlingen van jouw klas en klik op 'Rapportage'.",
-      "Kies 'Voortgang' als rapporttype.",
-      'Download de PDF per leerling en upload alle bestanden hier in de wizard.',
+      'Je bevindt je op de pagina van de studieroute.',
+      "Klik op 'Rapportages' rechtsboven in het scherm.",
+      'Selecteer de juiste klas en wacht tot deze is geladen.',
+      "Klik op 'Exporteren als PDF bestand'. Let op: dit kan enkele minuten duren.",
+      'Het bestand wordt gedownload als .zip — pak hem uit.',
+      'Upload de losse PDF-bestanden hier in het dashboard.',
     ],
   },
   3: {
