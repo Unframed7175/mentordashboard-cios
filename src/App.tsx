@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ImportPage from './components/ImportPage';
 import KlasTabStrip from './components/KlasTabStrip';
-import KlasModal from './components/KlasModal';
 import FeedbackModal from './components/FeedbackModal';
 import KlasOverzicht from './components/KlasOverzicht';
 import DetailWeergave from './components/DetailWeergave';
@@ -21,7 +20,7 @@ function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null);
   const [detailStudentList, setDetailStudentList] = useState<string[]>([]);
-  const [showModal, setShowModal] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState<{ klasId: string; naam: string; count: number } | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [settingsOpenCount, setSettingsOpenCount] = useState(0);
@@ -120,11 +119,11 @@ function App() {
     setActiveStudentId(null);
   }
 
-  async function handleKlasCreated(klasId: string) {
-    await switchActiveKlas(klasId);
+  async function handleNewKlasWizardComplete(klasId: string) {
+    try { await switchActiveKlas(klasId); } catch { /* Tauri niet beschikbaar in browser */ }
     setRefreshKey(k => k + 1);
     setView('klas');
-    setShowModal(false);
+    setShowWizard(false);
   }
 
   function handleDeleteKlas(klasId: string): void {
@@ -170,7 +169,7 @@ function App() {
         }))}
         activeKlasId={klassenState.activeKlasId}
         onSwitch={handleKlasSwitch}
-        onCreateKlas={() => setShowModal(true)}
+        onCreateKlas={() => setShowWizard(true)}
         onSettings={handleOpenSettings}
         onFeedback={handleFeedback}
         onDeleteKlas={handleDeleteKlas}
@@ -180,10 +179,10 @@ function App() {
         onHelp={handleOpenHelp}
         isHelpActive={view === 'help'}
       />
-      {showModal && (
-        <KlasModal
-          onCreated={handleKlasCreated}
-          onCancel={() => setShowModal(false)}
+      {showWizard && (
+        <OnboardingWizard
+          onComplete={handleNewKlasWizardComplete}
+          onAbort={() => setShowWizard(false)}
         />
       )}
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}

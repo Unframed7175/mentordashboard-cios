@@ -92,6 +92,7 @@
 - [x] **Phase 39: Keuzedeel invoer + status in prognose** — Plek bieden om per leerling een keuzedeel toe te voegen inclusief status, en deze status meenemen in de prognoseberekening *(completed 2026-06-03)*
 - [x] **Phase 40: Rekenen cijfer invoer met voldoende-grens** — Mentor kan per leerling een cijfer voor Rekenen invoeren; 5.5 of hoger wordt automatisch als voldoende beschouwd en meegenomen in de prognose *(completed 2026-06-03)*
 - [x] **Phase 41: Nederlands examen — meerdere onderdelen + eindcijferberekening** — Nederlands-examen opsplitsen in vier onderdelen (Lezen/Luisteren, Spreken, Gesprekvoeren, Schrijven) met apart cijfer; eindcijfer automatisch berekend via formule *(completed 2026-06-03)*
+- [ ] **Phase 42: Klas-aanmaak wizard + help per stap** — Nieuwe klas aanmaken opent automatisch de wizard; per uploadstap staat een ? knop met een korte video en woordelijke uitleg hoe je het juiste bestand uit SomToday exporteert
 
 ## Phase Details
 

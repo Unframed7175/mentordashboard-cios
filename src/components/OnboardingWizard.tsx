@@ -6,6 +6,64 @@ import { addStudent, mergeVerzuim } from '../../utils/datamodel';
 import { parseBpvExcel, saveBpvData, getBpvData } from '../../utils/bpv';
 import { loadVerzuimDrempels, saveVerzuimDrempels, DEFAULT_VERZUIM_DREMPELS } from '../../utils/verzuimDrempels';
 
+interface HelpContent {
+  title: string;
+  videoSrc: string;
+  tekst: string[];
+}
+
+const HELP_CONTENT: Record<number, HelpContent> = {
+  2: {
+    title: "Voortgang PDF's exporteren uit SomToday",
+    videoSrc: '/help/stap2-pdf.mp4',
+    tekst: [
+      'Open SomToday en ga naar het menu Leerlingen.',
+      "Selecteer de leerlingen van jouw klas en klik op 'Rapportage'.",
+      "Kies 'Voortgang' als rapporttype.",
+      'Download de PDF per leerling en upload alle bestanden hier in de wizard.',
+    ],
+  },
+  3: {
+    title: 'Verzuim Excel exporteren uit SomToday',
+    videoSrc: '/help/stap3-verzuim.mp4',
+    tekst: [
+      'Open SomToday en ga naar Registratie → Absenties.',
+      'Stel de gewenste periode in (bijv. heel schooljaar).',
+      "Klik op het export-icoon rechtsboven en kies 'Excel'.",
+      'Sla het bestand op en upload het hier in de wizard.',
+    ],
+  },
+  4: {
+    title: 'Stage Excel exporteren uit SomToday (BPV)',
+    videoSrc: '/help/stap4-bpv.mp4',
+    tekst: [
+      'Open SomToday en ga naar BPV → Logboek voortgang.',
+      'Selecteer alle leerlingen van jouw klas.',
+      "Klik op 'Exporteren' en kies het Excel-formaat.",
+      'Upload het gedownloade bestand hier in de wizard.',
+    ],
+  },
+};
+
+function VideoWithFallback({ src }: { src: string }) {
+  const [hasVideo, setHasVideo] = useState(true);
+  if (!src || !hasVideo) {
+    return (
+      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: '0.25rem 0' }}>
+        Video binnenkort beschikbaar
+      </p>
+    );
+  }
+  return (
+    <video
+      src={src}
+      controls
+      style={{ width: '100%', borderRadius: '8px', background: '#000', display: 'block' }}
+      onError={() => setHasVideo(false)}
+    />
+  );
+}
+
 interface OnboardingWizardProps {
   onComplete: (klasId: string) => void;
   onAbort?: () => void;
@@ -39,6 +97,7 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
   const [stepErr, setStepErr] = useState('');
   const [geoorloofdHours, setGeoorloofdHours] = useState<number>(() => Math.round(DEFAULT_VERZUIM_DREMPELS.geoorloofd / 60));
   const [ongeoorloofdHours, setOngeoorloofdHours] = useState<number>(() => Math.round(DEFAULT_VERZUIM_DREMPELS.ongeoorloofd / 60));
+  const [helpStep, setHelpStep] = useState<number | null>(null);
 
   const pdfRef = useRef<HTMLInputElement>(null);
   const xlsRef = useRef<HTMLInputElement>(null);
@@ -196,9 +255,26 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
           ))}
         </div>
 
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.4rem' }}>
-          {STEP_TITLES[step]}
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
+            {STEP_TITLES[step]}
+          </h2>
+          {HELP_CONTENT[step] && (
+            <button
+              onClick={() => setHelpStep(step)}
+              title="Uitleg: hoe exporteer ik dit bestand?"
+              style={{
+                width: '22px', height: '22px', borderRadius: '50%',
+                border: '1.5px solid var(--accent)', background: 'transparent',
+                color: 'var(--accent)', fontSize: '0.75rem', fontWeight: 700,
+                cursor: 'pointer', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', flexShrink: 0, lineHeight: 1,
+              }}
+            >
+              ?
+            </button>
+          )}
+        </div>
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
           {STEP_SUBS[step]}
         </p>
@@ -469,6 +545,34 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
           )}
         </div>
       </div>
+
+      {helpStep !== null && HELP_CONTENT[helpStep] && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setHelpStep(null)}
+        >
+          <div
+            style={{ background: 'var(--bg-surface)', borderRadius: '12px', padding: '1.5rem', maxWidth: '480px', width: '90%', boxShadow: 'var(--shadow-lg)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>{HELP_CONTENT[helpStep].title}</h3>
+              <button
+                onClick={() => setHelpStep(null)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 1, padding: '0 0.25rem' }}
+              >
+                ×
+              </button>
+            </div>
+            <VideoWithFallback src={HELP_CONTENT[helpStep].videoSrc} />
+            <ol style={{ fontSize: '0.875rem', color: 'var(--text-primary)', paddingLeft: '1.25rem', margin: '1rem 0 0' }}>
+              {HELP_CONTENT[helpStep].tekst.map((t, i) => (
+                <li key={i} style={{ marginBottom: '0.35rem' }}>{t}</li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
