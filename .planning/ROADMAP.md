@@ -84,7 +84,7 @@
 - [x] **Phase 32: R&N Status op Tegels** — Elke leerlingtegel toont een compacte Rekenen/Nederlands statusregel wanneer die data aanwezig is *(completed 2026-05-29)*
 - [x] **Phase 33: Klas Verwijderen met Bevestiging** — Mentor kan een niet-lege klas verwijderen via een modal met checkbox-bevestiging en studententelling
  (completed 2026-05-30)
-- [ ] **Phase 34: Keuzedelen per Leerling** — Mentor kan per leerling keuzedelen toevoegen, on-track status bijhouden en verwijderen — data overleeft herstart
+- [x] **Phase 34: Keuzedelen per Leerling** — Mentor kan per leerling keuzedelen toevoegen, on-track status bijhouden en verwijderen — data overleeft herstart *(completed 2026-06-02)*
 - [x] **Phase 35: BPV Echte Column Matchers** — BPV-sectie toont werkelijke gerealiseerde uren uit het echte SomToday Excel bestand via gehardende column matchers *(completed 2026-06-03)*
 
 ## Phase Details
@@ -850,7 +850,7 @@ Plans:
 | 31. UI Polish — Nav & Spider | 1/1 | Complete | 2026-06-02 |
 | 32. R&N Status op Tegels | 1/1 | Complete | 2026-05-29 |
 | 33. Klas Verwijderen met Bevestiging | 2/2 | Complete   | 2026-05-30 |
-| 34. Keuzedelen per Leerling | 0/TBD | Not started | - |
+| 34. Keuzedelen per Leerling | 1/1 | Complete | 2026-06-02 |
 | 35. BPV Echte Column Matchers | 1/1 | Complete | 2026-06-03 |
 
 ## Backlog
