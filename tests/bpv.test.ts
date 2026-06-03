@@ -5,6 +5,7 @@
 // from tests/SettingsPage.test.tsx, extended with async delete().
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import * as XLSX from 'xlsx';
 
 // vi.hoisted() runs before vi.mock() — exposes shared store map without TDZ errors
 const { getStoreMap, setStoreMap } = vi.hoisted(() => {
@@ -30,6 +31,28 @@ vi.mock('@tauri-apps/plugin-store', () => {
   }
   return { LazyStore };
 });
+
+/** Maakt een synthetisch Osiris "Logboek voortgang" XLSX-buffer voor tests. */
+function makeOsirisBuffer(dataRows: any[][]): ArrayBuffer {
+  const headers = [
+    'Begeleidingsgroep', 'Student', 'Studentnummer', 'Organisatie',
+    'Beoordelaar', 'Beoordelaar email', 'Gebruiker', 'Docent',
+    'Startdatum', 'Einddatum', 'Bij met inleveren',
+    'Stage-uren gezien en goedgekeurd ',
+    'Stage-uren goedgekeurd',
+    '​Stage-uren gezien',
+    'Stage-uren ingeleverd',
+    'Stage-uren afgekeurd',
+    'Stage-uren geboekt',
+    'Controlegetal',
+  ];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+  XLSX.utils.book_append_sheet(wb, ws, 'Logboek voortgang');
+  const out: number[] = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+  const u8 = new Uint8Array(out);
+  return u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength) as ArrayBuffer;
+}
 
 // ── beforeEach: clear store map and invalidate module cache ──────────────────
 beforeEach(() => {
@@ -105,15 +128,47 @@ describe('bpv utility (Phase 18)', () => {
     expect(berekenBpvPct(67, 200)).toBe(34);
   });
 
-  it('parseBpvExcel STUB returns empty object for valid XLSX magic bytes', async () => {
-    const { parseBpvExcel } = await import('../utils/bpv');
+  describe('parseBpvExcel — Osiris integratie (Phase 35)', () => {
+    it('leest gerealiseerde uren van een leerling met goedgekeurde uren', async () => {
+      const { parseBpvExcel } = await import('../utils/bpv');
+      const buf = makeOsirisBuffer([
+        ['BJ2', 'Jan Sporter', '100001', 'Sportclub X', '', '', 'Ja', 'Docent', 0, 0, 'Ja', 0, 160, 0, 0, 0, 0, 0],
+      ]);
+      const result = parseBpvExcel(buf);
+      expect(result['100001']).toBeDefined();
+      expect(result['100001'].gerealiseerdeUren).toBe(160);
+    });
 
-    // D-13: parser stubbed — replace when user supplies sample BPV Excel
-    // Use XLSX magic bytes (PK\x03\x04) so the format check passes
-    const buf = new ArrayBuffer(8);
-    new Uint8Array(buf).set([0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00]);
-    const result = parseBpvExcel(buf);
-    expect(Object.keys(result).length).toBe(0);
+    it('leerling met alleen ingeleverde uren heeft gerealiseerdeUren 0', async () => {
+      const { parseBpvExcel } = await import('../utils/bpv');
+      const buf = makeOsirisBuffer([
+        ['BJ2', 'Piet Invoerder', '100002', 'Gymclub B', '', '', 'Nee', 'Docent', 0, 0, 'Nee', 0, 0, 0, 28, 0, 0, 0],
+      ]);
+      const result = parseBpvExcel(buf);
+      expect(result['100002']).toBeDefined();
+      expect(result['100002'].gerealiseerdeUren).toBe(0);
+      expect(result['100002'].plaatsen[0].ingeleverdUren).toBe(28);
+    });
+
+    it('leerling-id is het studentnummer als string', async () => {
+      const { parseBpvExcel } = await import('../utils/bpv');
+      const buf = makeOsirisBuffer([
+        ['BJ2', 'Maria Stagiair', '248109', 'Club Y', '', '', 'Ja', 'Docent', 0, 0, 'Ja', 0, 80, 0, 0, 0, 0, 0],
+      ]);
+      const result = parseBpvExcel(buf);
+      expect(result['248109']).toBeDefined();
+      expect(result['248109'].gerealiseerdeUren).toBe(80);
+    });
+
+    it('kolom met zero-width space prefix wordt correct herkend', async () => {
+      const { parseBpvExcel } = await import('../utils/bpv');
+      const buf = makeOsirisBuffer([
+        ['BJ2', 'Test Leerling', '100003', 'Org Z', '', '', 'Ja', 'Docent', 0, 0, 'Ja', 68, 109, 68, 0, 0, 0, 0],
+      ]);
+      const result = parseBpvExcel(buf);
+      expect(result['100003']).toBeDefined();
+      expect(result['100003'].gerealiseerdeUren).toBe(109);
+    });
   });
 
   it('parseBpvExcel throws for non-Excel files (magic-byte guard)', async () => {
