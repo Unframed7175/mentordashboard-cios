@@ -111,6 +111,14 @@
   --accent-blue-border: var(--accent-border);
   --bg-header:          var(--nav-bg);
 
+  /* Glassmorphism tokens — frosted card surfaces */
+  --glass-bg:          rgba(255, 255, 255, 0.72);
+  --glass-border:      rgba(255, 255, 255, 0.55);
+  --glass-blur:        blur(10px);
+  --glass-nav-bg:      rgba(255, 255, 255, 0.82);
+  --glass-nav-border:  rgba(255, 255, 255, 0.65);
+  --glass-nav-blur:    blur(16px);
+
   /* Gap item tokens */
   --gap-positief-bg:   #DCFCE7; --gap-positief-text: #15803D;
   --gap-negatief-bg:   #FEE2E2; --gap-negatief-text: #991B1B;
@@ -157,6 +165,13 @@ body.dark {
   --shadow-md:        0 4px 12px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
   --shadow-lg:        0 10px 24px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.3);
 
+  --glass-bg:          rgba(19, 25, 41, 0.62);
+  --glass-border:      rgba(255, 255, 255, 0.07);
+  --glass-blur:        blur(12px);
+  --glass-nav-bg:      rgba(19, 25, 41, 0.78);
+  --glass-nav-border:  rgba(255, 255, 255, 0.08);
+  --glass-nav-blur:    blur(18px);
+
   --status-groen-bg:    #14532D; --status-groen-text:  #86EFAC;
   --status-oranje-bg:   #451A03; --status-oranje-text: #FCD34D;
   --status-rood-bg:     #450A0A; --status-rood-text:   #FCA5A5;
@@ -187,6 +202,13 @@ body.dark .gap-danger { background: #450a0a; color: #fca5a5; }
 body.dark .gap-warn   { background: #451a03; color: #fcd34d; }
 body.dark .gap-info   { background: #1e3a5f; color: #93c5fd; }
 
+/* Dark mode page gradient — #root covers body so target #root directly */
+body.dark #root {
+  background-image:
+    radial-gradient(ellipse at 85% 4%, rgba(0, 159, 227, 0.10) 0%, transparent 48%),
+    radial-gradient(ellipse at 14% 96%, rgba(0, 159, 227, 0.06) 0%, transparent 40%);
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
@@ -201,6 +223,9 @@ body.dark .gap-info   { background: #1e3a5f; color: #93c5fd; }
 html, body, #root {
   min-height: 100vh;
   background-color: var(--bg-page);
+  background-image:
+    radial-gradient(ellipse at 85% 4%, rgba(0, 159, 227, 0.07) 0%, transparent 45%),
+    radial-gradient(ellipse at 14% 96%, rgba(0, 159, 227, 0.04) 0%, transparent 38%);
   color: var(--text-primary);
   font-family: 'Industry', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
@@ -278,12 +303,14 @@ a:hover { text-decoration: underline; }
   align-items: center;
   gap: 4px;
   padding: 0 1rem;
-  background: var(--nav-bg);
-  border-bottom: 1.5px solid var(--border-default);
+  background: var(--glass-nav-bg);
+  backdrop-filter: var(--glass-nav-blur);
+  -webkit-backdrop-filter: var(--glass-nav-blur);
+  border-bottom: 1px solid var(--glass-nav-border);
   min-height: 104px;
   flex-wrap: wrap;
   box-shadow: var(--shadow-xs);
-  position: relative;
+  position: sticky;
   top: 0;
   z-index: 50;
 }
@@ -431,8 +458,10 @@ a:hover { text-decoration: underline; }
 }
 
 .kpi-tile {
-  background: var(--bg-surface);
-  border: 1.5px solid var(--border-default);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 0.75rem 1.25rem;
   text-align: center;
@@ -481,8 +510,10 @@ a:hover { text-decoration: underline; }
    8. LeerlingTegel (student tile)
    -------------------------------------------------------------------------- */
 .klas-tile {
-  background: var(--bg-surface);
-  border: 1.5px solid var(--border-default);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 1.25rem 1.5rem;
   cursor: pointer;
@@ -589,8 +620,10 @@ a:hover { text-decoration: underline; }
    9. Detail Sections
    -------------------------------------------------------------------------- */
 .detail-section {
-  background: var(--bg-surface);
-  border: 1.5px solid var(--border-default);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: 1.375rem 1.625rem;
   margin-bottom: 1rem;
@@ -611,8 +644,10 @@ a:hover { text-decoration: underline; }
 }
 
 .detail-header {
-  background: var(--bg-surface);
-  border: 1.5px solid var(--border-default);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: 1rem 1.625rem;
   margin-bottom: 1rem;
