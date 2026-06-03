@@ -14,30 +14,30 @@ interface HelpContent {
 
 const HELP_CONTENT: Record<number, HelpContent> = {
   2: {
-    title: "Voortgang PDF's exporteren uit SomToday",
+    title: "Voortgang PDF's exporteren uit Cumlaude",
     videoSrc: '/help/stap2-pdf.mov',
     tekst: [
-      'Open SomToday en ga naar het menu Leerlingen.',
+      'Open Cumlaude en ga naar het menu Leerlingen.',
       "Selecteer de leerlingen van jouw klas en klik op 'Rapportage'.",
       "Kies 'Voortgang' als rapporttype.",
       'Download de PDF per leerling en upload alle bestanden hier in de wizard.',
     ],
   },
   3: {
-    title: 'Verzuim Excel exporteren uit SomToday',
+    title: 'Verzuim Excel exporteren uit Cumlaude',
     videoSrc: '/help/stap3-verzuim.mov',
     tekst: [
-      'Open SomToday en ga naar Registratie → Absenties.',
+      'Open Cumlaude en ga naar Registratie → Absenties.',
       'Stel de gewenste periode in (bijv. heel schooljaar).',
       "Klik op het export-icoon rechtsboven en kies 'Excel'.",
       'Sla het bestand op en upload het hier in de wizard.',
     ],
   },
   4: {
-    title: 'Stage Excel exporteren uit SomToday (BPV)',
+    title: 'Stage Excel exporteren uit Cumlaude (BPV)',
     videoSrc: '/help/stap4-bpv.mov',
     tekst: [
-      'Open SomToday en ga naar BPV → Logboek voortgang.',
+      'Open Cumlaude en ga naar BPV → Logboek voortgang.',
       'Selecteer alle leerlingen van jouw klas.',
       "Klik op 'Exporteren' en kies het Excel-formaat.",
       'Upload het gedownloade bestand hier in de wizard.',
@@ -81,7 +81,7 @@ const STEP_TITLES: Record<number, string> = {
 const STEP_SUBS: Record<number, string> = {
   1: 'Maak je eerste klas aan om te beginnen.',
   2: 'Upload de voortgang PDF(s) van je leerlingen. Je kunt meerdere bestanden tegelijk uploaden.',
-  3: 'Upload de verzuim Excel vanuit SomToday. Dit is optioneel — je kunt dit later doen.',
+  3: 'Upload de verzuim Excel vanuit Cumlaude. Dit is optioneel — je kunt dit later doen.',
   4: 'Upload de stage Excel (BPV-logboek) van je leerlingen. Dit is optioneel — je kunt dit later doen.',
   5: 'Stel drempelwaarden in voor verzuimwaarschuwingen. Je kunt dit overslaan — de standaardwaarden worden dan gebruikt.',
   6: 'Je klas is aangemaakt en je gegevens zijn geladen. Je kunt nu aan de slag!',
