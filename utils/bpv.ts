@@ -163,9 +163,9 @@ export function berekenBpvPct(gerealiseerd: number, verwacht: number): number {
 function _bpvKolom(rowObj: Record<string, any>, kandidaten: string[]): any {
   const rowKeys = Object.keys(rowObj);
   for (const kandidaat of kandidaten) {
-    const needle = kandidaat.toLowerCase().trim();
+    const needle = kandidaat.replace(/​/g, '').toLowerCase().trim();
     for (const key of rowKeys) {
-      const hdr = key.toLowerCase().trim();
+      const hdr = key.replace(/​/g, '').toLowerCase().trim();
       if (hdr === needle || hdr.includes(needle)) {
         const val = rowObj[key];
         if (val !== undefined && val !== null && val !== '') return val;
@@ -230,7 +230,7 @@ export function parseBpvExcel(buffer: ArrayBuffer): BpvData {
     if (score > headerScore) { headerScore = score; headerRowIdx = ri; }
   }
 
-  const headers  = rawRows[headerRowIdx].map((h: any) => String(h || '').trim());
+  const headers  = rawRows[headerRowIdx].map((h: any) => String(h || '').replace(/​/g, '').trim());
   const dataRows = rawRows.slice(headerRowIdx + 1);
 
   const result: BpvData = {};
