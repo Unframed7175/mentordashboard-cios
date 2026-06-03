@@ -58,7 +58,7 @@ function VideoWithFallback({ src }: { src: string }) {
     <video
       src={src}
       controls
-      style={{ width: '100%', borderRadius: '8px', background: '#000', display: 'block' }}
+      style={{ width: '100%', maxHeight: '340px', borderRadius: '8px', background: '#000', display: 'block' }}
       onError={() => setHasVideo(false)}
     />
   );
@@ -552,7 +552,7 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
           onClick={() => setHelpStep(null)}
         >
           <div
-            style={{ background: 'var(--bg-surface)', borderRadius: '14px', padding: '2.25rem', maxWidth: '85vw', width: '92%', maxHeight: '88vh', overflowY: 'auto', boxShadow: 'var(--shadow-lg)' }}
+            style={{ background: 'var(--bg-surface)', borderRadius: '14px', padding: '2rem', maxWidth: '680px', width: '88%', boxShadow: 'var(--shadow-lg)' }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
