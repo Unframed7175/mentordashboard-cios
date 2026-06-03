@@ -86,7 +86,7 @@
  (completed 2026-05-30)
 - [x] **Phase 34: Keuzedelen per Leerling** — Mentor kan per leerling keuzedelen toevoegen, on-track status bijhouden en verwijderen — data overleeft herstart *(completed 2026-06-02)*
 - [x] **Phase 35: BPV Echte Column Matchers** — BPV-sectie toont werkelijke gerealiseerde uren uit het echte SomToday Excel bestand via gehardende column matchers *(completed 2026-06-03)*
-- [ ] **Phase 36: Cross-platform prognose weergave** — Onderzoeken en repareren waarom prognose-weergave verschilt tussen macOS en Windows
+- [x] **Phase 36: Cross-platform prognose weergave** — Onderzoeken en repareren waarom prognose-weergave verschilt tussen macOS en Windows *(completed 2026-06-03)*
 - [ ] **Phase 37: Auto-update notificatie** — Bij opstarten dashboard controleren of er een nieuwere versie beschikbaar is op GitHub; gebruiker een melding tonen als update beschikbaar is
 - [ ] **Phase 38: App-icoon CIOS Zuidwest NL logo** — Het bureaubladicoon van de app vervangen door het CIOS Zuidwest NL logo op zwarte achtergrond
 - [x] **Phase 39: Keuzedeel invoer + status in prognose** — Plek bieden om per leerling een keuzedeel toe te voegen inclusief status, en deze status meenemen in de prognoseberekening *(completed 2026-06-03)*
