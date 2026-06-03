@@ -198,3 +198,73 @@ describe('berekenStatus thresholds (Phase 18)', () => {
   });
 
 });
+
+describe('berekenStatus keuzedelen (Phase 39)', () => {
+
+  function makeSbcStudent(keuzedelen?: any[]): any {
+    return makeStudent({
+      deelgebiedScores: allScores('voldoende'),
+      keuzedelen: keuzedelen ?? [],
+    });
+  }
+
+  function makeBj1Student(keuzedelen?: any[]): any {
+    return makeStudent({
+      periode: 'bj1 fase 2',
+      leerjaar: '1',
+      deelgebiedScores: allScores('voldoende'),
+      keuzedelen: keuzedelen ?? [],
+    });
+  }
+
+  const kdBehaald     = [{ id: '1', naam: 'KD Sport', status: 'behaald'      }];
+  const kdHaalbaar    = [{ id: '1', naam: 'KD Sport', status: 'haalbaar'     }];
+  const kdNietBehaald = [{ id: '1', naam: 'KD Sport', status: 'niet_behaald' }];
+
+  it('sbc + behaald KD → paars / Profieljaar SBC (geen downgrade)', () => {
+    const result = berekenStatus(makeSbcStudent(kdBehaald));
+    expect(result.kleur).toBe('paars');
+    expect(result.label).toBe('Profieljaar SBC');
+  });
+
+  it('sbc + haalbaar KD → oranje / Let op — KD (SBC vereist behaald)', () => {
+    const result = berekenStatus(makeSbcStudent(kdHaalbaar));
+    expect(result.kleur).toBe('oranje');
+    expect(result.label).toBe('Let op — KD');
+  });
+
+  it('sbc + niet_behaald KD → oranje / Let op — KD', () => {
+    const result = berekenStatus(makeSbcStudent(kdNietBehaald));
+    expect(result.kleur).toBe('oranje');
+    expect(result.label).toBe('Let op — KD');
+  });
+
+  it('sbc + geen keuzedelen → paars / Profieljaar SBC (null = geen downgrade)', () => {
+    const result = berekenStatus(makeSbcStudent([]));
+    expect(result.kleur).toBe('paars');
+    expect(result.label).toBe('Profieljaar SBC');
+  });
+
+  it('sbl + niet_behaald KD → groen / Op koers (SBL heeft geen KD-eis)', () => {
+    const scores = allScores(null);
+    const keys = Object.keys(scores).slice(0, 13);
+    for (const k of keys) scores[k] = 'voldoende';
+    const student = makeStudent({ deelgebiedScores: scores, keuzedelen: kdNietBehaald });
+    const result = berekenStatus(student);
+    expect(result.kleur).toBe('groen');
+    expect(result.label).toBe('Op koers');
+  });
+
+  it('naar_bj2 + niet_behaald KD → oranje / Let op — KD', () => {
+    const result = berekenStatus(makeBj1Student(kdNietBehaald));
+    expect(result.kleur).toBe('oranje');
+    expect(result.label).toBe('Let op — KD');
+  });
+
+  it('naar_bj2 + haalbaar KD → groen / Op koers BJ2 (haalbaar volstaat voor BJ2)', () => {
+    const result = berekenStatus(makeBj1Student(kdHaalbaar));
+    expect(result.kleur).toBe('groen');
+    expect(result.label).toBe('Op koers BJ2');
+  });
+
+});
