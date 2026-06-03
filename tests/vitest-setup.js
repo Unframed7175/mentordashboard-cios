@@ -14,6 +14,16 @@ globalThis.jest = {
   restoreAllMocks: vi.restoreAllMocks.bind(vi),
 }
 
+// DOMMatrix stub — pdfjs (vendor/pdf.min.mjs) references DOMMatrix at import
+// time.  jsdom does not include it; without this shim the test suite crashes
+// when any test file imports parsers/pdf.ts (even for pure-function tests that
+// never trigger actual PDF rendering).
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  globalThis.DOMMatrix = class DOMMatrix {
+    constructor() {}
+  };
+}
+
 // window.matchMedia stub — jsdom does not provide window.matchMedia.
 // SettingsPage reads it during OS-preference fallback; without this stub the
 // component would throw in tests.  Default matches:false = "light mode" OS pref.
