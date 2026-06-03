@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { saveKlassen, klassenState } from '../../utils/klassen';
-import { normalizeRekenScore } from '../../utils/schema';
+import { normalizeRekenScore, berekenNederlandsEindcijfer } from '../../utils/schema';
 
 interface RekenenNederlandsSectionProps {
   student: any;
@@ -46,13 +46,8 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
     if (matching.length === 0) return;
     for (const rec of matching) {
       rec[field] = value || null;
-      const lezen = parseFloat(rec.nlLezen ?? '');
-      const spreken = parseFloat(rec.nlSpreken ?? '');
-      const gesprekvoeren = parseFloat(rec.nlGesprekvoeren ?? '');
-      const schrijven = parseFloat(rec.nlSchrijven ?? '');
-      rec.nederlandsResultaat = (!isNaN(lezen) && !isNaN(spreken) && !isNaN(gesprekvoeren) && !isNaN(schrijven))
-        ? ((lezen + spreken + gesprekvoeren + schrijven) / 2).toFixed(1)
-        : null;
+      const eindcijfer = berekenNederlandsEindcijfer(rec.nlLezen, rec.nlSpreken, rec.nlGesprekvoeren, rec.nlSchrijven);
+      rec.nederlandsResultaat = eindcijfer !== null ? eindcijfer.toFixed(1) : null;
     }
     const saved = await saveKlassen();
     if (saved === false) return;
@@ -75,14 +70,9 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
     return <span style={{ fontSize: '0.75rem', fontWeight: 600, color: kleur, marginLeft: '0.5rem' }}>{label}</span>;
   }
 
-  // Compute display eindcijfer from student prop values
-  const lezenVal = parseFloat(student.nlLezen ?? '');
-  const sprekenVal = parseFloat(student.nlSpreken ?? '');
-  const gesprekvorenVal = parseFloat(student.nlGesprekvoeren ?? '');
-  const schrijvenVal = parseFloat(student.nlSchrijven ?? '');
-  const nederlandsEindcijfer = (!isNaN(lezenVal) && !isNaN(sprekenVal) && !isNaN(gesprekvorenVal) && !isNaN(schrijvenVal))
-    ? (lezenVal + sprekenVal + gesprekvorenVal + schrijvenVal) / 2
-    : null;
+  const nederlandsEindcijfer = berekenNederlandsEindcijfer(
+    student.nlLezen, student.nlSpreken, student.nlGesprekvoeren, student.nlSchrijven
+  );
 
   const inputStyle: React.CSSProperties = {
     padding: '0.4375rem 0.75rem',

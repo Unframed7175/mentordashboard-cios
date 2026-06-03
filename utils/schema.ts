@@ -76,3 +76,22 @@ export function normalizeRekenScore(raw: unknown): 'goed' | 'voldoende' | 'onvol
   if (!isNaN(n)) return n >= 5.5 ? 'voldoende' : 'onvoldoende';
   return null;
 }
+
+/**
+ * Berekent het Nederlands-eindcijfer op basis van 4 onderdelen.
+ * Formule: (lezen + spreken + gesprekvoeren + schrijven) / 2
+ * Geeft null terug als een of meer onderdelen ontbreken.
+ */
+export function berekenNederlandsEindcijfer(
+  nlLezen: string | null | undefined,
+  nlSpreken: string | null | undefined,
+  nlGesprekvoeren: string | null | undefined,
+  nlSchrijven: string | null | undefined,
+): number | null {
+  const lezen = parseFloat(nlLezen ?? '');
+  const spreken = parseFloat(nlSpreken ?? '');
+  const gesprekvoeren = parseFloat(nlGesprekvoeren ?? '');
+  const schrijven = parseFloat(nlSchrijven ?? '');
+  if (isNaN(lezen) || isNaN(spreken) || isNaN(gesprekvoeren) || isNaN(schrijven)) return null;
+  return (lezen + spreken + gesprekvoeren + schrijven) / 2;
+}
