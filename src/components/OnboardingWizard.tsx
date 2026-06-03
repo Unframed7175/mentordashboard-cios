@@ -41,10 +41,12 @@ const HELP_CONTENT: Record<number, HelpContent> = {
     title: 'Stage Excel exporteren uit Onstage (BPV)',
     videoSrc: '/help/stap4-bpv.mov',
     tekst: [
-      'Open Onstage en ga naar BPV → Logboek voortgang.',
-      'Selecteer alle leerlingen van jouw klas.',
-      "Klik op 'Exporteren' en kies het Excel-formaat.",
-      'Upload het gedownloade bestand hier in de wizard.',
+      'Stel eerst je filters in op de correcte klas (dit is in de video niet te zien).',
+      'Selecteer alle studenten.',
+      "Klik rechtsboven op het middelste icoontje.",
+      "Kies 'Logboek voortgang (EXCEL)'.",
+      'Binnen enkele seconden wordt het Excel bestand gedownload.',
+      'Upload dit bestand in het dashboard.',
     ],
   },
 };
