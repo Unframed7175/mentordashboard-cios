@@ -41,10 +41,10 @@ console.log('[pdf.ts] PDF.js initialized, version:', (pdfjsLib as any).version);
 // Constants
 // ---------------------------------------------------------------------------
 
-// Increased from 3 → 4 (999.3): WebView2 on Windows can report baseline Y
-// positions with slightly more variation than WKWebView on macOS.
+// Increased from 3 → 4 (999.3), 4 → 6 (phase-36): WebView2 on Windows reports
+// baseline Y positions with more variation than WKWebView on macOS.
 /** Tolerance in PDF points for grouping text items into the same visual line. */
-const Y_TOLERANCE = 4;
+const Y_TOLERANCE = 6;
 
 /**
  * Known status strings (per D-11).
@@ -71,14 +71,14 @@ const VAK_HEADINGS = new Set(['lesgeven', 'organiseren', 'prof. handelen', 'prof
  */
 const MIN_HEADER_MATCHES = 5;
 
-// Increased from 8 → 12 (999.3): WebView2 renders text at slightly different
-// X positions than WKWebView, causing scores to fall outside the 8pt window
-// and land as null → empty deelgebiedScores → grey "Onbekend" prognosis on Windows.
+// Increased from 8 → 12 (999.3), 12 → 20 (phase-36): WebView2 renders text at
+// slightly different X positions than WKWebView, causing scores to fall outside
+// the window. Nearest-neighbour selection keeps wrong-column assignments safe.
 /**
  * X-tolerance (in PDF points) for assigning a score cell to the nearest
  * column header.
  */
-const COLUMN_X_TOLERANCE = 12;
+const COLUMN_X_TOLERANCE = 20;
 
 // ---------------------------------------------------------------------------
 // Task 01-02-01: Text extraction and line-grouping utilities
