@@ -88,7 +88,7 @@
 - [x] **Phase 35: BPV Echte Column Matchers** — BPV-sectie toont werkelijke gerealiseerde uren uit het echte SomToday Excel bestand via gehardende column matchers *(completed 2026-06-03)*
 - [x] **Phase 36: Cross-platform prognose weergave** — Onderzoeken en repareren waarom prognose-weergave verschilt tussen macOS en Windows *(completed 2026-06-03)*
 - [x] **Phase 37: Auto-update notificatie** — Bij opstarten dashboard controleren of er een nieuwere versie beschikbaar is op GitHub; gebruiker een melding tonen als update beschikbaar is *(completed 2026-06-03)*
-- [ ] **Phase 38: App-icoon CIOS Zuidwest NL logo** — Het bureaubladicoon van de app vervangen door het CIOS Zuidwest NL logo op zwarte achtergrond
+- [x] **Phase 38: App-icoon CIOS Zuidwest NL logo** — Het bureaubladicoon van de app vervangen door het CIOS Zuidwest NL logo op zwarte achtergrond *(completed 2026-06-04)*
 - [x] **Phase 39: Keuzedeel invoer + status in prognose** — Plek bieden om per leerling een keuzedeel toe te voegen inclusief status, en deze status meenemen in de prognoseberekening *(completed 2026-06-03)*
 - [x] **Phase 40: Rekenen cijfer invoer met voldoende-grens** — Mentor kan per leerling een cijfer voor Rekenen invoeren; 5.5 of hoger wordt automatisch als voldoende beschouwd en meegenomen in de prognose *(completed 2026-06-03)*
 - [x] **Phase 41: Nederlands examen — meerdere onderdelen + eindcijferberekening** — Nederlands-examen opsplitsen in vier onderdelen (Lezen/Luisteren, Spreken, Gesprekvoeren, Schrijven) met apart cijfer; eindcijfer automatisch berekend via formule *(completed 2026-06-03)*
@@ -840,7 +840,7 @@ Plans:
 
 **Goal**: Het bureaubladicoon van de app vervangen door het CIOS Zuidwest NL logo op zwarte achtergrond
 **Depends on**: Phase 35
-**Requirements**: TBD
+**Status**: ✅ completed 2026-06-04 — CIOS Zuidwest NL logo (512×512 RGBA, transparante hoeken) gegenereerd naar alle 16 Tauri-iconformaten; push a8c9359 + transparantie-fix
 
 ---
 
