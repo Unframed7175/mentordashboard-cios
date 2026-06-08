@@ -1,6 +1,6 @@
 [package]
 name = "tauri-app"
-version = "2.4.1"
+version = "2.5.1"
 description = "Mentordashboard CIOS — voortgang en verzuim in één oogopslag"
 authors = ["CIOS Zuidwest"]
 edition = "2021"
