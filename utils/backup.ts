@@ -9,7 +9,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { klassenState } from './klassen';
 import { appState } from './datamodel';
 
-const BACKUP_FILENAME = 'mentordashboard-backup.json';
+const BACKUP_FILENAME = 'mentordashboard-backup.enc';
+const BACKUP_FILENAME_LEGACY = 'mentordashboard-backup.json';
 
 /**
  * Maak een gecomprimeerde backup van de huidige klassenState.
@@ -42,10 +43,11 @@ export async function applyBackupRestore(
 ): Promise<{ success: boolean; message: string }> {
   try {
     const extracted = unzipSync(zipData);
-    if (!extracted[BACKUP_FILENAME]) {
-      return { success: false, message: `Backup bestand ontbreekt in ZIP: ${BACKUP_FILENAME}` };
+    const backupEntry = extracted[BACKUP_FILENAME] ?? extracted[BACKUP_FILENAME_LEGACY];
+    if (!backupEntry) {
+      return { success: false, message: `Backup bestand ontbreekt in ZIP` };
     }
-    const raw = strFromU8(extracted[BACKUP_FILENAME]);
+    const raw = strFromU8(backupEntry);
     let jsonString: string;
     try {
       // New format: AES-256-GCM encrypted content

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Data Completeness, Keuzedelen & UI Polish
 status: completed
-last_updated: "2026-05-31T20:31:22.713Z"
+last_updated: "2026-06-08T07:47:48.385Z"
 last_activity: 2026-05-30 -- Phase 33 complete (UAT 11/12 pass, gap closure verified)
 progress:
-  total_phases: 30
+  total_phases: 39
   completed_phases: 28
   total_plans: 80
   completed_plans: 80
-  percent: 93
+  percent: 72
 ---
 
 # Project State
@@ -117,6 +117,12 @@ v2.4 phases completed: 2/5
 - [Phase 11] SheetJS cpexcel: import cpexcel from 'xlsx/dist/cpexcel.full.mjs'; XLSX.set_cptable(cpexcel.cptable)
 - [Phase 35 — OPEN] BPV column matchers blocked on real BPV Excel file. Phase 35 cannot be planned until file is provided.
 - [Phase 23 — OPEN] RNL PDF extraction blocked on real PDF with R&N section. Data model + UI proceeds; RNL-04 partially delivered until file provided.
+
+## Session Continuity
+
+Last session: 2026-06-08
+Stopped at: Security hardening volledig afgerond (11/11 fixes, commit b04fbb5). Sessie hervat.
+Resume file: nvt — handoff artifacts verwijderd na succesvolle resumptie.
 
 ## Session Log
 

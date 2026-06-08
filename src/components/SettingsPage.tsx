@@ -6,6 +6,7 @@
 // POL-01: uses .toggle-switch / .toggle-track / .toggle-thumb CSS classes from Plan 01
 
 import { useEffect, useState, useRef } from 'react';
+import { getVersion } from '@tauri-apps/api/app';
 import { saveSettings, applyTheme, type Theme } from '../../utils/settings';
 import { DEELGEBIEDEN } from '../../utils/schema';
 import {
@@ -22,6 +23,8 @@ import {
 import { loadVerzuimDrempels, saveVerzuimDrempels } from '../../utils/verzuimDrempels';
 import { getBpvConfig, saveBpvConfig, parseBpvExcel, saveBpvData, getBpvData, type BpvConfig, type BpvData } from '../../utils/bpv';
 import { loadNormen, saveNormen, resetNormen, DEFAULT_NORMEN, type Normen } from '../../utils/normen';
+import { buildBackupPayload } from '../../utils/backup';
+import { checkForUpdate, type UpdateInfo } from '../../utils/updateCheck';
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -97,6 +100,17 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
   const [normen, setNormen] = useState<Normen>(DEFAULT_NORMEN);
   const [confirmingResetNormen, setConfirmingResetNormen] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Section 6 state — over / versie / update
+  const [appVersion, setAppVersion] = useState<string>('');
+  const [backupExporting, setBackupExporting] = useState(false);
+  const [updateChecking, setUpdateChecking] = useState(false);
+  const [updateResult, setUpdateResult] = useState<UpdateInfo | 'uptodate' | 'error' | null>(null);
+
+  // On mount: load app version for Section 6
+  useEffect(() => {
+    getVersion().then(setAppVersion).catch(() => setAppVersion(''));
+  }, []);
 
   // On mount: load section 3 config (separate from dark-mode effect — different concern)
   useEffect(() => {
@@ -231,6 +245,41 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
     onNormenChanged();
   }
 
+  // Section 6 handlers — backup export + update check
+
+  async function handleBackupExport() {
+    setBackupExporting(true);
+    try {
+      const payload = await buildBackupPayload();
+      const blob = new Blob([payload], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_mentordashboard_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // silent fail — Tauri not available in browser
+    } finally {
+      setBackupExporting(false);
+    }
+  }
+
+  async function handleCheckUpdate() {
+    setUpdateChecking(true);
+    setUpdateResult(null);
+    try {
+      const info = await checkForUpdate();
+      setUpdateResult(info ?? 'uptodate');
+    } catch {
+      setUpdateResult('error');
+    } finally {
+      setUpdateChecking(false);
+    }
+  }
+
   // SBC < SBL warning predicate (D-10)
   const sbcWaarschuwing = normen.sbc < normen.sbl;
 
@@ -267,14 +316,23 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
         </div>
       </section>
 
-      {/* Section 2: Bestanden (add files CTA) */}
+      {/* Section 2: Bestanden (add files CTA + backup export) */}
       <section className="detail-section">
         <h2 className="detail-section-title">Bestanden</h2>
-        <button className="btn btn-primary" onClick={onNavigateToImport}>
-          Bestanden toevoegen
-        </button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button className="btn btn-primary" onClick={onNavigateToImport}>
+            Bestanden toevoegen
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={handleBackupExport}
+            disabled={backupExporting}
+          >
+            {backupExporting ? 'Exporteren…' : 'Backup exporteren'}
+          </button>
+        </div>
         <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-          Voeg PDFs of een verzuim-Excel toe aan de actieve klas.
+          Voeg PDFs of een verzuim-Excel toe, of exporteer een versleutelde backup van alle data.
         </p>
       </section>
 
@@ -596,6 +654,45 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
               Ja, herstel
             </button>
           </div>
+        )}
+      </section>
+      {/* Section 6: Over — versienummer + update check */}
+      <section className="detail-section">
+        <h2 className="detail-section-title">Over</h2>
+        {appVersion && (
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+            Versie {appVersion}
+          </p>
+        )}
+        <button
+          className="btn btn-ghost"
+          onClick={handleCheckUpdate}
+          disabled={updateChecking}
+        >
+          {updateChecking ? 'Controleren…' : 'Controleer op updates'}
+        </button>
+        {updateResult === 'uptodate' && (
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+            Je hebt de nieuwste versie.
+          </p>
+        )}
+        {updateResult === 'error' && (
+          <p style={{ fontSize: '0.875rem', color: 'var(--status-rood-text)', marginTop: '8px' }}>
+            Update-check mislukt. Controleer je internetverbinding.
+          </p>
+        )}
+        {updateResult !== null && typeof updateResult === 'object' && (
+          <p style={{ fontSize: '0.875rem', marginTop: '8px' }}>
+            Nieuwe versie beschikbaar: v{updateResult.version}.{' '}
+            <a
+              href={updateResult.url}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: 'var(--accent)', fontWeight: 600 }}
+            >
+              Download
+            </a>
+          </p>
         )}
       </section>
     </main>

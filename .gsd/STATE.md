@@ -61,16 +61,33 @@ M35 (schema-configurabiliteit) start na ontvangst van echte gebruikersfeedback.
 
 ## Milestone M35 — gepland
 
-**Doel:** Schema-configurabiliteit — DEELGEBIEDEN en leerlijnen data-driven
+**Doel:** Schema-configurabiliteit — parser bestand tegen jaarlijkse wijzigingen in deelgebieden, datapunten en leerlijnen
 
-| Onderdeel | Status |
-|---|---|
-| DEELGEBIEDEN naar plugin-store | ⬜ Niet gestart |
-| Settings-UI voor schema-beheer | ⬜ Niet gestart |
-| Schooljaarversie op studentrecord | ⬜ Niet gestart |
-| Parser async schema laden | ⬜ Niet gestart |
+**Aanleiding (sessie 2026-06-06):** CIOS past jaarlijks het aantal deelgebieden, datapunten en leerlijnnamen aan. De huidige parser is closed-world: hij accepteert alleen wat hardcoded in `DEELGEBIEDEN` (schema.ts) staat. Nieuwe of hernoemde kolommen worden stil genegeerd. Elke schema-update vereist nu een code-aanpassing + deployment.
 
-M35 start **na uitrol van M34** — eerst echte gebruikersfeedback ophalen.
+**Ontwerp­richting:** Draai de logica om — de PDF is de bron van waarheid, niet de code.
+```
+Huidig:  vaste lijst → zoek overeenkomsten in PDF  (breekt bij toevoeging)
+Gewenst: lees PDF → ontdek alle kolommen → match aan config  (vangt toevoegingen op)
+```
+
+### Concrete taken
+
+| ID | Taak | Breekpunt dat het oplost | Status |
+|---|---|---|---|
+| M35-1 | `DEELGEBIEDEN` verplaatsen naar `config/leerlijn.json` | Jaarlijkse update vereist nu code-aanpassing | ⬜ Niet gestart |
+| M35-2 | `buildColumnMap()` open-world maken: pak **alle** header-kolommen op, ook onbekende (`unknown_<label>`) | Nieuwe deelgebieden verdwijnen nu stil | ⬜ Niet gestart |
+| M35-3 | `isHeaderRow()` positie-gebaseerd: rij ná "Overzicht Deelgebieden" heading, niet afhankelijk van label-matches | Detectie faalt als MIN_HEADER_MATCHES niet gehaald wordt | ⬜ Niet gestart |
+| M35-4 | `VAK_HEADINGS` vervangen door font-size-detectie (infrastructuur al aanwezig in `detectHeadingThreshold()`) | Hernoemde leerlijnen breken groepering | ⬜ Niet gestart |
+| M35-5 | Validatielaag: log schema-drift na elke parse (nieuw in PDF / ontbreekt in config / volledig gematcht) | Schema-wijzigingen zijn nu onzichtbaar | ⬜ Niet gestart |
+
+### Prioriteit­volgorde
+1. M35-1 + M35-2 — hoogste rendement, minste complexiteit
+2. M35-3 — kleine aanpassing, groot effect op robuustheid
+3. M35-4 — verwijdert laatste hardcoded aanname
+4. M35-5 — maakt drift zichtbaar voor beheerder
+
+M35 start **na uitrol van M34** en na ontvangst van eerste gebruikersfeedback.
 
 ---
 
