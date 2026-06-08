@@ -18,6 +18,7 @@ const _cptableWithUtils = Object.assign({}, (cpexcel as any).cptable, { utils: (
 XLSX.set_cptable(_cptableWithUtils);
 
 import { LazyStore } from '@tauri-apps/plugin-store';
+import { invoke } from '@tauri-apps/api/core';
 
 const store = new LazyStore('store.json', { defaults: {}, autoSave: false });
 const CONFIG_KEY = 'bpv_config';
@@ -113,7 +114,15 @@ export async function getBpvData(): Promise<BpvData> {
   try {
     const raw = await store.get<string>(DATA_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
+      let plaintext: string;
+      try {
+        // New format: AES-256-GCM encrypted
+        plaintext = await invoke<string>('decrypt_klassen', { ciphertext: raw });
+      } catch {
+        // Legacy plaintext — migrate transparently: re-save encrypted on next write
+        plaintext = raw;
+      }
+      const parsed = JSON.parse(plaintext);
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         _dataCache = parsed as BpvData;
         return _dataCache;
@@ -137,7 +146,8 @@ export async function getBpvData(): Promise<BpvData> {
 export async function saveBpvData(d: BpvData): Promise<boolean> {
   _dataCache = d; // instant-apply: update cache before async write (pitfall 5)
   try {
-    await store.set(DATA_KEY, JSON.stringify(d));
+    const ciphertext = await invoke<string>('encrypt_klassen', { plaintext: JSON.stringify(d) });
+    await store.set(DATA_KEY, ciphertext);
     await store.save(); // VERPLICHT: set() is alleen in-memory
     return true;
   } catch (e: any) {

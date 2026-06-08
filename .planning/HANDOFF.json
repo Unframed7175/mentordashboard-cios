@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-06-08T07:50:48Z",
+  "phase": "security-hardening",
+  "phase_name": "Security hardening op basis van cybersecurity skills analyse",
+  "phase_dir": "ad-hoc",
+  "plan": 1,
+  "task": 11,
+  "total_tasks": 11,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "BPV data versleuteling (utils/bpv.ts)", "status": "done"},
+    {"id": 2, "name": "Backup export/restore versleuteling (utils/backup.ts)", "status": "done"},
+    {"id": 3, "name": "ImportPage await applyBackupRestore", "status": "done"},
+    {"id": 4, "name": "localStorage notities bulk-migratie (src/main.tsx)", "status": "done"},
+    {"id": 5, "name": "tag_name semver validatie + encodeURIComponent (utils/updateCheck.ts)", "status": "done"},
+    {"id": 6, "name": "entitlements.plist: allow-unsigned-executable-memory verwijderd", "status": "done"},
+    {"id": 7, "name": "xlsx van devDependencies naar dependencies verplaatst", "status": "done"},
+    {"id": 8, "name": "GitHub Actions SHA-pinning (release.yml + ci.yml)", "status": "done"},
+    {"id": 9, "name": "Bestandsgrootte-limieten PDF/Excel/ZIP (ImportPage.tsx)", "status": "done"},
+    {"id": 10, "name": "Magic bytes validatie PDF/Excel/ZIP (ImportPage.tsx)", "status": "done"},
+    {"id": 11, "name": "PII verwijderd uit console.log/warn (datamodel.ts + prognosis.ts)", "status": "done"}
+  ],
+  "remaining_tasks": [],
+  "blockers": [],
+  "human_actions_pending": [
+    {
+      "action": "Testen of Tauri app nog werkt na verwijderen allow-unsigned-executable-memory",
+      "context": "macOS entitlement verwijderd — WKWebView moet nog steeds werken met alleen allow-jit",
+      "blocking": false
+    },
+    {
+      "action": "Verifieer SHA-pinning workflows: actions lopen nog correct via gepinde SHAs",
+      "context": "SHAs opgehaald via GitHub API op 2026-06-08",
+      "blocking": false
+    },
+    {
+      "action": "Commit alle beveiligingswijzigingen",
+      "context": "11 bestanden gewijzigd, nog niet gecommit",
+      "blocking": true
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "BPV encrypt via bestaande encrypt_klassen/decrypt_klassen Rust commands",
+      "rationale": "Consistentie met bestaande crypto-architectuur, geen nieuwe sleutels nodig"
+    },
+    {
+      "decision": "Legacy plaintext BPV/backup transparant migreren bij eerste lees",
+      "rationale": "Backwards compatibiliteit — bestaande installaties breken niet"
+    },
+    {
+      "decision": "xlsx CDN-tarball accepteren als geaccepteerd risico (SHA-512 hash aanwezig)",
+      "rationale": "SheetJS 0.20.x niet beschikbaar via npm registry; downgrade naar 0.18.5 breekt cpexcel import"
+    },
+    {
+      "decision": "style-src unsafe-inline open laten (LOW risico)",
+      "rationale": "Tauri desktop-app, geen cross-origin aanvallen mogelijk; vereist Tailwind refactor om te verwijderen"
+    }
+  ],
+  "uncommitted_files": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/release.yml",
+    "package.json",
+    "package-lock.json",
+    "src-tauri/entitlements.plist",
+    "src/components/ImportPage.tsx",
+    "src/main.tsx",
+    "tests/backup.test.ts",
+    "utils/backup.ts",
+    "utils/bpv.ts",
+    "utils/datamodel.ts",
+    "utils/prognosis.ts",
+    "utils/updateCheck.ts"
+  ],
+  "next_action": "git commit -m 'security: harden app op basis van OWASP/MITRE analyse' voor alle gewijzigde beveiligingsbestanden",
+  "context_notes": "Volledige beveiligingsanalyse uitgevoerd met Anthropic Cybersecurity Skills (crypto audit, GDPR, MITRE ATT&CK, XSS, supply chain, security headers). 11 bevindingen gefixed. 2 open LOW-bevindingen: style-src unsafe-inline en xlsx CDN. TypeScript check schoon."
+}

@@ -245,7 +245,7 @@ export function debugPrognose(query: string, traject?: string): void {
     return s.naam.toLowerCase().includes(query.toLowerCase()) || s.leerlingId === query;
   });
   if (!student) {
-    console.warn('debugPrognose: geen leerling gevonden voor "' + query + '"');
+    console.warn('debugPrognose: geen leerling gevonden');
     return;
   }
 

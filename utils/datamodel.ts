@@ -188,10 +188,10 @@ export function mergeVerzuim(verzuimRecords: any[]): { matched: number; unmatche
       appState.students
         .filter(function(s: any) { return s.leerlingId === student.leerlingId; })
         .forEach(function(s: any) { s.verzuim = verzuimData; });
-      console.log('[mergeVerzuim] ✓ ' + v.naam + ' → ' + student.naam + ' [via ' + matchedStrategy + ']');
+      console.log('[mergeVerzuim] ✓ gekoppeld via ' + matchedStrategy);
       result.matched++;
     } else {
-      console.warn('[mergeVerzuim] ✗ Niet gekoppeld: "' + v.naam + '"');
+      console.warn('[mergeVerzuim] ✗ Niet gekoppeld (leerlingId: ' + v.leerlingId + ')');
       result.unmatched.push(v.naam);
     }
   }

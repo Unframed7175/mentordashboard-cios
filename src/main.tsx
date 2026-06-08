@@ -4,7 +4,7 @@ import App from "./App";
 import "./index.css";
 import { getBpvConfig, getBpvData } from "../utils/bpv";
 import { getDeelgebiedenConfig } from "../utils/deelgebieden";
-import { loadKlassen } from "../utils/klassen";
+import { loadKlassen, klassenState, saveKlassen } from "../utils/klassen";
 import { getLeerlijnenMapping } from "../utils/leerlijnen";
 import { loadSettings, applyTheme } from "../utils/settings";
 import { loadVerzuimDrempels } from "../utils/verzuimDrempels";
@@ -41,6 +41,28 @@ window.addEventListener('unhandledrejection', (event) => {
     await loadKlassen();
   } catch (err) {
     console.error('[main.tsx] loadKlassen mislukt:', err);
+  }
+
+  // One-time migration: move all legacy localStorage notes into the encrypted store
+  try {
+    const legacyRaw = localStorage.getItem('mentordashboard_notities');
+    if (legacyRaw) {
+      const legacy = JSON.parse(legacyRaw) as Record<string, string>;
+      let migrated = false;
+      for (const [id, notitie] of Object.entries(legacy)) {
+        for (const klas of Object.values(klassenState.klassen)) {
+          const student = (klas as any).students?.find((s: any) => s.id === id);
+          if (student && student.notitie === undefined) {
+            student.notitie = notitie;
+            migrated = true;
+          }
+        }
+      }
+      if (migrated) await saveKlassen();
+      localStorage.removeItem('mentordashboard_notities');
+    }
+  } catch {
+    // Ignore — NotitiesTextarea incremental migration still works as fallback
   }
 
   try {

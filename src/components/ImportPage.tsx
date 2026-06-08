@@ -273,7 +273,7 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
     try {
       const buffer = await file.arrayBuffer();
       const zipData = new Uint8Array(buffer);
-      const result = applyBackupRestore(zipData, 'overschrijven');
+      const result = await applyBackupRestore(zipData, 'overschrijven');
 
       if (result.success) {
         if (klassenState.activeKlasId !== null) {
@@ -307,6 +307,24 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
     }
   }
 
+  // File size limits (M1)
+  const MAX_PDF_MB = 50;
+  const MAX_EXCEL_MB = 10;
+  const MAX_ZIP_MB = 100;
+
+  // Magic bytes validation (M2)
+  async function checkMagicBytes(file: File, type: 'pdf' | 'excel' | 'zip'): Promise<boolean> {
+    const slice = await file.slice(0, 8).arrayBuffer();
+    const bytes = new Uint8Array(slice);
+    if (type === 'pdf')   return bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46; // %PDF
+    if (type === 'zip')   return bytes[0] === 0x50 && bytes[1] === 0x4B; // PK
+    if (type === 'excel') return (
+      (bytes[0] === 0x50 && bytes[1] === 0x4B) || // xlsx (ZIP)
+      (bytes[0] === 0xD0 && bytes[1] === 0xCF)    // xls (OLE2)
+    );
+    return false;
+  }
+
   // CR-04: Serialize handlers to prevent concurrent saveKlassen() calls that can
   // interleave writes. Backup is exclusive (return early). PDFs then Excel run in sequence.
   // Guard: reject new drops while processing is in progress.
@@ -330,8 +348,12 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
     for (const file of files) {
       const name = file.name.toLowerCase();
       if (name.endsWith('.pdf')) {
+        if (file.size > MAX_PDF_MB * 1024 * 1024) { warnings.push(`${file.name}: bestand te groot (max ${MAX_PDF_MB} MB)`); continue; }
+        if (!await checkMagicBytes(file, 'pdf')) { warnings.push(`${file.name}: geen geldig PDF-bestand`); continue; }
         pdfs.push(file);
       } else if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
+        if (file.size > MAX_EXCEL_MB * 1024 * 1024) { warnings.push(`${file.name}: te groot (max ${MAX_EXCEL_MB} MB)`); continue; }
+        if (!await checkMagicBytes(file, 'excel')) { warnings.push(`${file.name}: geen geldig Excel-bestand`); continue; }
         if (/bpv|stage|praktijk|logboek/i.test(file.name)) {
           bpvCount++;
           if (bpvCount === 1) {
@@ -348,6 +370,8 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
           }
         }
       } else if (name.endsWith('.zip')) {
+        if (file.size > MAX_ZIP_MB * 1024 * 1024) { warnings.push(`${file.name}: te groot (max ${MAX_ZIP_MB} MB)`); continue; }
+        if (!await checkMagicBytes(file, 'zip')) { warnings.push(`${file.name}: geen geldig ZIP-bestand`); continue; }
         zipCount++;
         if (zipCount === 1) {
           backup = file;

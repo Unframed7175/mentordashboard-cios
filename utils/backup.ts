@@ -5,6 +5,7 @@
 // ongeldige data geeft success:false terug zonder state te muteren.
 
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
+import { invoke } from '@tauri-apps/api/core';
 import { klassenState } from './klassen';
 import { appState } from './datamodel';
 
@@ -12,9 +13,10 @@ const BACKUP_FILENAME = 'mentordashboard-backup.json';
 
 /**
  * Maak een gecomprimeerde backup van de huidige klassenState.
+ * Inhoud wordt versleuteld met AES-256-GCM (zelfde sleutel als klassen-store).
  * Retourneert een Uint8Array (ZIP bestand).
  */
-export function buildBackupPayload(): Uint8Array {
+export async function buildBackupPayload(): Promise<Uint8Array> {
   const payload = {
     version: 1,
     klassen: klassenState.klassen,
@@ -22,7 +24,8 @@ export function buildBackupPayload(): Uint8Array {
     exportedAt: new Date().toISOString(),
   };
   const jsonString = JSON.stringify(payload);
-  const zipped = zipSync({ [BACKUP_FILENAME]: strToU8(jsonString) });
+  const ciphertext = await invoke<string>('encrypt_klassen', { plaintext: jsonString });
+  const zipped = zipSync({ [BACKUP_FILENAME]: strToU8(ciphertext) });
   return zipped;
 }
 
@@ -33,19 +36,33 @@ export function buildBackupPayload(): Uint8Array {
  * @param mode - 'overschrijven': vervang alle klassen; 'samenvoegen': voeg samen
  * @returns { success: boolean; message: string }
  */
-export function applyBackupRestore(
+export async function applyBackupRestore(
   zipData: Uint8Array,
   mode: 'overschrijven' | 'samenvoegen'
-): { success: boolean; message: string } {
+): Promise<{ success: boolean; message: string }> {
   try {
     const extracted = unzipSync(zipData);
     if (!extracted[BACKUP_FILENAME]) {
       return { success: false, message: `Backup bestand ontbreekt in ZIP: ${BACKUP_FILENAME}` };
     }
-    const jsonString = strFromU8(extracted[BACKUP_FILENAME]);
+    const raw = strFromU8(extracted[BACKUP_FILENAME]);
+    let jsonString: string;
+    try {
+      // New format: AES-256-GCM encrypted content
+      jsonString = await invoke<string>('decrypt_klassen', { ciphertext: raw });
+    } catch {
+      // Legacy backup: plaintext JSON — accept for backwards compatibility
+      jsonString = raw;
+    }
     const payload: { version: number; klassen: Record<string, any>; activeKlasId: string | null } =
       JSON.parse(jsonString);
-    if (!payload || typeof payload !== 'object' || typeof payload.klassen !== 'object' || Array.isArray(payload.klassen)) {
+    if (
+      !payload ||
+      typeof payload !== 'object' ||
+      typeof payload.version !== 'number' ||
+      typeof payload.klassen !== 'object' ||
+      Array.isArray(payload.klassen)
+    ) {
       return { success: false, message: 'Ongeldige backup structuur' };
     }
 

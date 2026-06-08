@@ -2,6 +2,7 @@ import { getVersion } from '@tauri-apps/api/app';
 
 const REPO = 'Unframed7175/mentordashboard-cios';
 const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
+const SEMVER_RE = /^v?\d+\.\d+\.\d+$/;
 
 function parseSemver(v: string): [number, number, number] {
   const clean = v.replace(/^v/, '');
@@ -31,10 +32,10 @@ export async function checkForUpdate(): Promise<UpdateInfo | null> {
     if (!res.ok) return null;
     const data = await res.json();
     const tag: string = data.tag_name ?? '';
-    if (!tag || !isNewer(tag, current)) return null;
+    if (!tag || !SEMVER_RE.test(tag) || !isNewer(tag, current)) return null;
     return {
       version: tag.replace(/^v/, ''),
-      url: `https://github.com/${REPO}/releases/tag/${tag}`,
+      url: `https://github.com/${REPO}/releases/tag/${encodeURIComponent(tag)}`,
     };
   } catch {
     return null;

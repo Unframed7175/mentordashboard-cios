@@ -1,7 +1,5 @@
 // ---------------------------------------------------------------------------
 // backup.test.ts — buildBackupPayload + applyBackupRestore unit tests
-// Wave 0 stub: imports will fail until utils/backup.ts and utils/klassen.ts
-// are created in Wave 1/2. Tests run as-is once those files exist.
 // ---------------------------------------------------------------------------
 
 import { buildBackupPayload, applyBackupRestore } from '../utils/backup';
@@ -15,29 +13,29 @@ beforeEach(() => {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-test('buildBackupPayload geeft Uint8Array terug', () => {
-  const result = buildBackupPayload();
+test('buildBackupPayload geeft Uint8Array terug', async () => {
+  const result = await buildBackupPayload();
   expect(result).toBeInstanceOf(Uint8Array);
   expect(result.length).toBeGreaterThan(0);
 });
 
-test('round-trip: build + restore overschrijven herstelt klassenState', () => {
+test('round-trip: build + restore overschrijven herstelt klassenState', async () => {
   // Seed klassenState with a klas
   klassenState.klassen = {
     klas_1: { id: 'klas_1', naam: 'Test Klas', students: [] },
   };
-  const zip = buildBackupPayload();
+  const zip = await buildBackupPayload();
 
   // Wipe state and restore
   klassenState.klassen = {};
-  const result = applyBackupRestore(zip, 'overschrijven');
+  const result = await applyBackupRestore(zip, 'overschrijven');
 
   expect(result.success).toBe(true);
   expect(klassenState.klassen['klas_1']).toBeDefined();
   expect(klassenState.klassen['klas_1'].naam).toBe('Test Klas');
 });
 
-test('samenvoegen voegt nieuwe klassen toe zonder bestaande te verwijderen', () => {
+test('samenvoegen voegt nieuwe klassen toe zonder bestaande te verwijderen', async () => {
   // Start with klas_existing
   klassenState.klassen = {
     klas_existing: { id: 'klas_existing', naam: 'Bestaande Klas', students: [] },
@@ -46,13 +44,13 @@ test('samenvoegen voegt nieuwe klassen toe zonder bestaande te verwijderen', () 
   klassenState.klassen = {
     klas_new: { id: 'klas_new', naam: 'Nieuwe Klas', students: [] },
   };
-  const zip = buildBackupPayload();
+  const zip = await buildBackupPayload();
 
   // Restore to state that has klas_existing
   klassenState.klassen = {
     klas_existing: { id: 'klas_existing', naam: 'Bestaande Klas', students: [] },
   };
-  const result = applyBackupRestore(zip, 'samenvoegen');
+  const result = await applyBackupRestore(zip, 'samenvoegen');
 
   expect(result.success).toBe(true);
   // Both klassen should exist after merge
@@ -60,9 +58,9 @@ test('samenvoegen voegt nieuwe klassen toe zonder bestaande te verwijderen', () 
   expect(klassenState.klassen['klas_new']).toBeDefined();
 });
 
-test('ongeldige zip data geeft success: false terug', () => {
+test('ongeldige zip data geeft success: false terug', async () => {
   const invalidData = new Uint8Array([0, 1, 2, 3, 4, 5]);
-  const result = applyBackupRestore(invalidData, 'overschrijven');
+  const result = await applyBackupRestore(invalidData, 'overschrijven');
   expect(result.success).toBe(false);
   expect(typeof result.message).toBe('string');
 });
