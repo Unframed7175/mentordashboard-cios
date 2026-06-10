@@ -1,16 +1,22 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-06-01 (sessie 4) — M34 ✅ afgerond + macOS PDF-fix, versie 2.4.0
+> Laatste update: 2026-06-10 — M35 DONE, v2.6.0 geshipt
 
 ---
 
 ## Huidige fase
 
-**Fase 4 · Shipped — M34 volledig afgerond**
+**Fase 4 afgerond — M35-gebruikersfeedback DONE (v2.6.0)**
 
-Alle R, V en Q taken van M34 zijn geïmplementeerd en gecommit.
-Versie 2.1.0 getagged. Klaar voor uitrol naar gebruikers.
-M35 (schema-configurabiliteit) start na ontvangst van echte gebruikersfeedback.
+Volgende milestone start in Fase 0 (kandidaat: M36 schema-configurabiliteit, zie "Milestone M35 — gepland" hieronder voor de oorspronkelijke parser-taken die nog open staan).
+
+## Milestone afgerond 2026-06-10
+
+- **Versie:** 2.6.0
+- **Milestone:** M35-gebruikersfeedback — status **DONE**
+- **Commits:** `c30b3f3` (T01–T03), `409ce2a` (T04–T06), `8a9004b` (CSS-cleanup), `95e5eee` (privacy-fix debugPrognose), `10ca08c` (testmock-fix backup/bpv), release-commit (versie + changelog)
+- **Fase 4 gates:** code review ✅ · security review ✅ (0 nieuwe bevindingen) · QA healthscore 100 (alle 6 taken visueel geverifieerd in browser) ✅ · `npm audit` 0 vulnerabilities ✅ · tests 358/358 groen ✅ · CHANGELOG-entry [2.6.0] ✅ (incl. backfill 2.4.x–2.5.1)
+- **Learnings:** `.gsd/milestones/M35-gebruikersfeedback/M35-LEARNINGS.md`
 
 ---
 

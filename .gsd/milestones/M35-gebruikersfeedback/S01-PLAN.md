@@ -8,12 +8,12 @@ Verwerking van eerste gebruikersfeedback: 6 fixes op UX, kleurcodering, prognose
 
 | ID | Taak | Bestanden | Status |
 |---|---|---|---|
-| T01 | F5: Ongelijke tegel-groottes — align-items: stretch op #klas-grid | src/index.css | ⬜ |
-| T02 | F2: Kleurcodering & labels — blauw voor sbc/versneld_sbc, vereenvoudigde labels, verzuim → ronde arcering | src/utils/status.ts · src/index.css · src/components/LeerlingTegel.tsx | ⬜ |
-| T03 | F1: Filter/sort staat vergeten bij navigatie — state tillen naar App.tsx | src/App.tsx · src/components/KlasOverzicht.tsx | ⬜ |
-| T04 | F6: Uitkomst-badge + blok-volgorde in doorstroomprognose | src/components/DoortstroomPrognoseSection.tsx | ⬜ |
-| T05 | F3: Verzuim als signaalblok in doorstroomprognose detail | src/components/DoortstroomPrognoseSection.tsx | ⬜ |
-| T06 | F4: Niet-ingeleverd/te laat telt als onvoldoende in prognoseberekening | utils/prognosis.ts | ⬜ |
+| T01 | F5: Ongelijke tegel-groottes — align-items: stretch op #klas-grid | src/index.css | ✅ |
+| T02 | F2: Kleurcodering & labels — blauw voor sbc/versneld_sbc, vereenvoudigde labels, verzuim → ronde arcering | src/utils/status.ts · src/index.css · src/components/LeerlingTegel.tsx | ✅ |
+| T03 | F1: Filter/sort staat vergeten bij navigatie — state tillen naar App.tsx | src/App.tsx · src/components/KlasOverzicht.tsx | ✅ |
+| T04 | F6: Uitkomst-badge + blok-volgorde in doorstroomprognose | src/components/DoortstroomPrognoseSection.tsx | ✅ |
+| T05 | F3: Verzuim als signaalblok in doorstroomprognose detail | src/components/DoortstroomPrognoseSection.tsx | ✅ |
+| T06 | F4: Niet-ingeleverd/te laat telt als onvoldoende in prognoseberekening | utils/prognosis.ts | ✅ |
 
 ## Beslissingen
 - sbc/versneld_sbc → blauw (was paars)

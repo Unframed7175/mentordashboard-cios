@@ -1,5 +1,40 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.6.0] — 2026-06-10 — Eerste gebruikersfeedback verwerkt (M35)
+
+### UX & visueel
+- **F1/T03** — Filter- en sorteerstaat blijft behouden bij navigatie naar leerlingdetail en terug
+- **F2/T02** — Kleurcodering herzien: SBC en Versneld SBC nu blauw (was paars); labels vereenvoudigd ("Op koers" → "SBL", "Profieljaar SBC" → "SBC", "Let op" → "Twijfelgeval", "Op koers BJ2" → "Naar BJ2")
+- **F2/T02** — Verzuim boven drempel toont een oranje ring om de leerlingtegel in plaats van een kleur-override
+- **F5/T01** — Gelijke tegel-hoogtes in het klasoverzicht (align-items: stretch)
+- **F6/T04** — Uitkomst-badge bovenaan de doorstroomprognose; de actuele prognose-route wordt altijd als eerste blok getoond
+
+### Prognose-logica
+- **F3/T05** — Verzuim als apart signaalblok in de doorstroomprognose (aandachtssignaal, geen formeel doorstroomcriterium)
+- **F4/T06** — Datapunten met status "Niet ingeleverd" of "Te laat ingeleverd en niet beoordeeld" tellen als onvoldoende in de prognoseberekening
+
+### Privacy
+- Leerlingnaam vervangen door leerlingId in debugPrognose console-output (laatste PII-logging-locatie opgeruimd)
+
+## [2.5.1] — 2026-06-08 — Security hardening
+
+- Security-audit (OWASP Top 10 + MITRE ATT&CK): 11 bevindingen gefixed, waaronder AES-256-GCM encryptie voor BPV-data en backups, semver-validatie in de update-checker, magic-byte validatie en bestandslimieten op uploads
+- PII verwijderd uit console-logs (mergeVerzuim, verzuim-warnings, debugPrognose zoekquery)
+- GitHub Actions gepind op commit SHAs; Rust toolchain-configuratie gefixt
+
+## [2.5.0] — 2026-06-06 — Auto-update & branding
+
+- Auto-update notificatie via GitHub API met versievergelijking
+- App-icoon vervangen door CIOS Zuidwest NL logo (RGBA, transparante hoeken)
+- Cross-platform prognose fix geverifieerd op Windows (24 unit tests kolomtoewijzing)
+- Backup exporteren + versie/update-check in instellingen
+
+## [2.4.0 – 2.4.3] — 2026-06 — macOS-compatibiliteit & import-QOL
+
+- PDF.js worker fix voor WKWebView (CSP + URL); ReadableStream polyfill voor macOS
+- Zip-upload ondersteuning voor PDF-bestanden
+- Helpteksten bijgewerkt: Cumlaude/Osiris/Onstage exportstappen per bron correct benoemd
+
 ## [2.3.1] — 2026-05-31
 
 ### Reliability
