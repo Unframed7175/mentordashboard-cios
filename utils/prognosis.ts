@@ -273,7 +273,7 @@ export function debugPrognose(query: string, traject?: string): void {
   var p = berekenPrognose(student, traject);
   var isBJ1 = p.traject === 'bj1';
 
-  console.group('Prognose: ' + student.naam + ' [traject: ' + p.traject + '] → ' + p.label.toUpperCase());
+  console.group('Prognose: ' + student.leerlingId + ' [traject: ' + p.traject + '] → ' + p.label.toUpperCase());
 
   console.group('Samenvatting');
   console.log('Totaal ≥V: ' + p.totaalVoldoendeOfHoger + '/19  |  Totaal O: ' + p.totaalOnvoldoende);
