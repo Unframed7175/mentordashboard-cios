@@ -2,6 +2,21 @@
 // backup.test.ts — buildBackupPayload + applyBackupRestore unit tests
 // ---------------------------------------------------------------------------
 
+import { vi } from 'vitest';
+
+// Symmetrische mock voor de Rust encrypt/decrypt commands — decrypt gooit op
+// niet-ciphertext input, net als de echte implementatie (legacy-fallback pad).
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(async (cmd: string, args: Record<string, string>) => {
+    if (cmd === 'encrypt_klassen') return 'MOCKENC:' + args.plaintext;
+    if (cmd === 'decrypt_klassen') {
+      if (args.ciphertext?.startsWith('MOCKENC:')) return args.ciphertext.slice(8);
+      throw new Error('decrypt mislukt: geen geldige ciphertext');
+    }
+    throw new Error('unmocked invoke: ' + cmd);
+  }),
+}));
+
 import { buildBackupPayload, applyBackupRestore } from '../utils/backup';
 import { klassenState } from '../utils/klassen';
 
