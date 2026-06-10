@@ -4,7 +4,7 @@
 // KPI computed over ALL active students; filter only affects grid display.
 // ---------------------------------------------------------------------------
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { getActiveStudents, getAllRecordsForStudent, klassenState } from '../../utils/klassen';
 import { berekenStatus, STATUS_VOLGORDE } from '../utils/status';
 import LeerlingTegel from './LeerlingTegel';
@@ -12,12 +12,15 @@ import LeerlingTegel from './LeerlingTegel';
 interface KlasOverzichtProps {
   refreshKey: number;
   onSelectStudent: (id: string, orderedList: string[]) => void;
+  zoekTerm: string;
+  onZoekTermChange: (v: string) => void;
+  sortKey: 'naam' | 'status' | 'verzuim';
+  onSortKeyChange: (v: 'naam' | 'status' | 'verzuim') => void;
+  sortAsc: boolean;
+  onSortAscChange: (v: boolean) => void;
 }
 
-export default function KlasOverzicht({ refreshKey, onSelectStudent }: KlasOverzichtProps) {
-  const [zoekTerm, setZoekTerm] = useState('');
-  const [sortKey, setSortKey] = useState<'naam' | 'status' | 'verzuim'>('naam');
-  const [sortAsc, setSortAsc] = useState(true);
+export default function KlasOverzicht({ refreshKey, onSelectStudent, zoekTerm, onZoekTermChange, sortKey, onSortKeyChange, sortAsc, onSortAscChange }: KlasOverzichtProps) {
 
   // Read singleton directly — refreshKey causes re-render when data changes
   const allStudents = getActiveStudents();
@@ -121,12 +124,10 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent }: KlasOverz
 
   function handleSortClick(key: 'naam' | 'status' | 'verzuim') {
     if (key === sortKey) {
-      // Toggle direction
-      setSortAsc(prev => !prev);
+      onSortAscChange(!sortAsc);
     } else {
-      // New key: set default direction (naam=asc, status/verzuim=desc)
-      setSortKey(key);
-      setSortAsc(key === 'naam');
+      onSortKeyChange(key);
+      onSortAscChange(key === 'naam');
     }
   }
 
@@ -143,7 +144,7 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent }: KlasOverz
           type="text"
           placeholder="Zoek op naam..."
           value={zoekTerm}
-          onChange={e => setZoekTerm(e.target.value)}
+          onChange={e => onZoekTermChange(e.target.value)}
         />
         <div className="sort-group">
           <button

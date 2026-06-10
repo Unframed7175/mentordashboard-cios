@@ -127,27 +127,25 @@ export function berekenStatus(student: any, traject?: string, thresholds?: { geo
 
   if (!heeftScores)                return { kleur: 'grijs',  label: 'Onbekend',        prognose: p };
   if (p.label === 'negatief')      return { kleur: 'rood',   label: 'Risico',          prognose: p };
-  if (p.label === 'neutraal')      return { kleur: 'oranje', label: 'Let op',          prognose: p };
-  if (ongeoorloofd > resolvedThresholds.ongeoorloofd || geoorloofd > resolvedThresholds.geoorloofd)
-                                   return { kleur: 'oranje', label: 'Verzuim',         prognose: p };
+  if (p.label === 'neutraal')      return { kleur: 'oranje', label: 'Twijfelgeval',    prognose: p };
   // BJ2 outcomes
   if (p.label === 'sbc') {
     if (kdStatus === 'niet_behaald' || kdStatus === 'haalbaar')
       return { kleur: 'oranje', label: 'Let op — KD',      prognose: p };
-    return                     { kleur: 'paars',  label: 'Profieljaar SBC', prognose: p };
+    return                     { kleur: 'blauw',  label: 'SBC',             prognose: p };
   }
   if (p.label === 'sbl')
-    return                     { kleur: 'groen',  label: 'Op koers',        prognose: p };
+    return                     { kleur: 'groen',  label: 'SBL',             prognose: p };
   // BJ1 outcomes
   if (p.label === 'versneld_sbc') {
     if (kdStatus === 'niet_behaald' || kdStatus === 'haalbaar')
       return { kleur: 'oranje', label: 'Let op — KD',      prognose: p };
-    return                     { kleur: 'paars',  label: 'Versneld SBC',    prognose: p };
+    return                     { kleur: 'blauw',  label: 'Versneld SBC',    prognose: p };
   }
   if (p.label === 'naar_bj2') {
     if (kdStatus === 'niet_behaald')
       return { kleur: 'oranje', label: 'Let op — KD',      prognose: p };
-    return                     { kleur: 'groen',  label: 'Op koers BJ2',    prognose: p };
+    return                     { kleur: 'groen',  label: 'Naar BJ2',        prognose: p };
   }
-  return                                  { kleur: 'groen',  label: 'Op koers',        prognose: p };
+  return                                  { kleur: 'groen',  label: 'SBL',             prognose: p };
 }

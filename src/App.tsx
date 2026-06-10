@@ -22,6 +22,9 @@ function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null);
   const [detailStudentList, setDetailStudentList] = useState<string[]>([]);
+  const [zoekTerm, setZoekTerm] = useState('');
+  const [sortKey, setSortKey] = useState<'naam' | 'status' | 'verzuim'>('naam');
+  const [sortAsc, setSortAsc] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState<{ klasId: string; naam: string; count: number } | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -214,6 +217,12 @@ function App() {
         <KlasOverzicht
           refreshKey={refreshKey}
           onSelectStudent={handleStudentSelect}
+          zoekTerm={zoekTerm}
+          onZoekTermChange={setZoekTerm}
+          sortKey={sortKey}
+          onSortKeyChange={setSortKey}
+          sortAsc={sortAsc}
+          onSortAscChange={setSortAsc}
         />
       )}
       {view === 'detail' && activeStudentId && (

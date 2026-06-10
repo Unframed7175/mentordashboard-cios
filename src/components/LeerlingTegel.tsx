@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { RAG_BORDER, StatusResult } from '../utils/status';
+import { getVerzuimDrempelsSync } from '../../utils/verzuimDrempels';
 
 // Minimal student shape used by this component — covers all fields accessed below.
 // Intentionally kept inline (no full-refactor) per IN-01 review guidance.
@@ -100,10 +101,20 @@ export default function LeerlingTegel({ student, status, onClick, trend }: Leerl
 
   const ragVar = `var(--rag-${status.kleur}, var(--rag-grijs))`;
 
+  const verzuimDrempels = getVerzuimDrempelsSync();
+  const hasVerzuimAlert = !!(
+    student.verzuim &&
+    (student.verzuim.ongeoorloofd > verzuimDrempels.ongeoorloofd ||
+     student.verzuim.geoorloofd   > verzuimDrempels.geoorloofd)
+  );
+
   return (
     <div
       className="klas-tile"
-      style={{ '--tile-accent': ragVar } as React.CSSProperties}
+      style={{
+        '--tile-accent': ragVar,
+        ...(hasVerzuimAlert ? { boxShadow: 'var(--shadow-sm), var(--glass-shine), 0 0 0 2px var(--rag-oranje)' } : {}),
+      } as React.CSSProperties}
       onClick={onClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
