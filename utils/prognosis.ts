@@ -39,6 +39,12 @@ function isGoedOfHoger(score: string | null): boolean {
   return score === 'goed' || score === 'excellent';
 }
 
+// Statussen die, ongeacht score, als onvoldoende tellen in de prognose (T06)
+const ONVOLDOENDE_INLEVER_STATUSSEN = new Set([
+  'niet ingeleverd',
+  'te laat ingeleverd en niet beoordeeld',
+]);
+
 function isOnvoldoende(score: string | null): boolean {
   // null (niet beoordeeld) telt NIET als onvoldoende
   return score === 'onvoldoende';
@@ -106,7 +112,21 @@ function telLeerlijnen(scores: any, activeDeelgebiedenIds?: string[]): any {
 export function berekenPrognose(student: any, traject?: string, activeDeelgebiedenIds?: string[], normen?: Normen): any {
   const n = normen ?? getNormenSync();
   traject = traject || 'bj2';
-  var scores = student.deelgebiedScores || {};
+  var rawScores = student.deelgebiedScores || {};
+
+  // T06: datapunten with 'niet ingeleverd' / 'te laat ingeleverd en niet beoordeeld' status
+  // contribute onvoldoende for each deelgebied where no explicit score is present yet.
+  var scores: Record<string, string | null> = { ...rawScores };
+  for (var dp of (student.datapunten || [])) {
+    var dpStatus = ((dp.status as string) || '').toLowerCase().trim();
+    if (!ONVOLDOENDE_INLEVER_STATUSSEN.has(dpStatus)) continue;
+    for (var [dgLabel, dpScore] of Object.entries(dp.scores || {})) {
+      if (scores[dgLabel] === undefined || scores[dgLabel] === null) {
+        scores[dgLabel] = 'onvoldoende';
+      }
+    }
+  }
+
   var leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
 
   var telling = telLeerlijnen(scores, activeDeelgebiedenIds);

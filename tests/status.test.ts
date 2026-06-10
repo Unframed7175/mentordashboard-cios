@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // status.test.ts — berekenStatus + detectTraject unit tests
-// Covers all 5 berekenStatus outcomes (grijs/rood/oranje-Let op/oranje-Verzuim/groen)
+// Covers berekenStatus outcomes: grijs/rood/oranje-Twijfelgeval/groen/blauw
 // plus 2 detectTraject patterns (bj1/bj2).
 // ---------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ test('rood: negatief prognose (7 onvoldoende) → kleur=rood, label=Risico', () 
   expect(result.label).toBe('Risico');
 });
 
-test('oranje/Let op: neutraal prognose (10 voldoende, not negatief) → kleur=oranje, label=Let op', () => {
+test('oranje/Twijfelgeval: neutraal prognose (10 voldoende, not negatief) → kleur=oranje, label=Twijfelgeval', () => {
   // 10 voldoende → totaalVoldoendeOfHoger=10 which is <13 (neutraal for bj2) and not negatief
   const scores = allScores(null);
   const keys = Object.keys(scores).slice(0, 10);
@@ -80,12 +80,12 @@ test('oranje/Let op: neutraal prognose (10 voldoende, not negatief) → kleur=or
   const student = makeStudent({ deelgebiedScores: scores });
   const result = berekenStatus(student);
   expect(result.kleur).toBe('oranje');
-  expect(result.label).toBe('Let op');
+  expect(result.label).toBe('Twijfelgeval');
 });
 
-test('oranje/Verzuim: ongeoorloofd=601 with positive prognose → kleur=oranje, label=Verzuim', () => {
-  // 13 voldoende → prognose.label='sbl' (positive, bj2)
-  // neutraal check passes (sbl is not neutraal), then verzuim check fires because ongeoorloofd > 600
+test('groen/SBL: hoog verzuim beïnvloedt kleur NIET meer (verzuim als ring, niet kleur)', () => {
+  // T02: verzuim is no longer a color override — shown as box-shadow ring on tile instead.
+  // 13 voldoende → sbl → groen/SBL regardless of ongeoorloofd hours.
   const scores = allScores(null);
   const keys = Object.keys(scores).slice(0, 13);
   for (const k of keys) scores[k] = 'voldoende';
@@ -94,19 +94,19 @@ test('oranje/Verzuim: ongeoorloofd=601 with positive prognose → kleur=oranje, 
     verzuim:          { aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 601 },
   });
   const result = berekenStatus(student);
-  expect(result.kleur).toBe('oranje');
-  expect(result.label).toBe('Verzuim');
+  expect(result.kleur).toBe('groen');
+  expect(result.label).toBe('SBL');
 });
 
-test('groen: sbl prognose (13 voldoende, no verzuim) → kleur=groen, label=Op koers', () => {
-  // 13 voldoende → sbl for bj2 traject; no verzuim
+test('groen/SBL: sbl prognose (13 voldoende) → kleur=groen, label=SBL', () => {
+  // 13 voldoende → sbl for bj2 traject
   const scores = allScores(null);
   const keys = Object.keys(scores).slice(0, 13);
   for (const k of keys) scores[k] = 'voldoende';
   const student = makeStudent({ deelgebiedScores: scores });
   const result = berekenStatus(student);
   expect(result.kleur).toBe('groen');
-  expect(result.label).toBe('Op koers');
+  expect(result.label).toBe('SBL');
 });
 
 // ---------------------------------------------------------------------------
@@ -150,51 +150,46 @@ describe('berekenStatus thresholds (Phase 18)', () => {
     return makeStudent({ deelgebiedScores: scores, verzuim: verzuim ?? null });
   }
 
-  it('returns oranje/Verzuim when ongeoorloofd exceeds custom threshold', () => {
-    // ongeoorloofd = 700 > threshold of 600 → Verzuim
-    // Prognose is positive (sbl) so without verzuim check it would be groen/Op koers
+  it('T02: hoog ongeoorloofd verzuim verandert kleur NIET — altijd prognose-driven (ring op tegel)', () => {
+    // T02: verzuim is no longer a color override. 13 voldoende → sbl → groen/SBL
+    // regardless of ongeoorloofd hours exceeding the threshold.
     const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 700 });
 
     const result = berekenStatus(student, undefined, { geoorloofd: 1500, ongeoorloofd: 600 });
 
-    expect(result.kleur).toBe('oranje');
-    expect(result.label).toBe('Verzuim');
+    expect(result.kleur).toBe('groen');
+    expect(result.label).toBe('SBL');
   });
 
-  it('returns oranje/Verzuim when geoorloofd exceeds custom geoorloofd threshold', () => {
-    // geoorloofd = 1000 > threshold of 900 → Verzuim (new check added in Phase 18)
-    // ongeoorloofd = 0 → would not trigger the ongeoorloofd check
+  it('T02: hoog geoorloofd verzuim verandert kleur NIET — altijd prognose-driven', () => {
+    // T02: verzuim color override removed. 13 voldoende → sbl → groen/SBL
     const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 1000, ongeoorloofd: 0 });
 
     const result = berekenStatus(student, undefined, { geoorloofd: 900, ongeoorloofd: 600 });
 
-    expect(result.kleur).toBe('oranje');
-    expect(result.label).toBe('Verzuim');
+    expect(result.kleur).toBe('groen');
+    expect(result.label).toBe('SBL');
   });
 
-  it('uses runtime thresholds via getVerzuimDrempelsSync when arg omitted', () => {
-    // getVerzuimDrempelsSync() returns DEFAULT_VERZUIM_DREMPELS = { geoorloofd: 900, ongeoorloofd: 600 }
-    // when cache is cold (no store write has occurred). A student with ongeoorloofd=601
-    // exceeds the default ongeoorloofd threshold of 600 and should trigger Verzuim
-    // even without an explicit thresholds argument — proving the internal sync fallback works.
+  it('T02: verzuim boven standaard drempel → kleur blijft groen/SBL (ring zichtbaar op tegel)', () => {
+    // T02: color no longer changes for high verzuim — ring is shown instead.
     const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 601 });
 
-    // Call WITHOUT third arg — must use getVerzuimDrempelsSync() internally
     const result = berekenStatus(student);
 
-    expect(result.kleur).toBe('oranje');
-    expect(result.label).toBe('Verzuim');
+    expect(result.kleur).toBe('groen');
+    expect(result.label).toBe('SBL');
   });
 
-  it('returns prognose-driven status when both verzuim values stay under thresholds', () => {
-    // Both ongeoorloofd=10 and geoorloofd=10 are well below thresholds → no Verzuim
-    // 13 voldoende → sbl → groen/Op koers
+  it('prognose-driven status: laag verzuim → groen/SBL', () => {
+    // Both ongeoorloofd=10 and geoorloofd=10 are well below thresholds
+    // 13 voldoende → sbl → groen/SBL
     const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 10, ongeoorloofd: 10 });
 
     const result = berekenStatus(student, undefined, { geoorloofd: 900, ongeoorloofd: 600 });
 
     expect(result.kleur).toBe('groen');
-    expect(result.label).toBe('Op koers');
+    expect(result.label).toBe('SBL');
   });
 
 });
@@ -221,10 +216,10 @@ describe('berekenStatus keuzedelen (Phase 39)', () => {
   const kdHaalbaar    = [{ id: '1', naam: 'KD Sport', status: 'haalbaar'     }];
   const kdNietBehaald = [{ id: '1', naam: 'KD Sport', status: 'niet_behaald' }];
 
-  it('sbc + behaald KD → paars / Profieljaar SBC (geen downgrade)', () => {
+  it('sbc + behaald KD → blauw / SBC (geen downgrade)', () => {
     const result = berekenStatus(makeSbcStudent(kdBehaald));
-    expect(result.kleur).toBe('paars');
-    expect(result.label).toBe('Profieljaar SBC');
+    expect(result.kleur).toBe('blauw');
+    expect(result.label).toBe('SBC');
   });
 
   it('sbc + haalbaar KD → oranje / Let op — KD (SBC vereist behaald)', () => {
@@ -239,20 +234,20 @@ describe('berekenStatus keuzedelen (Phase 39)', () => {
     expect(result.label).toBe('Let op — KD');
   });
 
-  it('sbc + geen keuzedelen → paars / Profieljaar SBC (null = geen downgrade)', () => {
+  it('sbc + geen keuzedelen → blauw / SBC (null = geen downgrade)', () => {
     const result = berekenStatus(makeSbcStudent([]));
-    expect(result.kleur).toBe('paars');
-    expect(result.label).toBe('Profieljaar SBC');
+    expect(result.kleur).toBe('blauw');
+    expect(result.label).toBe('SBC');
   });
 
-  it('sbl + niet_behaald KD → groen / Op koers (SBL heeft geen KD-eis)', () => {
+  it('sbl + niet_behaald KD → groen / SBL (SBL heeft geen KD-eis)', () => {
     const scores = allScores(null);
     const keys = Object.keys(scores).slice(0, 13);
     for (const k of keys) scores[k] = 'voldoende';
     const student = makeStudent({ deelgebiedScores: scores, keuzedelen: kdNietBehaald });
     const result = berekenStatus(student);
     expect(result.kleur).toBe('groen');
-    expect(result.label).toBe('Op koers');
+    expect(result.label).toBe('SBL');
   });
 
   it('naar_bj2 + niet_behaald KD → oranje / Let op — KD', () => {
@@ -261,10 +256,10 @@ describe('berekenStatus keuzedelen (Phase 39)', () => {
     expect(result.label).toBe('Let op — KD');
   });
 
-  it('naar_bj2 + haalbaar KD → groen / Op koers BJ2 (haalbaar volstaat voor BJ2)', () => {
+  it('naar_bj2 + haalbaar KD → groen / Naar BJ2 (haalbaar volstaat voor BJ2)', () => {
     const result = berekenStatus(makeBj1Student(kdHaalbaar));
     expect(result.kleur).toBe('groen');
-    expect(result.label).toBe('Op koers BJ2');
+    expect(result.label).toBe('Naar BJ2');
   });
 
 });

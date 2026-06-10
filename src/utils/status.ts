@@ -113,13 +113,10 @@ export function detectTraject(student: any): string {
  * @param student  Student record (from klassenState)
  * @param traject  Optional traject override; if not provided, detectTraject() is used
  */
-export function berekenStatus(student: any, traject?: string, thresholds?: { geoorloofd: number; ongeoorloofd: number }): StatusResult {
+export function berekenStatus(student: any, traject?: string, _thresholds?: { geoorloofd: number; ongeoorloofd: number }): StatusResult {
   const effectiveTraject = traject ?? detectTraject(student);
   const p = berekenPrognose(student, effectiveTraject);
-  const ongeoorloofd = student.verzuim?.ongeoorloofd ?? 0;
-  const geoorloofd   = student.verzuim?.geoorloofd ?? 0;
   const heeftScores  = p.totaalVoldoendeOfHoger + p.totaalOnvoldoende > 0;
-  const resolvedThresholds = thresholds ?? getVerzuimDrempelsSync();
   const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
   const kdStatus = keuzedelen.length > 0
     ? aggregateKdStatus(keuzedelen)
