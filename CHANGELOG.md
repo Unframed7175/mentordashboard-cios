@@ -1,5 +1,9 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.6.1] — 2026-06-11 — Verzuim-signaal verfijnd
+
+- Verzuim boven drempel toont nu een klein uitroepteken rechtsboven op de leerlingtegel in plaats van een oranje ring — rustiger beeld, zelfde signaal (met tooltip en screenreader-label "Verzuim boven drempel")
+
 ## [2.6.0] — 2026-06-10 — Eerste gebruikersfeedback verwerkt (M35)
 
 ### UX & visueel
