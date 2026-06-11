@@ -55,3 +55,49 @@ describe('LeerlingTegel — rnRow', () => {
     expect(screen.queryByText(/^R |^N |· N/)).toBeNull();
   });
 });
+
+describe('LeerlingTegel — verzuim-uitroepteken (M35 feedback)', () => {
+  it('toont het uitroepteken wanneer ongeoorloofd verzuim boven de drempel zit', () => {
+    render(
+      <LeerlingTegel
+        student={{ naam: 'T', leerlingId: 'S1', verzuim: { aanwezigheid: 90, ongeoorloofd: 700, geoorloofd: 0 } }}
+        status={grijsStatus}
+        onClick={vi.fn()}
+      />
+    );
+    expect(screen.getByRole('img', { name: 'Verzuim boven drempel' })).toBeTruthy();
+  });
+
+  it('toont het uitroepteken wanneer geoorloofd verzuim boven de drempel zit', () => {
+    render(
+      <LeerlingTegel
+        student={{ naam: 'T', leerlingId: 'S1', verzuim: { aanwezigheid: 90, ongeoorloofd: 0, geoorloofd: 950 } }}
+        status={grijsStatus}
+        onClick={vi.fn()}
+      />
+    );
+    expect(screen.getByRole('img', { name: 'Verzuim boven drempel' })).toBeTruthy();
+  });
+
+  it('verbergt het uitroepteken wanneer verzuim onder beide drempels blijft', () => {
+    render(
+      <LeerlingTegel
+        student={{ naam: 'T', leerlingId: 'S1', verzuim: { aanwezigheid: 95, ongeoorloofd: 100, geoorloofd: 100 } }}
+        status={grijsStatus}
+        onClick={vi.fn()}
+      />
+    );
+    expect(screen.queryByRole('img', { name: 'Verzuim boven drempel' })).toBeNull();
+  });
+
+  it('verbergt het uitroepteken wanneer verzuimdata ontbreekt', () => {
+    render(
+      <LeerlingTegel
+        student={{ naam: 'T', leerlingId: 'S1' }}
+        status={grijsStatus}
+        onClick={vi.fn()}
+      />
+    );
+    expect(screen.queryByRole('img', { name: 'Verzuim boven drempel' })).toBeNull();
+  });
+});

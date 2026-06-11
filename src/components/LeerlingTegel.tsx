@@ -111,15 +111,17 @@ export default function LeerlingTegel({ student, status, onClick, trend }: Leerl
   return (
     <div
       className="klas-tile"
-      style={{
-        '--tile-accent': ragVar,
-        ...(hasVerzuimAlert ? { boxShadow: 'var(--shadow-sm), var(--glass-shine), 0 0 0 2px var(--rag-oranje)' } : {}),
-      } as React.CSSProperties}
+      style={{ '--tile-accent': ragVar } as React.CSSProperties}
       onClick={onClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="button"
     >
+      {hasVerzuimAlert && (
+        <span className="klas-tile-verzuim-alert" role="img" aria-label="Verzuim boven drempel" title="Verzuim boven drempel">
+          !
+        </span>
+      )}
       <span className="klas-tile-naam">{student.naam}</span>
       <span className={`status-badge status-${status.kleur}`}>{status.label}</span>
       {scoreTelling}
