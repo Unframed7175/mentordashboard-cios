@@ -6,22 +6,28 @@
 
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import { invoke } from '@tauri-apps/api/core';
+import { LazyStore } from '@tauri-apps/plugin-store';
 import { klassenState } from './klassen';
 import { appState } from './datamodel';
 
 const BACKUP_FILENAME = 'mentordashboard-backup.enc';
 const BACKUP_FILENAME_LEGACY = 'mentordashboard-backup.json';
 
+// Zelfde fysieke store als alle andere modules ('store.json', één bestand)
+const store = new LazyStore('store.json', { defaults: {}, autoSave: false });
+
 /**
- * Maak een gecomprimeerde backup van de huidige klassenState.
+ * Maak een gecomprimeerde backup (payload v2): klassenState plaintext zoals v1,
+ * plus een generieke snapshot van álle store-keys via store.entries() (ADR-13a).
  * Inhoud wordt versleuteld met AES-256-GCM (zelfde sleutel als klassen-store).
  * Retourneert een Uint8Array (ZIP bestand).
  */
 export async function buildBackupPayload(): Promise<Uint8Array> {
   const payload = {
-    version: 1,
+    version: 2,
     klassen: klassenState.klassen,
     activeKlasId: klassenState.activeKlasId,
+    store: Object.fromEntries(await store.entries()),
     exportedAt: new Date().toISOString(),
   };
   const jsonString = JSON.stringify(payload);
@@ -33,14 +39,19 @@ export async function buildBackupPayload(): Promise<Uint8Array> {
 /**
  * Herstel klassenState vanuit een ZIP Uint8Array.
  *
+ * Store-keys uit een v2-payload worden alléén teruggezet bij 'overschrijven';
+ * 'samenvoegen' behoudt de huidige instellingen (ADR-13a). Na een geslaagde
+ * v2-overschrijven-restore is een reload vereist (reloadRequired: true) zodat
+ * alle modules hun store-cache opnieuw laden.
+ *
  * @param zipData - Uint8Array van een eerder gebouwde backup
  * @param mode - 'overschrijven': vervang alle klassen; 'samenvoegen': voeg samen
- * @returns { success: boolean; message: string }
+ * @returns { success: boolean; message: string; reloadRequired?: boolean }
  */
 export async function applyBackupRestore(
   zipData: Uint8Array,
   mode: 'overschrijven' | 'samenvoegen'
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; message: string; reloadRequired?: boolean }> {
   try {
     const extracted = unzipSync(zipData);
     const backupEntry = extracted[BACKUP_FILENAME] ?? extracted[BACKUP_FILENAME_LEGACY];
@@ -56,8 +67,12 @@ export async function applyBackupRestore(
       // Legacy backup: plaintext JSON — accept for backwards compatibility
       jsonString = raw;
     }
-    const payload: { version: number; klassen: Record<string, any>; activeKlasId: string | null } =
-      JSON.parse(jsonString);
+    const payload: {
+      version: number;
+      klassen: Record<string, any>;
+      activeKlasId: string | null;
+      store?: Record<string, unknown>;
+    } = JSON.parse(jsonString);
     if (
       !payload ||
       typeof payload !== 'object' ||
@@ -68,9 +83,19 @@ export async function applyBackupRestore(
       return { success: false, message: 'Ongeldige backup structuur' };
     }
 
+    let reloadRequired = false;
+
     if (mode === 'overschrijven') {
       klassenState.klassen = payload.klassen;
       klassenState.activeKlasId = payload.activeKlasId;
+      // v2: zet alle store-keys uit de snapshot terug (alléén bij overschrijven)
+      if (payload.version >= 2 && payload.store && typeof payload.store === 'object') {
+        for (const [key, value] of Object.entries(payload.store)) {
+          await store.set(key, value);
+        }
+        await store.save(); // VERPLICHT: set() is alleen in-memory
+        reloadRequired = true;
+      }
     } else {
       // samenvoegen: nieuwe klassen toevoegen, bestaande updaten
       Object.assign(klassenState.klassen, payload.klassen);
@@ -84,7 +109,7 @@ export async function applyBackupRestore(
       }
     }
 
-    return { success: true, message: 'Backup hersteld' };
+    return { success: true, message: 'Backup hersteld', reloadRequired };
   } catch (err: any) {
     return { success: false, message: err.message || 'Onbekende fout' };
   }
