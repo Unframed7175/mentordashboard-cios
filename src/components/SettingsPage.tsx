@@ -24,6 +24,7 @@ import { loadVerzuimDrempels, saveVerzuimDrempels } from '../../utils/verzuimDre
 import { getBpvConfig, saveBpvConfig, parseBpvExcel, saveBpvData, getBpvData, type BpvConfig, type BpvData } from '../../utils/bpv';
 import { loadNormen, saveNormen, resetNormen, DEFAULT_NORMEN, type Normen } from '../../utils/normen';
 import { buildBackupPayload } from '../../utils/backup';
+import { factoryReset } from '../../utils/reset';
 import { checkForUpdate, type UpdateInfo } from '../../utils/updateCheck';
 
 interface SettingsPageProps {
@@ -80,6 +81,157 @@ function NaamInput({ id, label, onApply }: NaamInputProps) {
   );
 }
 
+// ── WisDialoog: fabrieksreset-bevestiging (M36 T4/DT1/DT2) ─────────────────────
+// Hiërarchie: begrijpen → vangnet → frictie → actie (design review 2026-06-12).
+// Succes heeft geen eigen UI — factoryReset() herlaadt de app in de wizard.
+
+interface WisDialoogProps {
+  onCancel: () => void;
+  onBackup: () => void;
+  backupExporting: boolean;
+}
+
+function WisDialoog({ onCancel, onBackup, backupExporting }: WisDialoogProps) {
+  const [invoer, setInvoer] = useState('');
+  const [wissenBezig, setWissenBezig] = useState(false);
+  const [fout, setFout] = useState<string | null>(null);
+
+  async function handleWissen() {
+    if (wissenBezig) return; // dubbelklik-guard
+    setWissenBezig(true);
+    setFout(null);
+    const result = await factoryReset();
+    if (!result.success) {
+      // Faalpad: data intact (utils/reset garandeert dat) — controls weer actief
+      setFout(result.message);
+      setWissenBezig(false);
+    }
+  }
+
+  const invoerGeldig = invoer === 'WISSEN';
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="wis-dialoog-titel"
+        style={{
+          background: 'var(--bg-surface, #ffffff)',
+          borderRadius: '12px',
+          padding: '1.5rem',
+          width: '100%',
+          maxWidth: '440px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        }}
+      >
+        <h2 id="wis-dialoog-titel" style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 700 }}>
+          Alle gegevens wissen
+        </h2>
+        <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.9rem' }}>
+          Dit verwijdert definitief van deze computer:
+        </p>
+        <ul
+          style={{
+            margin: '0 0 1rem 0',
+            padding: '0.75rem 1rem 0.75rem 2rem',
+            background: 'var(--status-rood-bg)',
+            color: 'var(--status-rood-text)',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+          }}
+        >
+          <li>alle klassen en leerlinggegevens (incl. notities en actiepunten)</li>
+          <li>BPV-uren en plaatsingen</li>
+          <li>normen, drempels en instellingen</li>
+        </ul>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            background: 'var(--bg-surface-alt, #f5f5f5)',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+            marginBottom: '1rem',
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '0.875rem', flex: 1 }}>
+            Maak eerst een versleutelde back-up — daarmee zet je alles terug via het importscherm.
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={onBackup}
+            disabled={backupExporting || wissenBezig}
+            style={{ flexShrink: 0 }}
+          >
+            {backupExporting ? 'Exporteren…' : 'Back-up maken'}
+          </button>
+        </div>
+        {fout && (
+          <p
+            role="alert"
+            style={{
+              background: 'var(--status-rood-bg)',
+              color: 'var(--status-rood-text)',
+              borderRadius: '8px',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.875rem',
+              margin: '0 0 1rem 0',
+            }}
+          >
+            {fout}
+          </p>
+        )}
+        <label
+          htmlFor="wis-bevestiging"
+          style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.375rem' }}
+        >
+          Typ WISSEN om te bevestigen
+        </label>
+        <input
+          id="wis-bevestiging"
+          type="text"
+          placeholder="WISSEN"
+          value={invoer}
+          onChange={e => setInvoer(e.target.value)}
+          disabled={wissenBezig}
+          style={{ width: '100%', boxSizing: 'border-box', marginBottom: '1.25rem' }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+          <button type="button" className="btn btn-ghost" onClick={onCancel} disabled={wissenBezig}>
+            Annuleren
+          </button>
+          <button
+            type="button"
+            className="btn"
+            onClick={handleWissen}
+            disabled={!invoerGeldig || wissenBezig || backupExporting}
+            style={{
+              background: invoerGeldig && !wissenBezig && !backupExporting ? '#DC2626' : '#FCA5A5',
+              color: invoerGeldig && !wissenBezig && !backupExporting ? '#FFFFFF' : '#7F1D1D',
+              border: 'none',
+            }}
+          >
+            Definitief wissen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── SettingsPage ────────────────────────────────────────────────────────────────
 
 export default function SettingsPage({ onBack, onNavigateToImport, isDark, onToggleDark, onNormenChanged }: SettingsPageProps) {
@@ -106,6 +258,9 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
   const [backupExporting, setBackupExporting] = useState(false);
   const [updateChecking, setUpdateChecking] = useState(false);
   const [updateResult, setUpdateResult] = useState<UpdateInfo | 'uptodate' | 'error' | null>(null);
+
+  // Section 7 state — gevarenzone (M36 fabrieksreset)
+  const [wisDialoogOpen, setWisDialoogOpen] = useState(false);
 
   // On mount: load app version for Section 6
   useEffect(() => {
@@ -695,6 +850,33 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
           </p>
         )}
       </section>
+
+      {/* Section 7: Gevarenzone — fabrieksreset (M36, ADR-13) */}
+      <section className="detail-section" style={{ borderColor: '#FCA5A5' }}>
+        <h2 className="detail-section-title" style={{ color: 'var(--status-rood-text)' }}>
+          Gevarenzone
+        </h2>
+        <p style={{ fontSize: '0.875rem', marginBottom: '12px' }}>
+          Verwijdert alle klassen, leerlinggegevens, BPV-data en instellingen van deze computer.
+          De app start daarna opnieuw met de aanmaak-wizard.
+        </p>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={() => setWisDialoogOpen(true)}
+          style={{ color: '#DC2626', borderColor: '#DC2626' }}
+        >
+          Alle gegevens wissen…
+        </button>
+      </section>
+
+      {wisDialoogOpen && (
+        <WisDialoog
+          onCancel={() => setWisDialoogOpen(false)}
+          onBackup={handleBackupExport}
+          backupExporting={backupExporting}
+        />
+      )}
     </main>
   );
 }
