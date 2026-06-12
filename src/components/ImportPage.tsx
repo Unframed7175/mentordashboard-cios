@@ -24,9 +24,15 @@ const initialState: ImportState = {
 
 interface ImportPageProps {
   onImportComplete?: () => void;
+  // Injecteerbare reload (ADR-13a): alleen gebruikt na een v2-overschrijven-restore
+  // zodat alle modules hun store-cache opnieuw laden. Default: echte page reload.
+  reloadFn?: () => void;
 }
 
-export default function ImportPage({ onImportComplete }: ImportPageProps) {
+export default function ImportPage({
+  onImportComplete,
+  reloadFn = () => window.location.reload(),
+}: ImportPageProps) {
   const [importState, setImportState] = useState<ImportState>(initialState);
   const [isDragging, setIsDragging] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -281,12 +287,19 @@ export default function ImportPage({ onImportComplete }: ImportPageProps) {
         } else {
           await saveKlassen();
         }
+        setLastImport({ filename: file.name, type: 'zip' });
+        if (result.reloadRequired) {
+          // v2-overschrijven-restore: herlaad de app zodat alle modules hun
+          // store-cache opnieuw laden (ADR-13a). onImportComplete vervalt —
+          // de reload brengt de gebruiker sowieso terug in de app-flow.
+          reloadFn();
+          return;
+        }
         setImportState(prev => ({
           ...prev,
           status: 'done',
           messages: [...prev.messages, 'Backup hersteld'],
         }));
-        setLastImport({ filename: file.name, type: 'zip' });
         onImportComplete?.();
       } else {
         setImportState(prev => ({
