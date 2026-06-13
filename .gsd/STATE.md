@@ -1,14 +1,57 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-06-10 — M35 DONE, v2.6.0 geshipt
+> Laatste update: 2026-06-13 — Fase 2 M36-fabrieksreset: T1–T5 + DT1–DT2 volledig groen (388 tests)
 
 ---
 
 ## Huidige fase
 
-**Fase 4 afgerond — M35-gebruikersfeedback DONE (v2.6.0)**
+**Fase 2 · Executie — M36-fabrieksreset (ACTIEF → gereed voor Fase 4)**
 
-Volgende milestone start in Fase 0 (kandidaat: M36 schema-configurabiliteit, zie "Milestone M35 — gepland" hieronder voor de oorspronkelijke parser-taken die nog open staan).
+Alle implementatietaken en design-/a11y-tests afgerond op 2026-06-13:
+- T1 ✅ backup-payload v2 (store-snapshot + restore-semantiek + reloadRequired)
+- T2 ✅ reload alléén na v2-overschrijven-restore (ImportPage + injecteerbare reloadFn)
+- T3 ✅ factoryReset() met bindende volgorde en intact faalpad
+- T4 ✅ Gevarenzone-sectie + WisDialoog in SettingsPage
+- DT1 ✅ dialoog-states conform states-tabel (wissenBezig / backupExporting / fout)
+- DT2 ✅ a11y: focus-on-open, ESC sluit (niet tijdens wissen), Enter geblokkeerd
+- T5 ✅ dode clearState() verwijderd uit utils/datamodel.ts
+- T6 / DT3: handmatige QA op echte Tauri-build → Fase 4
+
+Testsuite: 388 passed | 5 skipped (was 372 na T3).
+
+## Handoff 2026-06-12 (Fase 3 → Fase 2)
+
+Van: UI UX Pro Max — Fase 3 (beperkt checkpoint)
+Naar: Superpowers — Fase 2 (executie)
+Status: Statische a11y-check geslaagd na concretisering. Alle contrasten ≥ 4.5:1: actieve wis-knop wit/`#DC2626` (4.83:1), disabled-knop `#7F1D1D`/`#FCA5A5` (5.28:1), dark mode `#FCA5A5`/`#450A0A` (8.51:1).
+Openstaand: Lane A (T1→T2 backup v2) en Lane B (T3→T4→DT1→DT2 reset+UI) — TDD: RED → GREEN → REFACTOR; resultaten naar `S01-SUMMARY.md`. Lane C (T5) lift mee. **Bindend voor DT1/DT2-implementatie: disabled-knoptekst `#7F1D1D`, níét `var(--status-rood-text)`.** T6+DT3 zijn handmatige QA in Fase 4.
+DoD afgevinkt: **ja** — design contract (UI-spec + wireframe) ✓, statische a11y-check geslaagd ✓, DESIGN.md-gat als TODO vastgelegd door projectlead (geen blokkade) ✓, handoff geschreven ✓
+
+## Prioriteitsvolgorde
+
+| Milestone | Status |
+|---|---|
+| M36-fabrieksreset | ACTIEF (Fase 1 ✓ → Fase 3 ✓ → Fase 2 executie) |
+| M37-schema-configurabiliteit | WACHT (voorheen "M35 — gepland"-taken, zie hieronder) |
+
+## Handoff 2026-06-12
+
+Van: GSD — Fase 1 (spec)
+Naar: UI UX Pro Max — Fase 3 (beperkt checkpoint), daarna Superpowers — Fase 2 (executie)
+Status: `S01-PLAN.md` compleet met 9 taken, lanes (A: T1→T2 backup · B: T3→T4→DT1→DT2 reset+UI · C: T5 micro · Fase 4: T6+DT3 handmatige QA), bindende beslissingen en succescriteria. ROADMAP.md aangemaakt. Map heet `M36-fabrieksreset/` (consistent met M35-naamgeving; eerdere handoff noemde `M036-`).
+Openstaand: Fase 3-checkpoint — statische a11y-check op spec-kleuren (wit op `#DC2626` en donkere tekst op `#FCA5A5`, beide ≥ 4.5:1); daarna start Superpowers met Lane A en/of B (TDD: RED → GREEN → REFACTOR), resultaten naar `S01-SUMMARY.md`. Geen nieuwe secrets/deps → geen `.env.example`-wijziging nodig.
+DoD afgevinkt: **ja** — PROJECT.md/REQUIREMENTS.md bestaan ✓, milestone-map + S01-PLAN.md ✓, UI-check uitgevoerd (Fase 3 ingepland) ✓, handoff geschreven ✓
+
+## Handoff 2026-06-11
+
+Van: GStack — Fase 0 (/office-hours)
+Naar: GStack — Fase 0 vervolg (/plan-eng-review, daarna /plan-design-review)
+Status: Oorzaak geverifieerd (installer schoon; app-data persisteert per machine). Premissen en aanpak B bevestigd door projectlead. ADR-13 vastgelegd. Design doc: `~/.gstack/projects/Unframed7175-mentordashboard-cios/rafael-master-design-20260611-213139.md` (APPROVED).
+Openstaand: niets — Fase 0 DoD compleet. `/plan-eng-review` afgerond (2026-06-12, CLEAR: 6 issues besloten, 0 critical gaps, ADR-13a). `/plan-design-review` afgerond (2026-06-12, CLEAR: score 4→9, 5 besluiten: wireframe goedgekeurd als visuele referentie, states-tabel, a11y-spec, DESIGN.md-gat als TODO, dark-mode QA-check). Volgende stap: GSD Fase 1 — milestone-map `M036-fabrieksreset/` + S01-PLAN.md op basis van de 9 implementatietaken (T1-T6 eng + DT1-DT3 design) in het design doc.
+DoD afgevinkt: **ja** — ADR aanwezig ✓, eng-review ✓ (2026-06-12), design-review ✓ (2026-06-12), handoff geschreven ✓
+
+Volgende milestone na M36: M37 schema-configurabiliteit (zie "Milestone M35 — gepland" hieronder voor de oorspronkelijke parser-taken die nog open staan).
 
 ## Milestone afgerond 2026-06-10
 
