@@ -95,6 +95,15 @@ function WisDialoog({ onCancel, onBackup, backupExporting }: WisDialoogProps) {
   const [invoer, setInvoer] = useState('');
   const [wissenBezig, setWissenBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
+  const invoerRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    invoerRef.current?.focus();
+  }, []);
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape' && !wissenBezig) onCancel();
+  }
 
   async function handleWissen() {
     if (wissenBezig) return; // dubbelklik-guard
@@ -112,6 +121,7 @@ function WisDialoog({ onCancel, onBackup, backupExporting }: WisDialoogProps) {
 
   return (
     <div
+      onKeyDown={handleKeyDown}
       style={{
         position: 'fixed',
         inset: 0,
@@ -201,11 +211,13 @@ function WisDialoog({ onCancel, onBackup, backupExporting }: WisDialoogProps) {
           Typ WISSEN om te bevestigen
         </label>
         <input
+          ref={invoerRef}
           id="wis-bevestiging"
           type="text"
           placeholder="WISSEN"
           value={invoer}
           onChange={e => setInvoer(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') e.preventDefault(); }}
           disabled={wissenBezig}
           style={{ width: '100%', boxSizing: 'border-box', marginBottom: '1.25rem' }}
         />
@@ -224,7 +236,7 @@ function WisDialoog({ onCancel, onBackup, backupExporting }: WisDialoogProps) {
               border: 'none',
             }}
           >
-            Definitief wissen
+            {wissenBezig ? 'Bezig met wissen…' : 'Definitief wissen'}
           </button>
         </div>
       </div>

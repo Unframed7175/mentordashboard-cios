@@ -3,7 +3,7 @@
 // states-tabel (D4-1A) en a11y-spec (D6-2A).
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import React from 'react';
 
 const {
@@ -178,5 +178,117 @@ describe('Gevarenzone-sectie (M36 T4)', () => {
 
     expect(mockFactoryReset).toHaveBeenCalledTimes(1);
     await act(async () => { resolveReset({ success: true, message: '' }); });
+  });
+});
+
+// ── DT1: dialoog-states conform states-tabel (D4-1A) ──────────────────────────
+
+describe('WisDialoog states (M36 DT1)', () => {
+  it('wissen bezig: knop toont "Bezig met wissen…" en álle controls zijn disabled', async () => {
+    let resolveReset!: (v: { success: boolean; message: string }) => void;
+    mockFactoryReset.mockImplementation(() => new Promise(res => { resolveReset = res; }));
+    await renderSettings();
+    await openDialog();
+
+    fireEvent.change(getInvoerveld(), { target: { value: 'WISSEN' } });
+    const knop = getWisKnop();
+    fireEvent.click(knop);
+
+    expect(screen.getByRole('button', { name: /bezig met wissen/i })).toBeTruthy();
+    expect((screen.getByRole('button', { name: /bezig met wissen/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect(getInvoerveld().disabled).toBe(true);
+    expect((screen.getByRole('button', { name: /annuleren/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: /back-up maken/i }) as HTMLButtonElement).disabled).toBe(true);
+
+    await act(async () => { resolveReset({ success: true, message: '' }); });
+  });
+
+  it('back-up bezig: back-up-knop toont "Exporteren…" en wis-knop is tijdelijk disabled', async () => {
+    let resolveBackup!: (v: Uint8Array) => void;
+    mockBuildBackupPayload.mockImplementation(() => new Promise(res => { resolveBackup = res; }));
+    await renderSettings();
+    const dialog = await openDialog();
+
+    fireEvent.change(getInvoerveld(), { target: { value: 'WISSEN' } });
+    expect(getWisKnop().disabled).toBe(false);
+
+    fireEvent.click(within(dialog).getByRole('button', { name: /back-up maken/i }));
+
+    const exportKnop = within(dialog).getByRole('button', { name: /exporteren/i }) as HTMLButtonElement;
+    expect(exportKnop.disabled).toBe(true);
+    expect(getWisKnop().disabled).toBe(true);
+
+    await act(async () => { resolveBackup(new Uint8Array([1])); });
+    // na afronden export: wis-knop weer actief
+    await waitFor(() => expect(getWisKnop().disabled).toBe(false));
+  });
+
+  it('fout-state: na mislukte reset zijn de controls weer actief en is data-invoer mogelijk', async () => {
+    mockFactoryReset.mockResolvedValue({ success: false, message: 'Wissen mislukt: schijf' });
+    await renderSettings();
+    await openDialog();
+
+    fireEvent.change(getInvoerveld(), { target: { value: 'WISSEN' } });
+    fireEvent.click(getWisKnop());
+    await screen.findByRole('alert');
+
+    expect(getInvoerveld().disabled).toBe(false);
+    expect((screen.getByRole('button', { name: /annuleren/i }) as HTMLButtonElement).disabled).toBe(false);
+    expect(getWisKnop().disabled).toBe(false);
+  });
+});
+
+// ── DT2: a11y wisdialoog (D6-2A) ─────────────────────────────────────────────
+
+describe('WisDialoog a11y (M36 DT2)', () => {
+  it('dialog heeft role, aria-modal en aria-labelledby gekoppeld aan titel', async () => {
+    await renderSettings();
+    const dialog = await openDialog();
+    expect(dialog.getAttribute('role')).toBe('dialog');
+    expect(dialog.getAttribute('aria-modal')).toBe('true');
+    const labelId = dialog.getAttribute('aria-labelledby');
+    expect(labelId).toBeTruthy();
+    const titel = document.getElementById(labelId!);
+    expect(titel).toBeTruthy();
+    expect(titel!.textContent).toMatch(/wissen/i);
+  });
+
+  it('focus gaat naar het invoerveld zodra de dialoog opent', async () => {
+    await renderSettings();
+    await openDialog();
+    expect(document.activeElement).toBe(getInvoerveld());
+  });
+
+  it('ESC sluit de dialoog wanneer er niet gewist wordt', async () => {
+    await renderSettings();
+    const dialog = await openDialog();
+    fireEvent.keyDown(dialog, { key: 'Escape', code: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(mockFactoryReset).not.toHaveBeenCalled();
+  });
+
+  it('ESC doet niets terwijl het wissen bezig is', async () => {
+    let resolveReset!: (v: { success: boolean; message: string }) => void;
+    mockFactoryReset.mockImplementation(() => new Promise(res => { resolveReset = res; }));
+    await renderSettings();
+    const dialog = await openDialog();
+
+    fireEvent.change(getInvoerveld(), { target: { value: 'WISSEN' } });
+    fireEvent.click(screen.getByRole('button', { name: /definitief wissen/i }));
+
+    fireEvent.keyDown(dialog, { key: 'Escape', code: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeTruthy();
+
+    await act(async () => { resolveReset({ success: true, message: '' }); });
+  });
+
+  it('Enter in het invoerveld triggert geen wis-actie', async () => {
+    await renderSettings();
+    await openDialog();
+
+    fireEvent.change(getInvoerveld(), { target: { value: 'WISSEN' } });
+    fireEvent.keyDown(getInvoerveld(), { key: 'Enter', code: 'Enter' });
+
+    expect(mockFactoryReset).not.toHaveBeenCalled();
   });
 });
