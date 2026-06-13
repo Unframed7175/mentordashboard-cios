@@ -1,24 +1,29 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-06-13 — Fase 2 M36-fabrieksreset: T1–T5 + DT1–DT2 volledig groen (388 tests)
+> Laatste update: 2026-06-13 — Fase 4 M36-fabrieksreset: 390 tests groen, security clean, CHANGELOG + versie 2.7.0 klaar. T6/DT3 handmatige QA ausstehend.
 
 ---
 
 ## Huidige fase
 
-**Fase 2 · Executie — M36-fabrieksreset (ACTIEF → gereed voor Fase 4)**
+**Fase 4 · Review & ship — M36-fabrieksreset (ACTIEF)**
 
-Alle implementatietaken en design-/a11y-tests afgerond op 2026-06-13:
+Fase 4 voortgang (2026-06-13):
 - T1 ✅ backup-payload v2 (store-snapshot + restore-semantiek + reloadRequired)
 - T2 ✅ reload alléén na v2-overschrijven-restore (ImportPage + injecteerbare reloadFn)
 - T3 ✅ factoryReset() met bindende volgorde en intact faalpad
 - T4 ✅ Gevarenzone-sectie + WisDialoog in SettingsPage
 - DT1 ✅ dialoog-states conform states-tabel (wissenBezig / backupExporting / fout)
-- DT2 ✅ a11y: focus-on-open, ESC sluit (niet tijdens wissen), Enter geblokkeerd
+- DT2 ✅ a11y: focus-on-open, ESC sluit, Enter geblokkeerd, TAB focus trap
 - T5 ✅ dode clearState() verwijderd uit utils/datamodel.ts
-- T6 / DT3: handmatige QA op echte Tauri-build → Fase 4
+- Code review ✅ (42f5744) — 4 auto-fixes + 2 user-approved fixes
+- Security scan ✅ — 0 vulnerabilities
+- CHANGELOG ✅ — [2.7.0] entry aanwezig
+- Versie bump ✅ — package.json + tauri.conf.json → 2.7.0
+- M36-LEARNINGS.md ✅
+- T6 / DT3: handmatige QA op echte Tauri-build — **PENDING (blokkade voor /ship)**
 
-Testsuite: 388 passed | 5 skipped (was 372 na T3).
+Testsuite: 390 passed | 5 skipped (was 388 — +2 TAB focus trap tests DT2).
 
 ## Handoff 2026-06-12 (Fase 3 → Fase 2)
 
