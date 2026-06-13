@@ -170,6 +170,8 @@ test('v2 overschrijven-restore zet store-keys terug en vraagt reload', async () 
   // store-keys uit de snapshot zijn teruggezet
   expect(_storeData.get('settings')).toEqual({ theme: 'dark' });
   expect(_storeData.get('doorstroom_normen')).toBe('{"nieuw":1}');
+  // stale keys die NIET in de snapshot zitten zijn gewist (clean replace, niet additief)
+  expect(_storeData.has('verzuim_drempels')).toBe(false);
 });
 
 test('v2 samenvoegen-restore behoudt huidige store-keys en vraagt géén reload', async () => {

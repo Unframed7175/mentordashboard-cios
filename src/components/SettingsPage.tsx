@@ -95,18 +95,42 @@ function WisDialoog({ onCancel, onBackup, backupExporting }: WisDialoogProps) {
   const [invoer, setInvoer] = useState('');
   const [wissenBezig, setWissenBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
+  const [backupFout, setBackupFout] = useState<string | null>(null);
   const invoerRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     invoerRef.current?.focus();
   }, []);
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Escape' && !wissenBezig) onCancel();
+    if (e.key === 'Escape' && !wissenBezig) { onCancel(); return; }
+    if (e.key === 'Tab') {
+      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled])'
+      );
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    }
+  }
+
+  async function handleBackupKlik() {
+    setBackupFout(null);
+    try {
+      await onBackup();
+    } catch (err: any) {
+      setBackupFout(err?.message || 'Back-up mislukt — probeer opnieuw');
+    }
   }
 
   async function handleWissen() {
-    if (wissenBezig) return; // dubbelklik-guard
+    if (!invoerGeldig || wissenBezig) return;
     setWissenBezig(true);
     setFout(null);
     const result = await factoryReset();
@@ -133,6 +157,7 @@ function WisDialoog({ onCancel, onBackup, backupExporting }: WisDialoogProps) {
       }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="wis-dialoog-titel"
@@ -182,13 +207,28 @@ function WisDialoog({ onCancel, onBackup, backupExporting }: WisDialoogProps) {
           <button
             type="button"
             className="btn btn-ghost"
-            onClick={onBackup}
+            onClick={handleBackupKlik}
             disabled={backupExporting || wissenBezig}
             style={{ flexShrink: 0 }}
           >
             {backupExporting ? 'Exporteren…' : 'Back-up maken'}
           </button>
         </div>
+        {backupFout && (
+          <p
+            role="alert"
+            style={{
+              background: 'var(--status-rood-bg)',
+              color: 'var(--status-rood-text)',
+              borderRadius: '8px',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.875rem',
+              margin: '0 0 1rem 0',
+            }}
+          >
+            {backupFout}
+          </p>
+        )}
         {fout && (
           <p
             role="alert"
@@ -427,8 +467,6 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch {
-      // silent fail — Tauri not available in browser
     } finally {
       setBackupExporting(false);
     }
@@ -492,7 +530,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
           </button>
           <button
             className="btn btn-ghost"
-            onClick={handleBackupExport}
+            onClick={() => handleBackupExport().catch(() => {})}
             disabled={backupExporting}
           >
             {backupExporting ? 'Exporteren…' : 'Backup exporteren'}
@@ -868,7 +906,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
         <h2 className="detail-section-title" style={{ color: 'var(--status-rood-text)' }}>
           Gevarenzone
         </h2>
-        <p style={{ fontSize: '0.875rem', marginBottom: '12px' }}>
+        <p style={{ fontSize: '0.875rem', marginBottom: '0.75rem' }}>
           Verwijdert alle klassen, leerlinggegevens, BPV-data en instellingen van deze computer.
           De app start daarna opnieuw met de aanmaak-wizard.
         </p>

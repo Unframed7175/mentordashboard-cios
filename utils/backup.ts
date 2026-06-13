@@ -88,12 +88,13 @@ export async function applyBackupRestore(
     if (mode === 'overschrijven') {
       klassenState.klassen = payload.klassen;
       klassenState.activeKlasId = payload.activeKlasId;
-      // v2: zet alle store-keys uit de snapshot terug (alléén bij overschrijven)
+      // v2: vervang de volledige store door de snapshot (overschrijven = clean replace)
       if (payload.version >= 2 && payload.store && typeof payload.store === 'object') {
+        await store.clear(); // verwijder stale keys die niet in de snapshot zitten
         for (const [key, value] of Object.entries(payload.store)) {
           await store.set(key, value);
         }
-        await store.save(); // VERPLICHT: set() is alleen in-memory
+        await store.save(); // VERPLICHT: clear/set zijn alleen in-memory
         reloadRequired = true;
       }
     } else {
