@@ -291,4 +291,45 @@ describe('WisDialoog a11y (M36 DT2)', () => {
 
     expect(mockFactoryReset).not.toHaveBeenCalled();
   });
+
+  it('TAB van het laatste focuseerbare element wraps naar het eerste', async () => {
+    await renderSettings();
+    const dialog = await openDialog();
+
+    // Type WISSEN zodat alle knoppen (incl. wis-knop) focusbaar zijn
+    fireEvent.change(getInvoerveld(), { target: { value: 'WISSEN' } });
+
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])')
+    );
+    expect(focusable.length).toBeGreaterThan(1);
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    last.focus();
+
+    fireEvent.keyDown(dialog, { key: 'Tab', code: 'Tab', shiftKey: false });
+
+    expect(document.activeElement).toBe(first);
+  });
+
+  it('Shift+TAB van het eerste focuseerbare element wraps naar het laatste', async () => {
+    await renderSettings();
+    const dialog = await openDialog();
+
+    fireEvent.change(getInvoerveld(), { target: { value: 'WISSEN' } });
+
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])')
+    );
+    expect(focusable.length).toBeGreaterThan(1);
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first.focus();
+
+    fireEvent.keyDown(dialog, { key: 'Tab', code: 'Tab', shiftKey: true });
+
+    expect(document.activeElement).toBe(last);
+  });
 });
