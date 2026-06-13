@@ -1,5 +1,15 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.7.0] — 2026-06-13 — Fabrieksreset (M36)
+
+### Added
+- **Gevarenzone in Instellingen** — nieuw paneel onderaan de instellingenpagina met een knop "Alle gegevens wissen". Vereist bevestiging door "WISSEN" te typen; optioneel een back-up maken vóór het wissen.
+- **Fabrieksreset** (`utils/reset.ts`) — wist de volledige LazyStore, localStorage en herlaadt de app. Back-up en annuleren zijn altijd mogelijk vóór bevestiging.
+- **Backup-payload v2** — back-upbestand bevat nu naast klassen ook een generieke snapshot van alle app-instellingen (`store.json`). V1-back-ups blijven volledig ondersteund.
+
+### Changed
+- **Back-up herstellen (overschrijven)** — bij een v2-back-up worden nu álle instellingen teruggezet en wordt de app automatisch herladen. Stale sleutels die niet in de snapshot staan worden verwijderd (clean replace, was eerder additief).
+
 ## [2.6.1] — 2026-06-11 — Verzuim-signaal verfijnd
 
 - Verzuim boven drempel toont nu een klein uitroepteken rechtsboven op de leerlingtegel in plaats van een oranje ring — rustiger beeld, zelfde signaal (met tooltip en screenreader-label "Verzuim boven drempel")
