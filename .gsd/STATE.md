@@ -1,12 +1,12 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-06-13 — Fase 4 M36-fabrieksreset: 390 tests groen, security clean, CHANGELOG + versie 2.7.0 klaar. T6/DT3 handmatige QA ausstehend.
+> Laatste update: 2026-06-13 — M36-fabrieksreset DONE: v2.7.0 getagd en gepushed. Volgende: M37 schema-configurabiliteit.
 
 ---
 
 ## Huidige fase
 
-**Fase 4 · Review & ship — M36-fabrieksreset (ACTIEF)**
+**Fase 4 · Review & ship — M36-fabrieksreset (DONE)**
 
 Fase 4 voortgang (2026-06-13):
 - T1 ✅ backup-payload v2 (store-snapshot + restore-semantiek + reloadRequired)
@@ -42,7 +42,7 @@ DoD afgevinkt: **ja** — design contract (UI-spec + wireframe) ✓, statische a
 
 | Milestone | Status |
 |---|---|
-| M36-fabrieksreset | ACTIEF (Fase 1 ✓ → Fase 3 ✓ → Fase 2 executie) |
+| M36-fabrieksreset | DONE — v2.7.0 (2026-06-13) |
 | M37-schema-configurabiliteit | WACHT (voorheen "M35 — gepland"-taken, zie hieronder) |
 
 ## Handoff 2026-06-12
