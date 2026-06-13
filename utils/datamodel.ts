@@ -229,13 +229,3 @@ export function loadState(): boolean {
   console.warn('[datamodel] loadState is deprecated — gebruik loadKlassen() uit klassen.ts');
   return false;
 }
-
-/**
- * Wis alle opgeslagen data (localStorage + appState).
- */
-export function clearState(): void {
-  localStorage.removeItem(STORAGE_KEY);
-  appState.students = [];
-  appState.lastImportErrors = [];
-  console.log('[datamodel] Alle data gewist');
-}
