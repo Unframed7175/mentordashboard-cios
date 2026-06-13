@@ -21,7 +21,12 @@ Fase 4 voortgang (2026-06-13):
 - CHANGELOG ✅ — [2.7.0] entry aanwezig
 - Versie bump ✅ — package.json + tauri.conf.json → 2.7.0
 - M36-LEARNINGS.md ✅
-- T6 / DT3: handmatige QA op echte Tauri-build — **PENDING (blokkade voor /ship)**
+- Automatische QA ✅ — 17/17 checks groen (scripts/qa-m36.mjs):
+  - T6 scenario 1 ✅: wizard zichtbaar bij lege store (onboarding na reset)
+  - WisDialoog DOM/ARIA ✅: role, aria-modal, aria-labelledby, focus, disabled-state, ESC
+  - axe-core WCAG AA ✅: geen critical/serious violations in dialoog
+- T6 scenario 2 ⬜: backup-restore cycle — vereist echte Tauri-build (handmatig)
+- DT3 ⬜: dark-mode dialoog visueel — vereist echte Tauri-build (handmatig)
 
 Testsuite: 390 passed | 5 skipped (was 388 — +2 TAB focus trap tests DT2).
 
