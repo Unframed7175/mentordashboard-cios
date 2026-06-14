@@ -36,6 +36,7 @@ export default function ImportPage({
   const [importState, setImportState] = useState<ImportState>(initialState);
   const [isDragging, setIsDragging] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [unknownLabels, setUnknownLabels] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-clear toast after 3500ms; cleanup prevents stale timer on unmount
@@ -127,9 +128,11 @@ export default function ImportPage({
       messages: [],
       errors: [],
     }));
+    setUnknownLabels([]);
 
     let succeeded = 0;
     let skipped = 0;
+    const collectedUnknown: string[] = [];
 
     for (const file of files) {
       let parseResult: any;
@@ -147,6 +150,9 @@ export default function ImportPage({
           progress: { ...prev.progress, current: prev.progress.current + 1 },
         }));
         continue;
+      }
+      if (parseResult.unknownLabels?.length) {
+        collectedUnknown.push(...parseResult.unknownLabels);
       }
       try {
         addStudent(parseResult);
@@ -183,6 +189,9 @@ export default function ImportPage({
       if (succeeded > 0) {
         setLastImport({ filename: files[0].name, type: 'PDF' });
         onImportComplete?.();
+      }
+      if (collectedUnknown.length > 0) {
+        setUnknownLabels([...new Set(collectedUnknown)]);
       }
     }
   }
@@ -502,6 +511,37 @@ export default function ImportPage({
           onChange={onInputChange}
         />
       </div>
+      {unknownLabels.length > 0 && (
+        <div className="import-drift-banner" role="alert">
+          <span className="import-drift-banner__icon" aria-hidden="true">⚠</span>
+          <div className="import-drift-banner__body">
+            <p className="import-drift-banner__heading">
+              {unknownLabels.length === 1 ? 'Onbekende kolom gevonden' : 'Onbekende kolommen gevonden'}
+            </p>
+            <div className="import-drift-banner__chips">
+              {unknownLabels.slice(0, 3).map(l => (
+                <span key={l} className="import-drift-banner__chip">{l}</span>
+              ))}
+              {unknownLabels.length > 3 && (
+                <span className="import-drift-banner__chip import-drift-banner__chip--overflow">
+                  +{unknownLabels.length - 3} meer
+                </span>
+              )}
+            </div>
+            <p className="import-drift-banner__subtext">
+              {unknownLabels.length === 1
+                ? 'Deze kolom wordt niet weergegeven in de grafiek.'
+                : 'Deze kolommen worden niet weergegeven in de grafiek.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="import-drift-banner__dismiss"
+            aria-label="Sluiten"
+            onClick={() => setUnknownLabels([])}
+          >×</button>
+        </div>
+      )}
       {/* WR-03: single error list rendered whenever errors exist */}
       {errors.length > 0 && (
         <ul>

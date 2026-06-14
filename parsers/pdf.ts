@@ -58,18 +58,11 @@ import {
 } from './pdf-enrich';
 
 /**
- * Known vak group heading strings as they appear in SomToday PDFs.
- * Only rows whose label exactly matches one of these (case-insensitive) are
- * treated as group separators in the Overzicht Deelgebieden table.
- * All other no-score rows are datapunten with blank scores (not yet graded).
+ * Minimum number of column items required in a line for it to be
+ * considered the "Overzicht Deelgebieden" header row or to trigger
+ * a schema-drift warning in buildColumnMap.
  */
-const VAK_HEADINGS = new Set(['lesgeven', 'organiseren', 'prof. handelen', 'professioneel handelen']);
-
-/**
- * Minimum number of deelgebied label matches in a line for it to be
- * considered the "Overzicht Deelgebieden" header row.
- */
-const MIN_HEADER_MATCHES = 5;
+const MIN_COLUMN_WARN_THRESHOLD = 5;
 
 // Increased from 8 → 12 (999.3), 12 → 20 (phase-36): WebView2 renders text at
 // slightly different X positions than WKWebView, causing scores to fall outside
@@ -106,18 +99,21 @@ async function extractAllTextItems(file: File): Promise<any[]> {
     const page = await pdf.getPage(pageNum);
     const content = await page.getTextContent();
 
+    const viewport = page.getViewport({ scale: 1 });
+    const pageWidth = viewport.width;
     const rawItems: any[] = Array.isArray(content?.items) ? content.items : [];
     for (const item of rawItems) {
       if (item == null || item.type !== undefined) continue; // skip TextMarkedContent (no str)
       if (!item.str || typeof item.str !== 'string' || item.str.trim() === '') continue;
       allItems.push({
-        str:      item.str,
-        x:        item.transform[4],
-        y:        item.transform[5],
-        width:    item.width,
-        height:   item.height,
-        fontSize: Math.abs(item.transform[0]), // abs to handle mirrored transforms
-        page:     pageNum,
+        str:       item.str,
+        x:         item.transform[4],
+        y:         item.transform[5],
+        width:     item.width,
+        height:    item.height,
+        fontSize:  Math.abs(item.transform[0]), // abs to handle mirrored transforms
+        page:      pageNum,
+        pageWidth,
       });
     }
 
@@ -451,22 +447,35 @@ function parseVakSections(lines: any[][]): Array<{ naam: string; opdrachten: Arr
 // ---------------------------------------------------------------------------
 
 /**
- * Returns true when a line contains >= MIN_HEADER_MATCHES text items whose
- * trimmed, upper-cased value matches one of the 19 deelgebied labels.
+ * Returns true when a line looks like the "Overzicht Deelgebieden" column-header row.
  *
- * Used both to FIND the header row initially and to SKIP repeated header rows
- * on subsequent pages of a multi-page table.
+ * Primary (with pageWidth): positional spread heuristic — line has ≥ MIN_COLUMN_WARN_THRESHOLD
+ * items that collectively span ≥ 50% of the page width.  This works regardless of whether
+ * the column labels are known (open-world).
+ *
+ * Fallback (no pageWidth): label-based matching against DEELGEBIEDEN — used in tests or when
+ * pageWidth is unavailable.
  *
  * @param line - Array of text items (one visual row)
+ * @param pageWidth - Page width in PDF points; if provided, use spread heuristic
  * @returns {boolean}
  */
-function isHeaderRow(line: any[]): boolean {
-  const labels = DEELGEBIEDEN.map((d: any) => d.label.toUpperCase());
+function isHeaderRow(line: any[], pageWidth?: number): boolean {
+  if (line.length < MIN_COLUMN_WARN_THRESHOLD) return false;
+
+  if (pageWidth && pageWidth > 0) {
+    const xs = line.map((it: any) => it.x as number);
+    const span = Math.max(...xs) - Math.min(...xs);
+    return span >= pageWidth * 0.5;
+  }
+
+  // Fallback: label-based matching
+  const knownLabels = new Set(DEELGEBIEDEN.map((d: any) => d.label.toUpperCase()));
   let matches = 0;
-  for (const item of line) {
-    if (labels.includes(item.str.trim().toUpperCase())) {
+  for (const it of line) {
+    if (knownLabels.has(it.str.trim().toUpperCase())) {
       matches++;
-      if (matches >= MIN_HEADER_MATCHES) return true;
+      if (matches >= MIN_COLUMN_WARN_THRESHOLD) return true;
     }
   }
   return false;
@@ -486,66 +495,64 @@ function isHeaderRow(line: any[]): boolean {
  * @returns {number} index into lines, or -1
  */
 function findDeelgebiedSection(lines: any[][]): number {
-  let afterSectionHeading = false;
-
   for (let i = 0; i < lines.length; i++) {
     const text = lineToText(lines[i]);
+    const pw = lines[i][0]?.pageWidth ?? 595;
 
-    // Strategy 1: encountered the section title — look ahead for column row
+    // Strategy 1: section title on previous line → next spread line is the header
     if (/overzicht\s*deelgebied/i.test(text)) {
-      afterSectionHeading = true;
-      // The title line itself might contain column headers on the same line
-      // (unlikely but check anyway)
-      if (isHeaderRow(lines[i])) return i;
+      if (isHeaderRow(lines[i], pw)) return i;
       continue;
     }
 
-    // Strategy 2: direct header row detection (works even if title is missing)
-    if (isHeaderRow(lines[i])) return i;
-
-    // If we saw the section title and have now passed a blank line without
-    // finding a header row, keep looking for up to 10 more lines
-    if (afterSectionHeading && i > 0) {
-      // Limit look-ahead to avoid false positives deep in the document
-      // (findDeelgebiedSection already iterates the full list — this flag
-      //  just helps with strategy 1 semantics; no extra limit needed here)
-    }
+    // Strategy 2: direct positional detection (works even if title is missing)
+    if (isHeaderRow(lines[i], pw)) return i;
   }
 
   return -1;
 }
 
 /**
- * Build a map of { deelgebiedLabel → xPosition } from the detected header row.
+ * Build a column map from the detected header row (open-world).
  *
- * Only items whose trimmed upper-case text exactly matches a known deelgebied
- * label are recorded.  Logs a warning when fewer than 5 columns are detected
- * (table may be malformed or partially outside the viewport).
+ * Known deelgebied labels → recorded in `map` with their X position.
+ * Unrecognised non-empty labels → collected in `unknownLabels` (schema drift).
+ * Logs a warning when fewer than MIN_COLUMN_WARN_THRESHOLD known columns are found.
  *
  * @param headerLine - Array of text items from the header row
- * @returns {Object} e.g. { 'V&A': 45.2, 'M&M': 72.8, 'INS': 98.1, … }
+ * @returns {{ map: Record<string, number>, unknownLabels: string[] }}
  */
-function buildColumnMap(headerLine: any[]): Record<string, number> {
-  const labels = DEELGEBIEDEN.map((d: any) => d.label.toUpperCase());
+function buildColumnMap(headerLine: any[]): { map: Record<string, number>; unknownLabels: string[] } {
+  const knownLabels = new Set(DEELGEBIEDEN.map((d: any) => d.label.toUpperCase()));
   const map: Record<string, number> = {};
+  const unknownSet = new Set<string>();
 
-  for (const item of headerLine) {
-    const upper = item.str.trim().toUpperCase();
-    // Find the canonical label (preserves original casing from DEELGEBIEDEN)
-    const dgIdx = labels.indexOf(upper);
-    if (dgIdx !== -1) {
-      map[DEELGEBIEDEN[dgIdx].label] = item.x;
+  for (const it of headerLine) {
+    const trimmed = it.str.trim();
+    if (!trimmed) continue;
+    const upper = trimmed.toUpperCase();
+
+    if (knownLabels.has(upper)) {
+      const dg = DEELGEBIEDEN.find((d: any) => d.label.toUpperCase() === upper);
+      if (dg) map[dg.label] = it.x;
+    } else {
+      unknownSet.add(trimmed);
     }
   }
 
   const count = Object.keys(map).length;
-  if (count < MIN_HEADER_MATCHES) {
+  const unknownLabels = [...unknownSet];
+
+  if (count < MIN_COLUMN_WARN_THRESHOLD) {
     console.warn(`[pdf.ts] buildColumnMap: only ${count} deelgebied columns detected — table may be malformed`);
   } else {
     console.log(`[pdf.ts] buildColumnMap: detected ${count}/19 columns`, map);
   }
+  if (unknownLabels.length > 0) {
+    console.warn(`[pdf.ts] buildColumnMap: ${unknownLabels.length} unknown column(s):`, unknownLabels);
+  }
 
-  return map;
+  return { map, unknownLabels };
 }
 
 // ---------------------------------------------------------------------------
@@ -606,8 +613,9 @@ function assignScoreToColumn(item: { str: string; x: number }, columnMap: Record
  * @param startIndex - index of the header row in lines
  * @returns {{ datapunten: Array, deelgebiedScores: Object }}
  */
-function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten: any[]; deelgebiedScores: Record<string, string | null> } {
-  const columnMap = buildColumnMap(lines[startIndex]);
+function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten: any[]; deelgebiedScores: Record<string, string | null>; unknownLabels: string[] } {
+  const { map: columnMap, unknownLabels } = buildColumnMap(lines[startIndex]);
+  const headingThreshold = detectHeadingThreshold(lines);
 
   const datapunten: any[] = [];
 
@@ -623,7 +631,7 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     if (!text) continue;
 
     // Repeated column-header row (multi-page table) — skip
-    if (isHeaderRow(line)) {
+    if (isHeaderRow(line, line[0]?.pageWidth ?? 595)) {
       console.log(`[pdf.ts] Skipping repeated deelgebied header row at line ${i}`);
       continue;
     }
@@ -635,10 +643,10 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     const labelItem = sorted[0];
     const labelText = labelItem ? labelItem.str.trim() : '';
 
-    // Known vak group heading — update currentVak, skip adding as datapunt
-    if (labelText && VAK_HEADINGS.has(labelText.toLowerCase())) {
+    // Vak group heading: font size exceeds the document heading threshold (T3)
+    if (labelText && labelItem && labelItem.fontSize >= headingThreshold) {
       currentVak = labelText;
-      console.log(`[pdf.ts] Deelgebied table: vak heading → "${currentVak}"`);
+      console.log(`[pdf.ts] Deelgebied table: vak heading (font-size) → "${currentVak}"`);
       continue;
     }
 
@@ -703,7 +711,7 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     `${Object.values(deelgebiedScores).filter(v => v !== null).length}/19 deelgebieden scored`
   );
 
-  return { datapunten, deelgebiedScores };
+  return { datapunten, deelgebiedScores, unknownLabels };
 }
 
 // ---------------------------------------------------------------------------
@@ -732,11 +740,13 @@ async function parseSinglePDF(file: File): Promise<any> {
   const deelgebiedStart = findDeelgebiedSection(lines);
   let deelgebiedScores: Record<string, string | null> = {};
   let datapunten: any[] = [];
+  let unknownLabels: string[] = [];
 
   if (deelgebiedStart >= 0) {
     const result = parseDeelgebiedTable(lines, deelgebiedStart);
     deelgebiedScores = result.deelgebiedScores;
     datapunten       = result.datapunten;
+    unknownLabels    = result.unknownLabels;
   } else {
     throw new Error('Overzicht Deelgebieden tabel niet gevonden');
   }
@@ -761,13 +771,14 @@ async function parseSinglePDF(file: File): Promise<any> {
 
   return {
     naam,
-    leerlingId:  header.leerlingId || '',
-    periode:     header.periode    || '',
-    leerjaar:    header.leerjaar   || '',
-    filename:    file.name,
+    leerlingId:    header.leerlingId || '',
+    periode:       header.periode    || '',
+    leerjaar:      header.leerjaar   || '',
+    filename:      file.name,
     vakken,
     deelgebiedScores,
     datapunten,
+    unknownLabels,
   };
 }
 
@@ -796,7 +807,6 @@ export {
   // Constants
   Y_TOLERANCE,
   STATUS_STRINGS,   // re-exported from ./pdf-status
-  VAK_HEADINGS,
-  MIN_HEADER_MATCHES,
+  MIN_COLUMN_WARN_THRESHOLD,
   COLUMN_X_TOLERANCE,
 };

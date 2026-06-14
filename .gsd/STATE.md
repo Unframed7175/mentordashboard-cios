@@ -6,6 +6,24 @@
 
 ## Huidige fase
 
+**Fase 2 · Executie — M037-schema-configurabiliteit (ACTIEF)**
+
+Fase 2 start: 2026-06-14
+Eng review: CLEARED 2026-06-14 | Design review: CLEARED 2026-06-14
+Plan: `.gsd/milestones/M037-schema-configurabiliteit/S01-PLAN.md`
+
+| ID | Taak | Status |
+|---|---|---|
+| T0 | Handmatige pre-flight (Rafael) | ⬜ BLOKKEER T1 tot gedaan |
+| T1 | M35-3: isHeaderRow positie-gebaseerd | ⬜ |
+| T2 | M35-2: buildColumnMap open-world | ⬜ |
+| T3 | M35-4: VAK_HEADINGS → font-size | ⬜ |
+| T4 | M35-5: unknownLabels doorvoeren | ⬜ |
+| T-DS1 | DriftBanner component in ImportPage | ⬜ |
+| T-DS2 | DriftBanner CSS in index.css §22 | ⬜ |
+
+---
+
 **Fase 4 · Review & ship — M36-fabrieksreset (DONE)**
 
 Fase 4 voortgang (2026-06-13):

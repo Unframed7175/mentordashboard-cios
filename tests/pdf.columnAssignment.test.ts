@@ -19,15 +19,18 @@ import { describe, it, expect } from 'vitest';
 import {
   assignScoreToColumn,
   buildColumnMap,
+  isHeaderRow,
+  parseDeelgebiedTable,
   COLUMN_X_TOLERANCE,
+  MIN_COLUMN_WARN_THRESHOLD,
 } from '../parsers/pdf';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function item(str: string, x: number) {
-  return { str, x };
+function item(str: string, x: number, fontSize = 10) {
+  return { str, x, fontSize };
 }
 
 // Synthetic header with realistic 40px column spacing (multi-page table layout).
@@ -39,7 +42,7 @@ function buildRealisticHeader(): { line: any[]; columnMap: Record<string, number
     'PrCo', 'VSK', 'LOB', 'INFO', 'DESK', 'BS', 'TOW', 'BH',
   ];
   const line = labels.map((label, i) => item(label, 100 + i * 40));
-  const columnMap = buildColumnMap(line);
+  const { map: columnMap } = buildColumnMap(line);
   return { line, columnMap };
 }
 
@@ -47,7 +50,7 @@ function buildRealisticHeader(): { line: any[]; columnMap: Record<string, number
 function buildTightHeader(): { line: any[]; columnMap: Record<string, number> } {
   const labels = ['V&A', 'M&M', 'INS', 'O&DW', 'C&B', '1E&B'];
   const line = labels.map((label, i) => item(label, 100 + i * 25));
-  const columnMap = buildColumnMap(line);
+  const { map: columnMap } = buildColumnMap(line);
   return { line, columnMap };
 }
 
@@ -251,31 +254,119 @@ describe('buildColumnMap — header detection', () => {
     expect(Object.keys(columnMap)).toHaveLength(19);
   });
 
-  it('ignores non-deelgebied text in the header line', () => {
+  it('captures unknown column labels in unknownLabels (T2)', () => {
     const line = [
       item('Naam', 10),
       item('V&A', 100),
       item('Onbekend', 130),
       item('INS', 150),
     ];
-    const columnMap = buildColumnMap(line);
-    expect(Object.keys(columnMap)).toHaveLength(2);
-    expect(columnMap['V&A']).toBe(100);
-    expect(columnMap['INS']).toBe(150);
+    const { map, unknownLabels } = buildColumnMap(line);
+    expect(Object.keys(map)).toHaveLength(2);
+    expect(map['V&A']).toBe(100);
+    expect(map['INS']).toBe(150);
+    expect(unknownLabels).toContain('Onbekend');
+    expect(unknownLabels).not.toContain('V&A');
   });
 
   it('handles lowercase label text (case-insensitive match)', () => {
     const line = [item('v&a', 100), item('ins', 150)];
-    const columnMap = buildColumnMap(line);
-    expect(columnMap['V&A']).toBe(100);
+    const { map } = buildColumnMap(line);
+    expect(map['V&A']).toBe(100);
   });
 
   it('records X position from header, not adjusted by offset', () => {
     // Column map X values must be the raw header item positions —
     // the tolerance in assignScoreToColumn handles the drift, not the map.
     const line = [item('V&A', 87.3), item('INS', 134.7)];
-    const columnMap = buildColumnMap(line);
-    expect(columnMap['V&A']).toBeCloseTo(87.3);
-    expect(columnMap['INS']).toBeCloseTo(134.7);
+    const { map } = buildColumnMap(line);
+    expect(map['V&A']).toBeCloseTo(87.3);
+    expect(map['INS']).toBeCloseTo(134.7);
+  });
+
+  it('maps all 19 deelgebied labels from synthetic header (map key)', () => {
+    const { columnMap } = buildRealisticHeader();
+    expect(Object.keys(columnMap)).toHaveLength(19);
+  });
+
+  it('unknownLabels is empty when all items are known deelgebied labels', () => {
+    const { line } = buildRealisticHeader();
+    const { unknownLabels } = buildColumnMap(line);
+    expect(unknownLabels).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isHeaderRow — positional spread heuristic (T1)
+// ---------------------------------------------------------------------------
+
+describe('isHeaderRow — positional spread heuristic (T1)', () => {
+  it('MIN_COLUMN_WARN_THRESHOLD is 5', () => {
+    expect(MIN_COLUMN_WARN_THRESHOLD).toBe(5);
+  });
+
+  it('returns true when ≥5 items span ≥50% of pageWidth (unknown labels)', () => {
+    const line = [0, 80, 160, 240, 320, 400].map(x => item('ONBEKEND', x));
+    // span=400, 400/595≈67% ≥ 50%, count=6 ≥ 5
+    expect(isHeaderRow(line, 595)).toBe(true);
+  });
+
+  it('returns false when fewer than MIN_COLUMN_WARN_THRESHOLD items', () => {
+    const line = [item('V&A', 50), item('M&M', 300)];
+    // count=2 < 5
+    expect(isHeaderRow(line, 595)).toBe(false);
+  });
+
+  it('returns false when items are clustered (span < 50% of pageWidth)', () => {
+    const line = [0, 10, 20, 30, 40, 50].map(x => item('X', x));
+    // span=50, 50/595≈8% < 50%
+    expect(isHeaderRow(line, 595)).toBe(false);
+  });
+
+  it('returns true for realistic 19-column header across 595pt page', () => {
+    const { line } = buildRealisticHeader(); // x: 100…100+18*40=820, span=720
+    // 720/595≈121% ≥ 50%
+    expect(isHeaderRow(line, 595)).toBe(true);
+  });
+
+  it('returns false when pageWidth not provided and items are unknown labels', () => {
+    // Without pageWidth: falls back to label-based — unknown labels → false
+    const line = [0, 80, 160, 240, 320, 400].map(x => item('ONBEKEND', x));
+    expect(isHeaderRow(line)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// parseDeelgebiedTable — font-size heading detection (T3)
+// ---------------------------------------------------------------------------
+
+describe('parseDeelgebiedTable — font-size heading detection (T3)', () => {
+  function makeItem(str: string, x: number, fontSize = 10) {
+    return { str, x, fontSize, y: 500, width: 30, height: 10, page: 1 };
+  }
+
+  it('treats high-fontSize row as vak heading even when not in old VAK_HEADINGS', () => {
+    // Median fontSize = 10 → threshold = 12. 'Samenwerken' at 16 ≥ 12 → heading.
+    const headerLine = ['V&A', 'M&M', 'INS'].map((l, i) => makeItem(l, 100 + i * 40, 10));
+    const vakLine    = [makeItem('Samenwerken', 10, 16)];
+    const datapuntLine = [makeItem('- Taak A', 10, 10), makeItem('V', 100, 10)];
+    const lines = [headerLine, vakLine, datapuntLine];
+
+    const { datapunten } = parseDeelgebiedTable(lines, 0);
+    // 'Samenwerken' was treated as heading → datapunt's vak is 'Samenwerken'
+    expect(datapunten[0]?.vak).toBe('Samenwerken');
+    expect(datapunten.find(d => d.datapunt === 'Samenwerken')).toBeUndefined();
+  });
+
+  it('does not treat small-fontSize row as vak heading', () => {
+    // 'Samenwerken' at fontSize=10 = median → NOT a heading → becomes non-datapunt row (skipped)
+    const headerLine = ['V&A', 'M&M', 'INS'].map((l, i) => makeItem(l, 100 + i * 40, 10));
+    const normalLine = [makeItem('Samenwerken', 10, 10)]; // small font, no dash → skipped as non-datapunt
+    const datapuntLine = [makeItem('- Taak B', 10, 10), makeItem('O', 100, 10)];
+    const lines = [headerLine, normalLine, datapuntLine];
+
+    const { datapunten } = parseDeelgebiedTable(lines, 0);
+    // 'Samenwerken' is not a heading → skipped (no dash prefix) → vak stays ''
+    expect(datapunten[0]?.vak).toBe('');
   });
 });
