@@ -77,8 +77,10 @@
   /* Status RAG */
   --status-groen-bg:    #DCFCE7;
   --status-groen-text:  #15803D;
-  --status-oranje-bg:   #FEF3C7;
-  --status-oranje-text: #B45309;
+  --status-oranje-bg:        #FEF3C7;
+  --status-oranje-text:      #B45309;
+  --status-oranje-chip-bg:   #FDE68A;
+  --status-oranje-chip-text: #92400E;
   --status-rood-bg:     #FEE2E2;
   --status-rood-text:   #991B1B;
   --status-blauw-bg:    #DBEAFE;
@@ -174,7 +176,8 @@ body.dark {
   --glass-shine:       inset 0 1px 0 rgba(255, 255, 255, 0.10);
 
   --status-groen-bg:    #14532D; --status-groen-text:  #86EFAC;
-  --status-oranje-bg:   #451A03; --status-oranje-text: #FCD34D;
+  --status-oranje-bg:        #451A03; --status-oranje-text:      #FCD34D;
+  --status-oranje-chip-bg:   #78350F; --status-oranje-chip-text: #FEF3C7;
   --status-rood-bg:     #450A0A; --status-rood-text:   #FCA5A5;
   --status-blauw-bg:    #1E3A5F; --status-blauw-text:  #93C5FD;
   --status-paars-bg:    #2E1065; --status-paars-text:  #C4B5FD;
@@ -1259,15 +1262,19 @@ a:hover { text-decoration: underline; }
   align-items: center;
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
-  background: #FDE68A;
-  color: #92400E;
+  background: var(--status-oranje-chip-bg);
+  color: var(--status-oranje-chip-text);
   font-size: 0.75rem;
   font-weight: 600;
   font-family: monospace;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .import-drift-banner__chip--overflow {
   background: transparent;
-  color: #92400E;
+  color: var(--status-oranje-chip-text);
   font-family: inherit;
 }
 .import-drift-banner__subtext {
