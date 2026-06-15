@@ -13,9 +13,11 @@ Reden: M38 raakt 2 bestanden (leerlijn.json nieuw + schema.ts import), architect
 
 | ID | Taak | Status |
 |---|---|---|
-| T1 | src/config/leerlijn.json aanmaken | ⬜ |
-| T2 | tsconfig.json: resolveJsonModule toevoegen | ⬜ |
-| T3 | utils/schema.ts: import van JSON | ⬜ |
+| T1 | src/config/leerlijn.json aanmaken | ✅ 8c6f883 |
+| T2 | tsconfig.json: resolveJsonModule toevoegen | ✅ 8c6f883 |
+| T3 | utils/schema.ts: import van JSON | ✅ 8c6f883 |
+
+Testsuite: 400/400 groen | Fase 2 klaar → Fase 4 ready
 
 ---
 

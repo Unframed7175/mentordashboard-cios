@@ -1,5 +1,10 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.9.0] — 2026-06-15 — Leerlijn-configuratie losgekoppeld van code (M38)
+
+### Added
+- **`src/config/leerlijn.json`** — de 19 deelgebieden zijn verplaatst naar een bewerkbaar JSON-bestand. Jaarlijkse schemawijzigingen (nieuwe deelgebieden, hernoemde labels, gewijzigde groepsindeling) vereisen geen TypeScript-aanpassing meer — alleen `leerlijn.json` bewerken en opnieuw bouwen.
+
 ## [2.8.0] — 2026-06-15 — Open-world schema-parser (M37)
 
 ### Added
