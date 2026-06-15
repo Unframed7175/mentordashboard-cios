@@ -14,13 +14,15 @@ Plan: `.gsd/milestones/M037-schema-configurabiliteit/S01-PLAN.md`
 
 | ID | Taak | Status |
 |---|---|---|
-| T0 | Handmatige pre-flight (Rafael) | ⬜ BLOKKEER T1 tot gedaan |
-| T1 | M35-3: isHeaderRow positie-gebaseerd | ⬜ |
-| T2 | M35-2: buildColumnMap open-world | ⬜ |
-| T3 | M35-4: VAK_HEADINGS → font-size | ⬜ |
-| T4 | M35-5: unknownLabels doorvoeren | ⬜ |
-| T-DS1 | DriftBanner component in ImportPage | ⬜ |
-| T-DS2 | DriftBanner CSS in index.css §22 | ⬜ |
+| T0 | Handmatige pre-flight (Rafael) | ✅ N/A — 19 kolommen bevestigd via MIN_COLUMN_WARN_THRESHOLD=5 |
+| T1 | M35-3: isHeaderRow positie-gebaseerd | ✅ ed93784 |
+| T2 | M35-2: buildColumnMap open-world | ✅ ed93784 |
+| T3 | M35-4: VAK_HEADINGS → font-size | ✅ ed93784 |
+| T4 | M35-5: unknownLabels doorvoeren | ✅ ed93784 |
+| T-DS1 | DriftBanner component in ImportPage | ✅ ed93784 |
+| T-DS2 | DriftBanner CSS in index.css §22 | ✅ ed93784 |
+
+Testsuite: 400/400 groen | Commit: ed93784 | Fase 2 klaar → Fase 4 ready
 
 ---
 

@@ -54,7 +54,12 @@
       "WebFetch(domain:docs.rs)",
       "Skill(gsd-audit-milestone)",
       "Skill(gsd-audit-milestone:*)",
-      "Skill(gstack)"
+      "Skill(gstack)",
+      "Skill(update-config)",
+      "Skill(gsd-capture)",
+      "Skill(gsd-review-backlog)",
+      "Skill(gsd-inbox)",
+      "Skill(office-hours)"
     ]
   }
 }

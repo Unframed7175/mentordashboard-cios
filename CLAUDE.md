@@ -799,29 +799,363 @@ CLAUDE.md heeft de hoogste prioriteit in het project, maar heeft zelf ook een ei
 **Locatie:** altijd in de projectroot, nooit in een submap  
 **Bewerkingsrechten:** alleen handmatig door de eigenaar — geen enkel framework schrijft naar dit bestand
 
-### Updateprocedure
-1. Maak een branch aan: `docs/claude-md-[onderwerp]`
-2. Pas het bestand aan
-3. Noteer de wijziging in de changelog hieronder — **dit is een harde voorwaarde voor merge**
-4. Laat reviewen door minimaal één ander teamlid
-5. Merge naar main
+---
 
-> Een PR zonder changelogenrij wordt niet geaccepteerd.
+### Versioning — Semantic Versioning (SemVer)
 
-### Changelog
+Dit bestand volgt [Semantic Versioning 2.0.0](https://semver.org): `MAJOR.MINOR.PATCH`
 
-| Datum | Versie | Auteur | Wijziging |
-|---|---|---|---|
-| 2026-01-01 | 1.0 | — | Initiële versie gegenereerd |
-| 2026-01-01 | 1.1 | — | DoD per fase, Fase 5 foutherstel, objectieve drempelwaarden sectie 8, Claude Mem API-contract, schrijfrechten sectie 5, governance sectie 11 |
-| 2026-06-01 | 1.2 | — | Fase 3 vaste positie in keten (na Fase 1, vóór Fase 2); Fase 4 expliciete milestone-afsluiting; Claude Mem project-scope verplicht veld; DECISIONS.md gesplitst in twee secties met conflictregel; contextcheckpoints vervangen vage 40%-grens; sessieopstart stap 5 conflict-verificatie toegevoegd; sectie 8 afwijkingsdocumentatie verplicht; sectie 10 zelfvoorzienend gemaakt (stack-setup.md verwijzing verwijderd); changelog updateprocedure aangescherpt |
-| 2026-06-06 | 1.3 | — | §0a toegevoegd: automatische skill/plugin-check bij eerste gebruik en via `/check-stack`; aanwezigheids- én versieverificatie per component; installatie-instructies inline; sessieopstart stap 1 bijgewerkt |
-| 2026-06-06 | 1.4 | — | 13 blinde vlekken gedicht: dubbele stap 2 verwijderd; §0a trigger verbreed (ook bij ontbrekende Stack-check-log); update-instructies per component toegevoegd (stap B2); installatie-fallback bij mislukking beschreven; sessieopstart stap 2 actieve-milestone-check; ROADMAP.md aanmaak voorgeschreven in Fase 1; Fase 0 DoD uitgebreid met /plan-design-review bij UI; "groot bestand" gedefinieerd (200r/5KB); /retro-uitkomsten naar KNOWLEDGE.md gerouteerd met CLAUDE.md-voorstelpad; sectie 10 als secundaire naslag gemarkeerd; uitvoeringsvolgorde fasen verduidelijkt; bestandsconventies uitgebreid met alle GSD-bestanden incl. S01-SUMMARY.md; PROJECT.md-pad genormaliseerd naar .gsd/PROJECT.md |
-| 2026-06-06 | 1.5 | — | F1: alle bestandspaden in sectie 3 gekwalificeerd naar .gsd/; F2: Superpowers schrijft niet naar STATE.md — GSD schrijft handoff na melding van Superpowers; F3: Fase 1 DoD zegt niet meer dat DESIGN.md al bestaat — Fase 3 staat ingepland; F4: S01-SUMMARY.md eigendom van Superpowers vastgelegd, schrijfrechten-tabel uitgebreid; F5: sessieherstel verwijst nu correct naar stap 2–4; O1: scope-tabel taak-review vs slice-review toegevoegd; O2: scope-tabel GStack design-review vs UI UX Pro Max pre-delivery checks toegevoegd; O3+O4: Claude Mem verantwoordelijkheid gesplitst — motivatie/context vs keuze (DECISIONS.md), cross-project lessen vs projectlessen (LEARNINGS.md); B1: security scan (npm audit/pip-audit) als verplichte stap vóór /ship; B2: a11y-check (axe wcag2aa) toegevoegd aan Fase 3 DoD; B3: Lighthouse performance-baseline in Fase 4 DoD (aanbevolen, geen harde blokkade); B4: env/secrets-conventie toegevoegd aan sectie 7; B5: CI/CD-integratie als conventie en post-ship stap; B6: changelog-validatie als verplichte blokkade vóór /ship |
-| 2026-06-06 | 1.6 | — | R1: STATE.md paden in Fase 5 code-block gekwalificeerd; R2: Fase 1 UI-check actietekst gecorrigeerd (was nog oude formulering, DoD was al correct); R3: interne reviewcode "zie B6" verwijderd uit Fase 4 DoD; I1: STATE.md in Fase 2 Superpowers-melding en sectie 9 commentaarregel gekwalificeerd; I2: M001-LEARNINGS.md volledig pad toegevoegd op alle vindplaatsen en opgenomen in bestandsoverzicht sectie 7; L1: a11y-check gesplitst — statische contrast/typografie-check in Fase 3 DoD (geen URL nodig), dynamische axe wcag2aa-check verplaatst naar Fase 4 DoD na /qa |
-| 2026-06-06 | 1.7 | — | DevOps/AI-engineer review: E1: S01-SUMMARY.md pad gekwalificeerd in foutherstel Fase 2; O1: GSD update-commando gecorrigeerd naar npx @latest + aparte verificatiestap; O2: git pull --rebase vervangen door --ff-only met stash-fallback instructie; O3: npx axe gecorrigeerd naar npx @axe-core/cli (correct package); O4: Lighthouse output-flags gecorrigeerd met --output-path en node score-uitlezing; B1: expliciete versiebeheer-noot toegevoegd (.gsd/ commit verplicht, nooit gitignore); B2: Python CI-workflow toegevoegd naast Node-variant; B3: branch protection op main als verplichte conventie vóór eerste /ship |
+| Type | Wanneer | Voorbeeld |
+|---|---|---|
+| `MAJOR` | Breaking change — bestaande workflow werkt niet zonder aanpassing | Fase verdwijnt, schrijfrecht wijzigt, DoD-criterium wordt strenger, plugin verwijderd |
+| `MINOR` | Nieuwe functionaliteit, backwards compatible | Nieuwe sectie, nieuwe DoD-stap die toevoegt, nieuwe plugin |
+| `PATCH` | Bugfix, tekstcorrectie, padkwalificatie, verduidelijking | Typefout, verkeerd commando, ontbrekend pad |
+
+> **Breaking changes vereisen een migratiestap.** Zie "Procedure bij breaking change" hieronder.
 
 ---
 
-*Versie: 1.7 — gegenereerd op basis van Superpowers v5+, GStack v1.26+,
+### Updateprocedure — Conventional Commits
+
+Elke wijziging volgt [Conventional Commits](https://www.conventionalcommits.org):
+
+```
+<type>[!]: <beschrijving>
+
+[optionele body]
+[optionele footer: BREAKING CHANGE: <uitleg>]
+```
+
+**Types:**
+
+| Type | Gebruik voor |
+|---|---|
+| `feat` | Nieuwe instructie, sectie of plugin-integratie (`MINOR` bump) |
+| `fix` | Correctie van fout, verkeerd pad, verkeerd commando (`PATCH` bump) |
+| `refactor` | Herstructurering zonder gedragswijziging (`PATCH` bump) |
+| `docs` | Verduidelijking, betere formulering, voorbeelden (`PATCH` bump) |
+| `breaking` | Wijziging die bestaande workflow breekt (`MAJOR` bump) — voeg `!` toe na type |
+
+**Voorbeelden van geldige commit messages:**
+```
+fix: npx axe gecorrigeerd naar npx @axe-core/cli
+feat: Python CI-workflow toegevoegd naast Node-variant
+feat!: schrijfrechten Superpowers op STATE.md gewijzigd
+
+BREAKING CHANGE: Superpowers mag niet meer schrijven naar .gsd/STATE.md.
+Bestaande projecten: verwijder eventuele STATE.md-schrijfinstructies
+uit actieve Superpowers-configuraties.
+```
+
+---
+
+### Git-workflow
+
+1. Maak een branch aan: `docs/claude-md-[type]-[onderwerp]`
+   - Voorbeelden: `docs/claude-md-fix-axe-cli`, `docs/claude-md-feat-python-ci`
+2. Pas het bestand aan
+3. Voeg een entry toe aan de changelog hieronder (format: zie "Changelog-format")
+4. Commit met een Conventional Commit message
+5. Open een PR — **zonder changelogenrij wordt de PR niet geaccepteerd**
+6. Minimaal één reviewer accordeert
+7. Merge naar main via squash-merge
+
+> **Squash-merge** houdt de commit-history van main leesbaar: één commit per versie.
+
+---
+
+### Procedure bij breaking change (`MAJOR` bump)
+
+Een breaking change vereist extra stappen bovenop de normale git-workflow:
+
+1. Voeg `!` toe aan het commit-type: `feat!:` of `fix!:`
+2. Vermeld `BREAKING CHANGE:` in de commit footer met een uitleg
+3. Voeg een `> ⚠ BREAKING` blok toe aan de changelog-entry (zie format)
+4. Schrijf een **migration notice** in elk actief project dat dit bestand gebruikt:
+   ```
+   ## CLAUDE.md breaking change [datum] — v[oud] → v[nieuw]
+   Actie vereist: [wat de projectlead moet doen]
+   Deadline: [datum of "vóór volgende milestone-start"]
+   ```
+   Locatie: `.gsd/STATE.md` onder `## Migration notice`
+5. Informeer alle teamleden vóór merge
+
+---
+
+### Changelog-format
+
+Gebaseerd op [Keep a Changelog](https://keepachangelog.com). Elke versie heeft één of meer van deze labels:
+
+- **Added** — nieuwe instructies, secties, plugins
+- **Changed** — gewijzigd gedrag of formulering
+- **Fixed** — gecorrigeerde fouten, commando's, paden
+- **Removed** — verwijderde instructies of secties
+- **Breaking** — wijzigingen die een migratieactie vereisen
+
+---
+
+### Changelog
+
+#### [1.9.0] — 2026-06-11
+##### Added
+- Sectie 12: project patchnotes — SemVer voor projectsoftware, CHANGELOG.md formaat, koppeling GSD-taken naar patchnote, wat niet wordt opgenomen, handmatige correctieprocedure
+- Retro → patchnote keten verplaatst van sectie 11 naar sectie 12 en uitgebreid met gesplitst pad (projectverbetering vs workflow-verbetering)
+
+##### Removed
+- Retro → patchnote keten uit sectie 11 (verplaatst naar sectie 12)
+
+---
+
+#### [1.8.0] — 2026-06-11
+##### Added
+- Semantic Versioning (SemVer MAJOR.MINOR.PATCH) als versioning-standaard
+- Conventional Commits als commit-message standaard met type-tabel
+- Procedure bij breaking change: `!`-suffix, `BREAKING CHANGE:` footer, migration notice in `.gsd/STATE.md`
+- Retro → patchnote keten: expliciete stappen van bevinding tot merge
+- Keep a Changelog-format: gegroepeerd per Added / Changed / Fixed / Removed / Breaking
+
+##### Changed
+- Changelog geherformateerd van platte tabel naar gestructureerde versie-secties
+- Branch-naamgeving uitgebreid: `docs/claude-md-[type]-[onderwerp]`
+- Merge-strategie vastgelegd als squash-merge
+
+---
+
+#### [1.7.0] — 2026-06-06
+##### Fixed
+- `S01-SUMMARY.md` pad gekwalificeerd in foutherstel Fase 2
+- GSD update-commando gecorrigeerd naar `npx get-shit-done-cc@latest` met aparte verificatiestap
+- `git pull --rebase` vervangen door `--ff-only` met stash-fallback instructie
+- `npx axe` gecorrigeerd naar `npx @axe-core/cli` (correct package)
+- Lighthouse output-flags gecorrigeerd: `--output-path` + `node` score-uitlezing
+
+##### Added
+- Expliciete versiebeheer-noot: `.gsd/` commit verplicht, nooit in `.gitignore`
+- Python CI-workflow (GitHub Actions) naast bestaande Node-variant
+- Branch protection op `main` als verplichte conventie vóór eerste `/ship`
+
+---
+
+#### [1.6.0] — 2026-06-06
+##### Fixed
+- `STATE.md` paden in Fase 5 escalatie code-block gekwalificeerd naar `.gsd/`
+- Fase 1 UI-check actietekst gecorrigeerd (zei nog "Maak DESIGN.md aan", DoD was al correct)
+- Interne reviewcode `zie B6` verwijderd uit Fase 4 DoD
+- `STATE.md` in Fase 2 Superpowers-melding en sectie 9 commentaarregel gekwalificeerd
+- `M001-LEARNINGS.md` volledig pad toegevoegd op alle vindplaatsen; opgenomen in bestandsoverzicht sectie 7
+
+##### Changed
+- A11y-check gesplitst: statische contrast/typografie-check in Fase 3 DoD (geen URL nodig); dynamische `axe wcag2aa`-check verplaatst naar Fase 4 DoD na `/qa`
+
+---
+
+#### [1.5.0] — 2026-06-06
+##### Fixed
+- Alle bestandspaden in sectie 3 gekwalificeerd naar `.gsd/`
+- Sessieherstel verwijst nu correct naar stap 2–4 (was 1–3)
+- Fase 1 DoD: `DESIGN.md` hoeft niet te bestaan — Fase 3 staat ingepland
+
+##### Added
+- Security scan (`npm audit` / `pip-audit`) als verplichte stap vóór `/ship`
+- A11y-check (`axe wcag2aa`) aan Fase 3 DoD
+- Lighthouse performance-baseline in Fase 4 DoD (aanbevolen, geen harde blokkade)
+- Env/secrets-conventie in sectie 7
+- CI/CD-integratie als conventie en post-ship stap
+- Changelog-validatie als verplichte blokkade vóór `/ship`
+- Scope-tabel taak-review (Superpowers) vs slice-review (GStack)
+- Scope-tabel GStack design-review vs UI UX Pro Max pre-delivery checks
+
+##### Changed
+- Superpowers schrijft niet meer naar `STATE.md` — GSD schrijft handoff na melding van Superpowers
+- `S01-SUMMARY.md` eigendom expliciet bij Superpowers; schrijfrechten-tabel uitgebreid
+- Claude Mem verantwoordelijkheid gesplitst: motivatie/context vs keuze (DECISIONS.md); cross-project lessen vs projectlessen (LEARNINGS.md)
+
+##### Breaking
+- Superpowers heeft geen schrijfrechten meer op `.gsd/STATE.md`
+  > ⚠ BREAKING: Verwijder eventuele STATE.md-schrijfinstructies uit actieve Superpowers-configuraties vóór volgende milestone-start.
+
+---
+
+#### [1.4.0] — 2026-06-06
+##### Fixed
+- Dubbele stap 2 verwijderd uit sessieopstart
+- `PROJECT.md`-pad genormaliseerd naar `.gsd/PROJECT.md` door het hele document
+
+##### Added
+- §0a trigger verbreed: ook actief als `STATE.md` bestaat maar geen `## Stack-check` bevat
+- Update-instructies per component (Stap B2) in §0a
+- Installatie-fallback bij mislukking beschreven
+- Sessieopstart stap 2: actieve-milestone-check bij meerdere milestones
+- `ROADMAP.md` aanmaak voorgeschreven in Fase 1
+- Fase 0 DoD uitgebreid met `/plan-design-review` als UI betrokken is
+- Bestandsconventies uitgebreid met alle GSD-bestanden inclusief `S01-SUMMARY.md`
+
+##### Changed
+- "Groot bestand" gedefinieerd als >200 regels of >5 KB
+- `/retro`-uitkomsten gerouteerd naar `.gsd/KNOWLEDGE.md` met CLAUDE.md-voorstelpad
+- Sectie 10 gemarkeerd als secundaire naslag (§0a is gezaghebbend)
+- Uitvoeringsvolgorde fasen verduidelijkt: 0 → 1 → 3 → 2 → 4
+
+---
+
+#### [1.3.0] — 2026-06-06
+##### Added
+- §0a: automatische skill/plugin-check bij eerste gebruik en via `/check-stack`
+- Aanwezigheids- én versieverificatie per component (Stap A en Stap C)
+- Installatie-instructies inline per component (Stap B)
+- Sessieopstart stap 1 bijgewerkt om naar §0a te verwijzen
+
+---
+
+#### [1.2.0] — 2026-06-01
+##### Added
+- Fase 3 als vaste positie in keten (na Fase 1, vóór Fase 2)
+- Fase 4 expliciete milestone-afsluiting
+- Claude Mem project-scope als verplicht veld
+- Sessieopstart stap 5: conflict-verificatie tussen memories en GSD
+
+##### Changed
+- `DECISIONS.md` gesplitst in twee secties (`## Architectuur` en `## Spec-verfijning`) met conflictregel
+- Contextcheckpoints vervangen vage 40%-grens door concrete gedragsregels
+- Sectie 8: afwijkingsdocumentatie verplicht gemaakt
+- Sectie 10: zelfvoorzienend gemaakt (`stack-setup.md` verwijzing verwijderd)
+- Changelog updateprocedure aangescherpt
+
+---
+
+#### [1.1.0] — 2026-01-01
+##### Added
+- Definition of Done per fase
+- Fase 5 foutherstel-escalatiepad
+- Objectieve drempelwaarden sectie 8
+- Claude Mem API-contract
+- Schrijfrechten-tabel sectie 5
+- Governance sectie 11
+
+---
+
+#### [1.0.0] — 2026-01-01
+##### Added
+- Initiële versie gegenereerd
+
+---
+
+## 12. Project patchnotes
+
+Deze sectie beschrijft hoe patchnotes van de projectsoftware worden opgebouwd, bijgehouden en gepubliceerd. Dit is los van de CLAUDE.md-changelog in sectie 11 — die gaat over dit bestand; sectie 12 gaat over de software die gebouwd wordt.
+
+---
+
+### Versioning — SemVer voor het project
+
+Het project volgt [Semantic Versioning 2.0.0](https://semver.org): `MAJOR.MINOR.PATCH`
+
+| Type | Wanneer | Wie bepaalt |
+|---|---|---|
+| `PATCH` | Alleen bugfixes, geen nieuwe functionaliteit | GStack `/ship` op basis van commits |
+| `MINOR` | Nieuwe functionaliteit, backwards compatible | GStack `/ship` op basis van commits |
+| `MAJOR` | Breaking change in API, gedrag of interface | Projectlead bevestigt handmatig vóór `/ship` |
+
+> **MAJOR bumps worden nooit automatisch bepaald.** GStack `/ship` signaleert wanneer een `BREAKING CHANGE:` commit aanwezig is en vraagt de projectlead om bevestiging vóór de versie wordt verhoogd.
+
+---
+
+### CHANGELOG.md — formaat en eigenaarschap
+
+**Locatie:** projectroot — `CHANGELOG.md`  
+**Gegenereerd door:** GStack `/ship`, op basis van Conventional Commit messages  
+**Formaat:** [Keep a Changelog](https://keepachangelog.com) — gegroepeerd per type:
+
+```markdown
+## [1.2.0] — 2026-06-11
+
+### Added
+- Gebruiker kan nu inloggen via OAuth
+
+### Changed
+- Laadtijd dashboardpagina verlaagd met 40%
+
+### Fixed
+- Crashbug bij leeg zoekveld opgelost
+
+### Removed
+- Verouderd `/api/v1/legacy` endpoint verwijderd
+
+### Breaking
+- `POST /api/users` vereist nu verplicht `email`-veld
+  > ⚠ Bestaande clients zonder `email` krijgen HTTP 422. Migratie vereist.
+```
+
+---
+
+### Koppeling GSD-taken → patchnote
+
+Superpowers schrijft elke commit tijdens Fase 2 met een Conventional Commit prefix. GStack `/ship` groepeert die commits automatisch in de CHANGELOG-secties:
+
+| Commit-type | CHANGELOG-sectie |
+|---|---|
+| `feat:` | Added |
+| `fix:` | Fixed |
+| `refactor:` | Changed (alleen als gedragswijziging zichtbaar is) |
+| `perf:` | Changed |
+| `feat!:` / `fix!:` | Breaking |
+| `test:`, `chore:`, `ci:` | **Niet opgenomen** — interne wijzigingen |
+| `docs:` | **Niet opgenomen** — tenzij gebruikersgerichte docs |
+
+> **Taken zonder commit-type prefix blokkeren `/ship`.** Superpowers krijgt bij elke taak-instructie expliciet mee: elke commit begint met een geldig type. Ontbrekende prefixes worden door GStack `/ship` gemeld als pre-ship fout.
+
+---
+
+### Wat niet in de patchnote staat
+
+De volgende wijzigingen gaan naar `M001-LEARNINGS.md`, niet naar `CHANGELOG.md`:
+
+- Interne refactors zonder zichtbare gedragswijziging (`refactor:` zonder impact voor gebruiker)
+- Testwijzigingen (`test:`)
+- `.gsd/`-updates
+- CI/CD-configuratiewijzigingen (`ci:`)
+- Tijdelijke workarounds die in dezelfde milestone worden opgelost
+
+---
+
+### Handmatige correctie
+
+Als GStack `/ship` een CHANGELOG-entry incorrect genereert (verkeerde sectie, onvolledige beschrijving), corrigeert de projectlead `CHANGELOG.md` handmatig vóór merge. De changelog-validatie uit Fase 4 DoD blijft van toepassing: entry mag niet leeg zijn en moet het formaat `## [versie] — [datum]` volgen.
+
+---
+
+### Retro → patchnote keten
+
+`/retro` genereert twee typen uitkomsten met elk een eigen bestemming:
+
+```
+/retro levert bevinding op
+  ↓
+  ├─ Projectverbetering (code, architectuur, proces)
+  │    ↓
+  │    Schrijf naar .gsd/KNOWLEDGE.md onder ## Retro [datum]
+  │    ↓
+  │    Projectlead besluit: opnemen in volgende milestone?
+  │    ├─ Ja → GSD maakt taak aan in volgende S01-PLAN.md (feat: of fix:)
+  │    │        → Verschijnt automatisch in CHANGELOG bij /ship
+  │    └─ Nee → Blijft in KNOWLEDGE.md als gedocumenteerde afweging
+  │
+  └─ Workflow-verbetering (CLAUDE.md aanpassen)
+       ↓
+       Projectlead beoordeelt: fix, feat, of breaking change?
+       ↓
+       Branch: docs/claude-md-[type]-[onderwerp]
+       ↓
+       Wijziging + changelog-entry sectie 11
+       ↓
+       PR → review → merge → SemVer bump CLAUDE.md
+       ↓
+       Bij breaking change: migration notice in .gsd/STATE.md
+```
+
+Een retro-bevinding die niet wordt opgepakt verdwijnt niet — ze blijft in `.gsd/KNOWLEDGE.md` totdat de projectlead een expliciete beslissing neemt (opnemen of bewust afwijzen).
+
+---
+
+*Versie: 1.9.0 — gegenereerd op basis van Superpowers v5+, GStack v1.26+,
 UI UX Pro Max v2.5+, GSD v1.40+, Claude Mem v12+*

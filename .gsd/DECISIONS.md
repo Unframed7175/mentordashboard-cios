@@ -138,3 +138,27 @@
 **Status:** Vastgelegd (Fase 30)  
 **Beslissing:** GitHub Actions CI bouwt automatisch voor beide platformen  
 **Targets:** Windows x64 (.exe installer), macOS Apple Silicon (.dmg)
+
+---
+
+## ADR-13 · Fabrieksreset met back-up-vangnet (geen auto-wipe, geen uninstall-hook)
+
+**Status:** Vastgelegd (Fase 0, 2026-06-11 — GStack /office-hours)  
+**Aanleiding:** Gebruikersfeedback: testdata (klas 2a) blijft zichtbaar na herinstallatie omdat de app-data map de-installatie overleeft; wizard wordt overgeslagen door `onboardingCompleted` + bestaande klassen.  
+**Beslissing:** Handmatige, bevestigde "Alle gegevens wissen"-actie in Instellingen (typ-bevestiging `WISSEN`), met back-up-vangnet: backup-payload wordt uitgebreid naar volledige store-snapshot. Na wipe `window.location.reload()` → app start in onboarding-wizard.  
+**Expliciet verworpen:** automatisch wissen bij start/update (vernietigt echte data bij updates); NSIS uninstall-hook (de-installeren zou ook voor echte gebruikers data vernietigen; platform-afhankelijk gedrag).  
+**Randvoorwaarden:** keychain-sleutel (`nl.cios.mentordashboard.key`) blijft staan, anders is de pre-reset back-up onleesbaar. Resetvolgorde bindend: caches → store.clear()+save → reload. `localStorage.clear()` voor legacy keys.  
+**Ontwerp:** `~/.gstack/projects/Unframed7175-mentordashboard-cios/rafael-master-design-20260611-213139.md` (APPROVED, 2 reviewrondes, score 8/10 → alle 14 bevindingen verwerkt)
+
+---
+
+## ADR-13a · Addendum fabrieksreset na eng-review + outside voice (2026-06-12)
+
+**Status:** Vastgelegd (Fase 0, GStack /plan-eng-review)  
+**Wijzigt:** ADR-13 randvoorwaarde "Resetvolgorde bindend: caches → store.clear()+save → reload" — **vervallen**.  
+**Besluiten:**
+1. `factoryReset()` muteert **geen** in-memory state: `store.clear()` + `store.save()` → `localStorage.clear()` → reload (injecteerbaar). Reden: geheugen legen vóór een mogelijk falende save creëert een dataverlies-pad (lege state wordt bij de volgende `saveKlassen()` gepersisteerd).
+2. Backup-payload v2 = generieke store-snapshot via `store.entries()` (klassen blijft plaintext zoals v1). Store-keys worden alléén teruggezet bij 'overschrijven'-restore; 'samenvoegen' behoudt huidige instellingen. Reload alléén na v2-overschrijven-restore.
+3. Dode functie `clearState()` (`utils/datamodel.ts:236`) wordt verwijderd.
+4. Geen geautomatiseerde E2E over de reload heen; volledige reset/restore-cycli zijn handmatige QA-checklist op echte Tauri-build (incl. verificatie dat store.json op schijf leeg is).
+**Bewust afgewezen:** same-machine disclaimer in dialoogtekst, AVG-motivering in docs, bindende bouwvolgorde backup→reset-UI.

@@ -3,7 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Data Completeness, Keuzedelen & UI Polish
 status: completed
-last_updated: "2026-06-08T07:47:48.385Z"
+stopped_at: context exhaustion at 75% (2026-06-14)
+last_updated: "2026-06-14T13:06:31.996Z"
 last_activity: 2026-05-30 -- Phase 33 complete (UAT 11/12 pass, gap closure verified)
 progress:
   total_phases: 39
@@ -120,9 +121,9 @@ v2.4 phases completed: 2/5
 
 ## Session Continuity
 
-Last session: 2026-06-08
-Stopped at: Security hardening volledig afgerond (11/11 fixes, commit b04fbb5). Sessie hervat.
-Resume file: nvt — handoff artifacts verwijderd na succesvolle resumptie.
+Last session: 2026-06-14T13:06:31.984Z
+Stopped at: context exhaustion at 75% (2026-06-14)
+Resume file: None
 
 ## Session Log
 
