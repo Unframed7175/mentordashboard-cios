@@ -1,5 +1,18 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.8.0] — 2026-06-15 — Open-world schema-parser (M37)
+
+### Added
+- **Automatische kolomdetectie** — de PDF-parser behandelt de PDF als bron van waarheid. Onbekende kolomlabels worden voortaan gedetecteerd in plaats van stilzwijgend genegeerd.
+- **Drift-banner** — na het importeren van een PDF met onbekende kolommen verschijnt een waarschuwingsbanner met de gevonden kolomnamen (maximaal 3 getoond + teller). De banner sluit je handmatig.
+
+### Changed
+- **Kolomherkenning via paginabreedte** — `isHeaderRow()` gebruikt nu een positieheuristiek (≥5 items die ≥50% van de paginabreedte beslaan) in plaats van label-matching. Robuust bij jaarlijkse schemawijzigingen.
+- **Vak-kopregels via fontgrootte** — vakoverschriften worden herkend via een dynamische fontgrootte-drempel in plaats van een vaste `VAK_HEADINGS`-lijst.
+
+### Fixed
+- **Chip donkere modus** — de kolomlabel-chips in de drift-banner gebruiken nu CSS custom properties voor correcte kleuren in de donkere modus; lange kolomnamen worden afgekapt met een ellipsis.
+
 ## [2.7.0] — 2026-06-13 — Fabrieksreset (M36)
 
 ### Added
