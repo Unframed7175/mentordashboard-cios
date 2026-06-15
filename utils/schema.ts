@@ -1,6 +1,8 @@
 // Domain constants: actual school deelgebieden (BJ2) + score normalization
 // All exported as named ES module exports (TypeScript migration from schema.js)
 
+import leerlijn from '../src/config/leerlijn.json';
+
 export const SCORE_LEVELS = ['onvoldoende', 'voldoende', 'goed', 'excellent'] as const;
 export type ScoreLevel = typeof SCORE_LEVELS[number];
 
@@ -10,29 +12,8 @@ export interface Deelgebied {
   group: 'lesgeven' | 'organiseren' | 'prof_handelen';
 }
 
-// 19 deelgebieden — B02 definitieve leerlijn mapping (B02_definitief.xlsx v1.0)
-// group = leerlijn: 'lesgeven' | 'organiseren' | 'prof_handelen'
-export const DEELGEBIEDEN: Deelgebied[] = [
-  { id: 'va',   label: 'V&A',  group: 'lesgeven' },     // Voorbereiden en afstemmen
-  { id: 'mm',   label: 'M&M',  group: 'lesgeven' },     // Materialen en middelen inzetten
-  { id: 'ins',  label: 'INS',  group: 'lesgeven' },     // Presenteren en instrueren
-  { id: 'odw',  label: 'O&DW', group: 'lesgeven' },     // Organiseren en didactische werkvormen
-  { id: 'cb',   label: 'C&B',  group: 'lesgeven' },     // Coachen en begeleiden
-  { id: 'eb1',  label: '1E&B', group: 'lesgeven' },     // Evalueren en bijstellen
-  { id: 'po',   label: 'P&O',  group: 'organiseren' },  // Plannen en organiseren
-  { id: 'so',   label: 'S&O',  group: 'organiseren' },  // Samenwerken en overleggen
-  { id: 'org',  label: 'ORG',  group: 'organiseren' },  // Plan uitvoeren en bewaken
-  { id: 'ib',   label: 'I&B',  group: 'organiseren' },  // Begeleiden en instrueren
-  { id: 'eb2',  label: '2E&B', group: 'organiseren' },  // Evalueren en bijstellen
-  { id: 'prco', label: 'PrCo', group: 'prof_handelen' }, // Professioneel communiceren
-  { id: 'vsk',  label: 'VSK',  group: 'prof_handelen' }, // Veilig sportklimaat
-  { id: 'lob',  label: 'LOB',  group: 'prof_handelen' }, // Loopbaanontwikkeling
-  { id: 'info', label: 'INFO', group: 'prof_handelen' }, // Informatievaardigheden
-  { id: 'desk', label: 'DESK', group: 'prof_handelen' }, // Deskundigheid en professionaliteit
-  { id: 'bs',   label: 'BS',   group: 'prof_handelen' }, // Burgerschapsvaardigheden
-  { id: 'tow',  label: 'TOW',  group: 'prof_handelen' }, // Trends en ontwikkelingen volgen
-  { id: 'bh',   label: 'BH',   group: 'prof_handelen' }, // BeroepsHouding
-];
+// Loaded from src/config/leerlijn.json — edit that file to update the schema without code changes
+export const DEELGEBIEDEN: Deelgebied[] = leerlijn.deelgebieden as Deelgebied[];
 
 /**
  * Map column headers to deelgebied IDs by exact abbreviation match (case-insensitive).

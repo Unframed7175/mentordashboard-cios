@@ -1,12 +1,33 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-06-13 — M36-fabrieksreset DONE: v2.7.0 getagd en gepushed. Volgende: M37 schema-configurabiliteit.
+> Laatste update: 2026-06-15 — M37 DONE v2.8.0. M38-leerlijn-config gestart.
 
 ---
 
+## Afwijking 2026-06-15: kleine bugfix / bounded refactor
+Reden: M38 raakt 2 bestanden (leerlijn.json nieuw + schema.ts import), architectuur al besloten in M35-planning — Fase 0 niet vereist.
+
 ## Huidige fase
 
-**Fase 2 · Executie — M037-schema-configurabiliteit (ACTIEF)**
+**Fase 2 · Executie — M038-leerlijn-config (ACTIEF)**
+
+| ID | Taak | Status |
+|---|---|---|
+| T1 | src/config/leerlijn.json aanmaken | ⬜ |
+| T2 | tsconfig.json: resolveJsonModule toevoegen | ⬜ |
+| T3 | utils/schema.ts: import van JSON | ⬜ |
+
+---
+
+## Milestone afgerond 2026-06-15
+- **Versie:** 2.8.0
+- **Milestone:** M037-schema-configurabiliteit — status **DONE**
+
+---
+
+## Huidige fase (vorige)
+
+**Fase 2 · Executie — M037-schema-configurabiliteit (DONE)**
 
 Fase 2 start: 2026-06-14
 Eng review: CLEARED 2026-06-14 | Design review: CLEARED 2026-06-14
