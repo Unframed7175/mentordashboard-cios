@@ -64,6 +64,8 @@ describe('normen utility (Phase 25)', () => {
     expect(result.versneldLesgeven).toBe(4);
     expect(result.versneldOrganiseren).toBe(3);
     expect(result.versneldProfHandelen).toBe(5);
+    expect(result.negatiefOnbeoordeeldBJ1).toBe(DEFAULT_NORMEN.negatiefOnbeoordeeldBJ1);
+    expect(result.negatiefOnbeoordeeldBJ1).toBe(4);
   });
 
   it('saveNormen persists round-trip (NORM-06)', async () => {

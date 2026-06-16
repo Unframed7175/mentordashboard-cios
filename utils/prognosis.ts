@@ -139,11 +139,19 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
     return s + telling[ll].onvoldoende;
   }, 0);
 
-  // NEGATIEF-trigger — geldt voor alle trajecten (pagina 3, BJ1 kolom; zelfde principe BJ2)
-  // >negatiefTotaal onvoldoende totaal OF >negatiefPerLeerlijn onvoldoende binnen één leerlijn
+  // BJ1-only: tel datapunten die onbeoordeeld (alle scores null) of niet ingeleverd zijn
+  var aantalOnbeoordeeld = (student.datapunten || []).filter(function(dp: any) {
+    var dpStatus = ((dp.status as string) || '').toLowerCase().trim();
+    if (ONVOLDOENDE_INLEVER_STATUSSEN.has(dpStatus)) return true;
+    var vals = Object.values(dp.scores || {});
+    return vals.length === 0 || vals.every(function(v: any) { return v === null || v === undefined; });
+  }).length;
+
+  // NEGATIEF-trigger — basis geldt voor alle trajecten; BJ1 heeft extra onbeoordeeld-check
   var isNegatief = (
     totaalOnvoldoende > n.negatiefTotaal ||
-    leerlijnen.some(function(ll: string) { return telling[ll].onvoldoende > n.negatiefPerLeerlijn; })
+    leerlijnen.some(function(ll: string) { return telling[ll].onvoldoende > n.negatiefPerLeerlijn; }) ||
+    (traject === 'bj1' && aantalOnbeoordeeld > n.negatiefOnbeoordeeldBJ1)
   );
 
   var label: string;
@@ -185,6 +193,8 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
         organiseren:   n.negatiefPerLeerlijn - telling['organiseren'].onvoldoende,
         prof_handelen: n.negatiefPerLeerlijn - telling['prof_handelen'].onvoldoende,
       },
+      // BJ1-onbeoordeeld: huidig aantal voor UI-weergave
+      aantalOnbeoordeeld,
     };
 
   // ── BJ2 → SBL of Profieljaar SBC ──────────────────────────────────────

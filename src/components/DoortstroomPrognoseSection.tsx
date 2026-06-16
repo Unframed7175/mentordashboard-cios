@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusResult, detectTraject } from '../utils/status';
 import { getNormenSync } from '../../utils/normen';
 import { normalizeRekenScore } from '../../utils/schema';
 import { aggregateKdStatus } from '../../utils/keuzedelen';
 import { getVerzuimDrempelsSync } from '../../utils/verzuimDrempels';
+import { getBpvConfig, getBpvData } from '../../utils/bpv';
 
 interface DoortstroomPrognoseSectionProps {
   student: any;
@@ -32,6 +33,20 @@ function criterionStatus(nodig: number): 'groen' | 'oranje' | 'rood' {
   if (nodig === 0) return 'groen';
   if (nodig <= 2) return 'oranje';
   return 'rood';
+}
+
+// 'behaald' → 0, null/undefined → 1 (oranje/onbekend), 'niet_behaald' → 3 (rood)
+function behaaldNodig(status: string | null | undefined): number {
+  if (!status) return 1;
+  if (status === 'niet_behaald') return 3;
+  return 0;
+}
+
+function behaaldDisplay(status: string | null | undefined): string {
+  if (!status) return '—';
+  if (status === 'behaald') return 'Behaald';
+  if (status === 'niet_behaald') return 'Niet behaald';
+  return status;
 }
 
 function CriterionRow({ label, scoreDisplay, nodig }: { label: string; scoreDisplay: string; nodig: number }) {
@@ -111,6 +126,56 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
   const rekenNodig = rnlNodig(rekenStatus);
   const nederlandsNodig = rnlNodig(nederlandsStatus);
 
+  // BJ1 → Versneld SBC: alle datapunten op tijd
+  const aantalNietOpTijd = (student.datapunten || []).filter((dp: any) => {
+    const s = ((dp.status || '') as string).toLowerCase();
+    return s.includes('te laat') || s === 'niet ingeleverd';
+  }).length;
+  const datapuntenOpTijdNodig = aantalNietOpTijd > 0 ? 3 : 0;
+
+  // BPV-uren — async; valt terug op handmatig student.pokUren
+  const [bpvGerealiseerd, setBpvGerealiseerd] = useState<number | null>(null);
+  const [bpvVerwacht, setBpvVerwacht] = useState<number>(200);
+  useEffect(() => {
+    Promise.all([getBpvConfig(), getBpvData()])
+      .then(([cfg, data]) => {
+        setBpvVerwacht(cfg?.verwachteUren ?? 200);
+        const rec = data[student.leerlingId];
+        if (rec) setBpvGerealiseerd(rec.gerealiseerdeUren);
+      })
+      .catch(() => {});
+  }, [student.leerlingId]);
+
+  const pokNodig = bpvGerealiseerd !== null
+    ? (bpvGerealiseerd >= bpvVerwacht ? 0 : 3)
+    : behaaldNodig(student.pokUren);
+  const pokDisplay = bpvGerealiseerd !== null
+    ? `${bpvGerealiseerd} / ${bpvVerwacht}u`
+    : behaaldDisplay(student.pokUren);
+
+  // Stage-uren (BJ1 Versneld SBC) — zelfde BPV-bron als POK-uren
+  const stageNodig = pokNodig;
+  const stageDisplay = pokDisplay;
+
+  // BJ2 → SBL: KD uit BJ1 behaald (handmatig veld)
+  const kdBJ1Nodig = behaaldNodig(student.kdBJ1);
+
+  // BJ2 → SBC: Nederlands schrijven ≥2F — gebruikt bestaand nlSchrijven sub-score
+  const schrijvenStatus = normalizeRekenScore(student.nlSchrijven ?? null);
+  const schrijvenNodig = schrijvenStatus === null ? 1 : schrijvenStatus === 'onvoldoende' ? 3 : 0;
+  const schrijvenDisplay = student.nlSchrijven != null ? String(student.nlSchrijven) : '—';
+
+  // BJ2 → SBC: Gesprekken ≥3F — nlGesprekvoeren; 'goed'=groen, 'voldoende'=oranje, ontbrekend=oranje
+  const gesprekkenStatus = normalizeRekenScore(student.nlGesprekvoeren ?? null);
+  const gesprekkenNodig = gesprekkenStatus === null ? 1
+    : gesprekkenStatus === 'goed' ? 0
+    : gesprekkenStatus === 'voldoende' ? 2
+    : 3;
+  const gesprekkenDisplay = student.nlGesprekvoeren != null ? String(student.nlGesprekvoeren) : '—';
+
+  // BJ2 → SBC: KB BJ1 afgerond (handmatig veld)
+  const kbBJ1Nodig = behaaldNodig(student.kbBJ1);
+
   // keuzedelen array takes precedence; fall back to legacy kdStatus for existing data
   const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
   const kdStatus = keuzedelen.length > 0 ? aggregateKdStatus(keuzedelen) : (student.kdStatus ?? null);
@@ -144,7 +209,12 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
 
   // Negatief totaal: how many onvoldoende over the threshold (0 = groen, >0 = direct rood — no oranje zone)
   const negatiefTotaalNodig = Math.max(0, p.totaalOnvoldoende - n.negatiefTotaal);
-  const negatiefOverallNodig = negatiefTotaalNodig > 0 ? 3 : 0;
+
+  // BJ1-only: onbeoordeeld/niet ingeleverd datapunten criterion
+  const aantalOnbeoordeeld = p.gaps?.aantalOnbeoordeeld ?? 0;
+  const onbeoordeeldNodig = traject === 'bj1' && aantalOnbeoordeeld > n.negatiefOnbeoordeeldBJ1 ? 3 : 0;
+
+  const negatiefOverallNodig = negatiefTotaalNodig > 0 || onbeoordeeldNodig > 0 ? 3 : 0;
 
   const negatiefBlock = (
     <PrognoseBlock name="Negatief" overallNodig={negatiefOverallNodig} isEmpty={globalEmpty}>
@@ -154,6 +224,13 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
         nodig={negatiefTotaalNodig}
       />
       {negatiefPerLeerlijnen}
+      {traject === 'bj1' && (
+        <CriterionRow
+          label={`≤${n.negatiefOnbeoordeeldBJ1} datapunten onbeoordeeld/niet ingeleverd`}
+          scoreDisplay={`${aantalOnbeoordeeld} / ${n.negatiefOnbeoordeeldBJ1}`}
+          nodig={onbeoordeeldNodig}
+        />
+      )}
     </PrognoseBlock>
   );
 
@@ -184,7 +261,7 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
   const sblBlock = (
     <PrognoseBlock
       name="SBL"
-      overallNodig={Math.max(p.gaps.nodigSBL, rekenNodig, nederlandsNodig)}
+      overallNodig={Math.max(p.gaps.nodigSBL, rekenNodig, nederlandsNodig, kdNodigBJ2, kdBJ1Nodig, pokNodig)}
       isEmpty={globalEmpty}
     >
       <CriterionRow
@@ -202,6 +279,21 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
         scoreDisplay={student.nederlandsResultaat ?? '—'}
         nodig={nederlandsNodig}
       />
+      <CriterionRow
+        label="KD behaald of voor 1 dec haalbaar"
+        scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
+        nodig={kdNodigBJ2}
+      />
+      <CriterionRow
+        label="KD uit BJ1 behaald"
+        scoreDisplay={behaaldDisplay(student.kdBJ1)}
+        nodig={kdBJ1Nodig}
+      />
+      <CriterionRow
+        label="POK-uren behaald"
+        scoreDisplay={pokDisplay}
+        nodig={pokNodig}
+      />
     </PrognoseBlock>
   );
 
@@ -213,7 +305,11 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
         (p.gaps.nodigSBC_kern ?? []).length,
         rekenNodig,
         nederlandsNodig,
-        kdNodigSBC
+        kdNodigBJ2,
+        schrijvenNodig,
+        gesprekkenNodig,
+        kbBJ1Nodig,
+        pokNodig,
       )}
       isEmpty={globalEmpty}
     >
@@ -236,14 +332,29 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
         nodig={rekenNodig}
       />
       <CriterionRow
-        label="Nederlands ≥2F"
-        scoreDisplay={student.nederlandsResultaat ?? '—'}
-        nodig={nederlandsNodig}
+        label="Nederlands schrijven ≥2F"
+        scoreDisplay={schrijvenDisplay}
+        nodig={schrijvenNodig}
       />
       <CriterionRow
-        label="KD afgerond"
+        label="Gesprekken ≥3F"
+        scoreDisplay={gesprekkenDisplay}
+        nodig={gesprekkenNodig}
+      />
+      <CriterionRow
+        label="KB BJ1 afgerond"
+        scoreDisplay={behaaldDisplay(student.kbBJ1)}
+        nodig={kbBJ1Nodig}
+      />
+      <CriterionRow
+        label="KD voor 1 december haalbaar"
         scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
-        nodig={kdNodigSBC}
+        nodig={kdNodigBJ2}
+      />
+      <CriterionRow
+        label="POK-uren voldaan"
+        scoreDisplay={pokDisplay}
+        nodig={pokNodig}
       />
     </PrognoseBlock>
   );
@@ -299,7 +410,9 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
         p.gaps.nodigVersneld_profHandelen ?? 0,
         rekenNodig,
         nederlandsNodig,
-        kdNodigSBC
+        kdNodigSBC,
+        datapuntenOpTijdNodig,
+        stageNodig,
       )}
       isEmpty={globalEmpty}
     >
@@ -332,6 +445,16 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
         label="KD afgerond"
         scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
         nodig={kdNodigSBC}
+      />
+      <CriterionRow
+        label="Alle datapunten op tijd"
+        scoreDisplay={aantalNietOpTijd === 0 ? 'Op tijd' : `${aantalNietOpTijd} niet op tijd`}
+        nodig={datapuntenOpTijdNodig}
+      />
+      <CriterionRow
+        label="Stage-uren behaald"
+        scoreDisplay={stageDisplay}
+        nodig={stageNodig}
       />
     </PrognoseBlock>
   );

@@ -18,14 +18,15 @@ let _cache: Normen | null = null; // null = unloaded
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 export interface Normen {
-  sbl: number;                  // default 13; min=1, max=19
-  sbc: number;                  // default 15; min=1, max=19
-  negatiefTotaal: number;       // default 6;  min=1, max=19
-  negatiefPerLeerlijn: number;  // default 2;  min=1, max=6
-  bj1Positief: number;          // default 13; min=1, max=19
-  versneldLesgeven: number;     // default 4;  min=1, max=6
-  versneldOrganiseren: number;  // default 3;  min=1, max=6
-  versneldProfHandelen: number; // default 5;  min=1, max=6
+  sbl: number;                       // default 13; min=1, max=19
+  sbc: number;                       // default 15; min=1, max=19
+  negatiefTotaal: number;            // default 6;  min=1, max=19
+  negatiefPerLeerlijn: number;       // default 2;  min=1, max=6
+  bj1Positief: number;               // default 13; min=1, max=19
+  versneldLesgeven: number;          // default 4;  min=1, max=6
+  versneldOrganiseren: number;       // default 3;  min=1, max=6
+  versneldProfHandelen: number;      // default 5;  min=1, max=6
+  negatiefOnbeoordeeldBJ1: number;   // default 4;  min=0, max=50
 }
 
 export const DEFAULT_NORMEN: Normen = {
@@ -37,6 +38,7 @@ export const DEFAULT_NORMEN: Normen = {
   versneldLesgeven: 4,
   versneldOrganiseren: 3,
   versneldProfHandelen: 5,
+  negatiefOnbeoordeeldBJ1: 4,
 };
 
 // ── getNormenSync() ────────────────────────────────────────────────────────────
@@ -87,7 +89,8 @@ export async function loadNormen(): Promise<Normen> {
         // Number.isFinite(undefined) === false — safe for missing fields from older schemas
         versneldOrganiseren: isValid(raw.versneldOrganiseren, 1, 6)  ? raw.versneldOrganiseren : DEFAULT_NORMEN.versneldOrganiseren,
         // Number.isFinite(undefined) === false — safe for missing fields from older schemas
-        versneldProfHandelen:isValid(raw.versneldProfHandelen, 1, 6) ? raw.versneldProfHandelen: DEFAULT_NORMEN.versneldProfHandelen,
+        versneldProfHandelen:    isValid(raw.versneldProfHandelen, 1, 6)     ? raw.versneldProfHandelen    : DEFAULT_NORMEN.versneldProfHandelen,
+        negatiefOnbeoordeeldBJ1: isValid(raw.negatiefOnbeoordeeldBJ1, 0, 50) ? raw.negatiefOnbeoordeeldBJ1 : DEFAULT_NORMEN.negatiefOnbeoordeeldBJ1,
       };
       _cache = validated;
       return _cache;

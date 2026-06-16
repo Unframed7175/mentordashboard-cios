@@ -39,6 +39,27 @@ beforeEach(() => {
   appState.students = [];
 });
 
+// Helper: build a student with N datapunten that have no scores (onbeoordeeld)
+function makeStudentWithOnbeoordeeld(
+  scores: Record<string, string | null>,
+  aantalOnbeoordeeld: number,
+  aantalNietIngeleverd = 0,
+): any {
+  const datapunten = [
+    ...Array.from({ length: aantalOnbeoordeeld }, (_, i) => ({
+      datapunt: `DP-onbeoordeeld-${i}`,
+      scores: {},
+      status: '',
+    })),
+    ...Array.from({ length: aantalNietIngeleverd }, (_, i) => ({
+      datapunt: `DP-niet-ingeleverd-${i}`,
+      scores: {},
+      status: 'niet ingeleverd',
+    })),
+  ];
+  return { leerlingId: 'L1', naam: 'Test Leerling', deelgebiedScores: scores, datapunten };
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 test('negatief label wanneer >6 deelgebieden onvoldoende zijn', () => {
@@ -83,6 +104,43 @@ test('berekenAllePrognoses met lege students array geeft lege array', () => {
   const result = berekenAllePrognoses();
   expect(Array.isArray(result)).toBe(true);
   expect(result.length).toBe(0);
+});
+
+// ── BJ1: onbeoordeeld/niet ingeleverd negatief-trigger ────────────────────────
+
+test('BJ1 negatief wanneer >4 datapunten onbeoordeeld', () => {
+  const scores = allScores('voldoende');
+  const student = makeStudentWithOnbeoordeeld(scores, 5); // 5 > drempel 4
+  const result = berekenPrognose(student, 'bj1');
+  expect(result.label).toBe('negatief');
+});
+
+test('BJ1 niet negatief wanneer exact 4 datapunten onbeoordeeld', () => {
+  const scores = allScores('voldoende');
+  const student = makeStudentWithOnbeoordeeld(scores, 4); // 4 === drempel, niet >4
+  const result = berekenPrognose(student, 'bj1');
+  expect(result.label).not.toBe('negatief');
+});
+
+test('BJ1 negatief wanneer >4 datapunten niet ingeleverd', () => {
+  const scores = allScores('voldoende');
+  const student = makeStudentWithOnbeoordeeld(scores, 0, 5); // 5 niet ingeleverd > drempel 4
+  const result = berekenPrognose(student, 'bj1');
+  expect(result.label).toBe('negatief');
+});
+
+test('BJ2 NIET negatief door onbeoordeeld-criterium (BJ1-only)', () => {
+  const scores = allScores('voldoende');
+  const student = makeStudentWithOnbeoordeeld(scores, 10); // >4 maar BJ2 → geen trigger
+  const result = berekenPrognose(student, 'bj2');
+  expect(result.label).not.toBe('negatief');
+});
+
+test('BJ1 gaps.aantalOnbeoordeeld wordt meegegeven', () => {
+  const scores = allScores('voldoende');
+  const student = makeStudentWithOnbeoordeeld(scores, 3);
+  const result = berekenPrognose(student, 'bj1');
+  expect(result.gaps.aantalOnbeoordeeld).toBe(3);
 });
 
 // ---------------------------------------------------------------------------
