@@ -1,5 +1,17 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.10.0] — 2026-06-16 — Prognose-logica verdiept: S/C-formule, uitgebreide BJ1/BJ2-criteria, keuzedelen basisjaar en inlever-tellers
+
+### Added
+- **S/C-compensatieformule** — cijferaggregatie per deelgebied werkt nu via saldo (S) en compensatiebehoefte (C) in plaats van modus. Excellente scores compenseren voldoende-scores; knock-out bij te veel onvoldoendes. Sluit aan op MBO 3-4 beoordelingspraktijk.
+- **Uitgebreide doorstroomcriteria BJ1** — negatief-trigger bij >4 onbeoordeelde/niet-ingeleverde datapunten; Versneld SBC vereist nu stage-uren (BPV-import + handmatig) én alle datapunten op tijd.
+- **Uitgebreide doorstroomcriteria BJ2** — SBL vereist KD behaald/haalbaar + KD uit BJ1 + POK-uren; SBC vereist nlSchrijven ≥2F, nlGesprekvoeren ≥3F, KB BJ1 afgerond, KD voor 1 december + POK-uren.
+- **Keuzedelen basisjaar (BJ1/BJ2)** — elk keuzedeel krijgt een basisjaar-classificatie; `kdBJ1` en `kbBJ1` worden automatisch afgeleid uit de geclassificeerde keuzedelen (geen handmatige dropdowns meer).
+- **Inlever-tellers in doorstroomprognose** — de prognosekaart toont nu expliciet hoeveel producten niet ingeleverd (rood) en te laat ingeleverd (oranje) zijn.
+
+### Changed
+- **Decimale cijferinvoer** — rekenen/Nederlands invoervelden accepteren nu decimale komma's correct (type=text + inputMode=decimal in plaats van type=number).
+
 ## [2.9.0] — 2026-06-15 — Leerlijn-configuratie losgekoppeld van code (M38)
 
 ### Added
