@@ -127,10 +127,13 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
   const nederlandsNodig = rnlNodig(nederlandsStatus);
 
   // BJ1 → Versneld SBC: alle datapunten op tijd
-  const aantalNietOpTijd = (student.datapunten || []).filter((dp: any) => {
-    const s = ((dp.status || '') as string).toLowerCase();
-    return s.includes('te laat') || s === 'niet ingeleverd';
-  }).length;
+  const aantalNietIngeleverd = (student.datapunten || []).filter((dp: any) =>
+    ((dp.status || '') as string).toLowerCase() === 'niet ingeleverd'
+  ).length;
+  const aantalTeLaat = (student.datapunten || []).filter((dp: any) =>
+    ((dp.status || '') as string).toLowerCase().includes('te laat')
+  ).length;
+  const aantalNietOpTijd = aantalNietIngeleverd + aantalTeLaat;
   const datapuntenOpTijdNodig = aantalNietOpTijd > 0 ? 3 : 0;
 
   // BPV-uren — async; valt terug op handmatig student.pokUren
@@ -480,6 +483,20 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
           <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Prognose uitkomst:</span>
           <span className={`status-badge status-${status.kleur}`}>{uitkomstLabel}</span>
+        </div>
+      )}
+      {(aantalNietIngeleverd > 0 || aantalTeLaat > 0) && (
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
+          {aantalNietIngeleverd > 0 && (
+            <span style={{ color: 'var(--rag-rood)', fontWeight: 500 }}>
+              ✗ {aantalNietIngeleverd} niet ingeleverd
+            </span>
+          )}
+          {aantalTeLaat > 0 && (
+            <span style={{ color: 'var(--rag-oranje)', fontWeight: 500 }}>
+              △ {aantalTeLaat} te laat
+            </span>
+          )}
         </div>
       )}
       <div className="prognose-blocks-container">
