@@ -20,23 +20,24 @@ test('één datapunt — scores worden direct doorgegeven', () => {
   expect(result.aggregationDetail['M&M']).toBe('voldoende');
 });
 
-test('twee datapunten — modus wint (2x goed > 1x voldoende)', () => {
+test('2x goed + 1x voldoende — S=4, C=-1, nE=0 → goed (geen E aanwezig)', () => {
   const datapunten = [
     { scores: { 'V&A': 'goed' } },
     { scores: { 'V&A': 'goed' } },
     { scores: { 'V&A': 'voldoende' } },
   ];
   const result = aggregateDeelgebiedScores(datapunten);
+  // S = 2+2+0 = 4 > 2.0, maar nE=0 → goed (niet excellent)
   expect(result.aggregationDetail['V&A']).toBe('goed');
 });
 
-test('gelijke scores — hogere score wint bij gelijkspel', () => {
+test('1x voldoende + 1x goed — S=2, C=0 → goed (grens S<=2.0)', () => {
   const datapunten = [
     { scores: { 'M&M': 'voldoende' } },
     { scores: { 'M&M': 'goed' } },
   ];
   const result = aggregateDeelgebiedScores(datapunten);
-  // Tie-break: higher score ('goed' > 'voldoende') wins
+  // S = 0+2 = 2, C = 0-0-floor(1/2) = 0 → goed (S <= 2.0)
   expect(result.aggregationDetail['M&M']).toBe('goed');
 });
 
