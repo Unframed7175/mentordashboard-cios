@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentordashboard CIOS — Download & Installatie</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-page:        #F1F5F9;
+      --bg-surface:     #FFFFFF;
+      --bg-surface-alt: #F8FAFC;
+      --text-primary:   #0F172A;
+      --text-secondary: #475569;
+      --text-muted:     #64748B;
+      --border:         #E2E8F0;
+      --accent:         #009FE3;
+      --accent-hover:   #007DBF;
+      --accent-light:   #E0F5FD;
+      --accent-text:    #00547A;
+      --rag-groen:      #22C55E;
+      --rag-oranje:     #F59E0B;
+      --rag-rood:       #EF4444;
+      --radius:         10px;
+      --shadow:         0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md:      0 4px 12px rgba(0,0,0,.10);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    /* ── nav ── */
+    nav {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: var(--shadow);
+    }
+    .nav-logo {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 700; font-size: 13px; letter-spacing: -.5px;
+      flex-shrink: 0;
+    }
+    .nav-title { font-weight: 600; font-size: 15px; }
+    .nav-version {
+      margin-left: auto;
+      background: var(--accent-light);
+      color: var(--accent-text);
+      font-size: 12px; font-weight: 600;
+      padding: 2px 8px; border-radius: 99px;
+    }
+
+    /* ── layout ── */
+    main { max-width: 800px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    section { margin-bottom: 2.5rem; }
+
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+    }
+
+    /* ── hero ── */
+    .hero {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow);
+    }
+    .hero h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .hero p { color: var(--text-secondary); max-width: 540px; }
+
+    /* ── download cards ── */
+    .download-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 540px) { .download-grid { grid-template-columns: 1fr; } }
+
+    .download-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .download-card .platform {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 0.25rem;
+    }
+    .download-card .name {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 0.15rem;
+    }
+    .download-card .sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-ghost {
+      background: var(--bg-surface-alt);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--border); color: var(--text-primary); }
+    .coming-soon {
+      display: inline-block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.45rem 0.9rem;
+    }
+
+    /* ── steps ── */
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step {
+      display: flex;
+      gap: 1rem;
+      position: relative;
+    }
+    .step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 15px; top: 32px;
+      width: 2px;
+      bottom: 0;
+      background: var(--border);
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      color: var(--accent-text);
+      font-weight: 700;
+      font-size: 0.875rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .step-body { padding: 4px 0 1.5rem; }
+    .step-body strong { display: block; font-weight: 600; margin-bottom: 0.15rem; }
+    .step-body p, .step-body ul { color: var(--text-secondary); font-size: 0.9rem; }
+    .step-body ul { padding-left: 1.1rem; margin-top: 0.25rem; }
+    .step-body ul li { margin-bottom: 0.15rem; }
+    code {
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.85em;
+      color: var(--accent-text);
+    }
+
+    /* ── wat doet het ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 540px) { .feature-grid { grid-template-columns: 1fr; } }
+    .feature-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .feature-box h3 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .feature-box.doet h3 { color: #15803D; }
+    .feature-box.doet-niet h3 { color: #991B1B; }
+    .feature-box ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .feature-box ul li {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 0.4rem;
+    }
+    .feature-box ul li::before {
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .feature-box.doet ul li::before { content: '✓'; color: var(--rag-groen); font-weight: 700; }
+    .feature-box.doet-niet ul li::before { content: '✗'; color: var(--rag-rood); font-weight: 700; }
+
+    /* ── updates ── */
+    .update-entry {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+    }
+    .update-entry:last-child { margin-bottom: 0; }
+    .update-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .update-version {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .update-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .update-badge {
+      margin-left: auto;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: var(--accent-light);
+      color: var(--accent-text);
+    }
+    .update-items { display: flex; flex-direction: column; gap: 0.35rem; }
+    .update-item {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 0.5rem;
+    }
+    .update-item-label {
+      flex-shrink: 0;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-top: 1px;
+      align-self: flex-start;
+    }
+    .label-added   { background: #DCFCE7; color: #15803D; }
+    .label-changed { background: #FEF3C7; color: #92400E; }
+    .label-fixed   { background: #DBEAFE; color: #1D4ED8; }
+
+    /* ── footer ── */
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 2rem 1rem;
+      border-top: 1px solid var(--border);
+      margin-top: 1rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── note banner ── */
+    .note {
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      color: #92400E;
+      border-radius: 6px;
+      padding: 0.6rem 1rem;
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">MC</div>
+  <span class="nav-title">Mentordashboard CIOS</span>
+  <span class="nav-version">v2.10.0</span>
+</nav>
+
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Mentordashboard CIOS</h1>
+    <p>Een intern hulpmiddel voor mentoren om leerlingvoortgang, doorstroomprognose en verzuim bij te houden. Data blijft lokaal op je computer — er gaat niets naar een server.</p>
+  </div>
+
+  <!-- Download -->
+  <section id="download">
+    <h2>Download</h2>
+    <div class="download-grid">
+
+      <div class="download-card">
+        <div class="platform">macOS · Apple Silicon</div>
+        <div class="name">Mentordashboard CIOS</div>
+        <div class="sub">Mac met M1, M2, M3 of M4 chip</div>
+        <a class="btn" href="https://github.com/Unframed7175/mentordashboard-cios/releases/download/v2.10.0/Mentordashboard.CIOS_2.10.0_aarch64.dmg">
+          ↓ Download .dmg
+        </a>
+      </div>
+
+      <div class="download-card">
+        <div class="platform">macOS · Intel</div>
+        <div class="name">Mentordashboard CIOS</div>
+        <div class="sub">Mac met Intel processor (voor 2020)</div>
+        <a class="btn" href="https://github.com/Unframed7175/mentordashboard-cios/releases/download/v2.10.0/Mentordashboard.CIOS_2.10.0_x64.dmg">
+          ↓ Download .dmg
+        </a>
+      </div>
+
+      <div class="download-card">
+        <div class="platform">Windows · 64-bit</div>
+        <div class="name">Mentordashboard CIOS</div>
+        <div class="sub">Windows 10 of 11</div>
+        <a class="btn" href="https://github.com/Unframed7175/mentordashboard-cios/releases/tag/v2.10.0" target="_blank">
+          ↓ Download .exe
+        </a>
+      </div>
+
+      <div class="download-card">
+        <div class="platform">Alle versies</div>
+        <div class="name">Vorige versies</div>
+        <div class="sub">Changelog en oudere installers</div>
+        <a class="btn btn-ghost" href="https://github.com/Unframed7175/mentordashboard-cios/releases" target="_blank">
+          Alle releases →
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Installatie -->
+  <section id="installatie">
+    <h2>Installatie</h2>
+
+    <div style="margin-bottom:1.5rem;">
+      <strong style="font-size:0.9rem;color:var(--text-secondary);display:block;margin-bottom:0.75rem;">macOS</strong>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Download het juiste .dmg bestand</strong>
+            <p>Weet je niet welke chip je Mac heeft? Ga naar  → <em>Over deze Mac</em>. Staat er "Apple M…" → Apple Silicon. Staat er "Intel" → Intel versie.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Open het .dmg bestand</strong>
+            <p>Dubbelklik op het gedownloade bestand. Sleep het Mentordashboard-icoon naar de map <em>Programma's</em>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Eerste keer openen</strong>
+            <p>macOS blokkeert de app omdat die van buiten de App Store komt. Rechtsklik op het icoon → <em>Open</em> → klik nogmaals op <em>Open</em> in het dialoogvenster. Dit hoef je maar één keer te doen.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Klaar</strong>
+            <p>De wizard begeleidt je bij het aanmaken van je eerste klas en het importeren van een PDF.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <strong style="font-size:0.9rem;color:var(--text-secondary);display:block;margin-bottom:0.75rem;">Windows</strong>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Download het .exe installatiebestand</strong>
+            <p>Klik op <em>Download .exe</em> hierboven en sla het bestand op.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Installeer de app</strong>
+            <p>Dubbelklik op het .exe bestand. Mogelijk verschijnt een melding van Windows Defender ("onbekende uitgever") — klik op <em>Meer info</em> → <em>Toch uitvoeren</em>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Klaar</strong>
+            <p>De app staat in het Startmenu als <em>Mentordashboard CIOS</em>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>Vragen bij installatie?</strong> Neem contact op met Rafael (rafaelalvarez1010@gmail.com).
+    </div>
+  </section>
+
+  <!-- Wat doet het -->
+  <section id="functies">
+    <h2>Wat doet het</h2>
+    <div class="feature-grid">
+      <div class="feature-box doet">
+        <h3>✓ Wat het doet</h3>
+        <ul>
+          <li>PDF-rapporten van SomToday importeren per leerling</li>
+          <li>Doorstroomprognose berekenen (BJ1/BJ2) op basis van beoordelingen</li>
+          <li>RAG-kleuren tonen per leerling (rood / oranje / groen)</li>
+          <li>Beoordelingen aggregeren per deelgebied (S/C-compensatieformule)</li>
+          <li>Keuzedelen bijhouden met basisjaar-classificatie</li>
+          <li>Inlever-status tonen (niet ingeleverd / te laat)</li>
+          <li>Verzuim registreren en waarschuwingen tonen</li>
+          <li>Rekenen en Nederlands scores bijhouden</li>
+          <li>Meerdere klassen beheren</li>
+          <li>Data versleuteld opslaan en back-ups maken</li>
+        </ul>
+      </div>
+      <div class="feature-box doet-niet">
+        <h3>✗ Wat het niet doet</h3>
+        <ul>
+          <li>Directe koppeling met SomToday (PDF-import is handmatig)</li>
+          <li>Online synchroniseren — data staat alleen op jouw computer</li>
+          <li>Aanwezigheidsregistratie bijhouden</li>
+          <li>Roosters of lesplannen beheren</li>
+          <li>Automatisch updaten van leerlinggegevens</li>
+          <li>Data delen met collega's (per toestel)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Updates -->
+  <section id="updates">
+    <h2>Recente updates</h2>
+
+    <div class="update-entry">
+      <div class="update-header">
+        <span class="update-version">v2.10.0</span>
+        <span class="update-date">16 juni 2026</span>
+        <span class="update-badge">Nieuwste</span>
+      </div>
+      <div class="update-items">
+        <div class="update-item"><span class="update-item-label label-added">Nieuw</span>S/C-compensatieformule — nauwkeurigere cijferaggregatie per deelgebied (excellente scores compenseren voldoende scores)</div>
+        <div class="update-item"><span class="update-item-label label-added">Nieuw</span>Uitgebreide doorstroomcriteria voor BJ1 (Versneld SBC) en BJ2 (SBL/SBC) met taalscores en stage-uren</div>
+        <div class="update-item"><span class="update-item-label label-added">Nieuw</span>Keuzedelen basisjaar — elk keuzedeel classificeren als BJ1 of BJ2; kdBJ1 automatisch afgeleid</div>
+        <div class="update-item"><span class="update-item-label label-added">Nieuw</span>Inlever-tellers in prognosekaart — hoeveel producten niet ingeleverd (rood) en te laat (oranje)</div>
+        <div class="update-item"><span class="update-item-label label-changed">Gewijzigd</span>Decimale invoer rekenen/Nederlands werkt nu correct met komma</div>
+      </div>
+    </div>
+
+    <div class="update-entry">
+      <div class="update-header">
+        <span class="update-version">v2.9.0</span>
+        <span class="update-date">15 juni 2026</span>
+      </div>
+      <div class="update-items">
+        <div class="update-item"><span class="update-item-label label-added">Nieuw</span>Leerlijn-configuratie losgekoppeld van de code — jaarlijkse schemawijzigingen (nieuwe deelgebieden, hernoemde labels) vereisen geen app-update meer</div>
+      </div>
+    </div>
+
+    <div class="update-entry">
+      <div class="update-header">
+        <span class="update-version">v2.8.0</span>
+        <span class="update-date">15 juni 2026</span>
+      </div>
+      <div class="update-items">
+        <div class="update-item"><span class="update-item-label label-added">Nieuw</span>Automatische kolomdetectie — PDF-parser herkent nieuwe of hernoemde kolommen en toont een drift-banner</div>
+        <div class="update-item"><span class="update-item-label label-changed">Gewijzigd</span>Kolomherkenning en vak-kopregels via paginabreedte en fontgrootte — robuuster bij jaarlijkse schemawijzigingen</div>
+      </div>
+    </div>
+
+    <div class="update-entry">
+      <div class="update-header">
+        <span class="update-version">v2.7.0</span>
+        <span class="update-date">13 juni 2026</span>
+      </div>
+      <div class="update-items">
+        <div class="update-item"><span class="update-item-label label-added">Nieuw</span>Fabrieksreset — alle gegevens wissen met bevestiging en optionele back-up vooraf</div>
+        <div class="update-item"><span class="update-item-label label-added">Nieuw</span>Back-up v2 — back-upbestand bevat nu ook alle app-instellingen</div>
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;text-align:center;">
+      <a class="btn btn-ghost" href="https://github.com/Unframed7175/mentordashboard-cios/releases" target="_blank" style="font-size:0.85rem;">
+        Alle versies bekijken →
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Mentordashboard CIOS — intern hulpmiddel CIOS &nbsp;·&nbsp;
+  <a href="https://github.com/Unframed7175/mentordashboard-cios/releases" target="_blank">GitHub Releases</a>
+  &nbsp;·&nbsp; Vragen? <a href="mailto:rafaelalvarez1010@gmail.com">rafaelalvarez1010@gmail.com</a>
+</footer>
+
+</body>
+</html>
