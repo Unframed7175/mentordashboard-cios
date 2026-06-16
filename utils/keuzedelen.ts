@@ -1,9 +1,12 @@
 export type KdStatus = 'behaald' | 'haalbaar' | 'niet_behaald';
 
+export type Basisjaar = 'bj1' | 'bj2';
+
 export interface Keuzedeel {
   id: string;
   naam: string;
   status: KdStatus;
+  basisjaar?: Basisjaar;
 }
 
 // Worst-case aggregation: niet_behaald > haalbaar > behaald.

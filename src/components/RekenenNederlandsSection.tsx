@@ -108,12 +108,10 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
             {normBadge(rekenStatus, student.rekenResultaat)}
           </label>
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
             id="rnl-rekenen"
-            min="1"
-            max="10"
-            step="0.1"
-            placeholder="bijv. 6.5"
+            placeholder="bijv. 6.5 of 3F"
             value={student.rekenResultaat ?? ''}
             style={inputStyle}
             onChange={e => handleChange('rekenResultaat', e.target.value)}
@@ -130,11 +128,9 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
             <div>
               <span style={subLabelStyle}>Lezen / Luisteren</span>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="rnl-nl-lezen"
-                min="0"
-                max="10"
-                step="0.1"
                 placeholder="bijv. 3.5"
                 value={student.nlLezen ?? ''}
                 style={inputStyle}
@@ -144,11 +140,9 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
             <div>
               <span style={subLabelStyle}>Spreken</span>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="rnl-nl-spreken"
-                min="0"
-                max="10"
-                step="0.1"
                 placeholder="bijv. 3.5"
                 value={student.nlSpreken ?? ''}
                 style={inputStyle}
@@ -158,11 +152,9 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
             <div>
               <span style={subLabelStyle}>Gesprekvoeren</span>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="rnl-nl-gesprekvoeren"
-                min="0"
-                max="10"
-                step="0.1"
                 placeholder="bijv. 3.5"
                 value={student.nlGesprekvoeren ?? ''}
                 style={inputStyle}
@@ -172,11 +164,9 @@ export default function RekenenNederlandsSection({ student, onSaved }: RekenenNe
             <div>
               <span style={subLabelStyle}>Schrijven</span>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="rnl-nl-schrijven"
-                min="0"
-                max="10"
-                step="0.1"
                 placeholder="bijv. 3.5"
                 value={student.nlSchrijven ?? ''}
                 style={inputStyle}

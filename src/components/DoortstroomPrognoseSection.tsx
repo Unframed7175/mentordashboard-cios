@@ -157,9 +157,6 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
   const stageNodig = pokNodig;
   const stageDisplay = pokDisplay;
 
-  // BJ2 → SBL: KD uit BJ1 behaald (handmatig veld)
-  const kdBJ1Nodig = behaaldNodig(student.kdBJ1);
-
   // BJ2 → SBC: Nederlands schrijven ≥2F — gebruikt bestaand nlSchrijven sub-score
   const schrijvenStatus = normalizeRekenScore(student.nlSchrijven ?? null);
   const schrijvenNodig = schrijvenStatus === null ? 1 : schrijvenStatus === 'onvoldoende' ? 3 : 0;
@@ -173,12 +170,17 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
     : 3;
   const gesprekkenDisplay = student.nlGesprekvoeren != null ? String(student.nlGesprekvoeren) : '—';
 
-  // BJ2 → SBC: KB BJ1 afgerond (handmatig veld)
-  const kbBJ1Nodig = behaaldNodig(student.kbBJ1);
-
   // keuzedelen array takes precedence; fall back to legacy kdStatus for existing data
   const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
   const kdStatus = keuzedelen.length > 0 ? aggregateKdStatus(keuzedelen) : (student.kdStatus ?? null);
+
+  // BJ2 → SBL/SBC: KD/KB uit BJ1 — afgeleid uit keuzedelen met basisjaar 'bj1'
+  const keuzedelenBJ1 = keuzedelen.filter((k: any) => k.basisjaar === 'bj1');
+  const kdBJ1Status = aggregateKdStatus(keuzedelenBJ1);
+  const kdBJ1Nodig = kdBJ1Status === 'behaald' ? 0 : kdBJ1Status === 'niet_behaald' ? 3 : 1;
+  const kdBJ1Display = kdBJ1Status === 'behaald' ? 'Behaald' : kdBJ1Status === 'niet_behaald' ? 'Niet behaald' : kdBJ1Status === 'haalbaar' ? 'Haalbaar' : '—';
+  const kbBJ1Nodig = kdBJ1Nodig;
+  const kbBJ1Display = kdBJ1Display;
   // BJ2 doorstroom: behaald of haalbaar volstaat
   const kdNodigBJ2 = kdStatus === 'behaald' || kdStatus === 'haalbaar' ? 0 : kdStatus === 'niet_behaald' ? 3 : 1;
   // Versneld SBC / BJ2 SBC: alleen behaald volstaat
@@ -286,7 +288,7 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
       />
       <CriterionRow
         label="KD uit BJ1 behaald"
-        scoreDisplay={behaaldDisplay(student.kdBJ1)}
+        scoreDisplay={kdBJ1Display}
         nodig={kdBJ1Nodig}
       />
       <CriterionRow
@@ -343,7 +345,7 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
       />
       <CriterionRow
         label="KB BJ1 afgerond"
-        scoreDisplay={behaaldDisplay(student.kbBJ1)}
+        scoreDisplay={kbBJ1Display}
         nodig={kbBJ1Nodig}
       />
       <CriterionRow

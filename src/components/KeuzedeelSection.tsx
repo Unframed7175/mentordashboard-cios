@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { saveKlassen, klassenState } from '../../utils/klassen';
-import type { Keuzedeel, KdStatus } from '../../utils/keuzedelen';
+import type { Keuzedeel, KdStatus, Basisjaar } from '../../utils/keuzedelen';
 
 interface KeuzedeelSectionProps {
   student: any;
@@ -28,6 +28,7 @@ function getMatchingRecords(leerlingId: string): any[] {
 export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionProps) {
   const [newNaam, setNewNaam] = useState('');
   const [newStatus, setNewStatus] = useState<KdStatus>('haalbaar');
+  const [newBasisjaar, setNewBasisjaar] = useState<Basisjaar>('bj2');
   const [hint, setHint] = useState<'idle' | 'saved'>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -51,6 +52,7 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
       id: (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)),
       naam,
       status: newStatus,
+      basisjaar: newBasisjaar,
     };
 
     for (const rec of records) {
@@ -60,6 +62,7 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
 
     setNewNaam('');
     setNewStatus('haalbaar');
+    setNewBasisjaar('bj2');
     const saved = await saveKlassen();
     if (saved !== false) flashSaved();
     onSaved?.();
@@ -88,6 +91,17 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
     onSaved?.();
   }
 
+  async function handleBasisjaarChange(id: string, basisjaar: Basisjaar) {
+    const records = getMatchingRecords(student.leerlingId);
+    for (const rec of records) {
+      const kd = (rec.keuzedelen as Keuzedeel[] | undefined)?.find(k => k.id === id);
+      if (kd) kd.basisjaar = basisjaar;
+    }
+    const saved = await saveKlassen();
+    if (saved !== false) flashSaved();
+    onSaved?.();
+  }
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') handleAdd();
   }
@@ -104,9 +118,15 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}
         >
           <span style={{ flex: 1, minWidth: 0, fontWeight: 500, fontSize: '0.9rem' }}>{kd.naam}</span>
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: STATUS_COLOR[kd.status] }}>
-            {STATUS_LABEL[kd.status]}
-          </span>
+          <select
+            aria-label={`Basisjaar van ${kd.naam}`}
+            value={kd.basisjaar ?? 'bj2'}
+            onChange={e => handleBasisjaarChange(kd.id, e.target.value as Basisjaar)}
+            style={{ fontSize: '0.8rem', padding: '2px 4px' }}
+          >
+            <option value="bj1">BJ1</option>
+            <option value="bj2">BJ2</option>
+          </select>
           <select
             aria-label={`Status van ${kd.naam}`}
             value={kd.status}
@@ -115,7 +135,7 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
           >
             <option value="behaald">Behaald</option>
             <option value="haalbaar">Haalbaar (vóór 1 dec.)</option>
-            <option value="niet_behaald">Niet behaald / haalbaar</option>
+            <option value="niet_behaald">Niet behaald</option>
           </select>
           <button
             aria-label={`Verwijder ${kd.naam}`}
@@ -141,6 +161,15 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
           style={{ flex: 1, minWidth: '120px', fontSize: '0.85rem', padding: '4px 8px' }}
         />
         <select
+          id="kd-nieuw-basisjaar"
+          value={newBasisjaar}
+          onChange={e => setNewBasisjaar(e.target.value as Basisjaar)}
+          style={{ fontSize: '0.85rem', padding: '4px 6px' }}
+        >
+          <option value="bj1">BJ1</option>
+          <option value="bj2">BJ2</option>
+        </select>
+        <select
           id="kd-nieuw-status"
           value={newStatus}
           onChange={e => setNewStatus(e.target.value as KdStatus)}
@@ -148,7 +177,7 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
         >
           <option value="behaald">Behaald</option>
           <option value="haalbaar">Haalbaar (vóór 1 dec.)</option>
-          <option value="niet_behaald">Niet behaald / haalbaar</option>
+          <option value="niet_behaald">Niet behaald</option>
         </select>
         <button
           onClick={handleAdd}

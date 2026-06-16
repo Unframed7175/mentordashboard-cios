@@ -75,7 +75,7 @@ describe('RekenenNederlandsSection — rendering', () => {
     render(<RekenenNederlandsSection student={student} />);
     const input = document.getElementById('rnl-rekenen') as HTMLInputElement;
     expect(input).toBeTruthy();
-    expect(input.type).toBe('number');
+    expect(input.type).toBe('text');
   });
 
   it('renders Lezen/Luisteren input with id "rnl-nl-lezen"', () => {
@@ -84,7 +84,7 @@ describe('RekenenNederlandsSection — rendering', () => {
     render(<RekenenNederlandsSection student={student} />);
     const input = document.getElementById('rnl-nl-lezen') as HTMLInputElement;
     expect(input).toBeTruthy();
-    expect(input.type).toBe('number');
+    expect(input.type).toBe('text');
   });
 
   it('renders Spreken input with id "rnl-nl-spreken"', () => {
@@ -93,7 +93,7 @@ describe('RekenenNederlandsSection — rendering', () => {
     render(<RekenenNederlandsSection student={student} />);
     const input = document.getElementById('rnl-nl-spreken') as HTMLInputElement;
     expect(input).toBeTruthy();
-    expect(input.type).toBe('number');
+    expect(input.type).toBe('text');
   });
 
   it('renders Gesprekvoeren input with id "rnl-nl-gesprekvoeren"', () => {
@@ -102,7 +102,7 @@ describe('RekenenNederlandsSection — rendering', () => {
     render(<RekenenNederlandsSection student={student} />);
     const input = document.getElementById('rnl-nl-gesprekvoeren') as HTMLInputElement;
     expect(input).toBeTruthy();
-    expect(input.type).toBe('number');
+    expect(input.type).toBe('text');
   });
 
   it('renders Schrijven input with id "rnl-nl-schrijven"', () => {
@@ -111,7 +111,7 @@ describe('RekenenNederlandsSection — rendering', () => {
     render(<RekenenNederlandsSection student={student} />);
     const input = document.getElementById('rnl-nl-schrijven') as HTMLInputElement;
     expect(input).toBeTruthy();
-    expect(input.type).toBe('number');
+    expect(input.type).toBe('text');
   });
 
   it('Rekenen input defaults to empty when student.rekenResultaat is undefined', () => {
