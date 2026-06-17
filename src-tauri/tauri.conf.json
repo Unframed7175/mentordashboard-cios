@@ -28,6 +28,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
         "installMode": "currentUser"
@@ -44,5 +45,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/Unframed7175/mentordashboard-cios/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMwOTVCQTg0MEE0RTUzQjkKUldTNVUwNEtoTHFWd0tPdURoWjk4MjZWTUVqWEIzZERodEtlYUJXNU5DQ3VmVkJSSlhPcVB4R0YK"
+    }
   }
 }

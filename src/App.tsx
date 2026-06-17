@@ -10,8 +10,9 @@ import OnboardingWizard from './components/OnboardingWizard';
 import KlasVerwijderenModal from './components/KlasVerwijderenModal';
 import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted, deleteKlas, renameKlas, countUniekeLeerlingen } from '../utils/klassen';
 import { loadSettings, applyTheme } from '../utils/settings';
-import { checkForUpdate, UpdateInfo } from '../utils/updateCheck';
-import UpdateBanner from './components/UpdateBanner';
+import type { Update } from '@tauri-apps/plugin-updater';
+import { checkForUpdate } from '../utils/updateCheck';
+import UpdateModal from './components/UpdateModal';
 
 function App() {
   const [view, setView] = useState<'import' | 'klas' | 'detail' | 'settings' | 'onboarding' | 'help'>(
@@ -30,7 +31,7 @@ function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [settingsOpenCount, setSettingsOpenCount] = useState(0);
   const [isDark, setIsDark] = useState<boolean>(false);
-  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [updateInfo, setUpdateInfo] = useState<Update | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -172,9 +173,10 @@ function App() {
     <>
       <div id="storage-error-banner" style={{ display: 'none' }} />
       {updateInfo && (
-        <UpdateBanner
+        <UpdateModal
           version={updateInfo.version}
-          url={updateInfo.url}
+          notes={updateInfo.body ?? ''}
+          onDownloadAndInstall={() => updateInfo.downloadAndInstall()}
           onDismiss={() => setUpdateInfo(null)}
         />
       )}

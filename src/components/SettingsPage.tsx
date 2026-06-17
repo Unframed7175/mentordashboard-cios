@@ -25,7 +25,9 @@ import { getBpvConfig, saveBpvConfig, parseBpvExcel, saveBpvData, getBpvData, ty
 import { loadNormen, saveNormen, resetNormen, DEFAULT_NORMEN, type Normen } from '../../utils/normen';
 import { buildBackupPayload } from '../../utils/backup';
 import { factoryReset } from '../../utils/reset';
-import { checkForUpdate, type UpdateInfo } from '../../utils/updateCheck';
+import type { Update } from '@tauri-apps/plugin-updater';
+import { checkForUpdate } from '../../utils/updateCheck';
+import UpdateModal from './UpdateModal';
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -309,7 +311,8 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
   const [appVersion, setAppVersion] = useState<string>('');
   const [backupExporting, setBackupExporting] = useState(false);
   const [updateChecking, setUpdateChecking] = useState(false);
-  const [updateResult, setUpdateResult] = useState<UpdateInfo | 'uptodate' | 'error' | null>(null);
+  const [updateResult, setUpdateResult] = useState<'uptodate' | 'error' | null>(null);
+  const [updateModalInfo, setUpdateModalInfo] = useState<Update | null>(null);
 
   // Section 7 state — gevarenzone (M36 fabrieksreset)
   const [wisDialoogOpen, setWisDialoogOpen] = useState(false);
@@ -477,7 +480,11 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
     setUpdateResult(null);
     try {
       const info = await checkForUpdate();
-      setUpdateResult(info ?? 'uptodate');
+      if (info) {
+        setUpdateModalInfo(info);
+      } else {
+        setUpdateResult('uptodate');
+      }
     } catch {
       setUpdateResult('error');
     } finally {
@@ -886,20 +893,16 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
             Update-check mislukt. Controleer je internetverbinding.
           </p>
         )}
-        {updateResult !== null && typeof updateResult === 'object' && (
-          <p style={{ fontSize: '0.875rem', marginTop: '8px' }}>
-            Nieuwe versie beschikbaar: v{updateResult.version}.{' '}
-            <a
-              href={updateResult.url}
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: 'var(--accent)', fontWeight: 600 }}
-            >
-              Download
-            </a>
-          </p>
-        )}
       </section>
+
+      {updateModalInfo && (
+        <UpdateModal
+          version={updateModalInfo.version}
+          notes={updateModalInfo.body ?? ''}
+          onDownloadAndInstall={() => updateModalInfo.downloadAndInstall()}
+          onDismiss={() => setUpdateModalInfo(null)}
+        />
+      )}
 
       {/* Section 7: Gevarenzone — fabrieksreset (M36, ADR-13) */}
       <section className="detail-section" style={{ borderColor: '#FCA5A5' }}>
