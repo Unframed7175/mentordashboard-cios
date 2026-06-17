@@ -181,21 +181,23 @@ Branch-naamgeving: `feature/[naam]`, `fix/[naam]`, `design/[naam]`
 
 ---
 
-## Releaseproces — landingspagina altijd meenemen
+## Releaseproces — landingspagina wordt automatisch bijgewerkt
 
-Bij elke versiebump/release (tag `vX.Y.Z` pushen naar `mentordashboard-cios`) **altijd** ook de
-landingspagina bijwerken — dit is geen losse, optionele stap maar onderdeel van de release zelf:
+Sinds de implementatie van het auto-update systeem (zie
+`docs/superpowers/specs/2026-06-17-auto-update-systeem-design.md`) gebeurt dit automatisch:
 
-1. Lokale kloon: `/private/tmp/ciosmentorendashboard` (repo: `Unframed7175/ciosmentorendashboard`, branch `main`). `git pull --ff-only` vóór bewerken.
-2. In `index.html` 6 plekken bijwerken naar de nieuwe versie:
-   - `<span class="nav-version">` (navigatiebalk)
-   - 3 downloadlinks (`...releases/download/vX.Y.Z/Mentordashboard.CIOS_X.Y.Z_aarch64.dmg`, `..._x64.dmg`, `..._x64-setup.exe`)
-   - Footer `Versie X.Y.Z`
-3. Nieuwe `update-card` toevoegen in de "Wat is er nieuw?"-sectie met de changelog-tekst (in begrijpelijke taal voor mentoren, niet de technische commitomschrijving); `<span class="update-new">Nieuwste versie</span>` verplaatsen naar de nieuwe kaart en weghalen bij de vorige.
-4. Vóór committen: controleer dat de 3 downloadlinks daadwerkelijk 200 teruggeven (`curl -s -o /dev/null -w "%{http_code}"`) — de GitHub Actions release-build moet dus al klaar zijn.
-5. Commit + push naar `origin/main` van de landingspagina-repo (los van de hoofdrepo-release).
+1. Tag `vX.Y.Z` pushen → `release.yml` bouwt, signeert en publiceert de release met de nieuwste
+   `CHANGELOG.md`-sectie als release body.
+2. Zodra de release gepubliceerd is, triggert `update-landing-page.yml` automatisch en werkt
+   `ciosmentorendashboard/index.html` bij (nav-badge, downloadlinks, footer, nieuwe update-kaart).
 
-Wordt niet automatisch getriggerd door de tag-push van `mentordashboard-cios` — dit is een handmatige (of door Claude uitgevoerde) vervolgstap die bij elke release hoort.
+**Controleren of het gelukt is:** `gh run list --repo Unframed7175/mentordashboard-cios --workflow update-landing-page.yml --limit 3`
+
+**Bij falen** (bv. verlopen `LANDING_PAGE_PAT`-secret, of `index.html`-structuur handmatig gewijzigd
+zodat het script geen ankerpunt meer vindt): de workflow faalt zichtbaar in de Actions-tab zonder
+de pagina te committen. Werk in dat geval `ciosmentorendashboard/index.html` eenmalig handmatig bij
+(dezelfde 6 plekken: nav-versiebadge, 3 downloadlinks, footer-versie, nieuwe update-kaart) en
+onderzoek waarom het script faalde voordat de volgende release verschijnt.
 
 ---
 
