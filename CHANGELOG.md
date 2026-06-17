@@ -1,5 +1,10 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.10.2] — 2026-06-17 — Bugfix BJ1 PDF-import: sportvakken-tabel corrumpeerde deelgebiedscores
+
+### Fixed
+- **BJ1 PDF-import** — de "Praktijkbeoordelingen Sportvakken"-tabel die in BJ1-voortgangsrapporten na "Overzicht Deelgebieden" staat, werd door de parser ten onrechte als extra deelgebieden-data gelezen. Losse statusletters (E/G/V/O) uit die tabel konden daardoor een echte deelgebiedscore overschrijven (meestal V&A). De parser herkent deze tabel nu en verwerkt hem apart.
+
 ## [2.10.1] — 2026-06-17 — Bugfix BJ1 prognose: datapunten zonder status tellen niet meer mee
 
 ### Fixed
