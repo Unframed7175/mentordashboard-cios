@@ -1,42 +1,13 @@
-import { getVersion } from '@tauri-apps/api/app';
+import { check, type Update } from '@tauri-apps/plugin-updater';
 
-const REPO = 'Unframed7175/mentordashboard-cios';
-const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
-const SEMVER_RE = /^v?\d+\.\d+\.\d+$/;
-
-function parseSemver(v: string): [number, number, number] {
-  const clean = v.replace(/^v/, '');
-  const parts = clean.split('.').map(Number);
-  return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
-}
-
-function isNewer(latest: string, current: string): boolean {
-  const [lMaj, lMin, lPat] = parseSemver(latest);
-  const [cMaj, cMin, cPat] = parseSemver(current);
-  if (lMaj !== cMaj) return lMaj > cMaj;
-  if (lMin !== cMin) return lMin > cMin;
-  return lPat > cPat;
-}
-
-export interface UpdateInfo {
-  version: string;
-  url: string;
-}
-
-export async function checkForUpdate(): Promise<UpdateInfo | null> {
+/**
+ * Controleert op een nieuwere, geldig gesigneerde release via de Tauri-updater.
+ * Geeft null terug bij geen update of bij een fout (bv. geen internet) —
+ * faalt altijd stil zodat een mislukte check de opstart van de app niet verstoort.
+ */
+export async function checkForUpdate(): Promise<Update | null> {
   try {
-    const current = await getVersion();
-    const res = await fetch(API_URL, {
-      headers: { Accept: 'application/vnd.github+json' },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const tag: string = data.tag_name ?? '';
-    if (!tag || !SEMVER_RE.test(tag) || !isNewer(tag, current)) return null;
-    return {
-      version: tag.replace(/^v/, ''),
-      url: `https://github.com/${REPO}/releases/tag/${encodeURIComponent(tag)}`,
-    };
+    return await check();
   } catch {
     return null;
   }
