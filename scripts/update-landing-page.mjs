@@ -63,12 +63,14 @@ export function updateLandingPageHtml(html, { version, notesHtml, date }) {
     'nav-version span'
   );
 
-  html = replaceOrThrow(
-    html,
-    /v\d+\.\d+\.\d+\/Mentordashboard\.CIOS_\d+\.\d+\.\d+_/g,
-    `v${version}/Mentordashboard.CIOS_${version}_`,
-    'downloadlinks'
-  );
+  const downloadLinkPattern = /v(\d+\.\d+\.\d+)\/Mentordashboard\.CIOS_\1_/g;
+  const downloadLinkMatches = html.match(downloadLinkPattern) ?? [];
+  if (downloadLinkMatches.length !== 3) {
+    throw new Error(
+      `update-landing-page: verwachtte 3 downloadlinks met een consistent versienummer, maar vond ${downloadLinkMatches.length} in index.html`
+    );
+  }
+  html = html.replace(downloadLinkPattern, `v${version}/Mentordashboard.CIOS_${version}_`);
 
   html = replaceOrThrow(
     html,

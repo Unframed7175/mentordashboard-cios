@@ -95,4 +95,20 @@ describe('updateLandingPageHtml', () => {
     const broken = SAMPLE_HTML.replace('nav-version', 'iets-anders');
     expect(() => updateLandingPageHtml(broken, params)).toThrow();
   });
+
+  it('gooit een fout bij een inconsistent versienummer binnen één downloadlink', () => {
+    const mismatched = SAMPLE_HTML.replace(
+      'v2.10.1/Mentordashboard.CIOS_2.10.1_aarch64.dmg',
+      'v2.10.1/Mentordashboard.CIOS_2.10.2_aarch64.dmg'
+    );
+    expect(() => updateLandingPageHtml(mismatched, params)).toThrow();
+  });
+
+  it('gooit een fout als er niet precies 3 downloadlinks gevonden worden', () => {
+    const missingOne = SAMPLE_HTML.replace(
+      '<a href="https://github.com/Unframed7175/mentordashboard-cios/releases/download/v2.10.1/Mentordashboard.CIOS_2.10.1_x64-setup.exe">windows</a>',
+      ''
+    );
+    expect(() => updateLandingPageHtml(missingOne, params)).toThrow();
+  });
 });
