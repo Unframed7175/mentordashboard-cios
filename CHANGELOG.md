@@ -1,5 +1,10 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.10.1] — 2026-06-17 — Bugfix BJ1 prognose: datapunten zonder status tellen niet meer mee
+
+### Fixed
+- **BJ1 prognose** — datapunten zonder status (toekomstige of nog niet uitgevoerde opdrachten) werden onterecht meegeteld als onbeoordeeld en konden de negatief-trigger activeren. Nieuwe regel: status leeg → datapunt telt niet mee.
+
 ## [2.10.0] — 2026-06-16 — Prognose-logica verdiept: S/C-formule, uitgebreide BJ1/BJ2-criteria, keuzedelen basisjaar en inlever-tellers
 
 ### Added
