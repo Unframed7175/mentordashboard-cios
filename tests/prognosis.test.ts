@@ -108,18 +108,26 @@ test('berekenAllePrognoses met lege students array geeft lege array', () => {
 
 // ── BJ1: onbeoordeeld/niet ingeleverd negatief-trigger ────────────────────────
 
-test('BJ1 negatief wanneer >4 datapunten onbeoordeeld', () => {
+test('BJ1 negatief wanneer >4 datapunten niet ingeleverd (expliciete status)', () => {
   const scores = allScores('voldoende');
-  const student = makeStudentWithOnbeoordeeld(scores, 5); // 5 > drempel 4
+  const student = makeStudentWithOnbeoordeeld(scores, 0, 5); // 5 niet-ingeleverd > drempel 4
   const result = berekenPrognose(student, 'bj1');
   expect(result.label).toBe('negatief');
 });
 
-test('BJ1 niet negatief wanneer exact 4 datapunten onbeoordeeld', () => {
+test('BJ1 niet negatief wanneer exact 4 datapunten niet ingeleverd', () => {
   const scores = allScores('voldoende');
-  const student = makeStudentWithOnbeoordeeld(scores, 4); // 4 === drempel, niet >4
+  const student = makeStudentWithOnbeoordeeld(scores, 0, 4); // 4 === drempel, niet >4
   const result = berekenPrognose(student, 'bj1');
   expect(result.label).not.toBe('negatief');
+});
+
+test('BJ1 datapunten zonder status tellen niet mee als onbeoordeeld', () => {
+  const scores = allScores('voldoende');
+  const student = makeStudentWithOnbeoordeeld(scores, 10); // 10 met lege status → tellen niet mee
+  const result = berekenPrognose(student, 'bj1');
+  expect(result.label).not.toBe('negatief');
+  expect(result.gaps.aantalOnbeoordeeld).toBe(0);
 });
 
 test('BJ1 negatief wanneer >4 datapunten niet ingeleverd', () => {
@@ -136,11 +144,12 @@ test('BJ2 NIET negatief door onbeoordeeld-criterium (BJ1-only)', () => {
   expect(result.label).not.toBe('negatief');
 });
 
-test('BJ1 gaps.aantalOnbeoordeeld wordt meegegeven', () => {
+test('BJ1 gaps.aantalOnbeoordeeld telt alleen datapunten met expliciete niet-ingeleverd status', () => {
   const scores = allScores('voldoende');
-  const student = makeStudentWithOnbeoordeeld(scores, 3);
+  // 2 met expliciete status + 5 zonder status → alleen de 2 tellen mee
+  const student = makeStudentWithOnbeoordeeld(scores, 5, 2);
   const result = berekenPrognose(student, 'bj1');
-  expect(result.gaps.aantalOnbeoordeeld).toBe(3);
+  expect(result.gaps.aantalOnbeoordeeld).toBe(2);
 });
 
 // ---------------------------------------------------------------------------

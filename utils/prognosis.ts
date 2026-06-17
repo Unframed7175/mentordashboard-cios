@@ -139,12 +139,11 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
     return s + telling[ll].onvoldoende;
   }, 0);
 
-  // BJ1-only: tel datapunten die onbeoordeeld (alle scores null) of niet ingeleverd zijn
+  // BJ1-only: tel datapunten met een expliciete niet-ingeleverd status.
+  // Datapunten zonder status (nog niet uitgevoerd / toekomstig) tellen niet mee.
   var aantalOnbeoordeeld = (student.datapunten || []).filter(function(dp: any) {
     var dpStatus = ((dp.status as string) || '').toLowerCase().trim();
-    if (ONVOLDOENDE_INLEVER_STATUSSEN.has(dpStatus)) return true;
-    var vals = Object.values(dp.scores || {});
-    return vals.length === 0 || vals.every(function(v: any) { return v === null || v === undefined; });
+    return ONVOLDOENDE_INLEVER_STATUSSEN.has(dpStatus);
   }).length;
 
   // NEGATIEF-trigger — basis geldt voor alle trajecten; BJ1 heeft extra onbeoordeeld-check
