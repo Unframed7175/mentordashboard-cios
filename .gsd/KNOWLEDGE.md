@@ -181,6 +181,24 @@ Branch-naamgeving: `feature/[naam]`, `fix/[naam]`, `design/[naam]`
 
 ---
 
+## Releaseproces — landingspagina altijd meenemen
+
+Bij elke versiebump/release (tag `vX.Y.Z` pushen naar `mentordashboard-cios`) **altijd** ook de
+landingspagina bijwerken — dit is geen losse, optionele stap maar onderdeel van de release zelf:
+
+1. Lokale kloon: `/private/tmp/ciosmentorendashboard` (repo: `Unframed7175/ciosmentorendashboard`, branch `main`). `git pull --ff-only` vóór bewerken.
+2. In `index.html` 6 plekken bijwerken naar de nieuwe versie:
+   - `<span class="nav-version">` (navigatiebalk)
+   - 3 downloadlinks (`...releases/download/vX.Y.Z/Mentordashboard.CIOS_X.Y.Z_aarch64.dmg`, `..._x64.dmg`, `..._x64-setup.exe`)
+   - Footer `Versie X.Y.Z`
+3. Nieuwe `update-card` toevoegen in de "Wat is er nieuw?"-sectie met de changelog-tekst (in begrijpelijke taal voor mentoren, niet de technische commitomschrijving); `<span class="update-new">Nieuwste versie</span>` verplaatsen naar de nieuwe kaart en weghalen bij de vorige.
+4. Vóór committen: controleer dat de 3 downloadlinks daadwerkelijk 200 teruggeven (`curl -s -o /dev/null -w "%{http_code}"`) — de GitHub Actions release-build moet dus al klaar zijn.
+5. Commit + push naar `origin/main` van de landingspagina-repo (los van de hoofdrepo-release).
+
+Wordt niet automatisch getriggerd door de tag-push van `mentordashboard-cios` — dit is een handmatige (of door Claude uitgevoerde) vervolgstap die bij elke release hoort.
+
+---
+
 ## Fase-nummering
 
 Fasen worden genummerd als integers (33, 34, ...). Slices binnen een fase: `-01`, `-02`, `-03` (bijv. `feat(33-02)`). Plan-bestanden staan historisch in git, niet meer in het werkende bestand.
