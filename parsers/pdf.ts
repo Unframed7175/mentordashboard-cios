@@ -613,7 +613,7 @@ function assignScoreToColumn(item: { str: string; x: number }, columnMap: Record
  * @param startIndex - index of the header row in lines
  * @returns {{ datapunten: Array, deelgebiedScores: Object }}
  */
-function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten: any[]; deelgebiedScores: Record<string, string | null>; unknownLabels: string[] } {
+function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten: any[]; deelgebiedScores: Record<string, string | null>; unknownLabels: string[]; endIndex: number } {
   const { map: columnMap, unknownLabels } = buildColumnMap(lines[startIndex]);
   const headingThreshold = detectHeadingThreshold(lines);
 
@@ -621,6 +621,10 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
 
   // Track the current vak name (rows in this table are grouped by vak)
   let currentVak = '';
+
+  // Index where deelgebied-table parsing stopped. Defaults to "consumed the
+  // whole document" and is narrowed below when a trailing opdracht-table is found.
+  let endIndex = lines.length;
 
   // Walk lines after the header row
   for (let i = startIndex + 1; i < lines.length; i++) {
@@ -645,6 +649,24 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
 
     // Vak group heading: font size exceeds the document heading threshold (T3)
     if (labelText && labelItem && labelItem.fontSize >= headingThreshold) {
+      // A deelgebied vak-group heading is followed by more deelgebied datapunten.
+      // BJ1 voortgangsrapporten add a SECOND, unrelated opdracht-table after
+      // "Overzicht Deelgebieden" (e.g. "Praktijkbeoordelingen Sportvakken" →
+      // "Betekenisvol Bewegen (Praktijk)"), recognisable by its "Feed Forward"
+      // column header. Without this check, that table's Status-column grade
+      // letters (E/G/V/O) get parsed as deelgebied scores and silently
+      // overwrite real scores on whichever column they land closest to.
+      let nextContentText = '';
+      for (let j = i + 1; j < lines.length; j++) {
+        const t = lineToText(lines[j]);
+        if (t) { nextContentText = t; break; }
+      }
+      if (/feed\s*forward/i.test(nextContentText)) {
+        console.log(`[pdf.ts] Deelgebied table ends at line ${i}: "${labelText}" is followed by an opdracht-table (Feed Forward), not more deelgebied data`);
+        endIndex = i;
+        break;
+      }
+
       currentVak = labelText;
       console.log(`[pdf.ts] Deelgebied table: vak heading (font-size) → "${currentVak}"`);
       continue;
@@ -711,7 +733,7 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     `${Object.values(deelgebiedScores).filter(v => v !== null).length}/19 deelgebieden scored`
   );
 
-  return { datapunten, deelgebiedScores, unknownLabels };
+  return { datapunten, deelgebiedScores, unknownLabels, endIndex };
 }
 
 // ---------------------------------------------------------------------------
@@ -736,7 +758,7 @@ async function parseSinglePDF(file: File): Promise<any> {
   const items = await extractAllTextItems(file);
   const lines = groupIntoLines(items);
   const header = extractHeader(lines);
-  const vakken = parseVakSections(lines);
+  let vakken = parseVakSections(lines);
   const deelgebiedStart = findDeelgebiedSection(lines);
   let deelgebiedScores: Record<string, string | null> = {};
   let datapunten: any[] = [];
@@ -747,6 +769,15 @@ async function parseSinglePDF(file: File): Promise<any> {
     deelgebiedScores = result.deelgebiedScores;
     datapunten       = result.datapunten;
     unknownLabels    = result.unknownLabels;
+
+    // BJ1 voortgangsrapporten kunnen na "Overzicht Deelgebieden" nog een los
+    // opdracht-blok bevatten (bv. "Praktijkbeoordelingen Sportvakken"). parseDeelgebiedTable
+    // stopt daar (zie endIndex) — geef het restant terug aan parseVakSections zodat die
+    // opdrachten alsnog als vak/opdracht geregistreerd worden in plaats van verloren te gaan.
+    if (result.endIndex < lines.length) {
+      const extraVakken = parseVakSections(lines.slice(result.endIndex));
+      vakken = vakken.concat(extraVakken);
+    }
   } else {
     throw new Error('Overzicht Deelgebieden tabel niet gevonden');
   }

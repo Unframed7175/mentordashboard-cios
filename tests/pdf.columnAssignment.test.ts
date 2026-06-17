@@ -370,3 +370,62 @@ describe('parseDeelgebiedTable — font-size heading detection (T3)', () => {
     expect(datapunten[0]?.vak).toBe('');
   });
 });
+
+// ---------------------------------------------------------------------------
+// parseDeelgebiedTable — trailing opdracht-table boundary (BJ1 "Praktijkbeoordelingen
+// Sportvakken" regression)
+// ---------------------------------------------------------------------------
+//
+// WHY: BJ1 voortgangsrapporten bevatten een tweede, ongerelateerde vak/opdracht-tabel
+// ("Praktijkbeoordelingen Sportvakken" → "Betekenisvol Bewegen (Praktijk)") die NA de
+// "Overzicht Deelgebieden"-tabel in het document staat. Zonder boundary-detectie loopt
+// parseDeelgebiedTable door tot het einde van het document en interpreteert losse
+// cijferletters (E/G/V/O) uit de Status-kolom van die tabel als deelgebied-scores,
+// toegewezen aan de dichtstbijzijnde kolom (meestal V&A) — wat een echte deelgebiedscore
+// overschrijft. Bevestigd met 2 echte BJ1-PDF's (Fase 1 en Fase 2, zelfde leerling).
+//
+// Onderscheid met de 'Samenwerken' heading-test hierboven: een legitieme mid-table
+// vak-heading wordt NIET gevolgd door een "Status … Feed Forward"-rij — een nieuwe
+// opdracht-tabel (zoals bovenaan elke PDF-pagina) altijd wel.
+
+describe('parseDeelgebiedTable — stops before a trailing opdracht-table (Feed Forward marker)', () => {
+  function makeItem(str: string, x: number, fontSize = 10) {
+    return { str, x, fontSize, y: 500, width: 30, height: 10, page: 1 };
+  }
+
+  it('does not let a "Feed Forward" sub-table heading absorb scores into the deelgebied table', () => {
+    const headerLine = ['V&A', 'M&M', 'INS'].map((l, i) => makeItem(l, 100 + i * 40, 10));
+    // Real deelgebied datapunt: Videoanalyse scores 'goed' on V&A.
+    const videoanalyse = [makeItem('‐ Videoanalyse', 10, 10), makeItem('G', 100, 10)];
+    // Trailing section heading (large font, like "Praktijkbeoordelingen Sportvakken").
+    const sectionHeading = [makeItem('Praktijkbeoordelingen Sportvakken', 10, 16)];
+    // Opdracht-table sub-header (like "Betekenisvol Bewegen (Praktijk) Status Feed Forward").
+    const subHeader = [
+      makeItem('Betekenisvol Bewegen (Praktijk)', 10, 10),
+      makeItem('Status', 200, 10),
+      makeItem('Feed Forward', 300, 10),
+    ];
+    // Sportvak row whose grade letter ('E') sits at the V&A x-position — would
+    // corrupt deelgebiedScores.V&A if treated as a deelgebied datapunt row.
+    const hockeyRow = [makeItem('‐ P&O Hockey', 10, 10), makeItem('E', 100, 10)];
+
+    const lines = [headerLine, videoanalyse, sectionHeading, subHeader, hockeyRow];
+
+    const result = parseDeelgebiedTable(lines, 0);
+
+    expect(result.datapunten.some(d => d.datapunt.includes('P&O Hockey'))).toBe(false);
+    expect(result.deelgebiedScores['V&A']).toBe('goed');
+    expect(result.endIndex).toBe(2); // stops at the section-heading line, before consuming it
+  });
+
+  it('still treats a mid-table heading as a new vak when NOT followed by a Feed Forward row', () => {
+    const headerLine = ['V&A', 'M&M', 'INS'].map((l, i) => makeItem(l, 100 + i * 40, 10));
+    const vakLine = [makeItem('Samenwerken', 10, 16)];
+    const datapuntLine = [makeItem('- Taak A', 10, 10), makeItem('V', 100, 10)];
+    const lines = [headerLine, vakLine, datapuntLine];
+
+    const result = parseDeelgebiedTable(lines, 0);
+    expect(result.datapunten[0]?.vak).toBe('Samenwerken');
+    expect(result.endIndex).toBe(lines.length);
+  });
+});
