@@ -1,0 +1,50 @@
+name: Update landing page
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  update-landing-page:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mentordashboard-cios (voor de scripts)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          path: main-repo
+
+      - name: Checkout ciosmentorendashboard
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: Unframed7175/ciosmentorendashboard
+          token: ${{ secrets.LANDING_PAGE_PAT }}
+          path: landing-page
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: lts/*
+
+      - name: Extract changelog entry
+        run: |
+          node main-repo/scripts/extract-changelog-entry.mjs main-repo/CHANGELOG.md /tmp/release-body.md
+
+      - name: Update index.html
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+          node main-repo/scripts/update-landing-page.mjs landing-page/index.html "$VERSION" /tmp/release-body.md
+
+      - name: Commit en push
+        working-directory: landing-page
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --staged --quiet && echo "Geen wijzigingen" && exit 0
+          git commit -m "fix: update landingspagina naar ${{ github.event.release.tag_name }}"
+          git push origin main
