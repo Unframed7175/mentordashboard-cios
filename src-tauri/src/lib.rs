@@ -13,6 +13,8 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::new().build()) // Phase 12: durable key-value persistence
         .plugin(tauri_plugin_secure_storage::init())        // Phase 12: OS keychain
+        .plugin(tauri_plugin_updater::Builder::new().build()) // Auto-update: check/download/installeer
+        .plugin(tauri_plugin_process::init())                // Auto-update: relaunch() na installatie
         .invoke_handler(tauri::generate_handler![
             greet,
             crypto::encrypt_klassen, // Phase 12: AES-256-GCM encrypt

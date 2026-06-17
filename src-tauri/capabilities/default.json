@@ -8,6 +8,8 @@
     "store:default",
     "secure-storage:default",
     "os:default",
-    "opener:default"
+    "opener:default",
+    "updater:default",
+    "process:default"
   ]
 }

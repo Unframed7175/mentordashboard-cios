@@ -23,6 +23,8 @@ tauri-plugin-opener = "2"
 tauri-plugin-os = "2"                          # Phase 28: OS info for feedback mailto:
 tauri-plugin-store = "2"                    # Phase 12: durable key-value persistence
 tauri-plugin-secure-storage = "1"          # Phase 12: OS keychain (Windows Credential Manager)
+tauri-plugin-updater = "2"                 # Auto-update: check/download/installeer nieuwe versie
+tauri-plugin-process = "2"                 # Auto-update: relaunch() na installatie
 aes-gcm = "0.10.3"                         # Phase 12: AES-256-GCM (stable; NOT 0.11-rc)
 base64 = "0.22"                            # Phase 12: nonce+ciphertext wire format encoding
 serde = { version = "1", features = ["derive"] }
