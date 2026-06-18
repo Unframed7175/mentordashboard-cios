@@ -616,11 +616,29 @@ function assignScoreToColumn(item: { str: string; x: number }, columnMap: Record
 function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten: any[]; deelgebiedScores: Record<string, string | null>; unknownLabels: string[]; endIndex: number } {
   const { map: columnMap, unknownLabels } = buildColumnMap(lines[startIndex]);
   const headingThreshold = detectHeadingThreshold(lines);
+  // Position, not text, decides whether a header row's leftmost cell is a vak
+  // name: a vak name always sits to the left of where the actual deelgebied
+  // columns start. Text-matching against known labels would misfire for a vak
+  // literally named after one of its own columns (e.g. the vak "LOB" colliding
+  // with the "LOB" deelgebied abbreviation — real-PDF confirmed, 2026-06-18).
+  const columnXs = Object.values(columnMap);
+  const minColumnX = columnXs.length > 0 ? Math.min(...columnXs) : Infinity;
 
   const datapunten: any[] = [];
 
-  // Track the current vak name (rows in this table are grouped by vak)
+  // Track the current vak name (rows in this table are grouped by vak).
+  // Some lay-outs ("Fase 2 DD") put the vak name in the leftmost cell of the
+  // header row itself (e.g. "Pedagogiek V&A M&M INS...") instead of on its
+  // own large-font line — seed it from the very first header row here; later
+  // occurrences are caught inside the loop below.
   let currentVak = '';
+  {
+    const firstItem = lines[startIndex].slice().sort((a: any, b: any) => a.x - b.x)[0];
+    const firstLabel = firstItem?.str.trim() ?? '';
+    if (firstLabel && firstItem.x < minColumnX) {
+      currentVak = firstLabel;
+    }
+  }
 
   // Index where deelgebied-table parsing stopped. Defaults to "consumed the
   // whole document" and is narrowed below when a trailing opdracht-table is found.
@@ -654,6 +672,13 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     // scores are silently lost (confirmed against real BJ2 voortgangsrapporten,
     // e.g. "Try-out semester 1" scored across 5 deelgebieden).
     if (!isDatapuntRow && isHeaderRow(line, line[0]?.pageWidth ?? 595)) {
+      // Same "Fase 2 DD" lay-out as the initial seed above: a repeated header
+      // row's leftmost cell may carry the next vak's name rather than a
+      // column abbreviation — capture it before discarding the row.
+      if (labelText && labelItem.x < minColumnX) {
+        currentVak = labelText;
+        console.log(`[pdf.ts] Deelgebied table: vak heading (uit kolomkop) → "${currentVak}"`);
+      }
       console.log(`[pdf.ts] Skipping repeated deelgebied header row at line ${i}`);
       continue;
     }

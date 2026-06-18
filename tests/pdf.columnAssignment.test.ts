@@ -470,3 +470,58 @@ describe('parseDeelgebiedTable — a dash-prefixed datapunt row is never a heade
     expect(result.deelgebiedScores['DESK']).toBe('voldoende');
   });
 });
+
+// ---------------------------------------------------------------------------
+// BJ2 "Fase 2 DD"-layout: the vak name shares a line with the repeated column
+// header (e.g. "Pedagogiek V&A M&M INS...") instead of standing alone on its
+// own large-font line. parseDeelgebiedTable previously discarded that whole
+// line as a repeated header without ever reading its leftmost cell, so every
+// datapunt's `vak` field stayed "" for this layout (real-PDF confirmed,
+// 2026-06-18). Currently unused by the UI, but should be captured correctly
+// regardless.
+// ---------------------------------------------------------------------------
+describe('parseDeelgebiedTable — captures vak name embedded in a repeated header row', () => {
+  function makeItem(str: string, x: number, fontSize = 10) {
+    return { str, x, fontSize, y: 500, width: 30, height: 10, page: 1, pageWidth: 595 };
+  }
+
+  it('reads the vak name from the leftmost cell of the very first header row', () => {
+    const headerLine = ['Pedagogiek', 'V&A', 'M&M', 'INS', 'O&DW', 'C&B']
+      .map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const datapuntLine = [makeItem('‐ Reflectieopdracht', 10, 10), makeItem('G', 10, 10)];
+    const lines = [headerLine, datapuntLine];
+
+    const result = parseDeelgebiedTable(lines, 0);
+    expect(result.datapunten[0]?.vak).toBe('Pedagogiek');
+  });
+
+  it('updates the vak name on every subsequent repeated header row, not just the first', () => {
+    const cols = ['V&A', 'M&M', 'INS', 'O&DW', 'C&B'];
+    const headerLine = ['Pedagogiek', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const datapunt1 = [makeItem('‐ Reflectieopdracht', 10, 10), makeItem('G', 10, 10)];
+    const headerLine2 = ['Wiskunde', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const datapunt2 = [makeItem('‐ Toets domein 4', 10, 10), makeItem('V', 10, 10)];
+    const lines = [headerLine, datapunt1, headerLine2, datapunt2];
+
+    const result = parseDeelgebiedTable(lines, 0);
+    expect(result.datapunten[0]?.vak).toBe('Pedagogiek');
+    expect(result.datapunten[1]?.vak).toBe('Wiskunde');
+  });
+
+  it('still captures a vak named after one of its own deelgebied columns (real "LOB" collision)', () => {
+    // "LOB" is both a real vak name AND one of the 19 fixed deelgebied column
+    // abbreviations — a text-only "is this a known label" check can't tell
+    // the leftmost "LOB" (vak name, far left) apart from the "LOB" column
+    // header elsewhere in the same row (real-PDF confirmed, 2026-06-18).
+    const cols = ['V&A', 'M&M', 'INS', 'O&DW', 'LOB'];
+    const headerLine = ['Pedagogiek', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const datapunt1 = [makeItem('‐ Reflectieopdracht', 10, 10), makeItem('G', 10, 10)];
+    const headerLine2 = ['LOB', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const datapunt2 = [makeItem('‐ Startgesprek BJ2', 10, 10), makeItem('V', 10, 10)];
+    const lines = [headerLine, datapunt1, headerLine2, datapunt2];
+
+    const result = parseDeelgebiedTable(lines, 0);
+    expect(result.datapunten[0]?.vak).toBe('Pedagogiek');
+    expect(result.datapunten[1]?.vak).toBe('LOB');
+  });
+});
