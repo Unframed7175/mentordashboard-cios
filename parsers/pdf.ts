@@ -634,18 +634,29 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     // Skip blank lines
     if (!text) continue;
 
-    // Repeated column-header row (multi-page table) — skip
-    if (isHeaderRow(line, line[0]?.pageWidth ?? 595)) {
-      console.log(`[pdf.ts] Skipping repeated deelgebied header row at line ${i}`);
-      continue;
-    }
-
     // Sort line items by x (left to right) — PDF.js does not guarantee order
     const sorted = line.slice().sort((a: any, b: any) => a.x - b.x);
 
     // The leftmost item is the row label (vak name or opdracht/datapunt name)
     const labelItem = sorted[0];
     const labelText = labelItem ? labelItem.str.trim() : '';
+
+    // Datapunten always start with a dash-like character (PDF uses U+2010 HYPHEN,
+    // not ASCII U+002D hyphen-minus).
+    const DATAPUNT_PREFIX = /^[-‐‑‒–—―−]/;
+    const isDatapuntRow = DATAPUNT_PREFIX.test(labelText);
+
+    // Repeated column-header row (multi-page table) — skip. A dash-prefixed
+    // datapunt row is NEVER a header row, even when it scores across enough
+    // widely-spread deelgebieden to also match isHeaderRow()'s positional
+    // heuristic (≥5 items spanning ≥50% of the page width) — without this
+    // guard such a row is indistinguishable from a repeated header and its
+    // scores are silently lost (confirmed against real BJ2 voortgangsrapporten,
+    // e.g. "Try-out semester 1" scored across 5 deelgebieden).
+    if (!isDatapuntRow && isHeaderRow(line, line[0]?.pageWidth ?? 595)) {
+      console.log(`[pdf.ts] Skipping repeated deelgebied header row at line ${i}`);
+      continue;
+    }
 
     // Vak group heading: font size exceeds the document heading threshold (T3)
     if (labelText && labelItem && labelItem.fontSize >= headingThreshold) {
@@ -672,10 +683,8 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
       continue;
     }
 
-    // Datapunten always start with a dash-like character (PDF uses U+2010 HYPHEN,
-    // not ASCII U+002D hyphen-minus). Skip anything that doesn't start with a dash.
-    const DATAPUNT_PREFIX = /^[-‐‑‒–—―−]/;
-    if (!DATAPUNT_PREFIX.test(labelText)) {
+    // Skip anything that isn't a datapunt row (doesn't start with a dash).
+    if (!isDatapuntRow) {
       console.log(`[pdf.ts] Deelgebied table: skipping non-datapunt row → "${labelText}"`);
       continue;
     }

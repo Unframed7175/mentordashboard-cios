@@ -429,3 +429,44 @@ describe('parseDeelgebiedTable — stops before a trailing opdracht-table (Feed 
     expect(result.endIndex).toBe(lines.length);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Regression: a widely-scored datapunt row must never be mistaken for a
+// repeated header row (real BJ2-PDF bug, 2026-06-18).
+//
+// isHeaderRow() flags any line with ≥ MIN_COLUMN_WARN_THRESHOLD items spanning
+// ≥ 50% of the page width — a positional heuristic with no awareness of the
+// dash-prefixed datapunt marker. A single opdracht scored across 5+ widely
+// spread deelgebieden satisfies that same shape, so parseDeelgebiedTable's
+// loop (which checks isHeaderRow() before the datapunt-prefix check) silently
+// discarded it as a "repeated header row" — losing every score in that row.
+// Confirmed against two real BJ2 voortgangsrapporten where an entire vak
+// ("Organisatiekunde") disappeared this way.
+// ---------------------------------------------------------------------------
+describe('parseDeelgebiedTable — a dash-prefixed datapunt row is never a header row', () => {
+  function makeItem(str: string, x: number, fontSize = 10) {
+    return { str, x, fontSize, y: 500, width: 30, height: 10, page: 1, pageWidth: 595 };
+  }
+
+  it('keeps a datapunt row scored across 5 widely-spread columns instead of discarding it as a repeated header', () => {
+    const headerLine = ['V&A', 'M&M', 'C&B', 'S&O', 'DESK'].map((l, i) => makeItem(l, 150 + i * 80, 10));
+    // Mirrors the real "Try-out semester 1" row: 1 label + 5 scores spanning
+    // > 50% of the page width — the exact shape isHeaderRow() also matches.
+    const wideRow = [
+      makeItem('‐ Try-out semester 1', 10, 10),
+      makeItem('V', 150, 10),
+      makeItem('G', 230, 10),
+      makeItem('G', 310, 10),
+      makeItem('G', 390, 10),
+      makeItem('V', 470, 10),
+    ];
+    const lines = [headerLine, wideRow];
+
+    const result = parseDeelgebiedTable(lines, 0);
+
+    expect(result.datapunten).toHaveLength(1);
+    expect(result.datapunten[0]?.datapunt).toContain('Try-out semester 1');
+    expect(result.deelgebiedScores['V&A']).toBe('voldoende');
+    expect(result.deelgebiedScores['DESK']).toBe('voldoende');
+  });
+});
