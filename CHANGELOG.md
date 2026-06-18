@@ -1,5 +1,12 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.11.0] — 2026-06-18 — Automatische updates via Tauri-updater + release- en landingspagina-automatisering
+
+### Added
+- **In-app auto-update** — vervangt de oude GitHub-API-polling door `tauri-plugin-updater` met Ed25519-signature-verificatie. Een `UpdateModal` toont de patch notes uit de CHANGELOG en biedt "Update nu" (downloaden, installeren en herstarten) of "Later" — zowel automatisch bij opstart als via "Controleer op updates" in Instellingen. Een mislukte check (geen internet, ongeldige signature) toont een duidelijke foutmelding in plaats van zich voor te doen als "up to date".
+- **Release-automatisering** — releases worden voortaan automatisch gesigneerd; de release-body komt rechtstreeks uit de nieuwste CHANGELOG-sectie. Een hard-fail voorkomt dat een vergeten CHANGELOG-update een release met de patch notes van een oudere versie publiceert.
+- **Landingspagina-automatisering** — na elke gepubliceerde release werkt een GitHub Actions-workflow automatisch de nav-versiebadge, downloadlinks, footer-versie en "wat is er nieuw"-kaart bij op de publieke landingspagina.
+
 ## [2.10.2] — 2026-06-17 — Bugfix BJ1 PDF-import: sportvakken-tabel corrumpeerde deelgebiedscores
 
 ### Fixed

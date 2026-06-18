@@ -53,3 +53,12 @@
 - **Cons:** Raakt vier bestanden + hun tests; geen functioneel probleem vandaag (Escape-handling is inmiddels overal aanwezig, zie commit van 2026-06-18).
 - **Context:** Gevonden tijdens /review van de auto-update-systeem-milestone (2026-06-18, angle Reuse).
 - **Depends on / blocked by:** Niets; losse refactor-taak.
+
+## T-2026-06-18-04 · src-tauri/Cargo.toml-versie loopt achter op de app-versie
+
+- **What:** `src-tauri/Cargo.toml`'s `version`-veld staat op `2.6.1`, terwijl `package.json`/`tauri.conf.json` (de bron van waarheid voor de app-versie) inmiddels op `2.11.0` staan. Tot en met v2.6.1 werden alle drie de bestanden samen bijgewerkt; sindsdien is Cargo.toml gemist bij elke release.
+- **Why:** Geen runtime-impact (Tauri leest de app-versie uit `tauri.conf.json`, niet uit Cargo.toml) maar wel verwarrend voor wie de Rust-crate los bekijkt en de drift verder laat groeien als het niet wordt rechtgetrokken.
+- **Pros:** Eén regel aanpassen herstelt de consistentie; kan meteen mee in de volgende versie-bump.
+- **Cons:** Geen.
+- **Context:** Gevonden tijdens Fase 4-versiebump van de auto-update-systeem-milestone (2026-06-18); buiten scope gehouden omdat de taak alleen package.json + tauri.conf.json vroeg.
+- **Depends on / blocked by:** Niets; triviale fix bij de volgende release.
