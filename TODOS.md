@@ -1,5 +1,23 @@
 # TODOS
 
+## T-2026-06-18-16 · Drag-and-drop-prompt op leeg dashboard verwijderen (overbodig naast onboarding-wizard)
+
+- **What:** Wanneer een dashboard leeg is, toont de import-weergave nog een "sleep je documenten hierheen"-optie. Die moet verwijderd worden — de onboarding-wizard voegt alles al toe via een eigen, begeleid stappenplan.
+- **Why:** Twee verschillende manieren om bestanden toe te voegen op hetzelfde scherm (vrije drag-and-drop vs. de gestuurde wizard) is verwarrend en overbodig nu de wizard deze taak al volledig afdekt.
+- **Pros:** Vereenvoudigt het leeg-dashboard-scherm; één duidelijk pad (de wizard) i.p.v. twee.
+- **Cons:** Controleren of de drag-and-drop-optie ook ergens anders (niet-leeg dashboard, "bestanden toevoegen" in Instellingen) nuttig blijft — alleen de leeg-dashboard-variant verwijderen, niet de algemene import-functionaliteit.
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Hangt mogelijk samen met T-2026-06-18-15 (menu-cleanup) als onderdeel van dezelfde opschoonronde.
+
+## T-2026-06-18-15 · Algehele cleanup van het (instellingen)menu
+
+- **What:** Een algehele opschoning van het menu — het instellingenmenu is in zijn huidige vorm een stuk minder relevant [dan de huidige omvang/indeling suggereert]. Scope nog niet verder gespecificeerd door de gebruiker.
+- **Why:** Niet nader toegelicht — vereist verduidelijking vóór planning: welke onderdelen van het instellingenmenu zijn niet (meer) relevant, en wat moet daarvoor in de plaats komen?
+- **Pros:** N.v.t. totdat scope is verduidelijkt.
+- **Cons:** Te vaag om direct te plannen — risico op verkeerde aannames zonder verduidelijking.
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Verduidelijking nodig: welke specifieke onderdelen van het instellingenmenu worden bedoeld, en wat de gewenste eindstaat is.
+
 ## T-2026-06-18-14 · Doorstroomprognose: niet-ingeleverd/te laat datapunt → twijfelgeval voor dichtstbijzijnde niveau
 
 - **What:** Aanvulling op de doorstroomprognose-berekening (`utils/prognosis.ts`, M39 S/C-compensatieformule): wanneer een datapunt niet is ingeleverd of te laat is, wordt de leerling een "twijfelgeval" voor het niveau waar hij het dichtste bij zit in termen van haalbaarheid — dus "twijfelgeval sportbewegingsleider" (SBL) of "twijfelgeval sportbeweegcoördinator" (SBC), afhankelijk van welk niveau het dichtstbij is.
