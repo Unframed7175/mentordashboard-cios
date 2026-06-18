@@ -45,6 +45,17 @@ describe('changelogBodyToUpdateItems', () => {
   it('gooit een fout als er geen herkenbare items zijn', () => {
     expect(() => changelogBodyToUpdateItems('Geen koppen of bullets hier.')).toThrow();
   });
+
+  it('gooit een fout bij een onbekende sectiekop (voorkomt stil verlies van content)', () => {
+    expect(() => changelogBodyToUpdateItems('### Security\n- Iets opgelost.')).toThrow();
+  });
+
+  it('escaped HTML-metakarakters in changelog-tekst', () => {
+    const html = changelogBodyToUpdateItems('### Fixed\n- Gebruik <script> en & tags.');
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).toContain('&amp; tags');
+    expect(html).not.toContain('<script>');
+  });
 });
 
 describe('formatDutchDate', () => {

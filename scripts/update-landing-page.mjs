@@ -23,6 +23,10 @@ const CHIP_MAP = {
   Breaking: { label: 'Belangrijk', cls: 'chip-changed' },
 };
 
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 export function changelogBodyToUpdateItems(body) {
   const lines = body.split('\n');
   let currentSection = null;
@@ -32,12 +36,17 @@ export function changelogBodyToUpdateItems(body) {
     const sectionMatch = line.match(/^###\s+(\w+)/);
     if (sectionMatch) {
       currentSection = sectionMatch[1];
+      if (!CHIP_MAP[currentSection]) {
+        throw new Error(
+          `Onbekende changelog-sectiekop "### ${currentSection}" — verwacht een van: ${Object.keys(CHIP_MAP).join(', ')}`
+        );
+      }
       continue;
     }
     const bulletMatch = line.match(/^-\s+(.*)/);
     if (bulletMatch && currentSection && CHIP_MAP[currentSection]) {
       const { label, cls } = CHIP_MAP[currentSection];
-      const text = bulletMatch[1].replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      const text = escapeHtml(bulletMatch[1]).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
       items.push(`        <div class="update-item"><span class="update-chip ${cls}">${label}</span>${text}</div>`);
     }
   }
