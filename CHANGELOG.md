@@ -1,5 +1,10 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.11.1] — 2026-06-18 — Bugfix BJ2 PDF-import: datapunten met veel deelgebiedscores verdwenen
+
+### Fixed
+- **BJ2 PDF-import** — een datapunt dat op 5 of meer breed verspreide deelgebieden scoorde (bv. "Try-out semester 1") werd door de parser ten onrechte herkend als een herhaalde kolomkop-rij van de "Overzicht Deelgebieden"-tabel en volledig overgeslagen — inclusief alle scores. De herkenning van kolomkop-rijen kijkt nu eerst of een rij met het datapunt-streepje begint; zo'n rij wordt nooit meer als kolomkop behandeld, ongeacht hoeveel deelgebieden hij scoort.
+
 ## [2.11.0] — 2026-06-18 — Automatische updates via Tauri-updater + release- en landingspagina-automatisering
 
 ### Added
