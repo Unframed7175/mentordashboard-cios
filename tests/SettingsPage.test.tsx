@@ -70,6 +70,11 @@ vi.mock('../utils/normen', () => ({
   DEFAULT_NORMEN: DEFAULT_NORMEN_MOCK,
 }));
 
+const mockCheckForUpdate = vi.fn();
+vi.mock('../utils/updateCheck', () => ({
+  checkForUpdate: (...args: unknown[]) => mockCheckForUpdate(...args),
+}));
+
 vi.mock('@tauri-apps/plugin-store', () => {
   // ES6 class mock — required for `new LazyStore()` constructor call (STATE.md line 64)
   class LazyStore {
@@ -571,4 +576,52 @@ describe('Section 5: Doorstroomdrempels', () => {
     expect(onNormenChanged).toHaveBeenCalledTimes(1);
   });
 
+});
+
+// ── Section 6: Controleer op updates (handmatige update-check) ──────────────
+
+describe('SettingsPage — Controleer op updates', () => {
+  beforeEach(() => {
+    mockCheckForUpdate.mockReset();
+  });
+
+  function renderSettings() {
+    return render(
+      <SettingsPage onBack={vi.fn()} onNavigateToImport={vi.fn()} isDark={false} onToggleDark={vi.fn()} onNormenChanged={() => {}} />
+    );
+  }
+
+  it('toont "Je hebt de nieuwste versie" als er geen update is', async () => {
+    mockCheckForUpdate.mockResolvedValueOnce(null);
+    renderSettings();
+    await act(async () => { await Promise.resolve(); });
+
+    fireEvent.click(screen.getByRole('button', { name: /Controleer op updates/i }));
+    expect(await screen.findByText(/Je hebt de nieuwste versie/i)).toBeTruthy();
+  });
+
+  it('opent UpdateModal als er een update beschikbaar is', async () => {
+    mockCheckForUpdate.mockResolvedValueOnce({
+      version: '9.9.9',
+      body: '### Fixed\n- iets',
+      downloadAndInstall: vi.fn(),
+    });
+    renderSettings();
+    await act(async () => { await Promise.resolve(); });
+
+    fireEvent.click(screen.getByRole('button', { name: /Controleer op updates/i }));
+    expect(await screen.findByText(/9\.9\.9/)).toBeTruthy();
+  });
+
+  it('toont "Update-check mislukt" als checkForUpdate een fout gooit (regressietest)', async () => {
+    // Regressietest voor de bug waarbij checkForUpdate() alle fouten verzwolg en
+    // null teruggaf — daardoor toonde een mislukte check ten onrechte "up to date".
+    mockCheckForUpdate.mockRejectedValueOnce(new Error('network error'));
+    renderSettings();
+    await act(async () => { await Promise.resolve(); });
+
+    fireEvent.click(screen.getByRole('button', { name: /Controleer op updates/i }));
+    expect(await screen.findByText(/Update-check mislukt/i)).toBeTruthy();
+    expect(screen.queryByText(/Je hebt de nieuwste versie/i)).toBeNull();
+  });
 });
