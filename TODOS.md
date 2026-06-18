@@ -1,5 +1,14 @@
 # TODOS
 
+## T-2026-06-18-06 · Vaknaam-detectie leest niet door tekst-wrap heen op tweede regel
+
+- **What:** Wanneer een vaknaam in de "Overzicht Deelgebieden"-kolomkop over twee PDF-regels wrapt (bv. "Bewegingsleer & Conditionele" / "vormen"), leest `parseDeelgebiedTable()` alleen de eerste regel. `datapunt.vak` wordt dan "Bewegingsleer & Conditionele" in plaats van "Bewegingsleer & Conditionele vormen".
+- **Why:** Cosmetisch — `datapunt.vak` wordt nergens in de UI getoond (bevestigd 2026-06-18), dus dit heeft vandaag geen zichtbaar effect. Wordt relevant zodra vak-groepering ooit aan `DeelgebiedenMatrix` wordt toegevoegd.
+- **Pros:** Kleine aanvulling op de net gebouwde vak-capture-logica: bij het vaststellen van een vaknaam, peek naar de volgende regel — als die geen streepje-prefix heeft, geen kolomkop is, en geen grote font heeft, is het een wrap-vervolg en moet hij worden samengevoegd.
+- **Cons:** Vereist een nieuwe peek-ahead-regel; alleen de moeite waard zodra vak-groepering daadwerkelijk wordt gebouwd.
+- **Context:** Gevonden tijdens het bouwen van vak-naam-detectie voor BJ2 "Fase 2 DD"-lay-out (2026-06-18), bevestigd op 2 echte PDF's.
+- **Depends on / blocked by:** Wachten op besluit om vak-groepering in de UI te bouwen.
+
 ## T-2026-06-18-05 · ci.yml build-job mist TAURI_SIGNING_PRIVATE_KEY, faalt op macOS
 
 - **What:** De multi-platform `build`-job in `ci.yml` geeft `tauri build` geen `TAURI_SIGNING_PRIVATE_KEY`/`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` mee (in tegenstelling tot `release.yml`, die dit wel doet). Sinds de auto-update-milestone een updater-publieke-sleutel in `tauri.conf.json` heeft gezet, faalt elke `tauri build` zonder de bijbehorende private key met "A public key has been found, but no private key."
