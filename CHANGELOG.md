@@ -1,5 +1,10 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.11.2] — 2026-06-18 — Visuele update van de update-melding
+
+### Changed
+- **UpdateModal** — visueel vernieuwd: een herkenbaar update-icoon, de versie als los badge, gekleurde labels voor changelog-secties (Toegevoegd/Opgelost/etc., dezelfde kleuren als de status-badges elders in de app), een opgeruimde puntenlijst i.p.v. standaard-bullets, een vervaag-overlay met lichte blur, en een zachte intro-animatie (met respect voor "verminderde beweging"-instellingen).
+
 ## [2.11.1] — 2026-06-18 — Bugfix BJ2 PDF-import: datapunten met veel deelgebiedscores verdwenen
 
 ### Fixed

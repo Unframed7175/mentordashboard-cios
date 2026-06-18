@@ -29,6 +29,21 @@ describe('formatPatchNotes', () => {
     expect(container.querySelector('p')?.textContent).toBe('Gewone tekst zonder marker');
   });
 
+  it('geeft een herkende sectiekop (Added/Fixed/etc.) een kleur-chip class', () => {
+    const { container } = render(<div>{formatPatchNotes('### Added')}</div>);
+    expect(container.querySelector('h4')?.className).toBe('patch-chip-added');
+  });
+
+  it('herkent sectiekoppen case-insensitive', () => {
+    const { container } = render(<div>{formatPatchNotes('### fixed')}</div>);
+    expect(container.querySelector('h4')?.className).toBe('patch-chip-fixed');
+  });
+
+  it('geeft een onbekende sectiekop geen chip class', () => {
+    const { container } = render(<div>{formatPatchNotes('### Security')}</div>);
+    expect(container.querySelector('h4')?.className).toBeFalsy();
+  });
+
   it('combineert kop, bullets en platte tekst in document-volgorde', () => {
     const { container } = render(
       <div>{formatPatchNotes('### Fixed\n- Punt een\n- Punt twee\n\n### Changed\n- Punt drie')}</div>
