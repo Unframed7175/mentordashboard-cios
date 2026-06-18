@@ -1,5 +1,14 @@
 # TODOS
 
+## T-2026-06-18-05 · ci.yml build-job mist TAURI_SIGNING_PRIVATE_KEY, faalt op macOS
+
+- **What:** De multi-platform `build`-job in `ci.yml` geeft `tauri build` geen `TAURI_SIGNING_PRIVATE_KEY`/`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` mee (in tegenstelling tot `release.yml`, die dit wel doet). Sinds de auto-update-milestone een updater-publieke-sleutel in `tauri.conf.json` heeft gezet, faalt elke `tauri build` zonder de bijbehorende private key met "A public key has been found, but no private key."
+- **Why:** Dit bleef onopgemerkt omdat `ci.yml` nooit triggerde (verkeerde branchnaam "main" i.p.v. "master" — zie PR #1). Nu de trigger gefixt is, faalt de macOS build-job zichtbaar op elke PR.
+- **Pros:** Twee env-vars toevoegen (mirror van `release.yml` regel 56-58) laat de volledige signed build ook op PR's slagen.
+- **Cons:** Verbruikt de signing-key bij elke PR-run i.p.v. alleen bij een daadwerkelijke release; mogelijk bewuste keuze om dat te vermijden — projectlead moet beslissen.
+- **Context:** Ontdekt tijdens het instellen van branch protection (2026-06-18, PR #1). Branch protection vereist bewust alleen de losse `test`-job (npm test), niet deze `build`-job, in afwachting van deze beslissing.
+- **Depends on / blocked by:** Projectlead-besluit: secrets toevoegen aan ci.yml, of build-job uit ci.yml halen en alleen in release.yml laten draaien.
+
 ## T-2026-06-12-01 · Cross-machine back-up-herstel
 
 - **What:** Back-ups herstelbaar maken op een andere machine dan waar ze zijn gemaakt.
