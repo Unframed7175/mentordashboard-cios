@@ -54,14 +54,14 @@
 - **Context:** Gevonden tijdens /review van de auto-update-systeem-milestone (2026-06-18, angle A/E).
 - **Depends on / blocked by:** Hangt samen met T-2026-06-18-01 (zelfde sectie).
 
-## T-2026-06-18-03 · UpdateModal dupliceert modal-scaffold van KlasVerwijderenModal/FeedbackModal
+## T-2026-06-18-03 · Andere modals achtergebleven na UpdateModal-restyle (visuele inconsistentie)
 
-- **What:** De inline overlay/card-styling (~20 regels: `position: fixed`, `inset: 0`, achtergrond, flex-center, kaart-padding/radius/shadow) staat nu letterlijk in vier componenten: `KlasVerwijderenModal`, `FeedbackModal`, `KlasModal` en `UpdateModal`.
-- **Why:** Een visuele wijziging (border-radius, z-index, dark-mode-kleur) moet in alle vier bestanden worden doorgevoerd; het missen van één bestand levert een inconsistente modal op.
-- **Pros:** Eén gedeelde `<ModalOverlay>`-component (met ingebouwde Escape-handler en overlay-click-afhandeling) voorkomt toekomstige drift.
-- **Cons:** Raakt vier bestanden + hun tests; geen functioneel probleem vandaag (Escape-handling is inmiddels overal aanwezig, zie commit van 2026-06-18).
-- **Context:** Gevonden tijdens /review van de auto-update-systeem-milestone (2026-06-18, angle Reuse).
-- **Depends on / blocked by:** Niets; losse refactor-taak.
+- **What:** `UpdateModal` is visueel vernieuwd (2026-06-18, commit `eba67b1`): eigen CSS-classes (`.update-modal-*`) i.p.v. inline-stijlen, design-tokens (`--radius-lg`, `--shadow-lg`), icoon, gekleurde chips, intro-animatie. `KlasVerwijderenModal`, `FeedbackModal` en `KlasModal` gebruiken nog steeds de oude inline-stijl-scaffold (`position: fixed`, hardcoded `12px`/`rgba(0,0,0,0.18)` i.p.v. tokens) — ze ogen nu merkbaar minder verzorgd naast UpdateModal.
+- **Why:** Inconsistente visuele kwaliteit binnen dezelfde app; een gebruiker die UpdateModal en bv. KlasVerwijderenModal naast elkaar ziet, merkt het verschil in afwerking.
+- **Pros:** UpdateModal's `.update-modal-*`-CSS-aanpak (of een gedeelde `<ModalOverlay>`/`<ModalCard>`-component erboven) kan 1-op-1 worden toegepast op de andere drie; voorkomt ook toekomstige scaffold-duplicatie (zie originele bevinding: dezelfde ~20 regels overlay/card-styling stonden letterlijk in alle vier de componenten).
+- **Cons:** Raakt 3 bestanden + hun tests; puur visueel, geen functioneel probleem vandaag.
+- **Context:** Bevinding tijdens /review van de auto-update-systeem-milestone (2026-06-18, angle Reuse), nu scherper na de UpdateModal-restyle in commit `eba67b1`.
+- **Depends on / blocked by:** Niets; losse design-taak, kan UpdateModal's aanpak als referentie gebruiken.
 
 ## T-2026-06-18-04 · src-tauri/Cargo.toml-versie loopt achter op de app-versie
 
