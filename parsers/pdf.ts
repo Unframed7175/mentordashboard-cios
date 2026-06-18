@@ -73,6 +73,10 @@ const MIN_COLUMN_WARN_THRESHOLD = 5;
  */
 const COLUMN_X_TOLERANCE = 20;
 
+// Datapunten always start with a dash-like character (PDF uses U+2010 HYPHEN,
+// not ASCII U+002D hyphen-minus).
+const DATAPUNT_PREFIX = /^[-‐‑‒–—―−]/;
+
 // ---------------------------------------------------------------------------
 // Task 01-02-01: Text extraction and line-grouping utilities
 // ---------------------------------------------------------------------------
@@ -586,6 +590,32 @@ function assignScoreToColumn(item: { str: string; x: number }, columnMap: Record
 }
 
 /**
+ * Detects a vak-name wrap continuation: a bare follow-up line directly after
+ * a vak heading whose name overflowed onto a second PDF line (e.g.
+ * "Bewegingsleer & Conditionele" wraps to "vormen" on the next line).
+ *
+ * Must NOT match: a datapunt row, a repeated column-header row, a new vak
+ * heading (large font), a known structural marker (Feed Forward, Naam:,
+ * etc.), or a page-footer line (e.g. "(BJ2 Fase 2 DD | Naam | datum) (1 / 3)"
+ * — footers always start with "(", which a wrapped vak-name fragment never does.
+ *
+ * @param text - lineToText() of the candidate continuation line
+ * @param line - the candidate line's raw items
+ * @param headingThreshold - document heading font-size threshold (T3)
+ * @returns {boolean}
+ */
+function isVakNameContinuation(text: string, line: any[], headingThreshold: number): boolean {
+  if (!text) return false;
+  if (DATAPUNT_PREFIX.test(text)) return false;
+  if (text.startsWith('(')) return false;
+  if (/^(feed\s*forward|overzicht\s*deelgebied|leerjaar|naam\s*:|leerling|periode)/i.test(text)) return false;
+  if (isHeaderRow(line, line[0]?.pageWidth ?? 595)) return false;
+  const maxFont = Math.max(...line.map((it: any) => it.fontSize ?? 0));
+  if (maxFont >= headingThreshold) return false;
+  return true;
+}
+
+/**
  * Parse the "Overzicht Deelgebieden" table starting from `startIndex`.
  *
  * Algorithm:
@@ -637,6 +667,11 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     const firstLabel = firstItem?.str.trim() ?? '';
     if (firstLabel && firstItem.x < minColumnX) {
       currentVak = firstLabel;
+      const nextLine = lines[startIndex + 1];
+      const nextText = nextLine ? lineToText(nextLine) : '';
+      if (nextLine && isVakNameContinuation(nextText, nextLine, headingThreshold)) {
+        currentVak += ' ' + nextText.trim();
+      }
     }
   }
 
@@ -659,9 +694,6 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     const labelItem = sorted[0];
     const labelText = labelItem ? labelItem.str.trim() : '';
 
-    // Datapunten always start with a dash-like character (PDF uses U+2010 HYPHEN,
-    // not ASCII U+002D hyphen-minus).
-    const DATAPUNT_PREFIX = /^[-‐‑‒–—―−]/;
     const isDatapuntRow = DATAPUNT_PREFIX.test(labelText);
 
     // Repeated column-header row (multi-page table) — skip. A dash-prefixed
@@ -677,6 +709,11 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
       // column abbreviation — capture it before discarding the row.
       if (labelText && labelItem.x < minColumnX) {
         currentVak = labelText;
+        const nextLine = lines[i + 1];
+        const nextText = nextLine ? lineToText(nextLine) : '';
+        if (nextLine && isVakNameContinuation(nextText, nextLine, headingThreshold)) {
+          currentVak += ' ' + nextText.trim();
+        }
         console.log(`[pdf.ts] Deelgebied table: vak heading (uit kolomkop) → "${currentVak}"`);
       }
       console.log(`[pdf.ts] Skipping repeated deelgebied header row at line ${i}`);
@@ -704,6 +741,11 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
       }
 
       currentVak = labelText;
+      const nextLine = lines[i + 1];
+      const nextLineText = nextLine ? lineToText(nextLine) : '';
+      if (nextLine && isVakNameContinuation(nextLineText, nextLine, headingThreshold)) {
+        currentVak += ' ' + nextLineText.trim();
+      }
       console.log(`[pdf.ts] Deelgebied table: vak heading (font-size) → "${currentVak}"`);
       continue;
     }
@@ -868,6 +910,7 @@ export {
   buildColumnMap,
   assignScoreToColumn,
   parseDeelgebiedTable,
+  isVakNameContinuation,
 
   // Constants
   Y_TOLERANCE,
