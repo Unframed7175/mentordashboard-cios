@@ -1,25 +1,50 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-06-15 — M37 DONE v2.8.0. M38-leerlijn-config gestart.
+> Laatste update: 2026-06-18 — M40 DONE v2.11.0. Geen actieve milestone; M41 (uitrol naar collega's) nog niet gepland.
 
 ---
+
+## Correctie 2026-06-18: M39-nummering rechtgezet in ROADMAP.md
+ROADMAP.md claimde M39 = "Uitrol naar collega's" (vastgelegd in commit `cb53378`), maar het daaropvolgende werk
+("prognose-verdieping") is zelf onder de naam M39 gereleased (commit `772e823`, v2.10.0) zonder ROADMAP.md
+terug te corrigeren — geen van beide had een milestone-map of S01-PLAN.md. ROADMAP.md is nu rechtgezet:
+M39 = prognose-verdieping (zoals daadwerkelijk gereleased), M40 = auto-update-systeem (nieuw genummerd, had
+nog geen M-nummer), "Uitrol naar collega's" verschoven naar M41 met status WACHT (was ten onrechte ACTIEF
+gemarkeerd zonder dat er ooit Fase 0/1-werk voor is gestart).
 
 ## Afwijking 2026-06-15: kleine bugfix / bounded refactor
 Reden: M38 raakt 2 bestanden (leerlijn.json nieuw + schema.ts import), architectuur al besloten in M35-planning — Fase 0 niet vereist.
 
 ## Huidige fase
 
-**Fase 2 · Executie — M038-leerlijn-config (ACTIEF)**
+Geen actieve milestone. M40 is afgerond en gereleased (v2.11.0); M41 ("Uitrol naar collega's") staat
+in ROADMAP.md op WACHT — vereist eerst Fase 0 (GStack `/office-hours`) om scope te bepalen voordat
+GSD een milestone-map kan aanmaken.
 
-| ID | Taak | Status |
-|---|---|---|
-| T1 | src/config/leerlijn.json aanmaken | ✅ 8c6f883 |
-| T2 | tsconfig.json: resolveJsonModule toevoegen | ✅ 8c6f883 |
-| T3 | utils/schema.ts: import van JSON | ✅ 8c6f883 |
+## Handoff 2026-06-18
 
-Testsuite: 400/400 groen | Fase 2 klaar → Fase 4 ready
+Van: GStack/Superpowers — Fase 4 (review & ship M40) + GSD (tracking-reconciliatie)
+Naar: GStack — Fase 0 (volgende milestone)
+Status: M40 (auto-update-systeem) DONE en gereleased als v2.11.0. `ci.yml`-bugfix + branch protection op `master` ook gemerged (PR #1, `022a0e9`). `master` en `origin/master` zijn gelijk. GSD-tracking (dit bestand + ROADMAP.md) was 3 milestones achter en is nu rechtgezet.
+Openstaand: M41 "Uitrol naar collega's" heeft nog geen `/office-hours`-sessie, geen ADR, geen scope. `ci.yml`'s build-job-signingfout (TODOS.md T-2026-06-18-05) vereist een projectlead-besluit voordat hij wordt opgepakt.
+DoD afgevinkt: M40 Fase 4-DoD **ja** (review ✅, security scan ✅ 0 vulnerabilities, tests 447/452 groen, CHANGELOG-entry ✅, versiebump ✅, handoff geschreven ✅). M41 Fase 0 **nog niet gestart**.
 
 ---
+
+## Milestone afgerond 2026-06-18
+- **Versie:** 2.11.0
+- **Milestone:** M40-auto-update-systeem — status **DONE**
+- **Inhoud:** in-app updater via `tauri-plugin-updater` (Ed25519-signature-verificatie, vervangt GitHub-API-polling), `UpdateModal` (opstart + handmatige check in Instellingen), gesigneerde releases met CHANGELOG-gebaseerde release-body, automatische landingspagina-update na elke release.
+- **Uitgevoerd via:** Superpowers Fase 2 (TDD, subagent-driven, geen GSD-milestone-map — design/plan staan in `docs/superpowers/specs/2026-06-17-auto-update-systeem-design.md` en `docs/superpowers/plans/`).
+- **Fase 4 (deze sessie, 2026-06-18):** 8-angle parallelle code review op de volledige diff → 4 bevestigde correctheidsbugs gefixt (foutverzwelging in `checkForUpdate()` toonde ten onrechte "up to date"; ontbrekende CHANGELOG-versie-validatie tegen git tag; ongeëscapete HTML-injectie in landingspagina-script; stilzwijgend verlies van onbekende changelog-secties) + 2 kleinere fixes (Escape-toets, foutlogging). `npm audit` high-severity vite-kwetsbaarheid gefixt. CHANGELOG-entry + versiebump. 447/452 tests groen (5 skipped).
+- **Bijvangst:** `ci.yml` triggerde op een niet-bestaande branch ("main" i.p.v. "master") — CI heeft hierdoor nog nooit gedraaid. Gefixt + losse snelle `test`-job toegevoegd (PR #1, `022a0e9`). Branch protection op `master` ingesteld: PR verplicht, `test`-check verplicht en up-to-date, `enforce_admins` aan (voorkomt herhaling van een directe push naar master die deze sessie per ongeluk gebeurde vóór de protection er was). 0 verplichte reviewers (solo-maintainer-repo — GitHub laat geen self-approval toe).
+- **Backlog (niet-blokkerend, zie TODOS.md):** T-2026-06-18-01 t/m -05 — gedupliceerde UpdateModal-wiring, gesplitste update-statevariabelen, vierde modal-scaffold-duplicatie, Cargo.toml-versiedrift, `ci.yml` build-job mist signing-secrets.
+
+## Milestone afgerond 2026-06-17
+- **Versie:** 2.10.0–2.10.2
+- **Milestone:** M39-prognose-verdieping — status **DONE**
+- **Inhoud:** S/C-compensatieformule voor cijferaggregatie, uitgebreide BJ1/BJ2-doorstroomcriteria, keuzedelen-basisjaar-classificatie, inlever-tellers in prognosekaart; twee bugfixes (BJ1-datapunten zonder status telden onterecht mee; sportvakken-tabel corrumpeerde deelgebiedscores).
+- **Uitgevoerd zonder GSD-milestone-map** — geen S01-PLAN.md, rechtstreeks via commits `772e823`/`aa97950`/`7c565aa`. Zie Correctie 2026-06-18 hierboven voor de nummeringsgeschiedenis.
 
 ## Milestone afgerond 2026-06-15
 - **Versie:** 2.8.0
