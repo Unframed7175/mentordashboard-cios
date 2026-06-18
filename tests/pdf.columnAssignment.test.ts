@@ -21,6 +21,7 @@ import {
   buildColumnMap,
   isHeaderRow,
   parseDeelgebiedTable,
+  isVakNameContinuation,
   COLUMN_X_TOLERANCE,
   MIN_COLUMN_WARN_THRESHOLD,
 } from '../parsers/pdf';
@@ -523,5 +524,137 @@ describe('parseDeelgebiedTable — captures vak name embedded in a repeated head
     const result = parseDeelgebiedTable(lines, 0);
     expect(result.datapunten[0]?.vak).toBe('Pedagogiek');
     expect(result.datapunten[1]?.vak).toBe('LOB');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isVakNameContinuation() — unit coverage for the standalone heuristic.
+// ---------------------------------------------------------------------------
+describe('isVakNameContinuation', () => {
+  const HEADING_THRESHOLD = 14;
+
+  function bodyLine(str: string, opts: { x?: number; fontSize?: number; pageWidth?: number } = {}) {
+    return [{ str, x: opts.x ?? 10, fontSize: opts.fontSize ?? 10, y: 500, width: 30, height: 10, page: 1, pageWidth: opts.pageWidth ?? 595 }];
+  }
+
+  it('recognises a bare wrap-continuation word', () => {
+    expect(isVakNameContinuation('vormen', bodyLine('vormen'), HEADING_THRESHOLD)).toBe(true);
+  });
+
+  it('recognises a multi-word wrap-continuation phrase', () => {
+    expect(isVakNameContinuation('praktijk', bodyLine('praktijk'), HEADING_THRESHOLD)).toBe(true);
+  });
+
+  it('rejects empty text', () => {
+    expect(isVakNameContinuation('', [], HEADING_THRESHOLD)).toBe(false);
+  });
+
+  it('rejects a datapunt row (dash-prefixed)', () => {
+    const line = [
+      { str: '‐ Sportblok 1', x: 10, fontSize: 10, y: 500, width: 30, height: 10, page: 1, pageWidth: 595 },
+    ];
+    expect(isVakNameContinuation('‐ Sportblok 1', line, HEADING_THRESHOLD)).toBe(false);
+  });
+
+  it('rejects a page-footer line', () => {
+    const text = '(BJ2 Fase 2 DD | Bosker, J.G. (Javier-Andrès) | 18-6-2026) (2 / 3)';
+    expect(isVakNameContinuation(text, bodyLine(text), HEADING_THRESHOLD)).toBe(false);
+  });
+
+  it('rejects a repeated column-header row', () => {
+    const cols = ['V&A', 'M&M', 'INS', 'O&DW', 'C&B'];
+    const line = cols.map((l, i) => ({ str: l, x: 10 + i * 100, fontSize: 10, y: 500, width: 30, height: 10, page: 1, pageWidth: 595 }));
+    expect(isVakNameContinuation(line.map(it => it.str).join(' '), line, HEADING_THRESHOLD)).toBe(false);
+  });
+
+  it('rejects a new large-font vak heading', () => {
+    const text = 'Rekenen';
+    expect(isVakNameContinuation(text, bodyLine(text, { fontSize: 16 }), HEADING_THRESHOLD)).toBe(false);
+  });
+
+  it('rejects known structural markers', () => {
+    for (const text of ['Naam: Jansen', 'Periode: BJ2', 'Feed Forward', 'Overzicht Deelgebieden', 'Leerling ID: 123', 'Leerjaar 1']) {
+      expect(isVakNameContinuation(text, bodyLine(text), HEADING_THRESHOLD)).toBe(false);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// parseDeelgebiedTable — vak-name wrap continuation across all 3 capture sites
+// (initial seed, repeated header row, standalone font-size heading), plus the
+// critical negative case: a page footer must never be merged into a vak name.
+// ---------------------------------------------------------------------------
+describe('parseDeelgebiedTable — merges a vak name that wraps onto a second PDF line', () => {
+  function makeItem(str: string, x: number, fontSize = 10) {
+    return { str, x, fontSize, y: 500, width: 30, height: 10, page: 1, pageWidth: 595 };
+  }
+
+  it('merges the wrap continuation for the very first vak (initial-seed path)', () => {
+    const cols = ['V&A', 'M&M', 'INS', 'O&DW', 'C&B'];
+    const headerLine = ['Bewegingsleer & Conditionele', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const wrapLine = [makeItem('vormen', 10, 10)];
+    const datapuntLine = [makeItem('‐ Tussentijds trainingsplan', 10, 10), makeItem('V', 10, 10)];
+    const lines = [headerLine, wrapLine, datapuntLine];
+
+    const result = parseDeelgebiedTable(lines, 0);
+    expect(result.datapunten[0]?.vak).toBe('Bewegingsleer & Conditionele vormen');
+  });
+
+  it('merges the wrap continuation for a repeated header row mid-table', () => {
+    const cols = ['V&A', 'M&M', 'INS', 'O&DW', 'C&B'];
+    const headerLine = ['Pedagogiek', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const datapunt1 = [makeItem('‐ Reflectieopdracht', 10, 10), makeItem('G', 10, 10)];
+    const headerLine2 = ['Didactiek Pedagogiek: leren in de', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const wrapLine = [makeItem('praktijk', 10, 10)];
+    const datapunt2 = [makeItem('‐ Interview stagebegeleider', 10, 10), makeItem('V', 10, 10)];
+    const lines = [headerLine, datapunt1, headerLine2, wrapLine, datapunt2];
+
+    const result = parseDeelgebiedTable(lines, 0);
+    expect(result.datapunten[0]?.vak).toBe('Pedagogiek');
+    expect(result.datapunten[1]?.vak).toBe('Didactiek Pedagogiek: leren in de praktijk');
+  });
+
+  it('merges the wrap continuation for a standalone large-font vak heading (BJ1-style layout)', () => {
+    const headerLine = ['V&A', 'M&M', 'INS'].map((l, i) => makeItem(l, 100 + i * 40, 10));
+    const vakLine = [makeItem('Samenwerken en', 10, 16)];
+    const wrapLine = [makeItem('communiceren', 10, 10)];
+    const datapuntLine = [makeItem('- Taak A', 10, 10), makeItem('V', 100, 10)];
+    const lines = [headerLine, vakLine, wrapLine, datapuntLine];
+
+    const result = parseDeelgebiedTable(lines, 0);
+    expect(result.datapunten[0]?.vak).toBe('Samenwerken en communiceren');
+  });
+
+  it('does NOT merge a page-footer line into the vak name', () => {
+    const cols = ['V&A', 'M&M', 'INS', 'O&DW', 'C&B'];
+    const headerLine = ['Begeleiding en zelfstudie', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const footerLine = [
+      makeItem('(BJ2 Fase 2 DD | Bosker, J.G. (Javier-Andrès) | 18-6-2026) (2 / 3)', 10, 10),
+    ];
+    const datapuntLine = [makeItem('‐ BGZST', 10, 10)];
+    const lines = [headerLine, footerLine, datapuntLine];
+
+    const result = parseDeelgebiedTable(lines, 0);
+    expect(result.datapunten[0]?.vak).toBe('Begeleiding en zelfstudie');
+  });
+
+  it('does NOT merge a real datapunt row into the vak name (no wrap present)', () => {
+    const cols = ['V&A', 'M&M', 'INS', 'O&DW', 'C&B'];
+    const headerLine = ['Burgerschap', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const datapuntLine = [makeItem('‐ Kennisclip', 10, 10), makeItem('E', 10, 10)];
+    const lines = [headerLine, datapuntLine];
+
+    const result = parseDeelgebiedTable(lines, 0);
+    expect(result.datapunten[0]?.vak).toBe('Burgerschap');
+  });
+
+  it('does not crash when a vak heading is the last line in the document', () => {
+    const cols = ['V&A', 'M&M', 'INS', 'O&DW', 'C&B'];
+    const headerLine = ['Pedagogiek', ...cols].map((l, i) => makeItem(l, 10 + i * 100, 10));
+    const datapunt1 = [makeItem('‐ Reflectieopdracht', 10, 10), makeItem('G', 10, 10)];
+    const trailingHeading = [makeItem('Praktijkbeoordelingen Sportvakken', 10, 16)];
+    const lines = [headerLine, datapunt1, trailingHeading];
+
+    expect(() => parseDeelgebiedTable(lines, 0)).not.toThrow();
   });
 });
