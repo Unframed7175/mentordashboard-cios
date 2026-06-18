@@ -1710,3 +1710,145 @@ a:hover { text-decoration: underline; }
   border-color: var(--border-focus);
   box-shadow: 0 0 0 2px var(--accent-light);
 }
+
+/* --------------------------------------------------------------------------
+   23. UpdateModal
+   -------------------------------------------------------------------------- */
+.update-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: updateModalFadeIn var(--transition-base);
+}
+
+.update-modal-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: updateModalSlideIn var(--transition-slow);
+}
+
+.update-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.update-modal-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-light);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.update-modal-title-group h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.3rem 0;
+}
+
+.update-modal-version {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: var(--radius-pill);
+  background: var(--accent-light);
+  color: var(--accent-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.update-modal-notes {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.update-modal-notes h4 {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 1rem 0 0.5rem 0;
+  background: var(--status-grijs-bg);
+  color: var(--status-grijs-text);
+}
+.update-modal-notes h4:first-child { margin-top: 0; }
+
+.update-modal-notes .patch-chip-added    { background: var(--status-groen-bg);  color: var(--status-groen-text); }
+.update-modal-notes .patch-chip-fixed    { background: var(--status-blauw-bg);  color: var(--status-blauw-text); }
+.update-modal-notes .patch-chip-changed  { background: var(--status-oranje-bg); color: var(--status-oranje-text); }
+.update-modal-notes .patch-chip-removed  { background: var(--status-grijs-bg);  color: var(--status-grijs-text); }
+.update-modal-notes .patch-chip-breaking { background: var(--status-rood-bg);   color: var(--status-rood-text); }
+
+.update-modal-notes ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.update-modal-notes li {
+  position: relative;
+  padding-left: 1rem;
+}
+.update-modal-notes li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.update-modal-notes strong { color: var(--text-primary); }
+.update-modal-notes p { margin: 0.5rem 0; }
+
+.update-modal-error {
+  font-size: 0.875rem;
+  color: var(--status-rood-text);
+  background: var(--status-rood-bg);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.update-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@keyframes updateModalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes updateModalSlideIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}

@@ -32,46 +32,35 @@ export default function UpdateModal({ version, notes, onDownloadAndInstall, onDi
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-      onClick={handleOverlayClick}
-      onKeyDown={handleOverlayKeyDown}
-    >
-      <div
-        style={{
-          background: 'var(--bg-surface, #ffffff)',
-          borderRadius: '12px',
-          padding: '1.5rem',
-          width: '100%',
-          maxWidth: '480px',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-        }}
-      >
-        <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 700 }}>
-          Nieuwe versie beschikbaar: v{version}
-        </h2>
+    <div className="update-modal-overlay" onClick={handleOverlayClick} onKeyDown={handleOverlayKeyDown}>
+      <div className="update-modal-card" role="dialog" aria-modal="true" aria-labelledby="update-modal-title">
+        <div className="update-modal-header">
+          <div className="update-modal-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={22} height={22}>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
+          </div>
+          <div className="update-modal-title-group">
+            <h2 id="update-modal-title">Nieuwe versie beschikbaar</h2>
+            <span className="update-modal-version">v{version}</span>
+          </div>
+        </div>
 
-        <div style={{ fontSize: '0.875rem', marginBottom: '1.25rem' }}>
+        <div className="update-modal-notes">
           {formatPatchNotes(notes)}
         </div>
 
         {status === 'error' && (
-          <p style={{ fontSize: '0.875rem', color: 'var(--status-rood-text)', marginBottom: '1rem' }}>
+          <p className="update-modal-error">
             Bijwerken is mislukt. Controleer je internetverbinding en probeer het opnieuw.
           </p>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+        <div className="update-modal-actions">
           <button type="button" className="btn btn-ghost" onClick={onDismiss} disabled={status === 'installing'}>
             Later
           </button>
