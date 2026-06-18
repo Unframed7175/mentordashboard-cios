@@ -60,6 +60,7 @@ describe('UpdateModal', () => {
 
   it('toont een foutmelding als downloadAndInstall mislukt, app blijft bruikbaar', async () => {
     const onDownloadAndInstall = vi.fn().mockRejectedValue(new Error('fail'));
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     render(
       <UpdateModal
         version="2.10.3"
@@ -71,5 +72,22 @@ describe('UpdateModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /Update nu/i }));
     expect(await screen.findByText(/mislukt/i)).toBeTruthy();
     expect(mockRelaunch).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('Escape-toets roept onDismiss aan (niet tijdens installeren)', () => {
+    const onDismiss = vi.fn();
+    const { container } = render(
+      <UpdateModal
+        version="2.10.3"
+        notes="- iets"
+        onDownloadAndInstall={vi.fn()}
+        onDismiss={onDismiss}
+      />
+    );
+    const overlay = container.firstChild as HTMLElement;
+    fireEvent.keyDown(overlay, { key: 'Escape', code: 'Escape' });
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 });

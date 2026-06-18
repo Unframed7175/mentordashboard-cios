@@ -17,13 +17,18 @@ export default function UpdateModal({ version, notes, onDownloadAndInstall, onDi
     try {
       await onDownloadAndInstall();
       await relaunch();
-    } catch {
+    } catch (err) {
+      console.error('Bijwerken mislukt:', err);
       setStatus('error');
     }
   }
 
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget && status !== 'installing') onDismiss();
+  }
+
+  function handleOverlayKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'Escape' && status !== 'installing') onDismiss();
   }
 
   return (
@@ -38,6 +43,7 @@ export default function UpdateModal({ version, notes, onDownloadAndInstall, onDi
         zIndex: 1000,
       }}
       onClick={handleOverlayClick}
+      onKeyDown={handleOverlayKeyDown}
     >
       <div
         style={{
