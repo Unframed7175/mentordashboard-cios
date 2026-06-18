@@ -1,5 +1,86 @@
 # TODOS
 
+## T-2026-06-18-14 · Doorstroomprognose: niet-ingeleverd/te laat datapunt → twijfelgeval voor dichtstbijzijnde niveau
+
+- **What:** Aanvulling op de doorstroomprognose-berekening (`utils/prognosis.ts`, M39 S/C-compensatieformule): wanneer een datapunt niet is ingeleverd of te laat is, wordt de leerling een "twijfelgeval" voor het niveau waar hij het dichtste bij zit in termen van haalbaarheid — dus "twijfelgeval sportbewegingsleider" (SBL) of "twijfelgeval sportbeweegcoördinator" (SBC), afhankelijk van welk niveau het dichtstbij is.
+- **Why:** Niet-ingeleverde/te late datapunten worden nu meegenomen in de negatief-trigger-telling (M39: "negatief-trigger bij >4 onbeoordeelde/niet-ingeleverde datapunten"), maar er is nog geen tussenstatus "twijfelgeval" die specifiek aangeeft vóór welk niveau de onzekerheid bestaat.
+- **Pros:** Geeft mentoren een concreter signaal dan een vlakke "negatief"-status — laat zien welk niveau nog haalbaar is ondanks het ontbrekende datapunt.
+- **Cons:** Raakt de kern-prognoselogica (gevoelig domein, recent grondig herzien in M39 — S/C-formule, BJ1/BJ2-criteria) — vereist eigen ontwerpronde/ADR om "dichtste bij in termen van haalbaarheid" precies te definiëren (welke metriek bepaalt "dichtstbij"?) vóór implementatie.
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Ontwerpbesluit nodig: exacte definitie van "dichtstbijzijnde niveau" (bv. afstand in punten/percentage tot SBL- resp. SBC-drempel).
+
+## T-2026-06-18-13 · Lichte kleurcodering van leerlijnen in DeelgebiedenMatrix (Spiderweb-kleuren)
+
+- **What:** De 19 deelgebied-kolommen in `DeelgebiedenMatrix` lichte achtergrondkleur geven per leerlijn-groep (lesgeven/organiseren/professioneel handelen), met dezelfde kleuren als het Spiderweb-chart (`--spider-lesgeven`, `--spider-organiseren`, `--spider-prof-handelen` in `src/index.css`).
+- **Why:** Op dit moment zijn de 19 kolommen visueel gelijk; de leerlijn-groepering (al aanwezig als data via `getLeerlijnenMapping()`/`utils/leerlijnen.ts`) is nergens in de matrix zichtbaar, terwijl de spider chart elders die kleurcodering al gebruikt.
+- **Pros:** Hergebruikt bestaande kleurtokens en bestaande leerlijn-mapping-data — vooral CSS/rendering-werk, geen nieuwe databron nodig.
+- **Cons:** Moet subtiel blijven ("lichte kleurcodering") om de matrix leesbaar te houden naast de bestaande RAG-statuskleuren per cel — vereist ontwerpafstemming (lichte tint als kolom-achtergrond vs. alleen in de kolomkop).
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Niets functioneel; ontwerpkeuze voor opacity/toepassing in planningsfase.
+
+## T-2026-06-18-12 · Deelgebieden-koppen herhalen bij fase-scheidingsrij in DeelgebiedenMatrix
+
+- **What:** Wanneer twee fases (periodes) onder elkaar staan in `DeelgebiedenMatrix` (de bestaande fase-scheidingsrij uit R-02), de volledige rij met deelgebied-kolomkoppen daar ook herhalen.
+- **Why:** Bij een lange matrix met meerdere fases moet de gebruiker nu helemaal terug naar boven scrollen om te zien welke kolom bij welk deelgebied hoort.
+- **Pros:** Bouwt direct op de bestaande fase-scheidingsrij-logica (R-02, al aanwezig) — voornamelijk een kwestie van de header-rij ook op dat punt opnieuw te renderen.
+- **Cons:** Geen.
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Niets.
+
+## T-2026-06-18-11 · Verzuim: geoorloofd/ongeoorloofd-instelling verwijderen + signaal alleen onder 85%
+
+- **What:** De instelling om verzuimuren als geoorloofd/ongeoorloofd te splitsen verwijderen (vereenvoudiging). Het verzuim-signaal toont voortaan alleen een waarschuwing wanneer de aanwezigheid onder 85% komt.
+- **Why:** De geoorloofd/ongeoorloofd-instelling levert blijkbaar geen waarde op in de praktijk; een vaste 85%-drempel voorkomt ruis bij normale, kleine afwezigheid.
+- **Pros:** Vereenvoudigt de Instellingen-pagina en de verzuim-berekeningslogica.
+- **Cons:** Mogelijk een breaking change voor bestaand opgeslagen instellingen/data die het geoorloofd/ongeoorloofd-onderscheid gebruiken — vóór verwijdering controleren of dit veld elders wordt gebruikt (bv. exports/rapportages); conform CLAUDE.md §12 een `BREAKING CHANGE`-migratienotitie overwegen indien van toepassing.
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Controleren of geoorloofd/ongeoorloofd-data elders wordt gebruikt vóór verwijdering.
+
+## T-2026-06-18-10 · Lijstweergave als alternatief voor tegelweergave van klassen
+
+- **What:** Naast de huidige tegelweergave (tiles) een lijstweergave-optie toevoegen voor het tonen van een klas/leerlingen.
+- **Why:** Sommige gebruikers verwerken liever een compacte lijst dan tegels, vooral bij grotere klassen.
+- **Pros:** Puur UI-werk (alternatieve layout-component + toggle), geen wijziging aan de onderliggende data.
+- **Cons:** Vereist ontwerpwerk (welke informatie blijft zichtbaar in lijstvorm vs. tegelvorm) en een manier om de voorkeur te onthouden (instelling).
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Ontwerpbesluit over lijst-layout (welke kolommen/info per leerling).
+
+## T-2026-06-18-09 · Wizard-skip optie + automatisch openen in totaalweergave bij bestaande klas
+
+- **What:** Twee gerelateerde navigatieverbeteringen: (1) een expliciete optie om de aanmaak-wizard te verlaten/overslaan; (2) wanneer er al een klas met data in het dashboard staat, opent de app altijd direct in de totaalweergave van die klas (i.p.v. de huidige fallback naar de import-weergave).
+- **Why:** De huidige flow (`App.tsx`: opent in `'import'`-view zodra er al klas-data is, anders `'onboarding'`) forceert gebruikers met bestaande data altijd langs het importscherm; gebruikers die de wizard niet willen doorlopen hebben nu geen directe uitweg.
+- **Pros:** Kleine wijziging in `App.tsx`'s initiële view-bepaling; verbetert de eerste-indruk-flow voor terugkerende gebruikers.
+- **Cons:** Moet bepaald worden welke klas "de" klas is bij meerdere klassen (laatst actieve? eerste?) — vereist een klein ontwerpbesluit.
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Ontwerpbesluit over welke klas default wordt geopend bij meerdere klassen.
+
+## T-2026-06-18-08 · Feed Forward-tekst tonen als hover-tooltip bij datapunten
+
+- **What:** De Feed Forward-tekst per opdracht (in de PDF aanwezig, intern al deels geparsed als `feedForward` op elk vak-opdracht via `parseVakSections` en gekoppeld aan datapunten via `enrichDatapuntenStatus`/`enrichByProximity`) zichtbaar maken in het dashboard: bij hover over een datapunt verschijnt een zwevend tooltip-blokje met de tekst.
+- **Why:** Feed Forward-tekst is waardevolle, opdracht-specifieke feedback die nu verstopt blijft in de PDF — mentoren moeten teruggrijpen naar de PDF om deze te lezen.
+- **Pros:** De data is voor een groot deel al beschikbaar — vooral UI-werk (tooltip-component) nodig, mogelijk geen nieuwe parser-logica.
+- **Cons:** Moet gecontroleerd worden of `feedForward` voor alle datapunten al gekoppeld is of alleen voor specifieke vakken — mogelijk extra koppelwerk nodig in de parser voor volledige dekking. Tooltip moet ook bruikbaar zijn op touch-only apparaten (geen hover) — tap-to-toggle als fallback overwegen.
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Niets functioneel; verifiëren hoever de feedForward-koppeling nu al reikt vóór planning.
+
+## T-2026-06-18-07 · KPI-teller in totaaloverzicht werkt niet correct + terminologie nazien
+
+- **What:** De KPI-teller bovenaan het totaaloverzicht functioneert niet meer naar behoren. Oorzaak nog niet onderzocht. Daarnaast moet de terminologie van deze teller(s) worden herzien.
+- **Why:** Mentoren kunnen niet vertrouwen op een KPI die zichtbaar fout is; onduidelijke terminologie maakt het probleem erger.
+- **Pros:** N.v.t. — eerst onderzoek nodig (systematic-debugging) om een hypothese over de oorzaak te vormen vóór een fix.
+- **Cons:** Scope onbekend totdat onderzocht; mogelijk een kleine rendering-bug of een dieperliggende berekeningsfout.
+- **Context:** Gebruikersverzoek, 2026-06-18. Geen reproductiestappen of voorbeeld meegegeven.
+- **Depends on / blocked by:** Verduidelijking nodig: welke KPI-teller precies, wat "niet naar behoren" concreet betekent, en welke terminologie gewenst is.
+
+## T-2026-06-18-06 · Peildatum tonen voor laatste data-update
+
+- **What:** Een peildatum tonen die aangeeft wanneer de data in het dashboard voor het laatst is bijgewerkt (laatste PDF-import).
+- **Why:** Mentoren weten nu niet hoe "vers" de getoonde voortgangsdata is; bij een gemist import-moment kunnen ze onbewust op verouderde data afgaan.
+- **Pros:** Verhoogt vertrouwen in de getoonde data; klein als de laatste-import-datum al ergens wordt bijgehouden.
+- **Cons:** Vereist mogelijk een nieuw store-veld als de laatste-import-datum nu nergens wordt gelogd — eerst checken.
+- **Context:** Gebruikersverzoek, 2026-06-18.
+- **Depends on / blocked by:** Verifiëren of een laatste-import-timestamp al bestaat in de store, vóór implementatie.
+
 ## T-2026-06-18-05 · ci.yml build-job mist TAURI_SIGNING_PRIVATE_KEY, faalt op macOS
 
 - **What:** De multi-platform `build`-job in `ci.yml` geeft `tauri build` geen `TAURI_SIGNING_PRIVATE_KEY`/`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` mee (in tegenstelling tot `release.yml`, die dit wel doet). Sinds de auto-update-milestone een updater-publieke-sleutel in `tauri.conf.json` heeft gezet, faalt elke `tauri build` zonder de bijbehorende private key met "A public key has been found, but no private key."
