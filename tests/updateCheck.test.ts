@@ -27,8 +27,8 @@ describe('checkForUpdate', () => {
     expect(await checkForUpdate()).toBe(fakeUpdate);
   });
 
-  it('geeft null terug bij een fout (bv. geen internet)', async () => {
+  it('gooit de fout door bij een mislukte check (bv. geen internet)', async () => {
     mockCheck.mockRejectedValueOnce(new Error('network error'));
-    expect(await checkForUpdate()).toBeNull();
+    await expect(checkForUpdate()).rejects.toThrow('network error');
   });
 });

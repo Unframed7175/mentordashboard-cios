@@ -46,8 +46,12 @@ function App() {
         // On load failure: leave defaults (light mode)
       }
       // Check for update in the background — silent on failure
-      const info = await checkForUpdate();
-      if (info) setUpdateInfo(info);
+      try {
+        const info = await checkForUpdate();
+        if (info) setUpdateInfo(info);
+      } catch {
+        // mislukte achtergrond-check mag de opstart van de app niet verstoren
+      }
     })();
   }, []);
 
