@@ -1,9 +1,18 @@
-name: Update landing page
+name: Update landing page (handmatig)
+
+# De automatische landingspagina-update gebeurt in release.yml (job: update-landing-page),
+# geketend aan de release. Een los `release: published`-trigger werkt NIET: tauri-action
+# publiceert de release via GITHUB_TOKEN en GitHub triggert geen workflows op
+# GITHUB_TOKEN-events. Deze workflow is daarom alleen een handmatige back-fill voor het
+# geval de pagina alsnog uit sync raakt. Geef de versie op die boven in CHANGELOG.md staat.
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versietag (bv. v2.11.2) — moet de bovenste CHANGELOG.md-sectie zijn'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -31,11 +40,11 @@ jobs:
 
       - name: Extract changelog entry
         run: |
-          node main-repo/scripts/extract-changelog-entry.mjs main-repo/CHANGELOG.md /tmp/release-body.md
+          node main-repo/scripts/extract-changelog-entry.mjs main-repo/CHANGELOG.md /tmp/release-body.md ${{ inputs.version }}
 
       - name: Update index.html
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${{ inputs.version }}"
           VERSION="${VERSION#v}"
           node main-repo/scripts/update-landing-page.mjs landing-page/index.html "$VERSION" /tmp/release-body.md
 
@@ -46,5 +55,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
           git diff --staged --quiet && echo "Geen wijzigingen" && exit 0
-          git commit -m "fix: update landingspagina naar ${{ github.event.release.tag_name }}"
+          git commit -m "fix: update landingspagina naar ${{ inputs.version }}"
           git push origin main
