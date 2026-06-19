@@ -1,5 +1,14 @@
 # TODOS
 
+## T-2026-06-18-17 · Stale-detectie voor de landingspagina (cross-repo workflow faalt stil)
+
+- **What:** De landingspagina (`Unframed7175/ciosmentorendashboard`, `index.html`) wordt na elke release bijgewerkt door de cross-repo workflow `update-landing-page.yml` met `LANDING_PAGE_PAT`. Als die token verloopt of de workflow stil faalt, blijft de pagina oude downloadlinks tonen. Voeg een signaal toe: workflow-faalnotificatie, en/of een zichtbare versie/datum-stempel op de pagina zodat drift opvalt.
+- **Why:** Zodra collega's afhankelijk zijn van de landingspagina als dé downloadplek (M41), betekent een stille faal dat zij een verouderde build installeren — zonder dat iemand het merkt. De `update-landing-page.mjs`-`replaceOrThrow`-logica vangt alleen fouten bij een lokale run af, niet een niet-getriggerde of mislukte workflow-run.
+- **Pros:** Sluit een stille-faal-risico vóór het breed wordt; klein (notificatie op workflow-failure of een datum-stempel in de template).
+- **Cons:** Niet blokkerend voor M41; de workflow heeft tot nu toe gewerkt. Pure robuustheid, geen direct zichtbaar gebruikerseffect zolang het goed gaat.
+- **Context:** Gevonden tijdens /plan-eng-review van M41 (2026-06-18, outside-voice punt 3). Verwant aan de M40-landingspagina-automatisering. Startpunt: `update-landing-page.yml` (faalnotificatie) of `update-landing-page.mjs` (datum/versie-stempel in de footer naast de bestaande `Versie X`-tekst).
+- **Depends on / blocked by:** Niets; los van M41-kernscope.
+
 ## T-2026-06-18-16 · Drag-and-drop-prompt op leeg dashboard verwijderen (overbodig naast onboarding-wizard)
 
 - **What:** Wanneer een dashboard leeg is, toont de import-weergave nog een "sleep je documenten hierheen"-optie. Die moet verwijderd worden — de onboarding-wizard voegt alles al toe via een eigen, begeleid stappenplan.

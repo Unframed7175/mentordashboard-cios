@@ -19,9 +19,9 @@ export default function HelpPage({ onBack }: HelpPageProps) {
         <section className="detail-section">
           <h2 className="detail-section-title">Stap 1: Importeren</h2>
           <p>
-            Sleep één of meerdere SomToday voortgang-PDF's naar het importvak, of klik op de
+            Sleep één of meerdere Cumlaude voortgang-PDF's naar het importvak, of klik op de
             knop "Bestanden toevoegen". Verzuimgegevens laad je via een Excel-bestand (.xls/.xlsx)
-            vanuit SomToday. BPV-gegevens laad je via een apart BPV Excel-bestand.
+            vanuit Cumlaude. BPV-gegevens laad je via een apart BPV Excel-bestand.
           </p>
           <ol>
             <li>Open het laadscherm via de navigatiebalk.</li>

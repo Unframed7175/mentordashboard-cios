@@ -1,4 +1,4 @@
-# Handleiding Mentordashboard CIOS — versie 2.4
+# Handleiding Mentordashboard CIOS — versie 2.11
 
 ## Wat is dit?
 
@@ -29,6 +29,8 @@ Mentordashboard CIOS is een desktopapplicatie voor mentoren om de voortgang, het
 1. Ga naar de [Releases pagina](https://github.com/Unframed7175/mentordashboard-cios/releases/latest) en download het `.exe`-bestand.
 2. Dubbelklik op het bestand om de installer te starten.
 3. Als Windows SmartScreen een popup toont ("Windows heeft deze pc beschermd") → klik **Meer info** → **Toch uitvoeren**.
+
+   > **Deze melding is normaal.** Windows toont hem voor elke app die niet via de Microsoft Store wordt verkocht. Mentordashboard CIOS is veilig: het draait alleen op jouw eigen computer en stuurt geen gegevens naar buiten. Je ziet deze melding alleen bij de allereerste installatie.
 4. De installatie vereist geen beheerdersrechten — de app installeert voor de huidige gebruiker.
 5. Na installatie is de app beschikbaar via het Startmenu als **Mentordashboard CIOS**.
 
@@ -42,11 +44,15 @@ Mentordashboard CIOS is een desktopapplicatie voor mentoren om de voortgang, het
 2. Dubbelklik op het `.dmg`-bestand en sleep de app naar de map **Programma's (Applications)**.
 3. Dubbelklik op de app. Als macOS meldt "app kan niet worden geopend" of "app is beschadigd":
 
+   > **Deze melding is normaal.** macOS toont hem voor elke app die niet via de App Store wordt verkocht. Mentordashboard CIOS is veilig: het draait alleen op jouw eigen computer en stuurt geen gegevens naar buiten. Je doet dit alleen bij de allereerste installatie.
+
    **Optie A — via Terminal (aanbevolen):**
    ```
-   xattr -c "/Applications/Mentordashboard CIOS.app"
+   xattr -cr "/Applications/Mentordashboard CIOS.app"
    ```
    Start de app daarna opnieuw.
+
+   > Let op: de `-r` (recursief) is belangrijk. Zonder `-r` wist macOS de quarantine-vlag alleen op de bovenste map van de app, en op Apple Silicon-Macs blijft hij dan vaak alsnog geblokkeerd.
 
    **Optie B — via Systeeminstellingen:**
    Ga naar **Systeeminstellingen → Privacy en beveiliging** → scroll omlaag → klik **Toch openen**.
@@ -72,7 +78,7 @@ De wizard verschijnt daarna niet meer. Nieuwe bestanden importeer je via het **I
 
 ## Bestanden importeren
 
-### SomToday voortgang (PDF)
+### Cumlaude voortgang (PDF)
 
 1. Klik op het **importeer-scherm** in de navigatiebalk.
 2. Sleep één of meerdere voortgang-PDF's naar het importvak, of klik **Bestanden toevoegen**.
@@ -80,17 +86,17 @@ De wizard verschijnt daarna niet meer. Nieuwe bestanden importeer je via het **I
 4. Meerdere imports worden samengevoegd — eerder geïmporteerde leerlingen blijven bewaard.
 5. Als een bestand niet ingelezen kan worden, zie je een foutmelding naast de bestandsnaam.
 
-> **Let op:** gebruik altijd de SomToday voortgang-PDF's (met deelgebieden en opdrachten). Andere PDF-types worden niet herkend.
+> **Let op:** gebruik altijd de Cumlaude voortgang-PDF's (met deelgebieden en opdrachten). Andere PDF-types worden niet herkend.
 
 ### Verzuim (Excel)
 
-1. Exporteer het verzuimoverzicht uit SomToday als `.xls`-bestand.
+1. Exporteer het verzuimoverzicht uit Cumlaude als `.xls`-bestand.
 2. Klik op **Verzuim importeren** en selecteer het bestand.
 3. Verzuimgegevens worden automatisch gekoppeld aan de bestaande leerlingen op basis van naam.
 
 ### BPV / Stage (Excel)
 
-1. Exporteer het BPV-overzicht als Excel-bestand vanuit SomToday.
+1. Exporteer het BPV-overzicht als Excel-bestand vanuit Cumlaude.
 2. Klik op **BPV importeren** en selecteer het bestand.
 
 ---
@@ -238,8 +244,8 @@ E-mailadres: **ralvarezstam@cioszuidwest.nl**
 ## Bekende beperkingen
 
 - **Geen automatische updates** — nieuwe versies moet je zelf downloaden via de [Releases pagina](https://github.com/Unframed7175/mentordashboard-cios/releases/latest). Je krijgt geen melding als er een nieuwe versie is.
-- **BPV-kolommen** — de app verwacht de standaard kolomnamen van het SomToday BPV-exportformaat. Als SomToday die namen heeft aangepast, worden BPV-gegevens niet ingelezen. Meld dit via de 🐛-knop.
-- **Rekenen en Nederlands** — deze sectie is optioneel in SomToday-rapporten. Als de sectie ontbreekt in een PDF, worden die scores niet getoond.
+- **BPV-kolommen** — de app verwacht de standaard kolomnamen van het Cumlaude BPV-exportformaat. Als Cumlaude die namen heeft aangepast, worden BPV-gegevens niet ingelezen. Meld dit via de 🐛-knop.
+- **Rekenen en Nederlands** — deze sectie is optioneel in Cumlaude-rapporten. Als de sectie ontbreekt in een PDF, worden die scores niet getoond.
 - **macOS Gatekeeper** — bij de eerste start na installatie kan macOS een waarschuwing geven. Zie de installatie-instructies hierboven voor de oplossing.
 
 ---

@@ -38,7 +38,7 @@ Dit testplan bevat handmatige testscenario's voor collega-testers. Doorloop de s
 | Stap | Actie | Verwacht resultaat | Geslaagd? |
 |------|-------|--------------------|-----------|
 | 1 | Klik op de knop "PDF importeren" | Bestandskiezer dialoog opent | ☐ |
-| 2 | Selecteer 1 SomToday voortgangs-PDF voor een leerling | Dialoog sluit; app verwerkt het bestand | ☐ |
+| 2 | Selecteer 1 Cumlaude voortgangs-PDF voor een leerling | Dialoog sluit; app verwerkt het bestand | ☐ |
 | 3 | Wacht tot verwerking gereed is | Leerling verschijnt als tegel in de klas-tab met naam en kleurcode (groen/oranje/rood) | ☐ |
 | 4 | Importeer een tweede PDF voor een andere leerling | Nieuwe tegel verschijnt; eerder geïmporteerde leerling blijft behouden | ☐ |
 

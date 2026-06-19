@@ -7,7 +7,7 @@ describe('normalizeDpNaam', () => {
     expect(normalizeDpNaam('- Opdracht 1')).toBe('opdracht 1');
   });
 
-  it('strips Unicode HYPHEN (U+2010) prefix used by SomToday PDFs', () => {
+  it('strips Unicode HYPHEN (U+2010) prefix used by Cumlaude PDFs', () => {
     expect(normalizeDpNaam('‐ Opdracht 1')).toBe('opdracht 1');
   });
 

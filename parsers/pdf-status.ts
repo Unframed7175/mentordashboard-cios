@@ -1,4 +1,4 @@
-// parsers/pdf-status.ts — SomToday opdracht-statussen
+// parsers/pdf-status.ts — Cumlaude opdracht-statussen
 // Losgekoppeld van pdf.ts zodat dit veilig importeerbaar is in Vitest (geen PDF.js-vendor).
 
 export const STATUS_STRINGS = [
