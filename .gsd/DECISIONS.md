@@ -162,3 +162,28 @@
 3. Dode functie `clearState()` (`utils/datamodel.ts:236`) wordt verwijderd.
 4. Geen geautomatiseerde E2E over de reload heen; volledige reset/restore-cycli zijn handmatige QA-checklist op echte Tauri-build (incl. verificatie dat store.json op schijf leeg is).
 **Bewust afgewezen:** same-machine disclaimer in dialoogtekst, AVG-motivering in docs, bindende bouwvolgorde backup→reset-UI.
+
+---
+
+## ADR-14 · M41 uitrol naar collega's — handmatige install, geen code-signing (2026-06-19)
+
+**Status:** Vastgelegd (Fase 0 — office-hours + eng review + design review)
+**Beslissing:** M41 ("uitrol naar collega's") is een content/distributie-milestone, geen feature-milestone. Geen OS-code-signing. De landingspagina (`Unframed7175/ciosmentorendashboard`) is dé canonieke pre-install-installatiegids; collega's installeren via één link + begeleide gids door de Windows SmartScreen / macOS Gatekeeper-waarschuwing heen.
+
+**Reden:**
+- De app werkt en heeft al een tweede gebruiker (collega draait hem al). Drempel is distributie + vertrouwen, niet functionaliteit.
+- ~15-20 collega's voelen de status-quo-pijn (handmatige Excel-bijhouding).
+- De installatiegids bestaat al grotendeels in `INSTRUCTIES.md` (Windows + macOS incl. quarantine).
+- Code-signing kost geld + een org-besluit (Apple Developer / Azure Trusted Signing) dat niet zeker beschikbaar is. De waarschuwing is een eenmalige hobbel per machine; na de eerste install zien collega's hem niet meer.
+
+**Design-beslissingen (design review):**
+1. Vertrouwen-framing: geruststelling vóór de waarschuwingsscreenshot ("deze melding is normaal; app is veilig, draait alleen op je computer, stuurt geen data weg").
+2. OS-kies-eerst structuur: Windows/Mac-knoppen tonen alleen de stappen van het gekozen OS.
+
+**Architectuur:** landingspagina = single source of truth voor de installatiegids; `INSTRUCTIES.md` linkt ernaar; in-app Help = alléén post-install (gebruik/vertrouwen), nooit installatie. `xattr -c` → `xattr -cr` in de macOS-gids.
+
+**Kritieke verificatie vóór rollout (T1):** test of de Windows NSIS auto-update (ongesigneerde installer) SmartScreen opnieuw triggert. Zo ja, dan breekt de "eenmalige waarschuwing"-aanname voor Windows-updates.
+
+**Afgewezen alternatieven:** (B) macOS/Windows code-signing nu — uitgesteld; (C) CIOS IT/managed deployment — parallel niet-blokkerend gesprek; screen-recording/GIF-gids — uitgesteld t.g.v. tekst+screenshots.
+
+**Bron:** `~/.gstack/projects/Unframed7175-mentordashboard-cios/rafael-master-design-20260618-213848.md`

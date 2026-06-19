@@ -1,4 +1,4 @@
-# Handleiding Mentordashboard CIOS — versie 2.4
+# Handleiding Mentordashboard CIOS — versie 2.11
 
 ## Wat is dit?
 
@@ -29,6 +29,8 @@ Mentordashboard CIOS is een desktopapplicatie voor mentoren om de voortgang, het
 1. Ga naar de [Releases pagina](https://github.com/Unframed7175/mentordashboard-cios/releases/latest) en download het `.exe`-bestand.
 2. Dubbelklik op het bestand om de installer te starten.
 3. Als Windows SmartScreen een popup toont ("Windows heeft deze pc beschermd") → klik **Meer info** → **Toch uitvoeren**.
+
+   > **Deze melding is normaal.** Windows toont hem voor elke app die niet via de Microsoft Store wordt verkocht. Mentordashboard CIOS is veilig: het draait alleen op jouw eigen computer en stuurt geen gegevens naar buiten. Je ziet deze melding alleen bij de allereerste installatie.
 4. De installatie vereist geen beheerdersrechten — de app installeert voor de huidige gebruiker.
 5. Na installatie is de app beschikbaar via het Startmenu als **Mentordashboard CIOS**.
 
@@ -42,11 +44,15 @@ Mentordashboard CIOS is een desktopapplicatie voor mentoren om de voortgang, het
 2. Dubbelklik op het `.dmg`-bestand en sleep de app naar de map **Programma's (Applications)**.
 3. Dubbelklik op de app. Als macOS meldt "app kan niet worden geopend" of "app is beschadigd":
 
+   > **Deze melding is normaal.** macOS toont hem voor elke app die niet via de App Store wordt verkocht. Mentordashboard CIOS is veilig: het draait alleen op jouw eigen computer en stuurt geen gegevens naar buiten. Je doet dit alleen bij de allereerste installatie.
+
    **Optie A — via Terminal (aanbevolen):**
    ```
-   xattr -c "/Applications/Mentordashboard CIOS.app"
+   xattr -cr "/Applications/Mentordashboard CIOS.app"
    ```
    Start de app daarna opnieuw.
+
+   > Let op: de `-r` (recursief) is belangrijk. Zonder `-r` wist macOS de quarantine-vlag alleen op de bovenste map van de app, en op Apple Silicon-Macs blijft hij dan vaak alsnog geblokkeerd.
 
    **Optie B — via Systeeminstellingen:**
    Ga naar **Systeeminstellingen → Privacy en beveiliging** → scroll omlaag → klik **Toch openen**.

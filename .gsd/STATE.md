@@ -1,6 +1,34 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-06-18 — M40 DONE v2.11.0. Geen actieve milestone; M41 (uitrol naar collega's) nog niet gepland.
+> Laatste update: 2026-06-19 — Fase 0 M41 afgerond (office-hours + eng review + design review). M41 klaar voor Fase 1 (GSD milestone-map).
+
+---
+
+## Handoff 2026-06-19 (Fase 0 → Fase 1)
+
+Van: GStack — Fase 0 (office-hours + plan-eng-review + plan-design-review) — M41 "Uitrol naar collega's"
+Naar: GSD — Fase 1 (spec / milestone-map `M001`-equivalent: `M41-uitrol-naar-collegas/`)
+
+**Status:** Fase 0 DoD afgevinkt. M41 is een **content/distributie-milestone** (geen feature-werk). Kernbeslissing: **geen OS-code-signing**; handmatige install via één link + begeleide gids (zie ADR-14). Design doc: `~/.gstack/projects/Unframed7175-mentordashboard-cios/rafael-master-design-20260618-213848.md` (Status: APPROVED, bevat eng- + design-review-secties + GSTACK REVIEW REPORT).
+
+**Belangrijkste bevinding:** ~80% bestaat al — `INSTRUCTIES.md` bevat de volledige installatiegids; landingspagina (`Unframed7175/ciosmentorendashboard`) bestaat met auto-update. M41 = die gids naar de pre-install landingspagina brengen + content-fixes.
+
+**Taken voor S01-PLAN.md (uit eng + design review):**
+- T1 (P1) — auto-update QA: Windows NSIS silent update triggert SmartScreen niet opnieuw; macOS geen re-prompt. **Kritieke verificatie vóór rollout.**
+- T2/D2/D3 (P1) — landingspagina: installatiegids als canonieke pre-install-surface; OS-kies-eerst structuur; plain-language downloadknoppen (Apple Silicon/Intel, geen aarch64/x64).
+- D1 (P1) — landingspagina: geruststelling-blok vóór elke OS-waarschuwingsscreenshot (vertrouwen-framing).
+- T3 (P2) — `INSTRUCTIES.md`: verversen v2.4→huidig; macOS-commando → `xattr -cr`; linken naar landingspagina.
+- T5 (P2) — regressietest in `tests/updateLandingPage.test.ts` voor de nieuwe install-sectie (anchors blijven matchen).
+- D4 (P2) — `HelpPage.tsx`: post-install kleurlegenda + offline/encrypted-geruststelling (bestaande `index.css`-classes).
+- D5 (P2) — landingspagina a11y: alt-text op screenshots, 44px OS-knoppen, ≥4.5:1 contrast, mobiele layout.
+- T4 (P2) — bevestig landingspagina-URL is schoon/deelbaar.
+- T6/T7 (P3) — Help post-install content; stale-landingspagina-detectie (TODO T-2026-06-18-17).
+
+**NIET in scope:** code-signing (ADR-14 afwijzing B), CIOS IT/managed deploy (C), ci.yml signed-build (TODO T-2026-06-18-05), cross-machine backup (TODO T-2026-06-12-01), DESIGN.md-generatie (TODO T-2026-06-12-02).
+
+**DoD afgevinkt:** office-hours ✅, plan-eng-review ✅ (2 issues opgelost, 1 kritieke verify-gap T1), plan-design-review ✅ (5/10→8/10, 2 beslissingen), ADR-14 ✅, handoff ✅.
+
+**Let op (platform):** review-log/tasks-JSONL/design-doc-rapport-append zijn tijdens deze sessie deels niet weggeschreven door een tijdelijke classifier-outage (geen inhoudelijk verlies — alles staat in design doc + dit handoff). Niet-blokkerend.
 
 ---
 
