@@ -4,7 +4,8 @@
 // plus 2 detectTraject patterns (bj1/bj2).
 // ---------------------------------------------------------------------------
 
-import { berekenStatus, detectTraject, STATUS_VOLGORDE } from '../src/utils/status';
+import { berekenStatus, detectTraject, STATUS_VOLGORDE, computeKpiCounts } from '../src/utils/status';
+import type { StatusResult } from '../src/utils/status';
 import { appState } from '../utils/datamodel';
 
 // ---------------------------------------------------------------------------
@@ -262,4 +263,51 @@ describe('berekenStatus keuzedelen (Phase 39)', () => {
     expect(result.label).toBe('Naar BJ2');
   });
 
+});
+
+// ---------------------------------------------------------------------------
+// computeKpiCounts — KPI-strip aggregatie (T-2026-06-18-07 regressie)
+// ---------------------------------------------------------------------------
+
+describe('computeKpiCounts', () => {
+  const s = (kleur: StatusResult['kleur'], label = ''): StatusResult =>
+    ({ kleur, label, prognose: null });
+
+  it('telt op kleur, niet op labeltekst — alle oranje vallen onder "Let op"', () => {
+    // Regressie: de oude code filterde op label === "Let op"/"Verzuim", strings die
+    // berekenStatus niet meer produceert; "Let op" en "Verzuim" stonden daardoor altijd op 0.
+    const statuses = [
+      s('oranje', 'Twijfelgeval'),
+      s('oranje', 'Let op — KD'),
+      s('rood', 'Risico'),
+      s('groen', 'SBL'),
+      s('blauw', 'SBC'),
+      s('grijs', 'Onbekend'),
+    ];
+    const k = computeKpiCounts(statuses, statuses.length);
+    expect(k.letOpCount).toBe(2);       // beide oranje, ongeacht label
+    expect(k.risicoCount).toBe(1);
+    expect(k.opSchemaCount).toBe(2);    // groen + blauw
+    expect(k.grijsCount).toBe(1);
+    expect(k.scoredCount).toBe(5);      // 6 − 1 grijs
+    expect(k.pctOpSchema).toBe(40);     // round(2/5 * 100)
+  });
+
+  it('pctOpSchema is null wanneer er geen beoordeelde leerlingen zijn', () => {
+    const k = computeKpiCounts([s('grijs'), s('grijs')], 2);
+    expect(k.pctOpSchema).toBeNull();
+    expect(k.scoredCount).toBe(0);
+    expect(k.letOpCount).toBe(0);
+  });
+
+  it('telt paars mee als "op schema" (forward-compat)', () => {
+    const k = computeKpiCounts([s('paars', 'SBC')], 1);
+    expect(k.opSchemaCount).toBe(1);
+    expect(k.pctOpSchema).toBe(100);
+  });
+
+  it('lege invoer → alle tellers 0 en pctOpSchema null', () => {
+    const k = computeKpiCounts([], 0);
+    expect(k).toEqual({ opSchemaCount: 0, letOpCount: 0, risicoCount: 0, grijsCount: 0, scoredCount: 0, pctOpSchema: null });
+  });
 });

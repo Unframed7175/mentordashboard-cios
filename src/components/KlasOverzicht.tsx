@@ -6,7 +6,7 @@
 
 import React, { useMemo } from 'react';
 import { getActiveStudents, getAllRecordsForStudent, klassenState } from '../../utils/klassen';
-import { berekenStatus, STATUS_VOLGORDE } from '../utils/status';
+import { berekenStatus, STATUS_VOLGORDE, computeKpiCounts } from '../utils/status';
 import LeerlingTegel from './LeerlingTegel';
 
 interface KlasOverzichtProps {
@@ -85,18 +85,10 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, zoekTerm, o
   // KPI computation over ALL students (not filtered subset) — per plan spec
   // Fix: use statusMap values directly rather than re-mapping via allStudents
   // to ensure we count from the same dataset the map was built from.
+  // KPI tellers op kleur (niet op labeltekst — zie computeKpiCounts / T-2026-06-18-07).
+  // pctOpSchema sluit grijs (onbeoordeeld) uit de noemer uit; toont "--" zonder beoordeelde leerlingen.
   const allStatuses = Array.from(statusMap.values());
-  const opSchemaCount = allStatuses.filter(st => st.kleur === 'groen' || st.kleur === 'paars' || st.kleur === 'blauw').length;
-  const risicoCount   = allStatuses.filter(st => st.kleur === 'rood').length;
-  const letOpCount    = allStatuses.filter(st => st.kleur === 'oranje' && st.label === 'Let op').length;
-  const verzuimCount  = allStatuses.filter(st => st.kleur === 'oranje' && st.label === 'Verzuim').length;
-  const grijsCount    = allStatuses.filter(st => st.kleur === 'grijs').length;
-
-  // pctOpSchema denominator excludes grijs (unscored) students so the percentage
-  // reflects only students whose status is actually known (rood/oranje/groen/paars/blauw).
-  // Shows "--" when no scored students exist yet.
-  const scoredCount = allStudents.length - grijsCount;
-  const pctOpSchema = scoredCount > 0 ? Math.round((opSchemaCount / scoredCount) * 100) : null;
+  const { letOpCount, risicoCount, grijsCount, pctOpSchema } = computeKpiCounts(allStatuses, allStudents.length);
 
   // Filter by zoekTerm (case-insensitive naam match, no debounce)
   let filtered = allStudents;
@@ -182,10 +174,6 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, zoekTerm, o
           <div className="kpi-tile">
             <div className="kpi-value">{risicoCount}</div>
             <div className="kpi-label">Risico</div>
-          </div>
-          <div className="kpi-tile">
-            <div className="kpi-value">{verzuimCount}</div>
-            <div className="kpi-label">Verzuim</div>
           </div>
           {grijsCount > 0 && (
             <div className="kpi-tile">

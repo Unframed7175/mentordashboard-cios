@@ -99,16 +99,19 @@ export function detectTraject(student: any): string {
 /**
  * Calculates the RAG status for a student.
  *
- * Return chain is identical to app.js lines 1228-1238:
- *   1. No scores → grijs / Onbekend
- *   2. negatief prognose → rood / Risico
- *   3. neutraal prognose → oranje / Let op
- *   4. ongeoorloofd > 600 min → oranje / Verzuim
- *   5. sbc → paars / Profieljaar SBC
- *   6. sbl → groen / Op koers
- *   7. versneld_sbc → paars / Versneld SBC
- *   8. naar_bj2 → groen / Op koers BJ2
- *   9. fallback → groen / Op koers
+ * Return chain (current implementation):
+ *   1. No scores                                  → grijs  / Onbekend
+ *   2. negatief prognose                          → rood   / Risico
+ *   3. neutraal prognose                          → oranje / Twijfelgeval
+ *   4. sbc/versneld_sbc/naar_bj2 + KD niet behaald → oranje / Let op — KD
+ *   5. sbc                                        → blauw  / SBC
+ *   6. sbl (en fallback)                          → groen  / SBL
+ *   7. versneld_sbc                               → blauw  / Versneld SBC
+ *   8. naar_bj2                                   → groen  / Naar BJ2
+ *
+ * Let op: 'Verzuim' is geen RAG-uitkomst meer, en 'paars' wordt momenteel
+ * niet geproduceerd (SBC-trajecten zijn blauw). Beide blijven wel geldige
+ * StatusKleur-waarden voor forward-compat.
  *
  * @param student  Student record (from klassenState)
  * @param traject  Optional traject override; if not provided, detectTraject() is used
@@ -145,4 +148,37 @@ export function berekenStatus(student: any, traject?: string, _thresholds?: { ge
     return                     { kleur: 'groen',  label: 'Naar BJ2',        prognose: p };
   }
   return                                  { kleur: 'groen',  label: 'SBL',             prognose: p };
+}
+
+// ---------------------------------------------------------------------------
+// KPI aggregation (class-overview strip)
+// ---------------------------------------------------------------------------
+
+export interface KpiCounts {
+  opSchemaCount: number;   // groen + blauw (+ paars indien ooit geproduceerd)
+  letOpCount:    number;   // alle oranje (Twijfelgeval + Let op — KD)
+  risicoCount:   number;   // rood
+  grijsCount:    number;   // onbeoordeeld
+  scoredCount:   number;   // totaal − grijs
+  pctOpSchema:   number | null; // null wanneer er geen beoordeelde leerlingen zijn
+}
+
+/**
+ * Aggregeert RAG-statussen tot de tellers boven het klasoverzicht.
+ *
+ * Tellt op kleur, niet op labeltekst — dat was de bug (T-2026-06-18-07): de oude
+ * tellers filterden op `label === 'Let op'` / `'Verzuim'`, strings die
+ * berekenStatus niet meer produceert, waardoor die tegels altijd 0 toonden.
+ *
+ * @param statuses       StatusResult per leerling (over ALLE leerlingen, niet de gefilterde subset)
+ * @param totalStudents  Totaal aantal leerlingen (noemer-basis; grijs wordt eruit gehaald)
+ */
+export function computeKpiCounts(statuses: StatusResult[], totalStudents: number): KpiCounts {
+  const opSchemaCount = statuses.filter(st => st.kleur === 'groen' || st.kleur === 'blauw' || st.kleur === 'paars').length;
+  const letOpCount    = statuses.filter(st => st.kleur === 'oranje').length;
+  const risicoCount   = statuses.filter(st => st.kleur === 'rood').length;
+  const grijsCount    = statuses.filter(st => st.kleur === 'grijs').length;
+  const scoredCount   = totalStudents - grijsCount;
+  const pctOpSchema   = scoredCount > 0 ? Math.round((opSchemaCount / scoredCount) * 100) : null;
+  return { opSchemaCount, letOpCount, risicoCount, grijsCount, scoredCount, pctOpSchema };
 }
