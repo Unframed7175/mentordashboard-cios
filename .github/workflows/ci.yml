@@ -26,41 +26,8 @@ jobs:
       - name: Run tests
         run: npm test
 
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: macos-latest
-            args: '--target aarch64-apple-darwin'
-            rust-targets: 'aarch64-apple-darwin'
-          - platform: windows-latest
-            args: '--bundles nsis --target x86_64-pc-windows-msvc'
-            rust-targets: ''
-
-    runs-on: ${{ matrix.platform }}
-
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: lts/*
-
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # stable
-        with:
-          toolchain: stable
-          targets: ${{ matrix.rust-targets }}
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Build
-        uses: tauri-apps/tauri-action@fce9c6108b31ea247710505d3aaaa893ee6768d4 # v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLE_SIGNING_IDENTITY: '-'
-        with:
-          args: ${{ matrix.args }}
+  # Geen cross-platform build-job hier (bewust). De `tauri build` faalt op PR's
+  # zonder TAURI_SIGNING_PRIVATE_KEY omdat tauri.conf.json een updater-pubkey heeft
+  # ("A public key has been found, but no private key"). Volledige gesigneerde
+  # builds voor Windows + macOS draaien in release.yml bij elke tag. PR-gating
+  # heeft alleen de `test`-job nodig (en dat is ook de enige verplichte check).
