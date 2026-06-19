@@ -1,6 +1,6 @@
 // parsers/excel.ts — Excel verzuim parser
 // Reads Dutch school absence Excel exports (.xls/.xlsx) via SheetJS (XLSX npm import)
-// Tested against SomToday / ParnasSys "Totaaloverzicht Verzuim" export format.
+// Tested against Cumlaude / ParnasSys "Totaaloverzicht Verzuim" export format.
 
 import * as XLSX from 'xlsx';
 import * as cpexcel from 'xlsx/dist/cpexcel.full.mjs';
@@ -56,7 +56,7 @@ export async function debugExcelBestand(file: File): Promise<void> {
 /**
  * Parse an Excel verzuim file and return structured absence records.
  *
- * Supports SomToday "Totaaloverzicht Verzuim" export with columns:
+ * Supports Cumlaude "Totaaloverzicht Verzuim" export with columns:
  *   Studentnummer, Roepnaam, Voorvoegsels, Achternaam, Aanwezigheid,
  *   Geoorloofde afwezigheid, Ongeoorloofde afwezigheid, Totale afwezigheid,
  *   Laatste verzuimmelding
@@ -171,7 +171,7 @@ export async function parseExcelFile(file: File): Promise<any[]> {
       if (headers[hi]) rowObj[headers[hi]] = rawRow[hi] !== undefined ? rawRow[hi] : '';
     }
 
-    // ── Naam: probeer SomToday-formaat (aparte kolommen) OF enkelvoudige Naam ──
+    // ── Naam: probeer Cumlaude-formaat (aparte kolommen) OF enkelvoudige Naam ──
     const achternaam   = String(kolom(rowObj, ['Achternaam']) || '').trim();
     const voorvoegsels = String(kolom(rowObj, ['Voorvoegsels', 'Tussenvoegsel']) || '').trim();
     const roepnaam     = String(kolom(rowObj, ['Roepnaam', 'Voornaam', 'Naam']) || '').trim();
@@ -179,7 +179,7 @@ export async function parseExcelFile(file: File): Promise<any[]> {
 
     let naam: string;
     if (achternaam) {
-      // SomToday-formaat: bouw "Achternaam, Roepnaam" of "Voorvoegsels Achternaam"
+      // Cumlaude-formaat: bouw "Achternaam, Roepnaam" of "Voorvoegsels Achternaam"
       const volledigeAchternaam = voorvoegsels ? voorvoegsels + ' ' + achternaam : achternaam;
       naam = roepnaam ? achternaam + ', ' + roepnaam : volledigeAchternaam;
     } else if (naamEnkel) {

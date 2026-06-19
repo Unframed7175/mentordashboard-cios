@@ -243,7 +243,7 @@ function extractHeader(lines: any[][]): { naam: string; leerlingId: string; peri
     }
   }
 
-  // SomToday exporteert altijd "Leerjaar 1" in de header, ook voor BJ2-leerlingen
+  // Cumlaude exporteert altijd "Leerjaar 1" in de header, ook voor BJ2-leerlingen
   // (het getal geeft het jaar binnen het huidige traject aan, niet het totale studiejaar).
   // Leid leerjaar daarom af uit periode wanneer die het traject expliciet benoemt.
   if (result.periode) {

@@ -65,7 +65,7 @@ const verwachtLabel = 'sbl';
 // ---------------------------------------------------------------------------
 
 describe('parser leerjaar-afleiding uit periode', () => {
-  // SomToday exporteert altijd "Leerjaar 1" in de PDF-header, ook voor BJ2-leerlingen.
+  // Cumlaude exporteert altijd "Leerjaar 1" in de PDF-header, ook voor BJ2-leerlingen.
   // De parser leidt leerjaar nu af uit het periode-veld als dat het traject expliciet benoemt.
   it('BJ2-periode geeft leerjaar 2', () => {
     // Simuleer wat de parser teruggeeft na de fix
@@ -133,8 +133,8 @@ describe('prognose diagnose', () => {
   });
 });
 
-describe('parser STATUS_STRINGS — alle SomToday-statussen herkend', () => {
-  it('bevat alle bekende SomToday-statussen', () => {
+describe('parser STATUS_STRINGS — alle Cumlaude-statussen herkend', () => {
+  it('bevat alle bekende Cumlaude-statussen', () => {
     const verwacht = [
       'Op tijd ingeleverd en wel beoordeeld',
       'Te laat ingeleverd en wel beoordeeld',

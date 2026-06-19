@@ -7,7 +7,7 @@
 ## Wat is dit product
 
 **Mentordashboard CIOS** is een offline desktopapplicatie voor MBO-mentoren bij CIOS Zuid-West.
-Mentoren kunnen leerlinggegevens importeren vanuit SomToday en zien per leerling:
+Mentoren kunnen leerlinggegevens importeren vanuit Cumlaude en zien per leerling:
 - Doorstroomprognose (RAG-kleuring: rood / oranje / groen / blauw / grijs)
 - Deelgebiedscores (19 deelgebieden, 3 leerlijnen)
 - Verzuim (geoorloofd + ongeoorloofd, in minuten)
@@ -30,9 +30,9 @@ Geen internetverbinding vereist. Alle data versleuteld opgeslagen op de lokale c
 
 ## Scope (wat het wel doet)
 
-- PDF-import van SomToday voortgangsrapporten (batch, meerdere leerlingen)
-- Excel-import van SomToday verzuimoverzicht (.xls)
-- Excel-import van SomToday BPV-overzicht
+- PDF-import van Cumlaude voortgangsrapporten (batch, meerdere leerlingen)
+- Excel-import van Cumlaude verzuimoverzicht (.xls)
+- Excel-import van Cumlaude BPV-overzicht
 - Multi-klas beheer (aanmaken, hernoemen, verwijderen, switchen)
 - Per-leerling detailweergave met alle subsecties
 - Spider chart (visuele weergave 3 leerlijnen)
@@ -47,7 +47,7 @@ Geen internetverbinding vereist. Alle data versleuteld opgeslagen op de lokale c
 ## Buiten scope (wat het niet doet)
 
 - Geen cloudopslag of synchronisatie
-- Geen integratie met SomToday API — alleen bestandsimport
+- Geen integratie met Cumlaude API — alleen bestandsimport
 - Geen gebruikersbeheer of login
 - Geen automatische updates
 - Geen mobiele versie

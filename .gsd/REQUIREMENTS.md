@@ -7,19 +7,19 @@
 ## Functionele eisen
 
 ### F-01 · PDF import
-- Mentor kan één of meerdere SomToday PDF-voortgangsrapporten importeren
+- Mentor kan één of meerdere Cumlaude PDF-voortgangsrapporten importeren
 - Drag-and-drop en bestandskiezer worden beide ondersteund
 - Meerdere imports worden samengevoegd — eerder geïmporteerde leerlingen blijven behouden
 - Deduplicatie op `leerlingId + periode` (nieuwste import wint)
 - Importfouten worden zichtbaar gemeld (per bestand met reden)
 
 ### F-02 · Verzuim import
-- Mentor kan een SomToday verzuimoverzicht (.xls) importeren
+- Mentor kan een Cumlaude verzuimoverzicht (.xls) importeren
 - Verzuim wordt gekoppeld aan bestaande leerlingen op basis van naam
 - Geoorloofd en ongeoorloofd verzuim (in minuten) worden opgeslagen
 
 ### F-03 · BPV import
-- Mentor kan een SomToday BPV-overzicht (Excel) importeren
+- Mentor kan een Cumlaude BPV-overzicht (Excel) importeren
 - BPV-data wordt gekoppeld aan bestaande leerlingen
 
 ### F-04 · Multi-klas beheer

@@ -78,7 +78,7 @@ De wizard verschijnt daarna niet meer. Nieuwe bestanden importeer je via het **I
 
 ## Bestanden importeren
 
-### SomToday voortgang (PDF)
+### Cumlaude voortgang (PDF)
 
 1. Klik op het **importeer-scherm** in de navigatiebalk.
 2. Sleep één of meerdere voortgang-PDF's naar het importvak, of klik **Bestanden toevoegen**.
@@ -86,17 +86,17 @@ De wizard verschijnt daarna niet meer. Nieuwe bestanden importeer je via het **I
 4. Meerdere imports worden samengevoegd — eerder geïmporteerde leerlingen blijven bewaard.
 5. Als een bestand niet ingelezen kan worden, zie je een foutmelding naast de bestandsnaam.
 
-> **Let op:** gebruik altijd de SomToday voortgang-PDF's (met deelgebieden en opdrachten). Andere PDF-types worden niet herkend.
+> **Let op:** gebruik altijd de Cumlaude voortgang-PDF's (met deelgebieden en opdrachten). Andere PDF-types worden niet herkend.
 
 ### Verzuim (Excel)
 
-1. Exporteer het verzuimoverzicht uit SomToday als `.xls`-bestand.
+1. Exporteer het verzuimoverzicht uit Cumlaude als `.xls`-bestand.
 2. Klik op **Verzuim importeren** en selecteer het bestand.
 3. Verzuimgegevens worden automatisch gekoppeld aan de bestaande leerlingen op basis van naam.
 
 ### BPV / Stage (Excel)
 
-1. Exporteer het BPV-overzicht als Excel-bestand vanuit SomToday.
+1. Exporteer het BPV-overzicht als Excel-bestand vanuit Cumlaude.
 2. Klik op **BPV importeren** en selecteer het bestand.
 
 ---
@@ -244,8 +244,8 @@ E-mailadres: **ralvarezstam@cioszuidwest.nl**
 ## Bekende beperkingen
 
 - **Geen automatische updates** — nieuwe versies moet je zelf downloaden via de [Releases pagina](https://github.com/Unframed7175/mentordashboard-cios/releases/latest). Je krijgt geen melding als er een nieuwe versie is.
-- **BPV-kolommen** — de app verwacht de standaard kolomnamen van het SomToday BPV-exportformaat. Als SomToday die namen heeft aangepast, worden BPV-gegevens niet ingelezen. Meld dit via de 🐛-knop.
-- **Rekenen en Nederlands** — deze sectie is optioneel in SomToday-rapporten. Als de sectie ontbreekt in een PDF, worden die scores niet getoond.
+- **BPV-kolommen** — de app verwacht de standaard kolomnamen van het Cumlaude BPV-exportformaat. Als Cumlaude die namen heeft aangepast, worden BPV-gegevens niet ingelezen. Meld dit via de 🐛-knop.
+- **Rekenen en Nederlands** — deze sectie is optioneel in Cumlaude-rapporten. Als de sectie ontbreekt in een PDF, worden die scores niet getoond.
 - **macOS Gatekeeper** — bij de eerste start na installatie kan macOS een waarschuwing geven. Zie de installatie-instructies hierboven voor de oplossing.
 
 ---

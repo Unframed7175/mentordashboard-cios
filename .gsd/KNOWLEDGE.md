@@ -81,8 +81,8 @@ utils/            Root-level utils (toegankelijk voor parsers + Tauri Rust bridg
   spider.tsx     Spider chart data berekening
 
 parsers/
-  pdf.ts         SomToday PDF parser (PDF.js ESM)
-  excel.ts       SomToday Excel verzuim/BPV parser (SheetJS)
+  pdf.ts         Cumlaude PDF parser (PDF.js ESM)
+  excel.ts       Cumlaude Excel verzuim/BPV parser (SheetJS)
 
 tests/           Vitest unit tests (29 bestanden)
 vendor/          PDF.js ESM bundel (pdf.min.mjs + pdf.worker.min.mjs)

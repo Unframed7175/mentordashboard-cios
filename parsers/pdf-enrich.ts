@@ -15,7 +15,7 @@ import { STATUS_STRINGS } from './pdf-status';
  */
 export function normForStatusMatch(s: string): string {
   return s
-    .replace(/^[-‐‑‒–—―−]\s*/, '')          // strip dash prefix (SomToday table prefix)
+    .replace(/^[-‐‑‒–—―−]\s*/, '')          // strip dash prefix (Cumlaude table prefix)
     .replace(/^opdracht\s*\d+[.:]\s*/i, '')   // strip "Opdracht N:" / "Opdracht N."
     .replace(/^\d+[.:]\s*/, '')               // strip "1." / "1:"
     .toLowerCase()
