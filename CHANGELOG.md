@@ -1,5 +1,10 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.11.3] — 2026-06-20 — Bugfix: valse "onbekende kolommen"-melding bij PDF-import
+
+### Fixed
+- **PDF-import** — de oranje melding "Onbekende kolommen gevonden" verscheen bij elke import, terwijl alle scores correct werden ingelezen. Oorzaak: de vaknaam in de meest linkse cel van de kolomkop-rij ("Bewegingsleer & Conditionele  V&A M&M …") werd ten onrechte als onbekende kolom geteld. De kolomherkenning negeert nu positioneel elke kop-cel links van de eerste echte deelgebied-kolom; een échte onbekende kolom wordt nog steeds gemeld.
+
 ## [2.11.2] — 2026-06-18 — Visuele update van de update-melding
 
 ### Changed
