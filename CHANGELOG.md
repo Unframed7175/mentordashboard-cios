@@ -1,5 +1,10 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.11.4] — 2026-06-20 — Windows-build en landingspagina-automatisering hersteld
+
+### Fixed
+- **Windows-release** — de Windows-installer kon sinds v2.11.0 niet meer gebouwd worden doordat de release-workflow naar een Unix-pad (`/tmp`) schreef dat niet bestaat op Windows-runners. Windows-collega's krijgen nu weer de nieuwste versie, en de landingspagina werkt voortaan automatisch bij na elke release.
+
 ## [2.11.3] — 2026-06-20 — Bugfix: valse "onbekende kolommen"-melding bij PDF-import
 
 ### Fixed
