@@ -46,7 +46,7 @@ jobs:
 
       - name: Extract changelog entry for release body
         run: |
-          node scripts/extract-changelog-entry.mjs CHANGELOG.md /tmp/release-body.md ${{ github.ref_name }}
+          node scripts/extract-changelog-entry.mjs CHANGELOG.md "${{ runner.temp }}/release-body.md" ${{ github.ref_name }}
 
       - name: Build and release
         uses: tauri-apps/tauri-action@fce9c6108b31ea247710505d3aaaa893ee6768d4 # v0
@@ -58,7 +58,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Mentordashboard CIOS ${{ github.ref_name }}'
-          releaseBodyFile: /tmp/release-body.md
+          releaseBodyFile: ${{ runner.temp }}/release-body.md
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
