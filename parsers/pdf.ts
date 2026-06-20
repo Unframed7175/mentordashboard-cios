@@ -529,7 +529,7 @@ function findDeelgebiedSection(lines: any[][]): number {
 function buildColumnMap(headerLine: any[]): { map: Record<string, number>; unknownLabels: string[] } {
   const knownLabels = new Set(DEELGEBIEDEN.map((d: any) => d.label.toUpperCase()));
   const map: Record<string, number> = {};
-  const unknownSet = new Set<string>();
+  const unknownCandidates: Array<{ str: string; x: number }> = [];
 
   for (const it of headerLine) {
     const trimmed = it.str.trim();
@@ -540,11 +540,26 @@ function buildColumnMap(headerLine: any[]): { map: Record<string, number>; unkno
       const dg = DEELGEBIEDEN.find((d: any) => d.label.toUpperCase() === upper);
       if (dg) map[dg.label] = it.x;
     } else {
-      unknownSet.add(trimmed);
+      unknownCandidates.push({ str: trimmed, x: it.x });
     }
   }
 
   const count = Object.keys(map).length;
+
+  // The leftmost cell of a deelgebied header row often carries the VAK NAME
+  // (e.g. "Bewegingsleer & Conditionele  V&A M&M INS ..."), which sits to the
+  // LEFT of the first real deelgebied column. It is not an unknown column and
+  // must NOT trigger the schema-drift banner (T-2026-06-18-07: this false
+  // positive told mentors data was missing on every import while all scores
+  // parsed correctly). A genuine unknown column sits within the column zone
+  // (x >= the first mapped column), so only those are reported as drift.
+  const columnXs = Object.values(map);
+  const minColumnX = columnXs.length > 0 ? Math.min(...columnXs) : -Infinity;
+  const unknownSet = new Set<string>();
+  for (const c of unknownCandidates) {
+    if (c.x < minColumnX) continue; // vak-name cell, not a column
+    unknownSet.add(c.str);
+  }
   const unknownLabels = [...unknownSet];
 
   if (count < MIN_COLUMN_WARN_THRESHOLD) {

@@ -295,6 +295,33 @@ describe('buildColumnMap — header detection', () => {
     const { unknownLabels } = buildColumnMap(line);
     expect(unknownLabels).toHaveLength(0);
   });
+
+  it('does NOT flag the leftmost vak-name cell as an unknown column (T-2026-06-18-07)', () => {
+    // Real Cumlaude "Overzicht Deelgebieden" header rows carry the vak name in
+    // the leftmost cell, far LEFT of the first deelgebied column (e.g.
+    // "Bewegingsleer & Conditionele  V&A M&M INS ..."). It must NOT be reported
+    // as an unknown column — that falsely fires the schema-drift banner
+    // ("onbekende kolommen / data ontbreekt") on every import while all scores
+    // parse correctly. Reproduced on real BJ2 Fase 3 DD + BJ1 Fase 1 N34 DD PDFs.
+    const { line } = buildRealisticHeader();          // 19 real columns from x=100
+    const withVak = [item('Bewegingsleer & Conditionele', 29), ...line];
+    const { map, unknownLabels } = buildColumnMap(withVak);
+    expect(Object.keys(map)).toHaveLength(19);        // all real columns still mapped
+    expect(unknownLabels).toEqual([]);                // vak name NOT flagged as drift
+  });
+
+  it('still flags a genuine unknown column inside the column zone', () => {
+    // An unrecognised heading positioned AMONG the real columns is a true schema
+    // drift and must still be reported.
+    const { line } = buildRealisticHeader();
+    const withVakAndDrift = [
+      item('Pedagogiek', 29),       // vak name — excluded
+      ...line,
+      item('NEWCOL', 560),          // real new column to the right — flagged
+    ];
+    const { unknownLabels } = buildColumnMap(withVakAndDrift);
+    expect(unknownLabels).toEqual(['NEWCOL']);
+  });
 });
 
 // ---------------------------------------------------------------------------
