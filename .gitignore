@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .gstack/
+
+# Installed agent/skill tooling (not project source)
+.agents/
+.claude/skills/*
+!.claude/skills/ui-ux-pro-max/
