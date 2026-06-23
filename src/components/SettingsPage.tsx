@@ -353,10 +353,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
     const theme: Theme = checked ? 'dark' : 'light';
     applyTheme(theme);   // immediate DOM update
     await saveSettings({ theme }); // persist to plugin-store
-    const nextIsDark =
-      theme === 'dark' ||
-      (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    onToggleDark(nextIsDark); // notify App.tsx to mirror the value
+    onToggleDark(theme === 'dark'); // notify App.tsx to mirror the value
   }
 
   // Section 3 handlers (instant-apply pattern — state updated before async write)

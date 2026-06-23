@@ -1,11 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod crypto; // Phase 12: AES-256-GCM encrypt/decrypt commands
 
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -16,7 +11,6 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build()) // Auto-update: check/download/installeer
         .plugin(tauri_plugin_process::init())                // Auto-update: relaunch() na installatie
         .invoke_handler(tauri::generate_handler![
-            greet,
             crypto::encrypt_klassen, // Phase 12: AES-256-GCM encrypt
             crypto::decrypt_klassen, // Phase 12: AES-256-GCM decrypt
         ])
