@@ -37,8 +37,10 @@ function App() {
     (async () => {
       try {
         const s = await loadSettings();
-        setIsDark(s.theme === 'dark');
-        applyTheme(s.theme ?? 'light');
+        if (s) {
+          setIsDark(s.theme === 'dark');
+          applyTheme(s.theme);
+        }
       } catch {
         // On load failure: leave defaults (light mode)
       }
