@@ -59,7 +59,32 @@
       "Skill(gsd-capture)",
       "Skill(gsd-review-backlog)",
       "Skill(gsd-inbox)",
-      "Skill(office-hours)"
+      "Skill(office-hours)",
+      "Skill(code-review)"
+    ]
+  },
+  "enabledPlugins": {
+    "claude-code-setup@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/typecheck-on-edit.sh\"",
+            "timeout": 120,
+            "statusMessage": "Type-checking…"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/vitest-related.sh\"",
+            "timeout": 120,
+            "statusMessage": "Running related tests…"
+          }
+        ]
+      }
     ]
   }
 }
