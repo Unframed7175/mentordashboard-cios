@@ -37,10 +37,7 @@ function App() {
     (async () => {
       try {
         const s = await loadSettings();
-        const dark =
-          s.theme === 'dark' ||
-          (s.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        setIsDark(dark);
+        setIsDark(s.theme === 'dark');
         applyTheme(s.theme ?? 'light');
       } catch {
         // On load failure: leave defaults (light mode)

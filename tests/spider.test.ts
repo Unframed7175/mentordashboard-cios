@@ -71,7 +71,7 @@ test('onHover callback wordt aangeroepen bij mouseenter op hit circle', () => {
     if (!element || !React.isValidElement(element)) return null;
     const props = element.props as Record<string, unknown>;
     if (props.className === 'spider-hit-circle') return element;
-    const children = React.Children.toArray(props.children ?? []);
+    const children = React.Children.toArray((props.children ?? []) as React.ReactNode);
     for (const child of children) {
       if (React.isValidElement(child)) {
         const found = findHitCircle(child as React.ReactElement);
