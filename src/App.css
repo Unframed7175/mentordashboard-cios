@@ -91,9 +91,5 @@ button {
   outline: none;
 }
 
-#greet-input {
-  margin-right: 5px;
-}
-
 /* dark media query block removed in Plan 17-01 —
    body.dark in src/index.css is the single source of truth for dark mode. */
