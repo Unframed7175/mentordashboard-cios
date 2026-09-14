@@ -4,6 +4,19 @@
 > Dit bestand heeft de hoogste prioriteit. Alle framework-skills, plugins en subagents
 > volgen deze instructies. Bij conflict wint dit bestand altijd.
 
+## Project — snelreferentie
+
+- **Stack:** Tauri 2 (Rust, `src-tauri/`) + React 19 + Vite + TypeScript; tests met Vitest + jsdom
+- **Commando's:** `npm run dev` (Tauri-app) · `npm run vite-dev` (alleen frontend) · `npm test` · `npm run typecheck` · `npm run build`
+- **Default branch:** `master` (niet `main`)
+- **Architectuur, datamodel, testpatronen, valkuilen:** `.gsd/KNOWLEDGE.md` (wordt bij sessiestart gelezen)
+- **Privacy:** log nooit leerlingnamen of andere persoonsgegevens naar de console — gebruik `leerlingId`
+
+### Bron van waarheid: `.gsd/` vs `.planning/`
+- `.gsd/` is de **enige** bron voor state, beslissingen en plannen.
+- `.planning/` is een **read-only archief** van eerdere GSD-tooling (t/m v2.4). Niet bijwerken, niet als actuele state lezen.
+- GSD-skills (`/gsd-*`) schrijven standaard naar `.planning/`: neem de uitkomst (beslissingen, plan, status) over in de juiste `.gsd/`-bestanden vóór de fase als afgerond geldt.
+
 ---
 
 ## 0. Sessieopstart — verplichte volgorde
@@ -47,24 +60,23 @@ In alle overige sessies (STATE.md bestaat én bevat een recente Stack-check) sla
 
 ```bash
 # ── GSD ──────────────────────────────────────────────────────────────────────
-GSD_VERSION=$(npx get-shit-done-cc --version 2>/dev/null)
+GSD_VERSION=$(cat ~/.claude/get-shit-done/VERSION 2>/dev/null)
 [ -z "$GSD_VERSION" ] && echo "GSD: ONTBREEKT" || echo "GSD: $GSD_VERSION"
 
-# ── GStack ───────────────────────────────────────────────────────────────────
-GSTACK_CMDS=$(ls ~/.claude/skills/gstack/commands/ 2>/dev/null | grep -cE "office-hours|review|ship|qa")
-[ "$GSTACK_CMDS" -lt 4 ] && echo "GStack: ONTBREEKT of ONVOLLEDIG" || echo "GStack: aanwezig"
+# ── GStack (skills staan als losse mappen in ~/.claude/skills/gstack/) ─────────
+GSTACK_CMDS=$(ls ~/.claude/skills/gstack/ 2>/dev/null | grep -cxE "office-hours|review|ship|qa")
+[ "$GSTACK_CMDS" -lt 4 ] && echo "GStack: ONTBREEKT of ONVOLLEDIG" || echo "GStack: $(cat ~/.claude/skills/gstack/VERSION 2>/dev/null)"
 
-# ── UI UX Pro Max ─────────────────────────────────────────────────────────────
-UIPRO=$(ls ~/.claude/skills/ 2>/dev/null | grep -c "ui-ux-pro-max")
-[ "$UIPRO" -eq 0 ] && echo "UI UX Pro Max: ONTBREEKT" || echo "UI UX Pro Max: aanwezig"
+# ── UI UX Pro Max (project-kopie is leidend, wordt gecommit) ──────────────────
+[ -f .claude/skills/ui-ux-pro-max/scripts/search.py ] && echo "UI UX Pro Max: aanwezig" || echo "UI UX Pro Max: ONTBREEKT"
 
-# ── Claude Mem ────────────────────────────────────────────────────────────────
-MEM_HOOK=$(cat .claude/settings.json 2>/dev/null | grep -c "SessionStart")
-[ "$MEM_HOOK" -eq 0 ] && echo "Claude Mem: ONTBREEKT of hook niet geconfigureerd" || echo "Claude Mem: geconfigureerd"
+# ── Claude Mem (plugin; hooks komen uit de plugin, niet uit .claude/settings.json) ─
+MEM=$(ls ~/.claude/plugins/cache/thedotmack/claude-mem/ 2>/dev/null | sort -V | tail -1)
+[ -z "$MEM" ] && echo "Claude Mem: ONTBREEKT" || echo "Claude Mem: $MEM"
 ```
 
-> **Superpowers** kan niet via de terminal worden geverifieerd — dat is een in-sessie plugin.
-> Controleer met `/plugin list | grep superpowers` in een actieve Claude Code sessie.
+> **Superpowers en Claude Mem** zijn plugins: bevestig in een actieve sessie met `/plugin list`
+> (beide moeten `✔ enabled` tonen).
 
 ### Stap B — Installeer ontbrekende componenten
 
@@ -83,12 +95,10 @@ git clone --single-branch --depth 1 \
 npm install -g uipro-cli
 uipro init --ai claude
 
-# Claude Mem (ontbreekt)
-npx claude-mem install
 ```
 
-> **Superpowers (ontbreekt):** typ in de actieve Claude Code sessie:
-> `/plugin install superpowers@claude-plugins-official`
+> **Superpowers / Claude Mem (ontbreekt):** typ in de actieve Claude Code sessie:
+> `/plugin install superpowers@claude-plugins-official` · `/plugin install claude-mem@thedotmack`
 
 **Als een installatie faalt:**
 - Schrijf de fout in `.gsd/STATE.md` onder `## Stack-fout [datum]: [componentnaam]`
@@ -111,39 +121,36 @@ git -C ~/.claude/skills/gstack pull --ff-only
 #   git -C ~/.claude/skills/gstack stash
 #   git -C ~/.claude/skills/gstack pull --ff-only
 #   git -C ~/.claude/skills/gstack stash pop
-# Bij aanhoudende conflicten: fresh clone (zie sectie 10 stap 2)
+# Bij aanhoudende conflicten: fresh clone (zie Stap B)
 
 # UI UX Pro Max bijwerken
 npm update -g uipro-cli
 uipro init --ai claude           # herinitialiseer na update
-
-# Claude Mem bijwerken
-npx claude-mem install           # overschrijft de bestaande installatie
 ```
 
-> **Superpowers bijwerken:** typ in de actieve Claude Code sessie:
-> `/plugin update superpowers`
+> **Superpowers / Claude Mem bijwerken:** typ in de actieve Claude Code sessie:
+> `/plugin update superpowers` · `/plugin update claude-mem`
 
 ### Stap C — Versieverificatie (up-to-date check)
 
-Na installatie of bij een bestaand project: controleer of de aanwezige versies voldoen aan de minimumvereisten uit de footer van dit bestand (`Superpowers v5+`, `GStack v1.26+`, `UI UX Pro Max v2.5+`, `GSD v1.40+`, `Claude Mem v12+`).
+Na installatie of bij een bestaand project: controleer of de aanwezige versies voldoen aan de minimumvereisten uit de footer van dit bestand (`Superpowers v5+`, `GStack v1.26+`, `UI UX Pro Max = npm-latest`, `GSD v1.40+`, `Claude Mem v12+`).
 
 ```bash
 # GSD — versie ophalen
-npx get-shit-done-cc --version
+echo "GSD: $(cat ~/.claude/get-shit-done/VERSION)"
 # Verwacht: 1.40 of hoger
 
-# GStack — laatste commit datum (als versienummer ontbreekt)
-git -C ~/.claude/skills/gstack log -1 --format="%ci"
-# Bij verouderde output (> 30 dagen oud): voer stap 2 uit sectie 10 opnieuw uit
+# GStack — versie ophalen
+echo "GStack: $(cat ~/.claude/skills/gstack/VERSION)"
+# Verwacht: 1.26 of hoger
 
 # UI UX Pro Max — versie ophalen
-python3 ~/.claude/skills/ui-ux-pro-max/scripts/search.py --version 2>/dev/null \
-  || uipro --version 2>/dev/null
-# Verwacht: 2.5 of hoger
+[ "$(uipro --version 2>/dev/null)" = "$(npm view uipro-cli version 2>/dev/null)" ] \
+  && echo "UI UX Pro Max: up-to-date" || echo "UI UX Pro Max: VEROUDERD"
+# De skill zelf heeft geen versienummer; de CLI-versie gelijk aan npm-latest geldt als up-to-date
 
-# Claude Mem — versie ophalen
-npx claude-mem --version 2>/dev/null
+# Claude Mem — versie = mapnaam van de plugin-cache
+ls ~/.claude/plugins/cache/thedotmack/claude-mem/ | sort -V | tail -1
 # Verwacht: 12 of hoger
 ```
 
@@ -161,7 +168,9 @@ Stack-status:
 ```
 
 Als alle componenten aanwezig en up-to-date zijn: ga direct verder naar stap 2 van sectie 0.
-Als er componenten ontbreken of verouderd zijn: **pauzeer de sessieopstart** en herstel eerst de stack voordat je verdergaat. Schrijf een melding in `.gsd/STATE.md` onder `## Stack-check [datum]`.
+Als er componenten ontbreken of verouderd zijn: **pauzeer de sessieopstart** en herstel eerst de stack voordat je verdergaat.
+
+Schrijf de uitkomst **altijd** (ook bij volledig groen) in `.gsd/STATE.md` onder `## Stack-check [datum]` — zonder die sectie triggert §0a elke sessie opnieuw.
 
 ---
 
@@ -171,7 +180,7 @@ Maak de `.gsd/` map aan en start met GStack `/office-hours`.
 **Als de SessionStart hook faalt of Claude Mem niet reageert:**
 → Log een waarschuwing in `.gsd/STATE.md` onder `## Mem-fout [datum]`  
 → Ga verder zonder geheugeninjectie — gebruik alleen GSD-bestanden als context  
-→ Vraag de gebruiker aan het einde van de sessie om de hook te controleren via sectie 10
+→ Vraag de gebruiker aan het einde van de sessie om de plugin te controleren via `/plugin list` (zie §0a)
 
 ---
 
@@ -623,8 +632,8 @@ CLAUDE.md                      Dit bestand — hoogste prioriteit
 > **Versiebeheer:** `.gsd/` wordt **volledig gecommit** en bijgehouden in de repo — het is projectgeheugen, geen build-output. Voeg `.gsd/` nooit toe aan `.gitignore`. `.env` en `node_modules/` wél.
 
 ### Naamgeving
-- Branches: `feature/[naam]`, `fix/[naam]`, `design/[naam]`
-- Commits: `feat:`, `fix:`, `test:`, `design:`, `docs:`
+- Branches: `feature/[naam]`, `fix/[naam]`, `design/[naam]`, `chore/[naam]`, `docs/[naam]`
+- Commits: `feat:`, `fix:`, `perf:`, `refactor:`, `test:`, `design:`, `docs:`, `chore:`, `ci:` (zie §12 voor wat in de CHANGELOG komt)
 - GSD milestones: `M001-[naam]`, slices: `S01`, taken: `T01`
 
 ### CI/CD
@@ -653,7 +662,10 @@ CLAUDE.md                      Dit bestand — hoogste prioriteit
         - run: pip install -r requirements.txt && pytest
   ```
 - Superpowers genereert de passende workflow in Fase 2 op basis van de projectstack, tenzij expliciet uitgesloten in `.gsd/DECISIONS.md`
-- **Branch protection op `main` (verplicht vóór eerste `/ship`):** minimaal 1 reviewer vereist + CI moet groen zijn vóór merge. Zonder branch protection kan de volledige Fase 4 gate worden omzeild door direct naar `main` te pushen.
+- **Branch protection op `master` (verplicht vóór eerste `/ship`):** merge alleen via PR + CI moet groen zijn. Zonder branch protection kan de volledige Fase 4 gate worden omzeild door direct naar `master` te pushen.
+- **Review-eis:** minimaal 1 review vóór merge.
+  - **Solo-project (enige collaborator = PR-auteur):** een GStack `/review` zonder blokkerende bevindingen telt als die review. Noteer de uitkomst als PR-comment (`/review: geen blokkerende bevindingen`) vóór merge.
+  - **Zodra er een tweede collaborator is:** menselijke approval vereist; zet dan `required_approving_review_count` op 1 in de branch protection.
 - `.env.example` is **verplicht** in de repo; GSD maakt dit aan in Fase 1 bij elke nieuwe dependency die een secret vereist
 - `.env` staat altijd in `.gitignore` — Superpowers-subagents mogen `.env` nooit committen
 - Secrets worden **nooit hardcoded**; Superpowers krijgt bij elke subagent-instructie expliciet mee: gebruik altijd `process.env.VAR` of equivalent
@@ -697,10 +709,11 @@ Het kost 5 minuten en voorkomt uren herstelwerk.
 /plan-design-review     Design richting bepalen
 
 # FASE 1 — Spec (GSD)
-npx get-shit-done-cc    GSD initialiseren
-/gsd                    Status bekijken
-/gsd discuss            Fase bespreken
-/gsd plan               Milestone plannen
+/gsd-progress           Status bekijken
+/gsd-new-milestone      Nieuwe milestone starten
+/gsd-discuss-phase      Fase bespreken
+/gsd-plan-phase         Fase plannen
+# Let op: /gsd-* schrijft naar .planning/ — neem uitkomst over in .gsd/ (zie snelreferentie)
 
 # FASE 3 — Design (UI UX Pro Max) — vóór Fase 2 als er UI-taken zijn
 python3 .claude/skills/ui-ux-pro-max/scripts/search.py \
@@ -725,324 +738,17 @@ python3 .claude/skills/ui-ux-pro-max/scripts/search.py \
 
 ---
 
-## 10. Installatie & verificatie
-
-> **Primaire referentie voor installatie en verificatie is §0a** — die sectie is de gezaghebbende bron en wordt automatisch uitgevoerd. Sectie 10 dient als handmatige naslag bij problemen of bij installatie buiten een Claude Code sessie om.
-
-Voer onderstaande stappen uit bij eerste gebruik. Deze sectie is zelfvoorzienend —
-er is geen externe `docs/stack-setup.md` nodig.
-
-### Stap 1 — GSD installeren
-```bash
-cd [projectmap]
-npx get-shit-done-cc
-# Verwachte output: GSD geïnitialiseerd, .gsd/ map aangemaakt
-```
-
-### Stap 2 — GStack installeren
-```bash
-git clone --single-branch --depth 1 \
-  https://github.com/garrytan/gstack.git \
-  ~/.claude/skills/gstack
-```
-
-### Stap 3 — Superpowers installeren
-Typ dit in een actieve Claude Code sessie:
-```
-/plugin install superpowers@claude-plugins-official
-```
-
-### Stap 4 — UI UX Pro Max installeren
-```bash
-npm install -g uipro-cli
-uipro init --ai claude
-# Python 3 vereist: python3 --version
-# Windows zonder Python: winget install Python.Python.3.12
-```
-
-### Stap 5 — Claude Mem installeren
-```bash
-npx claude-mem install
-# Gebruik altijd npx install — niet npm install -g
-# npx registreert de SessionStart hook automatisch
-```
-
-### Verificatie — controleer of alles aanwezig is
-```bash
-# GSD
-npx get-shit-done-cc --version
-
-# GStack
-ls ~/.claude/skills/gstack/commands/ | grep -E "office-hours|review|ship|qa"
-
-# Superpowers
-# Typ in Claude Code sessie:
-/plugin list | grep superpowers
-
-# UI UX Pro Max
-ls ~/.claude/skills/ | grep ui-ux-pro-max
-python3 ~/.claude/skills/ui-ux-pro-max/scripts/search.py --help
-
-# Claude Mem — controleer SessionStart hook
-cat .claude/settings.json | grep SessionStart
-# Verwachte output: "SessionStart": "claude-mem inject"
-# Bij lege output: voer stap 5 opnieuw uit
-```
-
----
-
-## 11. Governance van dit bestand
-
-CLAUDE.md heeft de hoogste prioriteit in het project, maar heeft zelf ook een eigenaar en updateprocedure.
-
-**Eigenaar:** de projectlead (persoon, niet een framework)  
-**Locatie:** altijd in de projectroot, nooit in een submap  
-**Bewerkingsrechten:** alleen handmatig door de eigenaar — geen enkel framework schrijft naar dit bestand
-
----
-
-### Versioning — Semantic Versioning (SemVer)
-
-Dit bestand volgt [Semantic Versioning 2.0.0](https://semver.org): `MAJOR.MINOR.PATCH`
-
-| Type | Wanneer | Voorbeeld |
-|---|---|---|
-| `MAJOR` | Breaking change — bestaande workflow werkt niet zonder aanpassing | Fase verdwijnt, schrijfrecht wijzigt, DoD-criterium wordt strenger, plugin verwijderd |
-| `MINOR` | Nieuwe functionaliteit, backwards compatible | Nieuwe sectie, nieuwe DoD-stap die toevoegt, nieuwe plugin |
-| `PATCH` | Bugfix, tekstcorrectie, padkwalificatie, verduidelijking | Typefout, verkeerd commando, ontbrekend pad |
-
-> **Breaking changes vereisen een migratiestap.** Zie "Procedure bij breaking change" hieronder.
-
----
-
-### Updateprocedure — Conventional Commits
-
-Elke wijziging volgt [Conventional Commits](https://www.conventionalcommits.org):
-
-```
-<type>[!]: <beschrijving>
-
-[optionele body]
-[optionele footer: BREAKING CHANGE: <uitleg>]
-```
-
-**Types:**
-
-| Type | Gebruik voor |
-|---|---|
-| `feat` | Nieuwe instructie, sectie of plugin-integratie (`MINOR` bump) |
-| `fix` | Correctie van fout, verkeerd pad, verkeerd commando (`PATCH` bump) |
-| `refactor` | Herstructurering zonder gedragswijziging (`PATCH` bump) |
-| `docs` | Verduidelijking, betere formulering, voorbeelden (`PATCH` bump) |
-| `breaking` | Wijziging die bestaande workflow breekt (`MAJOR` bump) — voeg `!` toe na type |
-
-**Voorbeelden van geldige commit messages:**
-```
-fix: npx axe gecorrigeerd naar npx @axe-core/cli
-feat: Python CI-workflow toegevoegd naast Node-variant
-feat!: schrijfrechten Superpowers op STATE.md gewijzigd
-
-BREAKING CHANGE: Superpowers mag niet meer schrijven naar .gsd/STATE.md.
-Bestaande projecten: verwijder eventuele STATE.md-schrijfinstructies
-uit actieve Superpowers-configuraties.
-```
-
----
-
-### Git-workflow
-
-1. Maak een branch aan: `docs/claude-md-[type]-[onderwerp]`
-   - Voorbeelden: `docs/claude-md-fix-axe-cli`, `docs/claude-md-feat-python-ci`
-2. Pas het bestand aan
-3. Voeg een entry toe aan de changelog hieronder (format: zie "Changelog-format")
-4. Commit met een Conventional Commit message
-5. Open een PR — **zonder changelogenrij wordt de PR niet geaccepteerd**
-6. Minimaal één reviewer accordeert
-7. Merge naar main via squash-merge
-
-> **Squash-merge** houdt de commit-history van main leesbaar: één commit per versie.
-
----
-
-### Procedure bij breaking change (`MAJOR` bump)
-
-Een breaking change vereist extra stappen bovenop de normale git-workflow:
-
-1. Voeg `!` toe aan het commit-type: `feat!:` of `fix!:`
-2. Vermeld `BREAKING CHANGE:` in de commit footer met een uitleg
-3. Voeg een `> ⚠ BREAKING` blok toe aan de changelog-entry (zie format)
-4. Schrijf een **migration notice** in elk actief project dat dit bestand gebruikt:
-   ```
-   ## CLAUDE.md breaking change [datum] — v[oud] → v[nieuw]
-   Actie vereist: [wat de projectlead moet doen]
-   Deadline: [datum of "vóór volgende milestone-start"]
-   ```
-   Locatie: `.gsd/STATE.md` onder `## Migration notice`
-5. Informeer alle teamleden vóór merge
-
----
-
-### Changelog-format
-
-Gebaseerd op [Keep a Changelog](https://keepachangelog.com). Elke versie heeft één of meer van deze labels:
-
-- **Added** — nieuwe instructies, secties, plugins
-- **Changed** — gewijzigd gedrag of formulering
-- **Fixed** — gecorrigeerde fouten, commando's, paden
-- **Removed** — verwijderde instructies of secties
-- **Breaking** — wijzigingen die een migratieactie vereisen
-
----
-
-### Changelog
-
-#### [1.9.0] — 2026-06-11
-##### Added
-- Sectie 12: project patchnotes — SemVer voor projectsoftware, CHANGELOG.md formaat, koppeling GSD-taken naar patchnote, wat niet wordt opgenomen, handmatige correctieprocedure
-- Retro → patchnote keten verplaatst van sectie 11 naar sectie 12 en uitgebreid met gesplitst pad (projectverbetering vs workflow-verbetering)
-
-##### Removed
-- Retro → patchnote keten uit sectie 11 (verplaatst naar sectie 12)
-
----
-
-#### [1.8.0] — 2026-06-11
-##### Added
-- Semantic Versioning (SemVer MAJOR.MINOR.PATCH) als versioning-standaard
-- Conventional Commits als commit-message standaard met type-tabel
-- Procedure bij breaking change: `!`-suffix, `BREAKING CHANGE:` footer, migration notice in `.gsd/STATE.md`
-- Retro → patchnote keten: expliciete stappen van bevinding tot merge
-- Keep a Changelog-format: gegroepeerd per Added / Changed / Fixed / Removed / Breaking
-
-##### Changed
-- Changelog geherformateerd van platte tabel naar gestructureerde versie-secties
-- Branch-naamgeving uitgebreid: `docs/claude-md-[type]-[onderwerp]`
-- Merge-strategie vastgelegd als squash-merge
-
----
-
-#### [1.7.0] — 2026-06-06
-##### Fixed
-- `S01-SUMMARY.md` pad gekwalificeerd in foutherstel Fase 2
-- GSD update-commando gecorrigeerd naar `npx get-shit-done-cc@latest` met aparte verificatiestap
-- `git pull --rebase` vervangen door `--ff-only` met stash-fallback instructie
-- `npx axe` gecorrigeerd naar `npx @axe-core/cli` (correct package)
-- Lighthouse output-flags gecorrigeerd: `--output-path` + `node` score-uitlezing
-
-##### Added
-- Expliciete versiebeheer-noot: `.gsd/` commit verplicht, nooit in `.gitignore`
-- Python CI-workflow (GitHub Actions) naast bestaande Node-variant
-- Branch protection op `main` als verplichte conventie vóór eerste `/ship`
-
----
-
-#### [1.6.0] — 2026-06-06
-##### Fixed
-- `STATE.md` paden in Fase 5 escalatie code-block gekwalificeerd naar `.gsd/`
-- Fase 1 UI-check actietekst gecorrigeerd (zei nog "Maak DESIGN.md aan", DoD was al correct)
-- Interne reviewcode `zie B6` verwijderd uit Fase 4 DoD
-- `STATE.md` in Fase 2 Superpowers-melding en sectie 9 commentaarregel gekwalificeerd
-- `M001-LEARNINGS.md` volledig pad toegevoegd op alle vindplaatsen; opgenomen in bestandsoverzicht sectie 7
-
-##### Changed
-- A11y-check gesplitst: statische contrast/typografie-check in Fase 3 DoD (geen URL nodig); dynamische `axe wcag2aa`-check verplaatst naar Fase 4 DoD na `/qa`
-
----
-
-#### [1.5.0] — 2026-06-06
-##### Fixed
-- Alle bestandspaden in sectie 3 gekwalificeerd naar `.gsd/`
-- Sessieherstel verwijst nu correct naar stap 2–4 (was 1–3)
-- Fase 1 DoD: `DESIGN.md` hoeft niet te bestaan — Fase 3 staat ingepland
-
-##### Added
-- Security scan (`npm audit` / `pip-audit`) als verplichte stap vóór `/ship`
-- A11y-check (`axe wcag2aa`) aan Fase 3 DoD
-- Lighthouse performance-baseline in Fase 4 DoD (aanbevolen, geen harde blokkade)
-- Env/secrets-conventie in sectie 7
-- CI/CD-integratie als conventie en post-ship stap
-- Changelog-validatie als verplichte blokkade vóór `/ship`
-- Scope-tabel taak-review (Superpowers) vs slice-review (GStack)
-- Scope-tabel GStack design-review vs UI UX Pro Max pre-delivery checks
-
-##### Changed
-- Superpowers schrijft niet meer naar `STATE.md` — GSD schrijft handoff na melding van Superpowers
-- `S01-SUMMARY.md` eigendom expliciet bij Superpowers; schrijfrechten-tabel uitgebreid
-- Claude Mem verantwoordelijkheid gesplitst: motivatie/context vs keuze (DECISIONS.md); cross-project lessen vs projectlessen (LEARNINGS.md)
-
-##### Breaking
-- Superpowers heeft geen schrijfrechten meer op `.gsd/STATE.md`
-  > ⚠ BREAKING: Verwijder eventuele STATE.md-schrijfinstructies uit actieve Superpowers-configuraties vóór volgende milestone-start.
-
----
-
-#### [1.4.0] — 2026-06-06
-##### Fixed
-- Dubbele stap 2 verwijderd uit sessieopstart
-- `PROJECT.md`-pad genormaliseerd naar `.gsd/PROJECT.md` door het hele document
-
-##### Added
-- §0a trigger verbreed: ook actief als `STATE.md` bestaat maar geen `## Stack-check` bevat
-- Update-instructies per component (Stap B2) in §0a
-- Installatie-fallback bij mislukking beschreven
-- Sessieopstart stap 2: actieve-milestone-check bij meerdere milestones
-- `ROADMAP.md` aanmaak voorgeschreven in Fase 1
-- Fase 0 DoD uitgebreid met `/plan-design-review` als UI betrokken is
-- Bestandsconventies uitgebreid met alle GSD-bestanden inclusief `S01-SUMMARY.md`
-
-##### Changed
-- "Groot bestand" gedefinieerd als >200 regels of >5 KB
-- `/retro`-uitkomsten gerouteerd naar `.gsd/KNOWLEDGE.md` met CLAUDE.md-voorstelpad
-- Sectie 10 gemarkeerd als secundaire naslag (§0a is gezaghebbend)
-- Uitvoeringsvolgorde fasen verduidelijkt: 0 → 1 → 3 → 2 → 4
-
----
-
-#### [1.3.0] — 2026-06-06
-##### Added
-- §0a: automatische skill/plugin-check bij eerste gebruik en via `/check-stack`
-- Aanwezigheids- én versieverificatie per component (Stap A en Stap C)
-- Installatie-instructies inline per component (Stap B)
-- Sessieopstart stap 1 bijgewerkt om naar §0a te verwijzen
-
----
-
-#### [1.2.0] — 2026-06-01
-##### Added
-- Fase 3 als vaste positie in keten (na Fase 1, vóór Fase 2)
-- Fase 4 expliciete milestone-afsluiting
-- Claude Mem project-scope als verplicht veld
-- Sessieopstart stap 5: conflict-verificatie tussen memories en GSD
-
-##### Changed
-- `DECISIONS.md` gesplitst in twee secties (`## Architectuur` en `## Spec-verfijning`) met conflictregel
-- Contextcheckpoints vervangen vage 40%-grens door concrete gedragsregels
-- Sectie 8: afwijkingsdocumentatie verplicht gemaakt
-- Sectie 10: zelfvoorzienend gemaakt (`stack-setup.md` verwijzing verwijderd)
-- Changelog updateprocedure aangescherpt
-
----
-
-#### [1.1.0] — 2026-01-01
-##### Added
-- Definition of Done per fase
-- Fase 5 foutherstel-escalatiepad
-- Objectieve drempelwaarden sectie 8
-- Claude Mem API-contract
-- Schrijfrechten-tabel sectie 5
-- Governance sectie 11
-
----
-
-#### [1.0.0] — 2026-01-01
-##### Added
-- Initiële versie gegenereerd
+## 10–11. Installatie & governance
+
+- Installatie, updates en verificatie van de stack: zie §0a (enige bron).
+- Eigenaar, SemVer, git-workflow en changelog van dit bestand: `docs/CLAUDE-MD-GOVERNANCE.md`.
+  Lees dat document alleen wanneer CLAUDE.md zelf wordt aangepast. Geen enkel framework schrijft naar CLAUDE.md.
 
 ---
 
 ## 12. Project patchnotes
 
-Deze sectie beschrijft hoe patchnotes van de projectsoftware worden opgebouwd, bijgehouden en gepubliceerd. Dit is los van de CLAUDE.md-changelog in sectie 11 — die gaat over dit bestand; sectie 12 gaat over de software die gebouwd wordt.
+Deze sectie beschrijft hoe patchnotes van de projectsoftware worden opgebouwd, bijgehouden en gepubliceerd. Dit is los van de CLAUDE.md-changelog in `docs/CLAUDE-MD-GOVERNANCE.md` — die gaat over dit bestand; sectie 12 gaat over de software die gebouwd wordt.
 
 ---
 
@@ -1146,7 +852,7 @@ Als GStack `/ship` een CHANGELOG-entry incorrect genereert (verkeerde sectie, on
        ↓
        Branch: docs/claude-md-[type]-[onderwerp]
        ↓
-       Wijziging + changelog-entry sectie 11
+       Wijziging + changelog-entry in docs/CLAUDE-MD-GOVERNANCE.md
        ↓
        PR → review → merge → SemVer bump CLAUDE.md
        ↓
@@ -1157,5 +863,5 @@ Een retro-bevinding die niet wordt opgepakt verdwijnt niet — ze blijft in `.gs
 
 ---
 
-*Versie: 1.9.0 — gegenereerd op basis van Superpowers v5+, GStack v1.26+,
-UI UX Pro Max v2.5+, GSD v1.40+, Claude Mem v12+*
+*Versie: 1.10.0 — gegenereerd op basis van Superpowers v5+, GStack v1.26+,
+UI UX Pro Max (npm-latest), GSD v1.40+, Claude Mem v12+*
