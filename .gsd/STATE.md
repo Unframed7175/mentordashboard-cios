@@ -12,8 +12,8 @@ Naar: Superpowers — Fase 2 (executie)
 
 **Openstaand — moet Fase 2 weten:**
 - **Fase 2 start pas ná T0 (koude-installatie-observatie) en T1 (auto-update-QA).** T1 faalt → terug naar Fase 0. T0 bepaalt standaard-tak "Open toch" vs "beschadigd" en verifieert NL-knopnamen in de microcopy.
-- **Scope gegroeid door besluit 5B:** landingspagina gaat over op het app-design system (nieuwe P1-taak LP-SYS, Lane A begint daarmee). Ook nieuw: T9 (gebruikerssamenvatting op landingspagina), D4 herstructureert Help tot naslag.
-- Lane-volgorde: A `LP-SYS → T2 → D1 → D3 → D5` (ander repo) · B `T3, T5, T6, T9` · C `DT-A11Y → D4 → DT-ICON`.
+- **Scope gegroeid door besluit 5A:** landingspagina gaat over op het app-design system (nieuwe P1-taak LP-SYS, Lane A begint daarmee). Ook nieuw: T9 (gebruikerssamenvatting op landingspagina), D4 herstructureert Help tot naslag.
+- Lane-volgorde: A `T5 → LP-SYS → T2 → D1 → D3 → D5` (T5 in deze repo, rest in ander repo) · B `T3, T6, T9` · C `DT-A11Y → D4 → DT-ICON`.
 - Mockups niet gemaakt (gstack designer zonder OpenAI-sleutel) → na LP-SYS/T2 `/design-review` op de live pagina.
 
 **DoD Fase 3 afgevinkt:** DESIGN.md door search-script ✅ · `/plan-design-review` akkoord ✅ · pre-delivery checks zonder blokkers ✅ · statische a11y-check (fouten hersteld in DESIGN.md) ✅ · handoff ✅

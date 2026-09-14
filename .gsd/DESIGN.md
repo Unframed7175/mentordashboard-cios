@@ -90,7 +90,7 @@ RAG-stippen (`--rag-*`) en spider-kleuren (`--spider-*`) zijn grafische elemente
 ## 6. Interactie & toegankelijkheid (blokkerend)
 
 - Klikdoelen ≥ 44×44px op de landingspagina en in dialogen; ≥ 32px hoogte voor compacte dashboardknoppen met ≥ 8px tussenruimte
-- Zichtbare focusring op alles wat focus krijgt: `2px solid var(--border-focus)` + `2px` offset; nooit `outline: none` zonder vervanging
+- Zichtbare focusring op alles wat focus krijgt: `2px solid` + `2px` offset, kleur ✏️ `--border-focus` = `--accent-strong` `#0077AA` in licht (4.98:1 op wit, 4.54 op page) en `--accent` `#009FE3` in donker (5.34–6.44:1) — huidige `#009FE3` in licht haalt maar 2.97:1 (WCAG 1.4.11 eist ≥ 3:1); nooit `outline: none` zonder vervanging
 - `cursor: pointer` op alles wat klikbaar is; hover geeft kleur/schaduw-feedback, geen schaal die layout verschuift
 - Iconen: inline SVG in Lucide-stijl (1.5–2px stroke, `24×24` viewBox), geen extra icon-dependency; **geen emoji als UI-icoon** — ✏️ de 🐛-knop in de navigatiebalk is een bekende afwijking
 - Alle afbeeldingen/screenshots met beschrijvende `alt`; decoratief = `alt=""`
@@ -99,7 +99,7 @@ RAG-stippen (`--rag-*`) en spider-kleuren (`--spider-*`) zijn grafische elemente
 
 ## 7. Landingspagina (M41)
 
-**Besluit plan-design-review 5B (2026-09-14): de landingspagina gaat over op dít design system** (tokens §3, typografie §4, vorm §5). De huidige eigen set in `ciosmentorendashboard/index.html` (`--blauw`, `--zwart`, `--radius: 4px`, Barlow/Barlow Condensed via Google Fonts, zwarte hero met diagonale clip-path, hoofdletterkoppen) vervalt. Gevolgen:
+**Besluit plan-design-review 5A (2026-09-14): de landingspagina gaat over op dít design system** (tokens §3, typografie §4, vorm §5). De huidige eigen set in `ciosmentorendashboard/index.html` (`--blauw`, `--zwart`, `--radius: 4px`, Barlow/Barlow Condensed via Google Fonts, zwarte hero met diagonale clip-path, hoofdletterkoppen) vervalt. Gevolgen:
 - Lettertype: Industry self-hosted (`@font-face`, WOFF2) in het landingspagina-repo — **geen Google Fonts**; licentie dekt webgebruik (besluit 7A).
 - Hero licht (`--bg-page` + één accentgloed, geen zwart vlak), koppen in zinsletters (Demi 600), geen uppercase-kopstijl.
 - Mobiele hero: `--text-primary` op `--bg-page` (geen blauw-op-blauw meer; huidige `.hero h1 span` op `#009FE3` en `rgba(255,255,255,.55)` op blauw vervallen).
@@ -107,12 +107,12 @@ RAG-stippen (`--rag-*`) en spider-kleuren (`--spider-*`) zijn grafische elemente
 
 Paginastructuur (afgeleid van het script-patroon "platform-specific CTAs / real screenshots", aangepast op ADR-14; detail-IA in S01-PLAN):
 
-1. **Hero:** wat het is + "werkt offline, gegevens blijven op je computer" + één primaire actie: *Kies je computer*
-2. **Kies je computer:** drie grote knoppen in gewone taal — *Windows* · *Mac met Apple chip* · *Mac met Intel chip* (≥ 44px, `--accent-strong`); hulpregel hoe je ziet welke Mac je hebt
-3. **Stap voor stap (alleen het gekozen OS):** genummerde stappen met echte screenshots; **geruststellingsblok vóór elke waarschuwingsstap** (blauw informatief vlak, geen rood/oranje — het is geen fout)
-4. **Wat kun je ermee** (bento, max. 4 kaarten)
-5. **Wat is er nieuw** (automatisch bijgewerkt door `scripts/update-landing-page.mjs` — ankers niet wijzigen)
-6. **Footer:** versie + "Gegevens worden nooit gedeeld"
+1. **Hero:** wat het is + "werkt offline, gegevens blijven op je computer" + één primaire actie: *Installeren ↓* (naar `#installatie`)
+2. **Installeren (één sectie `#installatie`) — kies je computer:** drie grote knoppen in gewone taal — *Windows* · *Mac met Apple chip* · *Mac met Intel chip* (≥ 44px, `--accent-strong`); hulpregel hoe je ziet welke Mac je hebt
+   **Stap voor stap, in dezelfde sectie (alleen het gekozen OS):** genummerde stappen met echte screenshots; **geruststellingsblok vóór elke waarschuwingsstap** (blauw informatief vlak, geen rood/oranje — het is geen fout)
+3. **Wat kun je ermee** (max. 4 kaarten, zie S01-PLAN 7C)
+4. **Wat is er nieuw** (automatisch bijgewerkt door `scripts/update-landing-page.mjs` — ankers niet wijzigen)
+5. **Footer:** versie + "Gegevens worden nooit gedeeld"
 
 Niet doen: sterrenbeoordelingen, QR-codes, app-store-badges, carrousels, video als enige uitleg.
 
@@ -138,7 +138,7 @@ WCAG 2.1 contrast, berekend op de tokens in `src/index.css`.
 | Licht: `--text-faint` op wit | **2.56:1 ✗** | `#7C8EA8` 3.34:1 — alleen niet-essentieel ✓ |
 | Donker: `--text-muted` op `--bg-surface` | **3.68:1 ✗** | `#7A8AA0` 4.98:1 ✓ |
 | Donker: `--text-faint` op `--bg-surface` | **2.31:1 ✗** | `#5B6D86` 3.32:1 — alleen niet-essentieel ✓ |
-| Licht + donker: `--text-primary`, `--text-secondary`, `--accent-text` op hun achtergronden | 6.8–17.9:1 ✓ | — |
+| Licht + donker: `--text-primary`, `--text-secondary`, `--accent-text` op hun achtergronden | 6.19–17.9:1 ✓ (laagste: donker `--text-secondary` op `--bg-surface-alt`) | — |
 | Licht + donker: alle status-tekst op status-achtergrond | 4.51–10.39:1 ✓ | — |
 | Donker: `--accent` als tekst op `--bg-surface` | 5.90:1 ✓ | — |
 | Bodytekst ≥ 16px | Basis 16px ✓ (Help-tekst erft 16px); `.detail-section-title` 11px ✗, 10× < 12px in `index.css` ✗ | Regel §4; fix in taak DT-A11Y |
@@ -157,3 +157,131 @@ opgenomen als taak in `S01-PLAN.md` (Fase 2), zodat de app-knoppen die collega's
 - [ ] Alt-tekst op alle betekenisvolle afbeeldingen
 - [ ] `prefers-reduced-motion` gerespecteerd
 - [ ] Landingspagina: responsive op 375 / 768 / 1024 / 1440px, geen horizontale scroll
+
+## 11. Contrast-script (verificatie DT-A11Y)
+
+Draai na tokenwijzigingen; elke regel met `FAIL` of (voor lopende tekst) `AA-groot` is een openstaande fout.
+
+```python
+# python3 - <<'EOF'  (paren aanpassen aan src/index.css)
+def lum(h):
+    h=h.lstrip('#'); r,g,b=[int(h[i:i+2],16)/255 for i in (0,2,4)]
+    f=lambda c: c/12.92 if c<=0.03928 else ((c+0.055)/1.055)**2.4
+    return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b)
+def cr(a,b):
+    la,lb=sorted([lum(a),lum(b)],reverse=True); return (la+0.05)/(lb+0.05)
+PAIRS=[  # (label, tekst, achtergrond, min)
+  ("licht wit op accent-strong", "#FFFFFF", "#0077AA", 4.5),
+  ("licht text-muted op page",   "#617187", "#F1F5F9", 4.5),
+  ("licht focusring op wit",     "#0077AA", "#FFFFFF", 3.0),
+  ("donker text-muted op surface","#7A8AA0","#131929", 4.5),
+  ("donker text-secondary op surface-alt","#94A3B8","#1A2235",4.5),
+]
+for label,t,b,m in PAIRS:
+    r=cr(t,b); print(f"{label:40} {r:5.2f}:1  {'OK' if r>=m else 'FAIL'}")
+# EOF
+```
+
+## 12. Ruwe output `search.py --design-system` (bron, Fase 3 DoD)
+
+<details>
+<summary>Query 1 — "education dashboard teachers mentors student progress desktop app trustworthy calm professional"</summary>
+
+## Design System: Mentordashboard CIOS
+
+### Pattern
+- **Name:** App Store Style Landing
+- **Conversion Focus:** Show real screenshots. Include ratings (4.5+ stars). QR code for mobile. Platform-specific CTAs.
+- **CTA Placement:** Download buttons prominent (App Store + Play Store) throughout
+- **Color Strategy:** Dark/light matching app store feel. Star ratings in gold. Screenshots with device frames.
+- **Sections:** 1. Hero with device mockup, 2. Screenshots carousel, 3. Features with icons, 4. Reviews/ratings, 5. Download CTAs
+
+### Style
+- **Name:** Claymorphism
+- **Keywords:** Soft 3D, chunky, playful, toy-like, bubbly, thick borders (3-4px), double shadows, rounded (16-24px)
+- **Best For:** Educational apps, children's apps, SaaS platforms, creative tools, fun-focused, onboarding, casual games
+- **Performance:** ⚡ Good | **Accessibility:** ⚠ Ensure 4.5:1
+
+### Colors
+| Role | Hex |
+|------|-----|
+| Primary | #0891B2 |
+| Secondary | #22D3EE |
+| CTA | #059669 |
+| Background | #ECFEFF |
+| Text | #164E63 |
+
+*Notes: Calm cyan + health green*
+
+### Typography
+- **Heading:** Lora
+- **Body:** Raleway
+- **Mood:** calm, wellness, health, relaxing, natural, organic
+- **Best For:** Health apps, wellness, spa, meditation, yoga, organic brands
+- **Google Fonts:** https://fonts.google.com/share?selection.family=Lora:wght@400;500;600;700|Raleway:wght@300;400;500;600;700
+- **CSS Import:**
+```css
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
+```
+
+### Key Effects
+Inner+outer shadows (subtle, no hard lines), soft press (200ms ease-out), fluffy elements, smooth transitions
+
+### Avoid (Anti-patterns)
+- Dark modes
+- Complex jargon
+
+### Pre-Delivery Checklist
+- [ ] No emojis as icons (use SVG: Heroicons/Lucide)
+- [ ] cursor-pointer on all clickable elements
+- [ ] Hover states with smooth transitions (150-300ms)
+- [ ] Light mode: text contrast 4.5:1 minimum
+- [ ] Focus states visible for keyboard nav
+- [ ] prefers-reduced-motion respected
+- [ ] Responsive: 375px, 768px, 1024px, 1440px
+
+</details>
+
+<details>
+<summary>Query 2 — "data analytics dashboard B2B professional minimal accessible light dark mode" (stijl t/m anti-patterns)</summary>
+
+### Style
+- **Name:** Dark Mode (OLED)
+- **Keywords:** Dark theme, low light, high contrast, deep black, midnight blue, eye-friendly, OLED, night mode, power efficient
+- **Best For:** Night-mode apps, coding platforms, entertainment, eye-strain prevention, OLED devices, low-light
+- **Performance:** ⚡ Excellent | **Accessibility:** ✓ WCAG AAA
+
+### Colors
+| Role | Hex |
+|------|-----|
+| Primary | #1E40AF |
+| Secondary | #3B82F6 |
+| CTA | #F59E0B |
+| Background | #F8FAFC |
+| Text | #1E3A8A |
+
+*Notes: Blue data + amber highlights*
+
+### Typography
+- **Heading:** Fira Code
+- **Body:** Fira Sans
+- **Mood:** dashboard, data, analytics, code, technical, precise
+- **Best For:** Dashboards, analytics, data visualization, admin panels
+- **Google Fonts:** https://fonts.google.com/share?selection.family=Fira+Code:wght@400;500;600;700|Fira+Sans:wght@300;400;500;600;700
+- **CSS Import:**
+```css
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+```
+
+### Key Effects
+Minimal glow (text-shadow: 0 0 10px), dark-to-light transitions, low white emission, high readability, visible focus
+
+### Avoid (Anti-patterns)
+- Light mode default
+- Slow rendering
+
+### Pre-Delivery Checklist
+
+</details>
+
+Verwerking: §1–§7 nemen de pre-delivery- en a11y-regels over; stijl, lettertypes en paletten zijn afgewezen in §8.
