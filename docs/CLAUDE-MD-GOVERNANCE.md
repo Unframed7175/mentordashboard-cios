@@ -96,6 +96,26 @@ Gebaseerd op [Keep a Changelog](https://keepachangelog.com). Labels: **Added**, 
 
 ## Changelog
 
+### [1.10.1] — 2026-09-14
+#### Fixed
+- Milestone-paden: `M001-*` bestond nergens → conventie `M<nr>-<naam>` vastgelegd in snelreferentie en §7
+- §4: "GStack subagents: GEEN" achterhaald — `/ship` en `/autoplan` starten sinds GStack v1.79 subagents
+- §3/§6: fictief Claude Mem-geheugenformaat (`project:`-veld, 800-tokenlimiet) vervangen door werkelijk gedrag (automatische observaties, scoping op projectmap)
+- §0 stap 5 en §3: fictief `project:`-filter voor Claude Mem-injectie verwijderd
+- §4: subagent-lijst voor GStack uitgebreid (o.a. `/review` start altijd een adversarial subagent)
+- §6 checkpoint 2 sloeg bij elke sessiestart aan → verplichte sessiestart-bestanden tellen niet mee
+- §7: `.env.example`/`.env`-regels klopten niet (app heeft geen runtime-env) → alleen van toepassing bij een nieuw runtime-secret
+- §12: CHANGELOG-voorbeeld volgde eigen formaat `[versie] — [datum] — [beschrijving]` niet
+
+#### Changed
+- Snelreferentie: `test:watch`, `typecheck-migrated` en secrets-locatie toegevoegd
+- §7: generieke Node/Python CI-voorbeelden vervangen door verwijzing naar bestaande `ci.yml` (verplichte check `test`)
+- §7: branch protection van "verplicht vóór eerste `/ship`" naar "actief" (is ingesteld: check `test`, `enforce_admins`)
+
+#### Removed
+- §7: "Superpowers genereert de passende workflow in Fase 2" (CI bestaat al)
+- §7: verplichte `.env.example` en `.env`-in-`.gitignore` zolang er geen runtime-secret is
+
 ### [1.10.0] — 2026-09-14
 #### Fixed
 - §0a stack-check: GStack-detectie zocht in niet-bestaande `commands/`-map → controleert nu de skill-mappen direct

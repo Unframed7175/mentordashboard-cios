@@ -1,8 +1,19 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-06-19 — Fase 0 M41 afgerond (office-hours + eng review + design review). M41 klaar voor Fase 1 (GSD milestone-map).
+> Laatste update: 2026-09-14 — Stack-check vastgelegd (CLAUDE.md v1.10.1). Daarvoor 2026-06-19: Fase 0 M41 afgerond (office-hours + eng review + design review). M41 klaar voor Fase 1 (GSD milestone-map).
 
 ---
+
+## Stack-check 2026-09-14
+
+```
+Stack-status:
+  GSD           v1.42.3     ✓ (npm-latest)
+  GStack        v1.84.1.0   ✓ (bijgewerkt van v1.58.1.0)
+  Superpowers   v6.3.0      ✓
+  UI UX Pro Max v2.2.3      ✓ (uipro-cli = npm-latest; skill aanwezig in .claude/skills/)
+  Claude Mem    v13.24.23   ✓
+```
 
 ## Handoff 2026-06-19 (Fase 0 → Fase 1)
 

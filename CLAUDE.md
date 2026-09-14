@@ -7,8 +7,10 @@
 ## Project — snelreferentie
 
 - **Stack:** Tauri 2 (Rust, `src-tauri/`) + React 19 + Vite + TypeScript; tests met Vitest + jsdom
-- **Commando's:** `npm run dev` (Tauri-app) · `npm run vite-dev` (alleen frontend) · `npm test` · `npm run typecheck` · `npm run build`
+- **Commando's:** `npm run dev` (Tauri-app) · `npm run vite-dev` (alleen frontend) · `npm test` / `npm run test:watch` · `npm run typecheck` (+ `npm run typecheck-migrated`) · `npm run build`
 - **Default branch:** `master` (niet `main`)
+- **Milestone-mappen:** `.gsd/milestones/M<nr>-<naam>/` (bv. `M36-fabrieksreset/`); `M001-*`-paden in dit bestand betekenen "de actieve milestone"; `M001`/`M002` in voorbeelden zijn alleen nummeringsvoorbeelden. Nummer = ROADMAP-nummer (map `M037-…` hoort bij ROADMAP `M37`)
+- **Secrets:** geen runtime-env in de app; signing- en deploy-secrets (`TAURI_SIGNING_PRIVATE_KEY`, `LANDING_PAGE_PAT`) staan uitsluitend in GitHub Actions secrets
 - **Architectuur, datamodel, testpatronen, valkuilen:** `.gsd/KNOWLEDGE.md` (wordt bij sessiestart gelezen)
 - **Privacy:** log nooit leerlingnamen of andere persoonsgegevens naar de console — gebruik `leerlingId`
 
@@ -27,9 +29,7 @@ Bij elke nieuwe sessie of na `/compact`, voer dit uit **vóór** je iets anders 
 2. **Lees** `.gsd/STATE.md` → bepaal de huidige fase én, bij meerdere milestones, welke actief is (`ACTIEF`) en welke wachten (`WACHT`); werk op uitsluitend de actieve milestone verder
 3. **Lees** `.gsd/DECISIONS.md` → herstel architectuurkennis
 4. **Lees** `.gsd/KNOWLEDGE.md` → herstel projectregels en patronen
-5. **Roep** Claude Mem aan → haal relevante sessieherinneringen op (zie sectie 3)
-   - Injecteer **uitsluitend** memories waarvan het `project:`-veld overeenkomt met de naam in `.gsd/PROJECT.md`
-   - Bij geen overeenkomst: lege injectie — geen fallback naar memories van een ander project
+5. **Bekijk** de door Claude Mem geïnjecteerde observaties (zie sectie 3) — hint, geen bron van waarheid
 6. **Controleer** op conflicten tussen geïnjecteerde memories en GSD-bestanden:
    - Lees nogmaals de betreffende GSD-sectie als een memory afwijkt
    - Noteer de afwijking in `.gsd/KNOWLEDGE.md` onder `## Mem-conflict [datum]`
@@ -446,26 +446,11 @@ Informeer gebruiker vóór herstart
 
 Claude Mem draait als **achtergrondhook** tijdens alle fases en injecteert context bij sessiestart.
 
-### Geheugenformaat
-Elke memory heeft de volgende structuur:
-```
-type:       [beslissing | patroon | bug | workaround | les]
-fase:       [0 | 1 | 2 | 3 | 4]
-project:    [exacte naam uit .gsd/PROJECT.md — verplicht veld]
-onderwerp:  [korte omschrijving, max 10 woorden]
-inhoud:     [de feitelijke herinnering, max 3 zinnen]
-datum:      [YYYY-MM-DD]
-```
-
-> Het `project:`-veld is verplicht. Een memory zonder dit veld wordt niet opgeslagen
-> en niet geïnjecteerd.
-
-### Injectiemaximum
-- De SessionStart hook injecteert maximaal **800 tokens** aan memories
-- Selectiecriterium: alleen memories waarvan `project:` overeenkomt met de naam in `.gsd/PROJECT.md`
-- Volgorde: meest recente memories van het huidige project eerst, daarna op type `beslissing`
-- Bij meer dan 800 tokens: oudste memories worden weggelaten, niet afgekapt
-- Bij geen overeenkomst: lege injectie — geen fallback naar memories van andere projecten
+### Hoe Claude Mem werkelijk werkt
+- Claude Mem legt **automatisch** observaties vast via plugin-hooks (eigen formaat: bugfix, feature, refactor, change, discovery, decision, …) — er is geen handmatig geheugenformaat en geen verplicht `project:`-veld
+- Scoping gebeurt op **projectmap** (`mentordashboard-cios`), niet op de naam in `.gsd/PROJECT.md`
+- De SessionStart-injectie is een compacte index van recente observaties; details ophalen via de `mem-search`-skill of `get_observations([IDs])`
+- Omvang en filtering van de injectie zijn niet via dit bestand te sturen — behandel geïnjecteerde memories als hint, niet als bron van waarheid
 
 ### Conflictresolutie tussen Claude Mem en GSD
 Als een Claude Mem memory tegenstrijdig is met een GSD-bestand:
@@ -503,7 +488,7 @@ Ze schrijven naar verschillende locaties en conflicteren niet.
 ### Sessieherstel
 Bij sessiestart:
 1. Lees GSD-bestanden (STATE.md, DECISIONS.md, KNOWLEDGE.md) — stap 2–4 van sectie 0
-2. Claude Mem injecteert relevante herinneringen (alleen huidig project uit `.gsd/PROJECT.md` — zie injectiemaximum)
+2. Claude Mem injecteert recente observaties van deze projectmap
 3. Controleer op conflicten: lees betreffende GSD-sectie opnieuw bij afwijking, noteer in `.gsd/KNOWLEDGE.md`
 4. GSD wint altijd bij conflict
 5. Als de hook faalt: zie fallback in sectie 0
@@ -517,7 +502,8 @@ REGEL: Nooit twee frameworks tegelijkertijd subagents laten spawnen.
 
 Superpowers subagents: ALLEEN actief tijdens Fase 2 (executie)
 GSD orchestrators:     ALLEEN actief tijdens Fase 1 (spec)
-GStack subagents:      GEEN — GStack gebruikt slash commands, geen subagents
+GStack subagents:      diverse skills starten eigen subagents (o.a. /ship, /autoplan,
+                       /review, /plan-*) — nooit draaien terwijl Superpowers-subagents actief zijn
 UI UX Pro Max:         GEEN subagents — activeert inline als skill
 Claude Mem:            GEEN subagents — hooks, geen agents
 ```
@@ -585,7 +571,7 @@ Orchestrator (GSD hoofdsessie):   vaste checkpoints (zie hieronder)
 Superpowers subagent per taak:    vers contextvenster, max 1 slice
 GStack slash commands:            laden on-demand, geen permanente overhead
 UI UX Pro Max skill:              laadt bij UI-keywords, daarna weer weg
-Claude Mem SessionStart injectie: max 800 tokens, alleen huidig project
+Claude Mem SessionStart injectie: compacte index, gescoped op projectmap
 ```
 
 ### Contextcheckpoints — wanneer STATE.md bijwerken en /compact overwegen
@@ -593,7 +579,7 @@ Claude Mem SessionStart injectie: max 800 tokens, alleen huidig project
 Voer een contextcheckpoint uit op elk van deze momenten:
 
 1. **Na elke voltooide milestone-slice** — altijd, zonder uitzondering
-2. **Na het inladen van meer dan 2 grote bestanden in één sessie** — groot = meer dan 200 regels of meer dan 5 KB
+2. **Na het inladen van meer dan 2 grote bestanden in één sessie** — groot = meer dan 200 regels of meer dan 5 KB; de verplichte sessiestart-bestanden (CLAUDE.md, STATE.md, DECISIONS.md, KNOWLEDGE.md) tellen niet mee
 3. **Na 12 uitwisselingen in dezelfde sessie**
 4. **Na het spawnen van 3 of meer Superpowers-subagents**
 
@@ -629,48 +615,21 @@ docs/superpowers/              Superpowers specs en plannen
 CLAUDE.md                      Dit bestand — hoogste prioriteit
 ```
 
-> **Versiebeheer:** `.gsd/` wordt **volledig gecommit** en bijgehouden in de repo — het is projectgeheugen, geen build-output. Voeg `.gsd/` nooit toe aan `.gitignore`. `.env` en `node_modules/` wél.
+> **Versiebeheer:** `.gsd/` wordt **volledig gecommit** en bijgehouden in de repo — het is projectgeheugen, geen build-output. Voeg `.gsd/` nooit toe aan `.gitignore`.
 
 ### Naamgeving
 - Branches: `feature/[naam]`, `fix/[naam]`, `design/[naam]`, `chore/[naam]`, `docs/[naam]`
 - Commits: `feat:`, `fix:`, `perf:`, `refactor:`, `test:`, `design:`, `docs:`, `chore:`, `ci:` (zie §12 voor wat in de CHANGELOG komt)
-- GSD milestones: `M001-[naam]`, slices: `S01`, taken: `T01`
+- GSD milestones: `M<nr>-[naam]` (doorlopend genummerd, bv. `M41-uitrol-naar-collegas`), slices: `S01`, taken: `T01`
 
 ### CI/CD
-- Elke repo die wordt geshipt heeft minimaal één CI-check: `npm test` of equivalent bij elke PR
-- Aanbevolen minimale GitHub Actions workflow voor **Node-projecten** (`.github/workflows/ci.yml`):
-  ```yaml
-  on: [pull_request]
-  jobs:
-    test:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - run: npm ci && npm test
-  ```
-- Aanbevolen minimale GitHub Actions workflow voor **Python-projecten** (`.github/workflows/ci.yml`):
-  ```yaml
-  on: [pull_request]
-  jobs:
-    test:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
-          with:
-            python-version: '3.12'
-        - run: pip install -r requirements.txt && pytest
-  ```
-- Superpowers genereert de passende workflow in Fase 2 op basis van de projectstack, tenzij expliciet uitgesloten in `.gsd/DECISIONS.md`
-- **Branch protection op `master` (verplicht vóór eerste `/ship`):** merge alleen via PR + CI moet groen zijn. Zonder branch protection kan de volledige Fase 4 gate worden omzeild door direct naar `master` te pushen.
+- CI staat in `.github/workflows/ci.yml` (push + PR op `master`, actions gepind op SHA); de verplichte check heet `test` (`npm ci && npm test`). Geen `tauri build` in PR-CI — die faalt zonder signing key; gesigneerde builds draaien in `release.yml` bij elke `v*`-tag (of handmatig via `workflow_dispatch`)
+- **Branch protection op `master` (actief):** merge alleen via PR + `test` moet groen zijn.
 - **Review-eis:** minimaal 1 review vóór merge.
   - **Solo-project (enige collaborator = PR-auteur):** een GStack `/review` zonder blokkerende bevindingen telt als die review. Noteer de uitkomst als PR-comment (`/review: geen blokkerende bevindingen`) vóór merge.
   - **Zodra er een tweede collaborator is:** menselijke approval vereist; zet dan `required_approving_review_count` op 1 in de branch protection.
-- `.env.example` is **verplicht** in de repo; GSD maakt dit aan in Fase 1 bij elke nieuwe dependency die een secret vereist
-- `.env` staat altijd in `.gitignore` — Superpowers-subagents mogen `.env` nooit committen
-- Secrets worden **nooit hardcoded**; Superpowers krijgt bij elke subagent-instructie expliciet mee: gebruik altijd `process.env.VAR` of equivalent
-- Bij een nieuwe dependency die een secret vereist: GSD voegt de variabele toe aan `.env.example` vóór Superpowers de implementatie start
-- Ontbrekende `.env`-variabelen bij start van Fase 2: blokkade — los op vóór executie
+- Secrets worden **nooit hardcoded** of gecommit; CI-/release-secrets alleen via GitHub Actions secrets
+- **Pas zodra er een runtime-secret bijkomt** (nu niet het geval): GSD maakt `.env.example` aan en voegt `.env` toe aan `.gitignore` vóór Superpowers de implementatie start; ontbrekende variabelen bij start van Fase 2 zijn dan een blokkade
 
 ---
 
@@ -773,7 +732,7 @@ Het project volgt [Semantic Versioning 2.0.0](https://semver.org): `MAJOR.MINOR.
 **Formaat:** [Keep a Changelog](https://keepachangelog.com) — gegroepeerd per type:
 
 ```markdown
-## [1.2.0] — 2026-06-11
+## [1.2.0] — 2026-06-11 — OAuth-login en snellere dashboardpagina
 
 ### Added
 - Gebruiker kan nu inloggen via OAuth
@@ -863,5 +822,5 @@ Een retro-bevinding die niet wordt opgepakt verdwijnt niet — ze blijft in `.gs
 
 ---
 
-*Versie: 1.10.0 — gegenereerd op basis van Superpowers v5+, GStack v1.26+,
+*Versie: 1.10.1 — gegenereerd op basis van Superpowers v5+, GStack v1.26+,
 UI UX Pro Max (npm-latest), GSD v1.40+, Claude Mem v12+*
