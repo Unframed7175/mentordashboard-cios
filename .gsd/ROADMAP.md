@@ -11,4 +11,4 @@
 | M38 | Leerlijn-config losgekoppeld van code | DONE | 2026-06-15 (v2.9.0) |
 | M39 | Prognose-verdieping (S/C-formule, uitgebreide BJ1/BJ2-criteria) + 2 bugfixes | DONE | 2026-06-17 (v2.10.0–v2.10.2) |
 | M40 | Auto-update-systeem (tauri-plugin-updater, release- + landingspagina-automatisering) + CI-trigger-fix | DONE | 2026-06-18 (v2.11.0) |
-| M41 | Uitrol naar collega's | ACTIEF — Fase 1 afgerond, Fase 3 volgende | 2026-09-14 (plan: `milestones/M41-uitrol-naar-collegas/S01-PLAN.md`) |
+| M41 | Uitrol naar collega's | ACTIEF — Fase 3 afgerond, Fase 2 wacht op T0/T1 | 2026-09-14 (plan: `milestones/M41-uitrol-naar-collegas/S01-PLAN.md`) |

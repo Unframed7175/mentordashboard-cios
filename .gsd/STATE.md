@@ -1,6 +1,22 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-09-14 — Fase 1 M41 afgerond (S01-PLAN.md geschreven). M41 ACTIEF, volgende: Fase 3 (design) + handmatige T0/T1.
+> Laatste update: 2026-09-14 — Fase 3 M41 afgerond (DESIGN.md + plan-design-review 5→9/10). Volgende: handmatige T0 + T1, daarna Fase 2.
+---
+
+## Handoff 2026-09-14 (Fase 3 → Fase 2)
+
+Van: UI UX Pro Max + GStack — Fase 3 (design) — M41 "Uitrol naar collega's"
+Naar: Superpowers — Fase 2 (executie)
+
+**Status:** `.gsd/DESIGN.md` gegenereerd (search.py + bestaande tokens). `/plan-design-review` afgerond: 5/10 → 9/10, 18 besluiten in `S01-PLAN.md` § Design-specificatie (IA, staten, reis, microcopy, decoratie, Help-structuur, responsive/a11y, screenshots). Statische a11y-check: 6 contrastfouten → gecorrigeerde tokens + taak DT-A11Y. Pre-delivery checklist (DESIGN.md §10) toegepast op de spec: geen blokkerende bevindingen.
+
+**Openstaand — moet Fase 2 weten:**
+- **Fase 2 start pas ná T0 (koude-installatie-observatie) en T1 (auto-update-QA).** T1 faalt → terug naar Fase 0. T0 bepaalt standaard-tak "Open toch" vs "beschadigd" en verifieert NL-knopnamen in de microcopy.
+- **Scope gegroeid door besluit 5B:** landingspagina gaat over op het app-design system (nieuwe P1-taak LP-SYS, Lane A begint daarmee). Ook nieuw: T9 (gebruikerssamenvatting op landingspagina), D4 herstructureert Help tot naslag.
+- Lane-volgorde: A `LP-SYS → T2 → D1 → D3 → D5` (ander repo) · B `T3, T5, T6, T9` · C `DT-A11Y → D4 → DT-ICON`.
+- Mockups niet gemaakt (gstack designer zonder OpenAI-sleutel) → na LP-SYS/T2 `/design-review` op de live pagina.
+
+**DoD Fase 3 afgevinkt:** DESIGN.md door search-script ✅ · `/plan-design-review` akkoord ✅ · pre-delivery checks zonder blokkers ✅ · statische a11y-check (fouten hersteld in DESIGN.md) ✅ · handoff ✅
 
 ---
 
@@ -79,8 +95,8 @@ Reden: M38 raakt 2 bestanden (leerlijn.json nieuw + schema.ts import), architect
 
 ## Huidige fase
 
-**Fase 3 · Design — M41-uitrol-naar-collegas (ACTIEF)** — Fase 1 afgerond 2026-09-14.
-Plan: `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md`. Fase 3 voortgang: `.gsd/DESIGN.md` gegenereerd + statische a11y-check gedaan (6 contrastfouten → ✏️-tokens + taak DT-A11Y) ✅ · `/plan-design-review` ⬜ · pre-delivery checks ⬜. Handmatige T0 + T1 parallel.
+**Fase 2 · Executie — M41-uitrol-naar-collegas (ACTIEF, wacht op T0 + T1)** — Fase 3 afgerond 2026-09-14.
+Plan: `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md`. Eerst handmatig T0 (koude installatie bij één collega) en T1 (auto-update-QA Windows + macOS).
 
 ## Handoff 2026-06-18
 

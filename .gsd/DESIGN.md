@@ -34,8 +34,8 @@
 | Token | Licht | Donker | Gebruik |
 |---|---|---|---|
 | `--accent` | `#009FE3` | `#009FE3` | CIOS-blauw. **Merkkleur: decoratie, iconen, focusring, randen, grote koppen (≥ 24px)** |
-| ✏️ `--accent-strong` (nieuw) | `#0077AA` | — (gebruik `--accent`) | **Alle knoppen met witte tekst en alle tekstlinks in lichte modus** (4.98:1 op wit) |
-| ✏️ `--accent-strong-hover` (nieuw) | `#006F9F` | `--accent-hover` | Hover van primaire knop (5.56:1) |
+| ✏️ `--accent-strong` (nieuw) | `#0077AA` | `#0077AA` | **Alle knoppen met witte tekst, in licht én donker** (4.98:1); tekstlinks in licht. Tekstlinks in donker mogen `--accent` houden (5.90:1 op surface) |
+| ✏️ `--accent-strong-hover` (nieuw) | `#006F9F` | `#006F9F` | Hover van primaire knop in beide modi (5.56:1). `--accent-hover` #007DBF haalt met wit maar 4.48:1 → niet voor knoptekst |
 | `--accent-hover` | `#007DBF` | `#007DBF` | Hover van decoratieve accentelementen |
 | `--accent-light` / `--accent-text` | `#E0F5FD` / `#00547A` | `#003B57` / `#7DD4F5` | Accent-chips en geselecteerde staat |
 | `--accent-border` | `#99D9F4` | `#005F8E` | Randen van accentvlakken |
@@ -48,7 +48,7 @@
 | `--bg-surface` / `--bg-surface-alt` | `#FFFFFF` / `#F8FAFC` | `#131929` / `#1A2235` | Kaarten |
 | `--text-primary` | `#0F172A` | `#F1F5F9` | Koppen, data, lopende tekst |
 | `--text-secondary` | `#475569` | `#94A3B8` | Toelichting, labels |
-| ✏️ `--text-muted` | `#617187` (was `#64748B`) | `#7A8AA0` (was `#64748B`) | Metadata. Na fix ≥ 4.5:1 op élke achtergrond |
+| ✏️ `--text-muted` | `#617187` (was `#64748B`) | `#7A8AA0` (was `#64748B`) | Metadata. Na fix ≥ 4.5:1 op page, surface en surface-alt; **niet** op accent-vlakken (gebruik daar `--accent-text`; `#617187` op `--accent-light` = 4.42:1) |
 | ✏️ `--text-faint` | `#7C8EA8` (was `#94A3B8`) | `#5B6D86` (was `#475569`) | **Alleen** placeholders, uitgeschakelde staat, decoratieve iconen — nooit informatie die je moet lezen |
 | `--border-default` / `--border-light` | `#E2E8F0` / `#F1F5F9` | `#1E293B` / `#0F172A` | Scheidingen |
 
@@ -71,7 +71,7 @@ RAG-stippen (`--rag-*`) en spider-kleuren (`--spider-*`) zijn grafische elemente
 
 | | |
 |---|---|
-| Lettertype | **Industry** (gebundeld OTF: Book 400, Demi 600, Bold 700) — geen Google Fonts, werkt offline |
+| Lettertype | **Industry** (gebundeld OTF: Book 400, Demi 600, Bold 700) — geen Google Fonts, werkt offline. Licentie dekt app-distributie én web (bevestigd door projectlead 2026-09-14; bestandsnaam `IndustryTest-*` is alleen de naam) |
 | Fallback | `system-ui, -apple-system, "Segoe UI", sans-serif` |
 | Basis | `1rem` = 16px, regelhoogte 1.5 |
 | Lopende tekst (Help, landingspagina, gidsen, dialogen) | **≥ 16px**, regellengte ≤ 75 tekens |
@@ -99,7 +99,13 @@ RAG-stippen (`--rag-*`) en spider-kleuren (`--spider-*`) zijn grafische elemente
 
 ## 7. Landingspagina (M41)
 
-Afgeleid van het script-patroon "platform-specific CTAs / real screenshots", aangepast op ADR-14:
+**Besluit plan-design-review 5B (2026-09-14): de landingspagina gaat over op dít design system** (tokens §3, typografie §4, vorm §5). De huidige eigen set in `ciosmentorendashboard/index.html` (`--blauw`, `--zwart`, `--radius: 4px`, Barlow/Barlow Condensed via Google Fonts, zwarte hero met diagonale clip-path, hoofdletterkoppen) vervalt. Gevolgen:
+- Lettertype: Industry self-hosted (`@font-face`, WOFF2) in het landingspagina-repo — **geen Google Fonts**; licentie dekt webgebruik (besluit 7A).
+- Hero licht (`--bg-page` + één accentgloed, geen zwart vlak), koppen in zinsletters (Demi 600), geen uppercase-kopstijl.
+- Mobiele hero: `--text-primary` op `--bg-page` (geen blauw-op-blauw meer; huidige `.hero h1 span` op `#009FE3` en `rgba(255,255,255,.55)` op blauw vervallen).
+- Contrastcheck §9 geldt daarmee ook voor de landingspagina; D5 verifieert met axe op de live URL.
+
+Paginastructuur (afgeleid van het script-patroon "platform-specific CTAs / real screenshots", aangepast op ADR-14; detail-IA in S01-PLAN):
 
 1. **Hero:** wat het is + "werkt offline, gegevens blijven op je computer" + één primaire actie: *Kies je computer*
 2. **Kies je computer:** drie grote knoppen in gewone taal — *Windows* · *Mac met Apple chip* · *Mac met Intel chip* (≥ 44px, `--accent-strong`); hulpregel hoe je ziet welke Mac je hebt
