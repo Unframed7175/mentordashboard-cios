@@ -4,6 +4,12 @@
 
 ---
 
+## Migration notice
+
+### CLAUDE.md breaking change 2026-09-14 — v1.10.1 → v2.0.0
+Actie vereist: bij het starten of afronden van een fase de betreffende sectie in `docs/workflow/STACK.md` lezen (zie tabel "Wanneer lees je wat" in CLAUDE.md) — de volledige DoD staat niet meer automatisch in context. Verwijzingen als "CLAUDE.md §7" in oudere LEARNINGS-bestanden lees je als "STACK.md §7".
+Deadline: vóór start Fase 1 van M41
+
 ## Stack-check 2026-09-14
 
 ```

@@ -1,13 +1,14 @@
 # CLAUDE.md — Governance & changelog
 
 > Verplaatst uit `CLAUDE.md` §11 (v1.10.0). Dit document hoeft niet elke sessie in context te staan;
-> lees het alleen wanneer `CLAUDE.md` zelf wordt aangepast.
+> lees het alleen wanneer `CLAUDE.md` of `docs/workflow/STACK.md` wordt aangepast.
+> Sinds v2.0.0 vallen beide bestanden onder deze governance en delen ze één versienummer (footer van CLAUDE.md).
 
 CLAUDE.md heeft de hoogste prioriteit in het project, maar heeft zelf ook een eigenaar en updateprocedure.
 
 **Eigenaar:** de projectlead (persoon, niet een framework)  
-**Locatie:** altijd in de projectroot, nooit in een submap  
-**Bewerkingsrechten:** alleen handmatig door de eigenaar — geen enkel framework schrijft naar dit bestand
+**Locatie:** `CLAUDE.md` altijd in de projectroot, nooit in een submap; het werkproces in `docs/workflow/STACK.md`  
+**Bewerkingsrechten:** alleen handmatig door de eigenaar — geen enkel framework schrijft naar CLAUDE.md of STACK.md
 
 ---
 
@@ -65,7 +66,7 @@ uit actieve Superpowers-configuraties.
 3. Voeg een entry toe aan de changelog hieronder (format: zie "Changelog-format")
 4. Commit met een Conventional Commit message
 5. Open een PR — **zonder changelog-entry wordt de PR niet geaccepteerd**
-6. Minimaal één review — in een solo-project telt een GStack `/review` zonder blokkerende bevindingen, vastgelegd als PR-comment (zie CLAUDE.md §7)
+6. Minimaal één review — in een solo-project telt een GStack `/review` zonder blokkerende bevindingen, vastgelegd als PR-comment (zie CLAUDE.md, Kernregels)
 7. Merge naar `master` via squash-merge
 
 > **Squash-merge** houdt de commit-history van `master` leesbaar: één commit per versie.
@@ -74,7 +75,7 @@ uit actieve Superpowers-configuraties.
 
 ## Procedure bij breaking change (`MAJOR` bump)
 
-1. Voeg `!` toe aan het commit-type: `feat!:` of `fix!:`
+1. Voeg `!` toe aan het commit-type: `feat!:`, `fix!:` of `refactor!:`
 2. Vermeld `BREAKING CHANGE:` in de commit footer met een uitleg
 3. Voeg een `> ⚠ BREAKING` blok toe aan de changelog-entry
 4. Schrijf een **migration notice** in elk actief project dat dit bestand gebruikt:
@@ -95,6 +96,23 @@ Gebaseerd op [Keep a Changelog](https://keepachangelog.com). Labels: **Added**, 
 ---
 
 ## Changelog
+
+### [2.0.0] — 2026-09-14
+> ⚠ BREAKING — de volledige procedures staan niet meer automatisch in context.
+
+#### Changed
+- Werkproces (§0–§9, §12) verplaatst naar `docs/workflow/STACK.md`, met ongewijzigde sectienummers; CLAUDE.md is ingekort van ~830 naar ~90 regels (41 KB → 6 KB)
+- CLAUDE.md bevat nu: snelreferentie, compacte sessieopstart, faserouter als tabel, kernregels die altijd gelden, en een "wanneer lees je wat"-tabel naar STACK.md
+- CLAUDE.md en STACK.md vormen samen de instructies met hoogste prioriteit; bij conflict wint CLAUDE.md. Beide vallen onder deze governance
+- Faserouter-tabel is expliciet een geheugensteun; een fase is pas klaar als de volledige DoD in STACK.md §2 is afgevinkt
+
+#### Fixed
+- STACK.md §0: dubbele sessieopstart vervangen door verwijzing naar CLAUDE.md (enige bron)
+- Checkpoint 2 (§6): gelezen STACK.md-sectie telt niet mee als groot bestand
+
+#### Breaking
+- Procedures en volledige DoD per fase moeten actief worden gelezen in STACK.md op de momenten uit de tabel in CLAUDE.md
+  > Migratie: zie `## Migration notice` in `.gsd/STATE.md`
 
 ### [1.10.1] — 2026-09-14
 #### Fixed
