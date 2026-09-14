@@ -659,7 +659,10 @@ CLAUDE.md                      Dit bestand — hoogste prioriteit
         - run: pip install -r requirements.txt && pytest
   ```
 - Superpowers genereert de passende workflow in Fase 2 op basis van de projectstack, tenzij expliciet uitgesloten in `.gsd/DECISIONS.md`
-- **Branch protection op `master` (verplicht vóór eerste `/ship`):** minimaal 1 reviewer vereist + CI moet groen zijn vóór merge. Zonder branch protection kan de volledige Fase 4 gate worden omzeild door direct naar `master` te pushen.
+- **Branch protection op `master` (verplicht vóór eerste `/ship`):** merge alleen via PR + CI moet groen zijn. Zonder branch protection kan de volledige Fase 4 gate worden omzeild door direct naar `master` te pushen.
+- **Review-eis:** minimaal 1 review vóór merge.
+  - **Solo-project (enige collaborator = PR-auteur):** een GStack `/review` zonder blokkerende bevindingen telt als die review. Noteer de uitkomst als PR-comment (`/review: geen blokkerende bevindingen`) vóór merge.
+  - **Zodra er een tweede collaborator is:** menselijke approval vereist; zet dan `required_approving_review_count` op 1 in de branch protection.
 - `.env.example` is **verplicht** in de repo; GSD maakt dit aan in Fase 1 bij elke nieuwe dependency die een secret vereist
 - `.env` staat altijd in `.gitignore` — Superpowers-subagents mogen `.env` nooit committen
 - Secrets worden **nooit hardcoded**; Superpowers krijgt bij elke subagent-instructie expliciet mee: gebruik altijd `process.env.VAR` of equivalent

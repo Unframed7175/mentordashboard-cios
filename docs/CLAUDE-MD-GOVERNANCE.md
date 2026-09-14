@@ -65,7 +65,7 @@ uit actieve Superpowers-configuraties.
 3. Voeg een entry toe aan de changelog hieronder (format: zie "Changelog-format")
 4. Commit met een Conventional Commit message
 5. Open een PR — **zonder changelog-entry wordt de PR niet geaccepteerd**
-6. Minimaal één reviewer accordeert
+6. Minimaal één review — in een solo-project telt een GStack `/review` zonder blokkerende bevindingen, vastgelegd als PR-comment (zie CLAUDE.md §7)
 7. Merge naar `master` via squash-merge
 
 > **Squash-merge** houdt de commit-history van `master` leesbaar: één commit per versie.
@@ -112,6 +112,7 @@ Gebaseerd op [Keep a Changelog](https://keepachangelog.com). Labels: **Added**, 
 #### Changed
 - §7 naamgeving: `chore/`-branches en `chore:`, `ci:`, `perf:`, `refactor:`-commits toegevoegd (in lijn met §12 en de praktijk)
 - Claude Mem installatie/update via `/plugin` in plaats van `npx claude-mem install`
+- §7 review-eis: in een solo-project telt GStack `/review` (geen blokkerende bevindingen, vastgelegd als PR-comment) als verplichte review; menselijke approval zodra er een tweede collaborator is
 
 #### Removed
 - §10 Installatie & verificatie (duplicaat van §0a)
