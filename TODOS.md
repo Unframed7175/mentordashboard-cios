@@ -1,5 +1,23 @@
 # TODOS
 
+## T-2026-09-14-01 · Backup restore: inhoud van klas-objecten valideren
+
+- **What:** `applyBackupRestore` controleert alleen dat `payload.klassen` een object is. Per klas worden `id`, `naam` en `students` (array) niet gevalideerd vóór ze in `klassenState` belanden.
+- **Why:** Een corrupte of gemanipuleerde (legacy plaintext) backup kan klassen zonder `students`-array injecteren; `utils/backup.ts` zet dan `appState.students` op `undefined`, waarna code die die array verwacht (import, prognose) kan crashen.
+- **Pros:** Restore faalt vroeg met een duidelijke melding i.p.v. een half-kapotte state na reload.
+- **Cons:** Extra validatiecode + tests; normale backups (eigen export, versleuteld) raken dit pad niet.
+- **Context:** Openstaand deel van bevinding #8 uit `docs/security/2026-06-06-security-review-v2.5.0.md` (prototype-pollution-deel opgelost in PR #19). Fix: vóór toepassing elke entry checken op `typeof id === 'string'`, `typeof naam === 'string'`, `Array.isArray(students)`; bij fout `{ success: false, message: 'Ongeldige klas-structuur' }`. Test in `tests/backup.test.ts` (patroon `buildZipFromRawJson`).
+- **Depends on / blocked by:** Niets.
+
+## T-2026-09-14-02 · Productie-logging opschonen (console.log + bestandsnamen)
+
+- **What:** 45 `console.log`-aanroepen draaien ongeconditioneerd in productie (o.a. module-load logs in `utils/*.ts`, `parsers/pdf-enrich.ts`). `console.warn` logt `file.name` in `ImportPage.tsx:142,162` en `parsers/pdf.ts:883`.
+- **Why:** PDF-bestandsnamen bevatten vaak leerlingnamen — dat botst met de privacyregel in CLAUDE.md ("log nooit leerlingnamen"). De rest is ruis in DevTools.
+- **Pros:** AVG-conform; schonere console bij support/debugging.
+- **Cons:** Raakt ~10 bestanden; debug-output verdwijnt in productie (blijft in dev via `import.meta.env.DEV`).
+- **Context:** Openstaand deel van bevinding #16 uit `docs/security/2026-06-06-security-review-v2.5.0.md`. Fix: gate debug-logs op `import.meta.env.DEV`; vervang `file.name` in warnings door een index of generieke tekst.
+- **Depends on / blocked by:** Niets.
+
 ## T-2026-06-18-17 · Stale-detectie voor de landingspagina (cross-repo workflow faalt stil)
 
 - **What:** De landingspagina (`Unframed7175/ciosmentorendashboard`, `index.html`) wordt na elke release bijgewerkt door de cross-repo workflow `update-landing-page.yml` met `LANDING_PAGE_PAT`. Als die token verloopt of de workflow stil faalt, blijft de pagina oude downloadlinks tonen. Voeg een signaal toe: workflow-faalnotificatie, en/of een zichtbare versie/datum-stempel op de pagina zodat drift opvalt.
