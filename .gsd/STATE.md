@@ -8,7 +8,7 @@
 Van: UI UX Pro Max + GStack — Fase 3 (design) — M41 "Uitrol naar collega's"
 Naar: Superpowers — Fase 2 (executie)
 
-**Status:** `.gsd/DESIGN.md` gegenereerd (search.py + bestaande tokens). `/plan-design-review` afgerond: 5/10 → 9/10, 18 besluiten in `S01-PLAN.md` § Design-specificatie (IA, staten, reis, microcopy, decoratie, Help-structuur, responsive/a11y, screenshots). Statische a11y-check: 6 contrastfouten → gecorrigeerde tokens + taak DT-A11Y. Pre-delivery checklist (DESIGN.md §10) toegepast op de spec: geen blokkerende bevindingen.
+**Status:** `.gsd/DESIGN.md` gegenereerd (search.py + bestaande tokens). `/plan-design-review` afgerond: 5/10 → 9/10, 21 besluiten in `S01-PLAN.md` § Design-specificatie (IA, staten, reis, microcopy, decoratie, Help-structuur, responsive/a11y, screenshots). Statische a11y-check: 6 contrastfouten → gecorrigeerde tokens + taak DT-A11Y. Pre-delivery checklist (DESIGN.md §10) toegepast op de spec: geen blokkerende bevindingen.
 
 **Openstaand — moet Fase 2 weten:**
 - **Fase 2 start pas ná T0 (koude-installatie-observatie) en T1 (auto-update-QA).** T1 faalt → terug naar Fase 0. T0 bepaalt standaard-tak "Open toch" vs "beschadigd" en verifieert NL-knopnamen in de microcopy.
