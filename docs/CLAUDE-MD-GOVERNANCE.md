@@ -104,6 +104,8 @@ Gebaseerd op [Keep a Changelog](https://keepachangelog.com). Labels: **Added**, 
 - Branch protection en merge-doel: `main` → `master` (daadwerkelijke default branch)
 - §9: niet-bestaande `/gsd`, `/gsd discuss`, `/gsd plan` vervangen door `/gsd-progress`, `/gsd-discuss-phase`, `/gsd-plan-phase`
 - UI UX Pro Max script-pad eenduidig: project-kopie `.claude/skills/ui-ux-pro-max/`
+- §0a: `## Stack-check` wordt nu altijd geschreven (ook bij groen) — anders triggerde §0a elke sessie
+- UI UX Pro Max minimum `v2.5+` bestond niet (npm-latest is 2.2.3, skill heeft geen versie) → check vergelijkt nu met `npm view uipro-cli version`
 
 #### Added
 - Projectsnelreferentie bovenaan: stack, dev/test/typecheck-commando's, default branch, PII-logregel

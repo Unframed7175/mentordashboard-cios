@@ -133,20 +133,21 @@ uipro init --ai claude           # herinitialiseer na update
 
 ### Stap C — Versieverificatie (up-to-date check)
 
-Na installatie of bij een bestaand project: controleer of de aanwezige versies voldoen aan de minimumvereisten uit de footer van dit bestand (`Superpowers v5+`, `GStack v1.26+`, `UI UX Pro Max v2.5+`, `GSD v1.40+`, `Claude Mem v12+`).
+Na installatie of bij een bestaand project: controleer of de aanwezige versies voldoen aan de minimumvereisten uit de footer van dit bestand (`Superpowers v5+`, `GStack v1.26+`, `UI UX Pro Max = npm-latest`, `GSD v1.40+`, `Claude Mem v12+`).
 
 ```bash
 # GSD — versie ophalen
-cat ~/.claude/get-shit-done/VERSION
+echo "GSD: $(cat ~/.claude/get-shit-done/VERSION)"
 # Verwacht: 1.40 of hoger
 
 # GStack — versie ophalen
-cat ~/.claude/skills/gstack/VERSION
+echo "GStack: $(cat ~/.claude/skills/gstack/VERSION)"
 # Verwacht: 1.26 of hoger
 
 # UI UX Pro Max — versie ophalen
-uipro --version 2>/dev/null
-# Verwacht: 2.5 of hoger
+[ "$(uipro --version 2>/dev/null)" = "$(npm view uipro-cli version 2>/dev/null)" ] \
+  && echo "UI UX Pro Max: up-to-date" || echo "UI UX Pro Max: VEROUDERD"
+# De skill zelf heeft geen versienummer; de CLI-versie gelijk aan npm-latest geldt als up-to-date
 
 # Claude Mem — versie = mapnaam van de plugin-cache
 ls ~/.claude/plugins/cache/thedotmack/claude-mem/ | sort -V | tail -1
@@ -167,7 +168,9 @@ Stack-status:
 ```
 
 Als alle componenten aanwezig en up-to-date zijn: ga direct verder naar stap 2 van sectie 0.
-Als er componenten ontbreken of verouderd zijn: **pauzeer de sessieopstart** en herstel eerst de stack voordat je verdergaat. Schrijf een melding in `.gsd/STATE.md` onder `## Stack-check [datum]`.
+Als er componenten ontbreken of verouderd zijn: **pauzeer de sessieopstart** en herstel eerst de stack voordat je verdergaat.
+
+Schrijf de uitkomst **altijd** (ook bij volledig groen) in `.gsd/STATE.md` onder `## Stack-check [datum]` — zonder die sectie triggert §0a elke sessie opnieuw.
 
 ---
 
@@ -861,4 +864,4 @@ Een retro-bevinding die niet wordt opgepakt verdwijnt niet — ze blijft in `.gs
 ---
 
 *Versie: 1.10.0 — gegenereerd op basis van Superpowers v5+, GStack v1.26+,
-UI UX Pro Max v2.5+, GSD v1.40+, Claude Mem v12+*
+UI UX Pro Max (npm-latest), GSD v1.40+, Claude Mem v12+*
