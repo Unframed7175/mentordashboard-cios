@@ -1,6 +1,23 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-09-14 — Stack-check vastgelegd (CLAUDE.md v1.10.1). Daarvoor 2026-06-19: Fase 0 M41 afgerond (office-hours + eng review + design review). M41 klaar voor Fase 1 (GSD milestone-map).
+> Laatste update: 2026-09-14 — Fase 1 M41 afgerond (S01-PLAN.md geschreven). M41 ACTIEF, volgende: Fase 3 (design) + handmatige T0/T1.
+
+---
+
+## Handoff 2026-09-14 (Fase 1 → Fase 3)
+
+Van: GSD — Fase 1 (spec) — M41 "Uitrol naar collega's"
+Naar: UI UX Pro Max + GStack — Fase 3 (design), met handmatige T0/T1 parallel
+
+**Status:** `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md` geschreven (12 taken, gap-analyse t.o.v. juni verwerkt). Requirement F-16 toegevoegd aan `REQUIREMENTS.md`. ROADMAP: M41 → ACTIEF.
+
+**Openstaand — moet de volgende fase weten:**
+- **T1 (auto-update-QA) kan M41 terugsturen naar Fase 0**: als een update SmartScreen/Gatekeeper opnieuw triggert, vervalt de ADR-14-aanname. Voer T0 + T1 uit vóór Fase 2.
+- **Beslissing projectlead nodig over Fase 3-invulling:** de Fase 0-handoff zette DESIGN.md-generatie buiten scope (T-2026-06-12-02), maar STACK.md §2 eist sinds v2.0.0 alle Fase 3 DoD-punten, incl. een bestaand `.gsd/DESIGN.md`. Opties: (A) DESIGN.md nu genereren en T-2026-06-12-02 meenemen; (B) beperkt checkpoint zoals M36 met gedocumenteerde `## Afwijking`.
+- Landingspagina staat in apart repo `Unframed7175/ciosmentorendashboard`; ankers van `scripts/update-landing-page.mjs` mogen niet breken (T5).
+- Nieuw gevonden: `INSTRUCTIES.md` linkt voor installatie nog naar de ruwe releases-pagina en zegt "Geen automatische updates" (onjuist sinds M40) → T3.
+
+**DoD Fase 1 afgevinkt:** PROJECT.md + REQUIREMENTS.md ingevuld ✅ · milestone-map ✅ · S01-PLAN.md met concrete taken ✅ · UI-check: UI-taken aanwezig → Fase 3 ingepland vóór Fase 2 ✅ · handoff ✅
 
 ---
 
@@ -62,9 +79,8 @@ Reden: M38 raakt 2 bestanden (leerlijn.json nieuw + schema.ts import), architect
 
 ## Huidige fase
 
-Geen actieve milestone. M40 is afgerond en gereleased (v2.11.0); M41 ("Uitrol naar collega's") staat
-in ROADMAP.md op WACHT — vereist eerst Fase 0 (GStack `/office-hours`) om scope te bepalen voordat
-GSD een milestone-map kan aanmaken.
+**Fase 3 · Design — M41-uitrol-naar-collegas (ACTIEF)** — Fase 1 afgerond 2026-09-14.
+Plan: `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md`. Eerst beslissing over Fase 3-invulling (zie Handoff 2026-09-14) en handmatige T0 + T1.
 
 ## Handoff 2026-06-18
 
