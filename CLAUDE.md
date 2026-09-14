@@ -9,7 +9,7 @@
 - **Stack:** Tauri 2 (Rust, `src-tauri/`) + React 19 + Vite + TypeScript; tests met Vitest + jsdom
 - **Commando's:** `npm run dev` (Tauri-app) · `npm run vite-dev` (alleen frontend) · `npm test` / `npm run test:watch` · `npm run typecheck` (+ `npm run typecheck-migrated`) · `npm run build`
 - **Default branch:** `master` (niet `main`)
-- **Milestone-mappen:** `.gsd/milestones/M<nr>-<naam>/` (bv. `M36-fabrieksreset/`); lees `M001-*` in dit bestand als "de actieve milestone"
+- **Milestone-mappen:** `.gsd/milestones/M<nr>-<naam>/` (bv. `M36-fabrieksreset/`); `M001-*`-paden in dit bestand betekenen "de actieve milestone"; `M001`/`M002` in voorbeelden zijn alleen nummeringsvoorbeelden. Nummer = ROADMAP-nummer (map `M037-…` hoort bij ROADMAP `M37`)
 - **Secrets:** geen runtime-env in de app; signing- en deploy-secrets (`TAURI_SIGNING_PRIVATE_KEY`, `LANDING_PAGE_PAT`) staan uitsluitend in GitHub Actions secrets
 - **Architectuur, datamodel, testpatronen, valkuilen:** `.gsd/KNOWLEDGE.md` (wordt bij sessiestart gelezen)
 - **Privacy:** log nooit leerlingnamen of andere persoonsgegevens naar de console — gebruik `leerlingId`
@@ -29,9 +29,7 @@ Bij elke nieuwe sessie of na `/compact`, voer dit uit **vóór** je iets anders 
 2. **Lees** `.gsd/STATE.md` → bepaal de huidige fase én, bij meerdere milestones, welke actief is (`ACTIEF`) en welke wachten (`WACHT`); werk op uitsluitend de actieve milestone verder
 3. **Lees** `.gsd/DECISIONS.md` → herstel architectuurkennis
 4. **Lees** `.gsd/KNOWLEDGE.md` → herstel projectregels en patronen
-5. **Roep** Claude Mem aan → haal relevante sessieherinneringen op (zie sectie 3)
-   - Injecteer **uitsluitend** memories waarvan het `project:`-veld overeenkomt met de naam in `.gsd/PROJECT.md`
-   - Bij geen overeenkomst: lege injectie — geen fallback naar memories van een ander project
+5. **Bekijk** de door Claude Mem geïnjecteerde observaties (zie sectie 3) — hint, geen bron van waarheid
 6. **Controleer** op conflicten tussen geïnjecteerde memories en GSD-bestanden:
    - Lees nogmaals de betreffende GSD-sectie als een memory afwijkt
    - Noteer de afwijking in `.gsd/KNOWLEDGE.md` onder `## Mem-conflict [datum]`
@@ -504,8 +502,8 @@ REGEL: Nooit twee frameworks tegelijkertijd subagents laten spawnen.
 
 Superpowers subagents: ALLEEN actief tijdens Fase 2 (executie)
 GSD orchestrators:     ALLEEN actief tijdens Fase 1 (spec)
-GStack subagents:      /ship en /autoplan starten eigen subagents (sinds v1.79) —
-                       nooit draaien terwijl Superpowers-subagents actief zijn
+GStack subagents:      diverse skills starten eigen subagents (o.a. /ship, /autoplan,
+                       /review, /plan-*) — nooit draaien terwijl Superpowers-subagents actief zijn
 UI UX Pro Max:         GEEN subagents — activeert inline als skill
 Claude Mem:            GEEN subagents — hooks, geen agents
 ```
@@ -625,7 +623,7 @@ CLAUDE.md                      Dit bestand — hoogste prioriteit
 - GSD milestones: `M<nr>-[naam]` (doorlopend genummerd, bv. `M41-uitrol-naar-collegas`), slices: `S01`, taken: `T01`
 
 ### CI/CD
-- CI staat in `.github/workflows/ci.yml` (push + PR op `master`, actions gepind op SHA); de verplichte check heet `test` (`npm ci && npm test`). Geen `tauri build` in PR-CI — die faalt zonder signing key; gesigneerde builds draaien in `release.yml` bij elke tag
+- CI staat in `.github/workflows/ci.yml` (push + PR op `master`, actions gepind op SHA); de verplichte check heet `test` (`npm ci && npm test`). Geen `tauri build` in PR-CI — die faalt zonder signing key; gesigneerde builds draaien in `release.yml` bij elke `v*`-tag (of handmatig via `workflow_dispatch`)
 - **Branch protection op `master` (actief):** merge alleen via PR + `test` moet groen zijn.
 - **Review-eis:** minimaal 1 review vóór merge.
   - **Solo-project (enige collaborator = PR-auteur):** een GStack `/review` zonder blokkerende bevindingen telt als die review. Noteer de uitkomst als PR-comment (`/review: geen blokkerende bevindingen`) vóór merge.

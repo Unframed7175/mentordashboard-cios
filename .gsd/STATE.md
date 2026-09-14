@@ -1,6 +1,6 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-06-19 — Fase 0 M41 afgerond (office-hours + eng review + design review). M41 klaar voor Fase 1 (GSD milestone-map).
+> Laatste update: 2026-09-14 — Stack-check vastgelegd (CLAUDE.md v1.10.1). Daarvoor 2026-06-19: Fase 0 M41 afgerond (office-hours + eng review + design review). M41 klaar voor Fase 1 (GSD milestone-map).
 
 ---
 
