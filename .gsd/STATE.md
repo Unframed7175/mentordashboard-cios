@@ -80,7 +80,7 @@ Reden: M38 raakt 2 bestanden (leerlijn.json nieuw + schema.ts import), architect
 ## Huidige fase
 
 **Fase 3 · Design — M41-uitrol-naar-collegas (ACTIEF)** — Fase 1 afgerond 2026-09-14.
-Plan: `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md`. Fase 3 = DESIGN.md genereren (besluit A); handmatige T0 + T1 parallel.
+Plan: `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md`. Fase 3 voortgang: `.gsd/DESIGN.md` gegenereerd + statische a11y-check gedaan (6 contrastfouten → ✏️-tokens + taak DT-A11Y) ✅ · `/plan-design-review` ⬜ · pre-delivery checks ⬜. Handmatige T0 + T1 parallel.
 
 ## Handoff 2026-06-18
 

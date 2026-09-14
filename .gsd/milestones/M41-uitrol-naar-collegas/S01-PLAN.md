@@ -40,6 +40,8 @@ De handoff is van juni; sindsdien is een deel al gedaan. Taken hieronder zijn da
 | D4 | P2 | In-app Help, alléén post-install: kleurlegenda uitgelegd + geruststelling "werkt offline, gegevens versleuteld op deze computer". Hergebruik bestaande `index.css`-classes; géén installatie-instructies in de app | `src/components/HelpPage.tsx` + componenttest | `npm test` — secties renderen; geen installatie-tekst in HelpPage | ⬜ |
 | T4 | P2 | Deelbare link bevestigen: landingspagina-URL opent zonder login, is kort genoeg om te mailen, en toont de nieuwste versie | — | Handmatig vanuit incognito op Windows + Mac | ⬜ |
 | T6 | P3 | Stale-detectie landingspagina (TODO T-2026-06-18-17): faalnotificatie op `update-landing-page.yml` en/of datum-stempel naast de versie in de footer | `.github/workflows/update-landing-page.yml` of `scripts/update-landing-page.mjs` + test | Bij datum-stempel: `npm test` dekt de nieuwe vervanging | ⬜ |
+| DT-A11Y | P1 | Design-tokens uit `.gsd/DESIGN.md` §9 doorvoeren: `--accent-strong`(-hover) toevoegen en gebruiken voor alle knoppen met witte tekst en tekstlinks (licht); `--text-muted` en `--text-faint` bijwerken (licht + donker); geen `font-size` < 12px (`0.6875rem`/`0.7rem`, o.a. `.detail-section-title`) | `src/index.css` + componenten die `background: var(--accent)` met witte tekst gebruiken | `npm test` groen; contrast-script uit DESIGN.md §9 geeft 0 ✗; handmatig licht + donker | ⬜ |
+| DT-ICON | P3 | 🐛-emoji in navigatiebalk vervangen door inline SVG-icoon met `aria-label`; Help-tekst (r. 55) verwijst naar het nieuwe icoon | `src/components/` (nav) · `HelpPage.tsx` | `npm test`; knop heeft toegankelijke naam | ⬜ |
 | T7 | P1 | **Pilot** (Fase 4, na release): 3–5 collega's installeren koud en importeren een eerste klas | resultaten → `M41-LEARNINGS.md` | Primair succescriterium gehaald of bevindingen terug naar Fase 2 | ⬜ |
 
 ## Volgorde & lanes
@@ -49,6 +51,7 @@ Vóór Fase 2 (handmatig):  T0 + T1            (T1-uitkomst kan M41 terugsturen 
 Fase 3 (design):          zie UI-check hieronder
 Lane A (landingspagina):  T2 → D1 → D3 → D5   (zelfde bestand, sequentieel; ander repo)
 Lane B (deze repo):       T3, T5, D4, T6      (onafhankelijk van elkaar)
+Lane C (app-a11y):        DT-A11Y → DT-ICON   (vóór release; collega's zien deze knoppen als eerste)
 Fase 4:                   T4 → release → T7
 ```
 
@@ -56,7 +59,7 @@ T5 hangt af van de uiteindelijke opbouw uit Lane A (fixture moet de nieuwe secti
 
 ## UI-check (Fase 1 DoD)
 
-UI-taken aanwezig (T2, D1, D3, D5 op de landingspagina; D4 in de app) → **Fase 3 staat ingepland als verplicht tussenstation vóór Fase 2.**
+UI-taken aanwezig (T2, D1, D3, D5 op de landingspagina; D4, DT-A11Y, DT-ICON in de app) → **Fase 3 staat ingepland als verplicht tussenstation vóór Fase 2.**
 
 Invulling Fase 3 (besluit projectlead 2026-09-14, optie A): **`.gsd/DESIGN.md` wordt nu gegenereerd** met het UI UX Pro Max-script op basis van de bestaande tokens (`index.css`), gevolgd door `/plan-design-review` en de statische a11y-check. Hiermee vervalt TODO T-2026-06-12-02 en wordt de volledige Fase 3 DoD (STACK.md §2) gevolgd — geen afwijking.
 
@@ -73,4 +76,4 @@ Code-signing (B), CIOS IT/managed deploy (C), signed-build in `ci.yml` (T-2026-0
 
 ## Commit-afspraken
 
-Elke commit met prefix: `docs:` (T3), `test:` (T5), `feat:` (D4), `ci:`/`fix:` (T6). Wijzigingen in `ciosmentorendashboard` volgen hetzelfde prefix-schema in dat repo.
+Elke commit met prefix: `docs:` (T3), `test:` (T5), `feat:` (D4), `ci:`/`fix:` (T6), `design:`/`fix:` (DT-A11Y, DT-ICON). Wijzigingen in `ciosmentorendashboard` volgen hetzelfde prefix-schema in dat repo.
