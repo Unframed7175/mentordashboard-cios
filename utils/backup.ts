@@ -89,6 +89,7 @@ export async function applyBackupRestore(
       typeof payload !== 'object' ||
       typeof payload.version !== 'number' ||
       typeof payload.klassen !== 'object' ||
+      payload.klassen === null || // typeof null === 'object'
       Array.isArray(payload.klassen)
     ) {
       return { success: false, message: 'Ongeldige backup structuur' };
