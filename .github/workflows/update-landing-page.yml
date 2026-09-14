@@ -39,21 +39,26 @@ jobs:
           node-version: lts/*
 
       - name: Extract changelog entry
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
         run: |
-          node main-repo/scripts/extract-changelog-entry.mjs main-repo/CHANGELOG.md /tmp/release-body.md ${{ inputs.version }}
+          node main-repo/scripts/extract-changelog-entry.mjs main-repo/CHANGELOG.md /tmp/release-body.md "$VERSION_INPUT"
 
       - name: Update index.html
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
         run: |
-          VERSION="${{ inputs.version }}"
-          VERSION="${VERSION#v}"
+          VERSION="${VERSION_INPUT#v}"
           node main-repo/scripts/update-landing-page.mjs landing-page/index.html "$VERSION" /tmp/release-body.md
 
       - name: Commit en push
         working-directory: landing-page
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
           git diff --staged --quiet && echo "Geen wijzigingen" && exit 0
-          git commit -m "fix: update landingspagina naar ${{ inputs.version }}"
+          git commit -m "fix: update landingspagina naar $VERSION_INPUT"
           git push origin main

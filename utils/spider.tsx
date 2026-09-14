@@ -58,7 +58,7 @@ export const SpiderChart = {
     fillVar: string,
     strokeVar: string,
     onHover?: (state: HoverState) => void
-  ): JSX.Element {
+  ): React.JSX.Element {
     const n = axes.length;
 
     if (n === 0) {

@@ -45,8 +45,10 @@ jobs:
         run: npm ci
 
       - name: Extract changelog entry for release body
+        env:
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          node scripts/extract-changelog-entry.mjs CHANGELOG.md "${{ runner.temp }}/release-body.md" ${{ github.ref_name }}
+          node scripts/extract-changelog-entry.mjs CHANGELOG.md "${{ runner.temp }}/release-body.md" "$REF_NAME"
 
       - name: Build and release
         uses: tauri-apps/tauri-action@fce9c6108b31ea247710505d3aaaa893ee6768d4 # v0
@@ -89,21 +91,26 @@ jobs:
           node-version: lts/*
 
       - name: Extract changelog entry
+        env:
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          node main-repo/scripts/extract-changelog-entry.mjs main-repo/CHANGELOG.md /tmp/release-body.md ${{ github.ref_name }}
+          node main-repo/scripts/extract-changelog-entry.mjs main-repo/CHANGELOG.md /tmp/release-body.md "$REF_NAME"
 
       - name: Update index.html
+        env:
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          VERSION="${{ github.ref_name }}"
-          VERSION="${VERSION#v}"
+          VERSION="${REF_NAME#v}"
           node main-repo/scripts/update-landing-page.mjs landing-page/index.html "$VERSION" /tmp/release-body.md
 
       - name: Commit en push
         working-directory: landing-page
+        env:
+          REF_NAME: ${{ github.ref_name }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
           git diff --staged --quiet && echo "Geen wijzigingen" && exit 0
-          git commit -m "fix: update landingspagina naar ${{ github.ref_name }}"
+          git commit -m "fix: update landingspagina naar $REF_NAME"
           git push origin main

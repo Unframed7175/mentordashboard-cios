@@ -194,3 +194,50 @@ test('v2 samenvoegen-restore behoudt huidige store-keys en vraagt géén reload'
   expect(_storeData.get('settings')).toEqual({ theme: 'light' });
   expect(_storeData.has('doorstroom_normen')).toBe(false);
 });
+
+// ── Gemanipuleerde backups (security) ─────────────────────────────────────────
+
+// Helper: backup-zip uit een ruwe JSON-string, zodat keys als "__proto__" letterlijk
+// in het bestand staan (zoals bij een handmatig gemanipuleerd backup-bestand).
+function buildZipFromRawJson(json: string): Uint8Array {
+  return zipSync({ 'mentordashboard-backup.enc': strToU8('MOCKENC:' + json) });
+}
+
+const POISONED_JSON = `{
+  "version": 2,
+  "klassen": {
+    "__proto__": { "polluted": true },
+    "constructor": { "polluted": true },
+    "klas_ok": { "id": "klas_ok", "naam": "Klas OK", "students": [] }
+  },
+  "activeKlasId": "klas_ok",
+  "store": { "__proto__": { "polluted": true }, "settings": { "theme": "dark" } }
+}`;
+
+test.each(['overschrijven', 'samenvoegen'] as const)(
+  '%s: prototype-pollution keys uit backup worden genegeerd',
+  async (mode) => {
+    const result = await applyBackupRestore(buildZipFromRawJson(POISONED_JSON), mode);
+
+    expect(result.success).toBe(true);
+    expect(klassenState.klassen['klas_ok']).toBeDefined();
+    // prototype van het klassen-object is niet vervangen
+    expect(Object.getPrototypeOf(klassenState.klassen)).toBe(Object.prototype);
+    expect('polluted' in klassenState.klassen).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(klassenState.klassen, 'constructor')).toBe(false);
+    // globale Object.prototype is niet vergiftigd
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    // store-snapshot krijgt geen __proto__-key
+    expect(_storeData.has('__proto__')).toBe(false);
+  },
+);
+
+test('backup met klassen: null geeft nette foutmelding i.p.v. crash-tekst', async () => {
+  const zip = buildZipFromRawJson('{"version": 2, "klassen": null, "activeKlasId": null}');
+
+  const result = await applyBackupRestore(zip, 'overschrijven');
+
+  expect(result.success).toBe(false);
+  expect(result.message).toBe('Ongeldige backup structuur');
+  expect(klassenState.klassen).toEqual({});
+});
