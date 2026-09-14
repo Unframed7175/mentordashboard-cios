@@ -58,7 +58,7 @@ T5 hangt af van de uiteindelijke opbouw uit Lane A (fixture moet de nieuwe secti
 
 UI-taken aanwezig (T2, D1, D3, D5 op de landingspagina; D4 in de app) → **Fase 3 staat ingepland als verplicht tussenstation vóór Fase 2.**
 
-Openstaande keuze voor de invulling van Fase 3 (projectlead): de Fase 0-handoff zette DESIGN.md-generatie buiten scope (TODO T-2026-06-12-02), maar STACK.md §2 vereist sinds CLAUDE.md v2.0.0 dat álle Fase 3 DoD-punten zijn afgevinkt, waaronder een bestaand `.gsd/DESIGN.md`. Zie handoff in `.gsd/STATE.md`.
+Invulling Fase 3 (besluit projectlead 2026-09-14, optie A): **`.gsd/DESIGN.md` wordt nu gegenereerd** met het UI UX Pro Max-script op basis van de bestaande tokens (`index.css`), gevolgd door `/plan-design-review` en de statische a11y-check. Hiermee vervalt TODO T-2026-06-12-02 en wordt de volledige Fase 3 DoD (STACK.md §2) gevolgd — geen afwijking.
 
 ## Beslissingen (bindend, uit ADR-14 + design review)
 

@@ -13,7 +13,7 @@ Naar: UI UX Pro Max + GStack — Fase 3 (design), met handmatige T0/T1 parallel
 
 **Openstaand — moet de volgende fase weten:**
 - **T1 (auto-update-QA) kan M41 terugsturen naar Fase 0**: als een update SmartScreen/Gatekeeper opnieuw triggert, vervalt de ADR-14-aanname. Voer T0 + T1 uit vóór Fase 2.
-- **Beslissing projectlead nodig over Fase 3-invulling:** de Fase 0-handoff zette DESIGN.md-generatie buiten scope (T-2026-06-12-02), maar STACK.md §2 eist sinds v2.0.0 alle Fase 3 DoD-punten, incl. een bestaand `.gsd/DESIGN.md`. Opties: (A) DESIGN.md nu genereren en T-2026-06-12-02 meenemen; (B) beperkt checkpoint zoals M36 met gedocumenteerde `## Afwijking`.
+- **Fase 3-invulling besloten (projectlead, 2026-09-14): optie A** — `.gsd/DESIGN.md` nu genereren (neemt T-2026-06-12-02 mee), daarna `/plan-design-review` + statische a11y-check. Volledige Fase 3 DoD, geen afwijking.
 - Landingspagina staat in apart repo `Unframed7175/ciosmentorendashboard`; ankers van `scripts/update-landing-page.mjs` mogen niet breken (T5).
 - Nieuw gevonden: `INSTRUCTIES.md` linkt voor installatie nog naar de ruwe releases-pagina en zegt "Geen automatische updates" (onjuist sinds M40) → T3.
 
@@ -80,7 +80,7 @@ Reden: M38 raakt 2 bestanden (leerlijn.json nieuw + schema.ts import), architect
 ## Huidige fase
 
 **Fase 3 · Design — M41-uitrol-naar-collegas (ACTIEF)** — Fase 1 afgerond 2026-09-14.
-Plan: `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md`. Eerst beslissing over Fase 3-invulling (zie Handoff 2026-09-14) en handmatige T0 + T1.
+Plan: `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md`. Fase 3 = DESIGN.md genereren (besluit A); handmatige T0 + T1 parallel.
 
 ## Handoff 2026-06-18
 
