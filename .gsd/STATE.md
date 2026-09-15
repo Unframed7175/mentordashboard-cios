@@ -1,6 +1,6 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-09-14 — Fase 3 M41 afgerond (DESIGN.md + plan-design-review 5→9/10). Volgende: handmatige T0 + T1, daarna Fase 2.
+> Laatste update: 2026-09-15 — Nieuwe landingspagina live (M41 Lane A: T5, LP-SYS, T2, D1, D3, D5). Volgende: T0 koude installatie op de nieuwe pagina + T1; SCR screenshots.
 ---
 
 ## Handoff 2026-09-14 (Fase 3 → Fase 2)
@@ -95,8 +95,8 @@ Reden: M38 raakt 2 bestanden (leerlijn.json nieuw + schema.ts import), architect
 
 ## Huidige fase
 
-**Fase 2 · Executie — M41-uitrol-naar-collegas (ACTIEF, wacht op T0 + T1)** — Fase 3 afgerond 2026-09-14.
-Plan: `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md`. Eerst handmatig T0 (koude installatie bij één collega) en T1 (auto-update-QA Windows + macOS).
+**Fase 2 · Executie — M41-uitrol-naar-collegas (ACTIEF)** — gestart 2026-09-15.
+Lane A **live** sinds 2026-09-15 (`ciosmentorendashboard@7f5efa7`, axe 0 bevindingen live). Openstaand: T0 op de nieuwe pagina, T1, SCR (screenshots), Lane B (T3, T6, T9) en Lane C (DT-A11Y → D4 → DT-ICON). Zie S01-PLAN § Wijziging uitvoering.
 
 ## Handoff 2026-06-18
 
