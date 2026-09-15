@@ -1,6 +1,39 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-09-14 — Stack-check vastgelegd (CLAUDE.md v1.10.1). Daarvoor 2026-06-19: Fase 0 M41 afgerond (office-hours + eng review + design review). M41 klaar voor Fase 1 (GSD milestone-map).
+> Laatste update: 2026-09-14 — Fase 3 M41 afgerond (DESIGN.md + plan-design-review 5→9/10). Volgende: handmatige T0 + T1, daarna Fase 2.
+---
+
+## Handoff 2026-09-14 (Fase 3 → Fase 2)
+
+Van: UI UX Pro Max + GStack — Fase 3 (design) — M41 "Uitrol naar collega's"
+Naar: Superpowers — Fase 2 (executie)
+
+**Status:** `.gsd/DESIGN.md` gegenereerd (search.py + bestaande tokens). `/plan-design-review` afgerond: 5/10 → 9/10, 21 besluiten in `S01-PLAN.md` § Design-specificatie (IA, staten, reis, microcopy, decoratie, Help-structuur, responsive/a11y, screenshots). Statische a11y-check: 6 contrastfouten → gecorrigeerde tokens + taak DT-A11Y. Pre-delivery checklist (DESIGN.md §10) toegepast op de spec: geen blokkerende bevindingen.
+
+**Openstaand — moet Fase 2 weten:**
+- **Fase 2 start pas ná T0 (koude-installatie-observatie) en T1 (auto-update-QA).** T1 faalt → terug naar Fase 0. T0 bepaalt standaard-tak "Open toch" vs "beschadigd" en verifieert NL-knopnamen in de microcopy.
+- **Scope gegroeid door besluit 5A:** landingspagina gaat over op het app-design system (nieuwe P1-taak LP-SYS, Lane A begint daarmee). Ook nieuw: T9 (gebruikerssamenvatting op landingspagina), D4 herstructureert Help tot naslag.
+- Lane-volgorde: A `T5 → LP-SYS → T2 → D1 → D3 → D5` (T5 in deze repo, rest in ander repo) · B `T3, T6, T9` · C `DT-A11Y → D4 → DT-ICON`.
+- Mockups niet gemaakt (gstack designer zonder OpenAI-sleutel) → na LP-SYS/T2 `/design-review` op de live pagina.
+
+**DoD Fase 3 afgevinkt:** DESIGN.md door search-script ✅ · `/plan-design-review` akkoord ✅ · pre-delivery checks zonder blokkers ✅ · statische a11y-check (fouten hersteld in DESIGN.md) ✅ · handoff ✅
+
+---
+
+## Handoff 2026-09-14 (Fase 1 → Fase 3)
+
+Van: GSD — Fase 1 (spec) — M41 "Uitrol naar collega's"
+Naar: UI UX Pro Max + GStack — Fase 3 (design), met handmatige T0/T1 parallel
+
+**Status:** `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md` geschreven (12 taken, gap-analyse t.o.v. juni verwerkt). Requirement F-16 toegevoegd aan `REQUIREMENTS.md`. ROADMAP: M41 → ACTIEF.
+
+**Openstaand — moet de volgende fase weten:**
+- **T1 (auto-update-QA) kan M41 terugsturen naar Fase 0**: als een update SmartScreen/Gatekeeper opnieuw triggert, vervalt de ADR-14-aanname. Voer T0 + T1 uit vóór Fase 2.
+- **Fase 3-invulling besloten (projectlead, 2026-09-14): optie A** — `.gsd/DESIGN.md` nu genereren (neemt T-2026-06-12-02 mee), daarna `/plan-design-review` + statische a11y-check. Volledige Fase 3 DoD, geen afwijking.
+- Landingspagina staat in apart repo `Unframed7175/ciosmentorendashboard`; ankers van `scripts/update-landing-page.mjs` mogen niet breken (T5).
+- Nieuw gevonden: `INSTRUCTIES.md` linkt voor installatie nog naar de ruwe releases-pagina en zegt "Geen automatische updates" (onjuist sinds M40) → T3.
+
+**DoD Fase 1 afgevinkt:** PROJECT.md + REQUIREMENTS.md ingevuld ✅ · milestone-map ✅ · S01-PLAN.md met concrete taken ✅ · UI-check: UI-taken aanwezig → Fase 3 ingepland vóór Fase 2 ✅ · handoff ✅
 
 ---
 
@@ -62,9 +95,8 @@ Reden: M38 raakt 2 bestanden (leerlijn.json nieuw + schema.ts import), architect
 
 ## Huidige fase
 
-Geen actieve milestone. M40 is afgerond en gereleased (v2.11.0); M41 ("Uitrol naar collega's") staat
-in ROADMAP.md op WACHT — vereist eerst Fase 0 (GStack `/office-hours`) om scope te bepalen voordat
-GSD een milestone-map kan aanmaken.
+**Fase 2 · Executie — M41-uitrol-naar-collegas (ACTIEF, wacht op T0 + T1)** — Fase 3 afgerond 2026-09-14.
+Plan: `.gsd/milestones/M41-uitrol-naar-collegas/S01-PLAN.md`. Eerst handmatig T0 (koude installatie bij één collega) en T1 (auto-update-QA Windows + macOS).
 
 ## Handoff 2026-06-18
 

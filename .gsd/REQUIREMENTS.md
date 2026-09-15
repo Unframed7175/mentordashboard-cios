@@ -92,6 +92,14 @@
 ### F-15 · Help pagina
 - Inline help pagina met uitleg over de app
 
+### F-16 · Distributie & installatie (M41)
+- Eén publieke, deelbare downloadlink (landingspagina) — collega's komen nooit op de ruwe GitHub-releases-pagina
+- Pre-install-gids per OS (Windows SmartScreen, macOS Gatekeeper incl. Apple Silicon), OS-kies-eerst, geruststelling vóór elke waarschuwing
+- Downloadknoppen in gewone taal (Windows / Mac met Apple chip / Mac met Intel chip)
+- Een update via de in-app updater toont géén nieuwe OS-waarschuwing (geverifieerd per OS)
+- In-app Help bevat alleen post-install-uitleg (kleurlegenda, offline + versleuteld), geen installatie-instructies
+- Succescriterium: 3–5 collega's installeren zonder live hulp en importeren hun eerste klas
+
 ---
 
 ## Niet-functionele eisen
