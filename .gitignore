@@ -28,3 +28,8 @@ dist-ssr
 .agents/
 .claude/skills/*
 !.claude/skills/ui-ux-pro-max/
+
+# Lokale Claude Code-instellingen (per gebruiker) en Python-bytecode
+.claude/settings.local.json
+__pycache__/
+*.pyc
