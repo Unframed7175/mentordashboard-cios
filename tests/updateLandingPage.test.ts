@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   updateLandingPageHtml,
   changelogBodyToUpdateItems,
@@ -121,5 +123,38 @@ describe('updateLandingPageHtml', () => {
       ''
     );
     expect(() => updateLandingPageHtml(missingOne, params)).toThrow();
+  });
+});
+
+describe('contract met de M41-doelopbouw van de landingspagina', () => {
+  // Fixture volgt S01-PLAN § Design-specificatie: één #installatie-sectie met een paneel per OS.
+  // Herstelacties ("Probeer opnieuw", "Andere Mac-versie") zijn knoppen zonder release-URL,
+  // anders telt het script meer dan 3 downloadlinks en faalt de release-automatisering.
+  const doelopbouw = readFileSync(join(__dirname, 'fixtures', 'landing-doelopbouw.html'), 'utf8');
+  const params = {
+    version: '2.12.0',
+    notesHtml: '        <div class="update-item"><span class="update-chip chip-new">Nieuw</span>Iets nieuws.</div>',
+    date: '15 september 2026',
+  };
+
+  it('bevat precies drie release-downloadlinks (één per OS-paneel)', () => {
+    const links = doelopbouw.match(/releases\/download\/v[\d.]+\/Mentordashboard\.CIOS_/g) ?? [];
+    expect(links).toHaveLength(3);
+  });
+
+  it('werkt versie, downloadlinks, footer en updates-lijst bij zonder fout', () => {
+    const out = updateLandingPageHtml(doelopbouw, params);
+    expect(out).toContain('<span class="nav-version">v2.12.0</span>');
+    expect(out).toContain('v2.12.0/Mentordashboard.CIOS_2.12.0_x64-setup.exe');
+    expect(out).toContain('v2.12.0/Mentordashboard.CIOS_2.12.0_aarch64.dmg');
+    expect(out).toContain('v2.12.0/Mentordashboard.CIOS_2.12.0_x64.dmg');
+    expect(out).toContain('Versie 2.12.0 &nbsp;');
+    expect(out.match(/Nieuwste versie/g) ?? []).toHaveLength(1);
+  });
+
+  it('behoudt de ankers #installatie en #download voor bestaande links', () => {
+    const out = updateLandingPageHtml(doelopbouw, params);
+    expect(out).toContain('id="installatie"');
+    expect(out).toContain('id="download"');
   });
 });

@@ -1,0 +1,29 @@
+<!-- Doelopbouw landingspagina M41 (S01-PLAN § Design-specificatie). Contract met scripts/update-landing-page.mjs. -->
+<header><nav><span class="nav-version">v2.11.4</span></nav></header>
+<main>
+<section class="installeren" id="installatie" aria-labelledby="installatie-kop">
+  <span id="download"></span>
+  <h2 id="installatie-kop">Installeren</h2>
+  <div role="group" aria-label="Kies je computer">
+    <button type="button" data-os="windows" aria-pressed="true">Windows</button>
+    <button type="button" data-os="mac-apple" aria-pressed="false">Mac met Apple chip</button>
+    <button type="button" data-os="mac-intel" aria-pressed="false">Mac met Intel chip</button>
+  </div>
+  <div class="os-stappen" data-os-panel="windows">
+    <ol><li><a class="btn-download" data-download="windows" href="https://github.com/Unframed7175/mentordashboard-cios/releases/download/v2.11.4/Mentordashboard.CIOS_2.11.4_x64-setup.exe">Download voor Windows</a>
+      <button type="button" class="opnieuw" data-download-retry="windows">Probeer opnieuw</button></li></ol>
+  </div>
+  <div class="os-stappen" data-os-panel="mac-apple">
+    <ol><li><a class="btn-download" data-download="mac-apple" href="https://github.com/Unframed7175/mentordashboard-cios/releases/download/v2.11.4/Mentordashboard.CIOS_2.11.4_aarch64.dmg">Download voor Mac met Apple chip</a>
+      <button type="button" data-switch-os="mac-intel">Andere Mac-versie</button></li></ol>
+  </div>
+  <div class="os-stappen" data-os-panel="mac-intel">
+    <ol><li><a class="btn-download" data-download="mac-intel" href="https://github.com/Unframed7175/mentordashboard-cios/releases/download/v2.11.4/Mentordashboard.CIOS_2.11.4_x64.dmg">Download voor Mac met Intel chip</a>
+      <button type="button" data-switch-os="mac-apple">Andere Mac-versie</button></li></ol>
+  </div>
+</section>
+<section id="nieuw"><div class="updates-list">
+  <div class="update-card"><div class="update-head"><span class="update-version">Versie 2.11.4</span><span class="update-date">20 juni 2026</span><span class="update-new">Nieuwste versie</span></div><div class="update-items"><div class="update-item">oud</div></div></div>
+</div></section>
+</main>
+<footer>Versie 2.11.4 &nbsp;·&nbsp; Gegevens worden nooit gedeeld</footer>
