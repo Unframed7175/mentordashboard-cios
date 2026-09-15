@@ -137,6 +137,8 @@
 
 ## T-2026-06-12-02 · DESIGN.md genereren uit bestaande tokens
 
+> ✅ **Afgerond 2026-09-14** in M41 Fase 3 → `.gsd/DESIGN.md`. Contrastfixes als taak DT-A11Y in `M41-uitrol-naar-collegas/S01-PLAN.md`.
+
 - **What:** Een `.gsd/DESIGN.md` design-systeemdocument genereren op basis van de bestaande tokenset in `src/index.css:36-89`.
 - **Why:** De app heeft een volwassen de-facto design system (CIOS-blauw, slate-tinten, status-kleuren, radius/shadow/transition-tokens) maar geen document dat het vastlegt. Elke UI-review en elke nieuwe feature begint nu bij "wat is onze stijl?"; CLAUDE.md Fase 3 verwacht dit document bovendien.
 - **Pros:** Toekomstige design reviews kalibreren tegen een echt document; stijl drijft niet uit elkaar per feature.
