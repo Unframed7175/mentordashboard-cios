@@ -187,3 +187,10 @@
 **Afgewezen alternatieven:** (B) macOS/Windows code-signing nu — uitgesteld; (C) CIOS IT/managed deployment — parallel niet-blokkerend gesprek; screen-recording/GIF-gids — uitgesteld t.g.v. tekst+screenshots.
 
 **Bron:** `~/.gstack/projects/Unframed7175-mentordashboard-cios/rafael-master-design-20260618-213848.md`
+
+## ADR-15 · Rolverdeling design-skills: UI UX Pro Max leidend, frontend-design ondersteunend (2026-09-14)
+
+**Status:** Vastgelegd (projectlead, review PR #24)
+**Beslissing:** De plugin `frontend-design@claude-plugins-official` staat projectbreed aan (`.claude/settings.json`). **UI UX Pro Max blijft leidend** voor het design system (`.gsd/DESIGN.md`) en voor stijlkeuzes per component (STACK.md §1, laag 4). `frontend-design` wordt alleen gebruikt als hulp bij het **schrijven van UI-code binnen** `.gsd/DESIGN.md`; adviezen die afwijken van DESIGN.md (andere lettertypes, paletten, stijlen) worden niet overgenomen.
+**Reden:** Beide skills activeren bij UI-werk; zonder rangorde kan een agent in Fase 3 of Fase 2 tegenstrijdige design-adviezen combineren.
+**Bij conflict:** DESIGN.md wint; wijziging van DESIGN.md loopt via UI UX Pro Max + GStack `/plan-design-review`.
