@@ -3,7 +3,7 @@
 //           resetDeelgebiedenConfig, getActiveDGIds, buildDefaultDeelgebiedenConfig
 //
 // Depends on:
-//   utils/schema.ts — DEELGEBIEDEN (19 entries)
+//   utils/schema.ts — DEELGEBIEDEN (config-driven via src/config/leerlijn.json)
 //   @tauri-apps/plugin-store — LazyStore
 //
 // Follows the LazyStore pattern from utils/leerlijnen.ts (Phase 12).

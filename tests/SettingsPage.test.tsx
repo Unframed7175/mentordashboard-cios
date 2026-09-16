@@ -310,19 +310,18 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
     expect(placeholders.length).toBeLessThanOrEqual(1);
   });
 
-  // ── Test S3-03: leerlijn dropdown renders with three options ──────────────────
-  it('SET-04: leerlijn dropdown has Lesgeven / Organiseren / Prof. handelen options', async () => {
+  // ── Test S3-03: leerlijn dropdown renders with both options ───────────────────
+  it('SET-04: leerlijn dropdown has Lesgeven en organiseren / Professioneel handelen options', async () => {
     renderSettings();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
     const selects = screen.getAllByRole('combobox');
     expect(selects.length).toBeGreaterThanOrEqual(1);
 
-    // First select should have all three leerlijn options
+    // First select should have both leerlijn options
     const firstSelect = selects[0];
-    expect(firstSelect.innerHTML).toContain('Lesgeven');
-    expect(firstSelect.innerHTML).toContain('Organiseren');
-    expect(firstSelect.innerHTML).toContain('Prof. handelen');
+    expect(firstSelect.innerHTML).toContain('Lesgeven en organiseren');
+    expect(firstSelect.innerHTML).toContain('Professioneel handelen');
   });
 
   // ── Test S3-04: changing leerlijn dropdown calls saveLeerlijnenMapping ────────
@@ -332,7 +331,7 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
 
     const selects = screen.getAllByRole('combobox');
     await act(async () => {
-      fireEvent.change(selects[0], { target: { value: 'organiseren' } });
+      fireEvent.change(selects[0], { target: { value: 'professioneel_handelen' } });
       await new Promise(r => setTimeout(r, 0));
     });
 

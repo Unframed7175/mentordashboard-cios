@@ -5,7 +5,7 @@ import { DEELGEBIEDEN } from '../../utils/schema';
 import { getDeelgebiedenConfigSync } from '../../utils/deelgebieden';
 
 interface SpiderChartCardProps {
-  group: 'lesgeven' | 'organiseren' | 'prof_handelen';
+  group: 'lesgeven_en_organiseren' | 'professioneel_handelen';
   scores: Record<string, string | null>;
   fillVar: string;
   strokeVar: string;

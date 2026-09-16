@@ -4,6 +4,39 @@
 // Tests run as-is once prognosis.ts and schema.ts exist.
 // ---------------------------------------------------------------------------
 
+// Deze tests valideren de doorstroomnorm-REKENLOGICA (kern-check, versneld-check,
+// negatief-triggers, sbl/sbc-drempels) aan de hand van het 19-deelgebieden/3-leerlijnen-
+// schema waarop KERN_SBC en DEFAULT_NORMEN zijn gekalibreerd (ADR-06). Sinds het
+// schooljaar 2026/2027 levert de echte src/config/leerlijn.json een ander schema
+// (12 deelgebieden, 2 leerlijnen) — zie tests/prognosis.schemaGuard.test.ts voor het
+// gedrag daarvan (berekenPrognose geeft dan 'normen_onbekend' terug). Deze mock houdt
+// de rekenlogica-tests onafhankelijk van welk schooljaar toevallig actief is.
+vi.mock('../src/config/leerlijn.json', () => ({
+  default: {
+    deelgebieden: [
+      { id: 'va',   label: 'V&A',  group: 'lesgeven' },
+      { id: 'mm',   label: 'M&M',  group: 'lesgeven' },
+      { id: 'ins',  label: 'INS',  group: 'lesgeven' },
+      { id: 'odw',  label: 'O&DW', group: 'lesgeven' },
+      { id: 'cb',   label: 'C&B',  group: 'lesgeven' },
+      { id: 'eb1',  label: '1E&B', group: 'lesgeven' },
+      { id: 'po',   label: 'P&O',  group: 'organiseren' },
+      { id: 'so',   label: 'S&O',  group: 'organiseren' },
+      { id: 'org',  label: 'ORG',  group: 'organiseren' },
+      { id: 'ib',   label: 'I&B',  group: 'organiseren' },
+      { id: 'eb2',  label: '2E&B', group: 'organiseren' },
+      { id: 'prco', label: 'PrCo', group: 'prof_handelen' },
+      { id: 'vsk',  label: 'VSK',  group: 'prof_handelen' },
+      { id: 'lob',  label: 'LOB',  group: 'prof_handelen' },
+      { id: 'info', label: 'INFO', group: 'prof_handelen' },
+      { id: 'desk', label: 'DESK', group: 'prof_handelen' },
+      { id: 'bs',   label: 'BS',   group: 'prof_handelen' },
+      { id: 'tow',  label: 'TOW',  group: 'prof_handelen' },
+      { id: 'bh',   label: 'BH',   group: 'prof_handelen' },
+    ],
+  },
+}));
+
 import { berekenPrognose, berekenAllePrognoses } from '../utils/prognosis';
 import { DEELGEBIEDEN } from '../utils/schema';
 import { appState } from '../utils/datamodel';

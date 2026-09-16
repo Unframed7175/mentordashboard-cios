@@ -494,7 +494,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
 
   // Helper: get schema-default leerlijn group for a deelgebied (fallback when not in mapping)
   function schemaDefaultFor(id: string): string {
-    return DEELGEBIEDEN.find(d => d.id === id)?.group ?? 'lesgeven';
+    return DEELGEBIEDEN.find(d => d.id === id)?.group ?? 'lesgeven_en_organiseren';
   }
 
   return (
@@ -569,9 +569,8 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
                       value={leerlijnenMapping[row.id] ?? schemaDefaultFor(row.id)}
                       onChange={e => handleLeerlijnChange(row.id, e.target.value)}
                     >
-                      <option value="lesgeven">Lesgeven</option>
-                      <option value="organiseren">Organiseren</option>
-                      <option value="prof_handelen">Prof. handelen</option>
+                      <option value="lesgeven_en_organiseren">Lesgeven en organiseren</option>
+                      <option value="professioneel_handelen">Professioneel handelen</option>
                     </select>
                   </td>
                   <td>

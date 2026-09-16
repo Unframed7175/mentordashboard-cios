@@ -125,6 +125,7 @@ export function berekenStatus(student: any, traject?: string, _thresholds?: { ge
     ? aggregateKdStatus(keuzedelen)
     : (student.kdStatus ?? null);
 
+  if (p.label === 'normen_onbekend') return { kleur: 'grijs', label: 'Normen onbekend', prognose: p };
   if (!heeftScores)                return { kleur: 'grijs',  label: 'Onbekend',        prognose: p };
   if (p.label === 'negatief')      return { kleur: 'rood',   label: 'Risico',          prognose: p };
   if (p.label === 'neutraal')      return { kleur: 'oranje', label: 'Twijfelgeval',    prognose: p };

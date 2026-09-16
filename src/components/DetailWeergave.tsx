@@ -138,25 +138,18 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
         <p className="detail-section-title">Spiderweb overzicht</p>
         <div className="spider-charts-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'flex-start' }}>
           <SpiderChartCard
-            group="lesgeven"
+            group="lesgeven_en_organiseren"
             scores={aggregatedScores}
             fillVar="--spider-lesgeven"
             strokeVar="--spider-lesgeven-stroke"
-            title="Lesgeven"
+            title="Lesgeven en organiseren"
           />
           <SpiderChartCard
-            group="organiseren"
-            scores={aggregatedScores}
-            fillVar="--spider-organiseren"
-            strokeVar="--spider-organiseren-stroke"
-            title="Organiseren"
-          />
-          <SpiderChartCard
-            group="prof_handelen"
+            group="professioneel_handelen"
             scores={aggregatedScores}
             fillVar="--spider-prof-handelen"
             strokeVar="--spider-prof-handelen-stroke"
-            title="Prof. handelen"
+            title="Professioneel handelen"
           />
         </div>
       </div>

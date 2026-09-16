@@ -101,6 +101,21 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
   const n = getNormenSync();
   const traject = detectTraject(student);
 
+  // Nieuw schooljaar 2026/2027: deelgebieden-schema is bijgewerkt, maar de
+  // doorstroomnormen (kern-vakken, drempelwaarden) zijn nog niet bekend. Toon dat
+  // expliciet i.p.v. een cijfer te berekenen met de oude (niet meer kloppende) normen.
+  if (p.label === 'normen_onbekend') {
+    return (
+      <div className="detail-section">
+        <p className="detail-section-title">Doorstroomprognose</p>
+        <p style={{ color: 'var(--text-muted)', margin: 0 }}>
+          Doorstroomnormen nog niet ingesteld voor het huidige deelgebieden-schema. Zodra de
+          nieuwe CIOS-doorstroomcriteria bekend zijn, worden ze hier verwerkt.
+        </p>
+      </div>
+    );
+  }
+
   const globalEmpty = p.totaalVoldoendeOfHoger === 0 && p.totaalOnvoldoende === 0;
 
   // Build per-leerlijn lookup map for score access

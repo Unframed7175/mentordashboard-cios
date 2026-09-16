@@ -28,6 +28,28 @@ var KERN_SBC = ['V&A', 'P&O', 'C&B', '1E&B'];
 // are now sourced from utils/normen.ts via getNormenSync() (Phase 25 parametrisation).
 
 // ---------------------------------------------------------------------------
+// Schema-guard (2026-2027 curriculumwijziging)
+//
+// KERN_SBC, de per-leerlijn drempels hierboven en alle DEFAULT_NORMEN-getallen
+// (sbl/sbc/bj1Positief/negatiefTotaal) zijn gekalibreerd op de 19-deelgebieden/
+// 3-leerlijnen-indeling uit ADR-06. Sinds het nieuwe schooljaar levert
+// src/config/leerlijn.json een andere set (12 deelgebieden, 2 leerlijnen) —
+// die getallen kloppen dan niet meer en zouden stilzwijgend een verkeerde
+// prognose opleveren. SUPPORTED_LEERLIJNEN is de set groepen waarvoor de
+// huidige normen geldig zijn; zolang de nieuwe doorstroomnormen niet bekend
+// zijn, geeft berekenPrognose 'normen_onbekend' terug in plaats van een cijfer.
+var SUPPORTED_LEERLIJNEN = ['lesgeven', 'organiseren', 'prof_handelen'];
+
+function isNormenSchemaOndersteund(): boolean {
+  const mapping = getLeerlijnenMappingSync();
+  const actueleGroepen = new Set(
+    DEELGEBIEDEN.map(dg => mapping[dg.id] || dg.group)
+  );
+  if (actueleGroepen.size !== SUPPORTED_LEERLIJNEN.length) return false;
+  return SUPPORTED_LEERLIJNEN.every(ll => actueleGroepen.has(ll));
+}
+
+// ---------------------------------------------------------------------------
 // Score helpers
 // ---------------------------------------------------------------------------
 
@@ -110,8 +132,21 @@ function telLeerlijnen(scores: any, activeDeelgebiedenIds?: string[]): any {
 //   bj2: 'negatief' | 'sbc'          | 'sbl'       | 'neutraal'
 // ---------------------------------------------------------------------------
 export function berekenPrognose(student: any, traject?: string, activeDeelgebiedenIds?: string[], normen?: Normen): any {
-  const n = normen ?? getNormenSync();
   traject = traject || 'bj2';
+
+  if (!isNormenSchemaOndersteund()) {
+    return {
+      label: 'normen_onbekend',
+      isNegatief: false,
+      totaalVoldoendeOfHoger: 0,
+      totaalOnvoldoende: 0,
+      leerlijnen: [],
+      gaps: {},
+      traject: traject,
+    };
+  }
+
+  const n = normen ?? getNormenSync();
   var rawScores = student.deelgebiedScores || {};
 
   // T06: datapunten with 'niet ingeleverd' / 'te laat ingeleverd en niet beoordeeld' status

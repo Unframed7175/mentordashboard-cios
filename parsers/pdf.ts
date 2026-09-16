@@ -565,7 +565,7 @@ function buildColumnMap(headerLine: any[]): { map: Record<string, number>; unkno
   if (count < MIN_COLUMN_WARN_THRESHOLD) {
     console.warn(`[pdf.ts] buildColumnMap: only ${count} deelgebied columns detected — table may be malformed`);
   } else {
-    console.log(`[pdf.ts] buildColumnMap: detected ${count}/19 columns`, map);
+    console.log(`[pdf.ts] buildColumnMap: detected ${count}/${DEELGEBIEDEN.length} columns`, map);
   }
   if (unknownLabels.length > 0) {
     console.warn(`[pdf.ts] buildColumnMap: ${unknownLabels.length} unknown column(s):`, unknownLabels);
@@ -803,7 +803,7 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
   }
 
   // -----------------------------------------------------------------------
-  // Aggregate deelgebiedScores: initialize all 19 as null, then apply
+  // Aggregate deelgebiedScores: initialize all DEELGEBIEDEN as null, then apply
   // "latest non-null wins" across datapunten (document order = latest last).
   // -----------------------------------------------------------------------
   const deelgebiedScores: Record<string, string | null> = {};
@@ -821,7 +821,7 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
 
   console.log(
     `[pdf.ts] parseDeelgebiedTable: ${datapunten.length} datapunten,`,
-    `${Object.values(deelgebiedScores).filter(v => v !== null).length}/19 deelgebieden scored`
+    `${Object.values(deelgebiedScores).filter(v => v !== null).length}/${DEELGEBIEDEN.length} deelgebieden scored`
   );
 
   return { datapunten, deelgebiedScores, unknownLabels, endIndex };

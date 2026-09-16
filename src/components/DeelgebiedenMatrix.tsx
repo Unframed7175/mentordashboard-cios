@@ -13,9 +13,8 @@ interface DeelgebiedenMatrixProps {
 }
 
 const GROEPEN = [
-  { key: 'lesgeven' as const,    label: 'Lesgeven',      className: 'dm-header-lesgeven'    },
-  { key: 'organiseren' as const, label: 'Organiseren',   className: 'dm-header-organiseren' },
-  { key: 'prof_handelen' as const, label: 'Prof. handelen', className: 'dm-header-profhandelen' },
+  { key: 'lesgeven_en_organiseren' as const, label: 'Lesgeven en organiseren', className: 'dm-header-lesgeven'     },
+  { key: 'professioneel_handelen' as const,  label: 'Professioneel handelen',  className: 'dm-header-profhandelen' },
 ];
 
 const SCORE_CHIP_MAP: Record<string, { css: string; kort: string }> = {

@@ -4,6 +4,34 @@
 // plus 2 detectTraject patterns (bj1/bj2).
 // ---------------------------------------------------------------------------
 
+// Rekenlogica-tests tegen het 19-deelgebieden/3-leerlijnen-schema waarop de
+// doorstroomnormen zijn gekalibreerd — zie tests/prognosis.test.ts voor de toelichting.
+vi.mock('../src/config/leerlijn.json', () => ({
+  default: {
+    deelgebieden: [
+      { id: 'va',   label: 'V&A',  group: 'lesgeven' },
+      { id: 'mm',   label: 'M&M',  group: 'lesgeven' },
+      { id: 'ins',  label: 'INS',  group: 'lesgeven' },
+      { id: 'odw',  label: 'O&DW', group: 'lesgeven' },
+      { id: 'cb',   label: 'C&B',  group: 'lesgeven' },
+      { id: 'eb1',  label: '1E&B', group: 'lesgeven' },
+      { id: 'po',   label: 'P&O',  group: 'organiseren' },
+      { id: 'so',   label: 'S&O',  group: 'organiseren' },
+      { id: 'org',  label: 'ORG',  group: 'organiseren' },
+      { id: 'ib',   label: 'I&B',  group: 'organiseren' },
+      { id: 'eb2',  label: '2E&B', group: 'organiseren' },
+      { id: 'prco', label: 'PrCo', group: 'prof_handelen' },
+      { id: 'vsk',  label: 'VSK',  group: 'prof_handelen' },
+      { id: 'lob',  label: 'LOB',  group: 'prof_handelen' },
+      { id: 'info', label: 'INFO', group: 'prof_handelen' },
+      { id: 'desk', label: 'DESK', group: 'prof_handelen' },
+      { id: 'bs',   label: 'BS',   group: 'prof_handelen' },
+      { id: 'tow',  label: 'TOW',  group: 'prof_handelen' },
+      { id: 'bh',   label: 'BH',   group: 'prof_handelen' },
+    ],
+  },
+}));
+
 import { berekenStatus, detectTraject, STATUS_VOLGORDE, computeKpiCounts } from '../src/utils/status';
 import type { StatusResult } from '../src/utils/status';
 import { appState } from '../utils/datamodel';

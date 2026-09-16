@@ -4,6 +4,19 @@
 // Tests run as-is once aggregation.ts exists.
 // ---------------------------------------------------------------------------
 
+// aggregateDeelgebiedScores skipt labels die niet in DEELGEBIEDEN voorkomen; deze
+// tests gebruiken 'V&A'/'M&M'/'INS' als voorbeeldlabels, dus mock het 19-deelgebieden-
+// schema zodat die labels bekend blijven ongeacht welk schooljaar live actief is.
+vi.mock('../src/config/leerlijn.json', () => ({
+  default: {
+    deelgebieden: [
+      { id: 'va',  label: 'V&A', group: 'lesgeven' },
+      { id: 'mm',  label: 'M&M', group: 'lesgeven' },
+      { id: 'ins', label: 'INS', group: 'lesgeven' },
+    ],
+  },
+}));
+
 import { aggregateDeelgebiedScores } from '../utils/aggregation';
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
