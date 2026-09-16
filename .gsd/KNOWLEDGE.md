@@ -45,6 +45,16 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.mjs',
 ### P-06 · Traject detectie — periode is leading
 `detectTraject(student)` gebruikt `student.periode` als primaire bron. `student.leerjaar` is alleen fallback. Console.warn bij onzeker traject (valt terug op 'bj2').
 
+### P-08 · Doorstroomprognose schema-guard (SUPPORTED_LEERLIJNEN)
+`utils/prognosis.ts` bewaakt of `DEELGEBIEDEN` (uit `src/config/leerlijn.json`) nog
+overeenkomt met de leerlijn-groepen waarop `KERN_SBC`/`DEFAULT_NORMEN` zijn
+gekalibreerd (`SUPPORTED_LEERLIJNEN`). Wijkt het schema af (bijv. na een jaarlijkse
+CIOS-curriculumwijziging), dan geeft `berekenPrognose()` `label: 'normen_onbekend'`
+terug i.p.v. een cijfer op basis van niet meer passende drempelwaarden. Zie ADR-16.
+**Bij het bijwerken van `leerlijn.json` voor een nieuw schooljaar:** herijk ook
+`KERN_SBC`/`DEFAULT_NORMEN`/`SUPPORTED_LEERLIJNEN` zodra de nieuwe doorstroomnormen
+bekend zijn — anders blijft de prognose op 'normen_onbekend' staan.
+
 ### P-07 · Normen en drempels: altijd via Sync-accessor
 In synchrone call sites (berekenPrognose, berekenStatus):
 ```ts
@@ -211,3 +221,4 @@ Fasen worden genummerd als integers (33, 34, ...). Slices binnen een fase: `-01`
 
 - [ ] **ADR-11 opvolgen:** storage-error-banner vervangen door React toast/modal (Phase 14 — nog niet gedaan)
 - [ ] **1 UAT-scenario fase 33** niet geslaagd — nader te onderzoeken
+- [ ] **ADR-16 vervolg:** nieuwe doorstroomnormen (kern-vakken, sbl/sbc-drempels, per-leerlijn minima) voor het 2026/2027-schema zijn nog niet vastgesteld — `KERN_SBC`/`DEFAULT_NORMEN`/`SUPPORTED_LEERLIJNEN` (`utils/prognosis.ts`, `utils/normen.ts`) herijken zodra bekend; `SettingsPage.tsx` normen-sectie verwijst nog naar de oude 3-leerlijnen-structuur

@@ -100,6 +100,15 @@
 - In-app Help bevat alleen post-install-uitleg (kleurlegenda, offline + versleuteld), geen installatie-instructies
 - Succescriterium: 3–5 collega's installeren zonder live hulp en importeren hun eerste klas
 
+### F-17 · Doorstroomnormering 2026/2027 (M42, gepland)
+- Vervangt F-06/F-07 zodra geïmplementeerd; tot die tijd blijft de doorstroomprognose op `normen_onbekend` staan (ADR-16)
+- Vestiging (Roosendaal / Goes / Dordrecht) is een eigenschap van de klas; ontbrekende vestiging → prognose blijft `normen_onbekend`
+- BJ1-eind: bindend studieadvies met 3 uitkomsten — positief-naar-BJ2, positief-versneld-SBC, negatief (schoolverlaten) — criteria per fase (fase 2) geteld, niet over het hele jaar
+- BJ2-eind: SBL/SBC-uitkomst met per-vestiging criteria (Roosendaal: studentkeuze-proces bij eerste voortgangsgesprek; Goes/Dordrecht: aparte SBC-criteria op basiskerntaken B1K1/B1K2)
+- Sub-criterium "Betekenisvol Bewegen" (3 van 4 praktijkbeoordelingen ≥voldoende) telt mee voor het deelgebied Professionele houding
+- Mentor kan "WVO-traject deelgenomen" handmatig vastleggen per BJ1-leerling (niet af te leiden uit de PDF-export)
+- Bron: `26-27 Doorstroomnormeringen N3N4.pdf` (CIOS Zuidwest-NL), zie ADR-17
+
 ---
 
 ## Niet-functionele eisen

@@ -194,3 +194,76 @@
 **Beslissing:** De plugin `frontend-design@claude-plugins-official` staat projectbreed aan (`.claude/settings.json`). **UI UX Pro Max blijft leidend** voor het design system (`.gsd/DESIGN.md`) en voor stijlkeuzes per component (STACK.md §1, laag 4). `frontend-design` wordt alleen gebruikt als hulp bij het **schrijven van UI-code binnen** `.gsd/DESIGN.md`; adviezen die afwijken van DESIGN.md (andere lettertypes, paletten, stijlen) worden niet overgenomen.
 **Reden:** Beide skills activeren bij UI-werk; zonder rangorde kan een agent in Fase 3 of Fase 2 tegenstrijdige design-adviezen combineren.
 **Bij conflict:** DESIGN.md wint; wijziging van DESIGN.md loopt via UI UX Pro Max + GStack `/plan-design-review`.
+
+---
+
+## ADR-16 · Deelgebieden-schema 2026/2027 — 19→12 deelgebieden, 3→2 leerlijnen; doorstroomprognose expliciet 'normen_onbekend' tot nieuwe normen bekend zijn (2026-09-15)
+
+**Status:** Vastgelegd (bounded config-update, Fase 0 overgeslagen — zie Afwijking 2026-09-15 in STATE.md; architectuur al besloten in M35/M37/M38)
+
+**Aanleiding:** CIOS heeft het curriculum herzien voor schooljaar 2026/2027: de 19 deelgebieden uit ADR-06 zijn vervangen door 12 nieuwe (O&V, S&O, PH, DH, I&P, O&C, E&V, PrHo, DESK, PO, OIH, GV), en de 3 leerlijnen (`lesgeven`/`organiseren`/`prof_handelen`) zijn samengevoegd tot 2 (`lesgeven_en_organiseren`/`professioneel_handelen`). Bron: "2026-03 Hernieuwde set deelgebieden.docx" + twee Cumlaude/SomToday-PDF-exports 2026/2027 (BJ1 en BJ2), aangeleverd door projectlead.
+
+**Beslissing:**
+1. `src/config/leerlijn.json` bevat nu de 12 nieuwe deelgebieden met `group: 'lesgeven_en_organiseren' | 'professioneel_handelen'`. Dit vervangt ADR-06's 19/3-indeling volledig (geen coexistentie — bevestigd door projectlead: geen actieve klassen meer op de oude indeling).
+2. De doorstroomnorm-engine (`KERN_SBC`, `DEFAULT_NORMEN.sbl/sbc/bj1Positief/negatiefTotaal/versneld*`) wordt **niet** heringeschat op basis van aannames — die getallen zijn gekalibreerd op 19 deelgebieden/3 leerlijnen (ADR-05/ADR-06) en de nieuwe doorstroomcriteria zijn nog niet vastgesteld. In plaats daarvan bewaakt `SUPPORTED_LEERLIJNEN` in `utils/prognosis.ts` welk schema de huidige normen dekken; wijkt het actieve schema daarvan af, dan geeft `berekenPrognose()` `label: 'normen_onbekend'` terug (`isNegatief: false`, geen `gaps`/`leerlijnen`-berekening). `berekenStatus()` mapt dit naar `kleur: 'grijs', label: 'Normen onbekend'` (vóór de "geen scores"-check). `DoortstroomPrognoseSection` toont een tekstuele melding i.p.v. cijfers.
+3. Alle deelgebieden-weergave die **niet** van de doorstroomprognose afhangt (parser, `DeelgebiedenMatrix`, `SpiderChartCard`/`DetailWeergave`, `SettingsPage`-leerlijn-dropdown) is wél bijgewerkt naar de nieuwe 2-groepenindeling — mentoren kunnen dus per direct scores per nieuw deelgebied zien en labels/leerlijn-toewijzing beheren; alleen het doorstroom-*oordeel* (SBL/SBC/versneld/etc.) is bevroren tot de nieuwe normen bekend zijn.
+
+**Reden:** een config-swap zonder guard zou de doorstroomprognose stilzwijgend laten doorrekenen met formules die niet meer bij het aantal/soort deelgebieden passen (bijv. "≥15 van de 12" is per definitie onhaalbaar) — dat levert een schijnbaar geldig maar feitelijk zinloos RAG-oordeel op, erger dan een zichtbare "onbekend"-status.
+
+**Afgewezen alternatieven:** (a) alles blokkeren tot de nieuwe doorstroomnormen bekend zijn — onnodig, want deelgebieden/parser/matrix/spiderchart zijn zelfstandig bruikbaar zonder de norm-engine; (b) de oude normen naar rato herschalen (bijv. 15/19 × 12) — geen betrouwbare aanname, CIOS moet de nieuwe kern-vakken en drempels zelf vaststellen.
+
+**Vervolg (niet-blokkerend):** zodra CIOS de nieuwe doorstroomcriteria vaststelt, `KERN_SBC`/`DEFAULT_NORMEN`/`SUPPORTED_LEERLIJNEN` herijken en de normen-sectie in `SettingsPage.tsx` (labels/max-waarden verwijzen nog naar de oude structuur) meenemen.
+
+---
+
+## ADR-17 · Doorstroomnormering 2026/2027 (M42) — architectuurbeslissingen Fase 0 (2026-09-15)
+
+**Status:** Vastgelegd (Fase 0 — architectuurdiscussie met projectlead, vóór GSD Fase 1 spec)
+
+**Aanleiding:** ADR-16's vervolgpunt — CIOS heeft de nieuwe doorstroomnormen aangeleverd (`26-27 Doorstroomnormeringen N3N4.pdf`, CIOS Zuidwest-NL). Dit is geen drempelwaarden-update maar een ander beoordelingsmodel: fase-specifieke tellingen (fase 2 vs fase 3, i.p.v. heel-jaar-totalen), per-vestiging criteria, en nieuwe sub-criteria. Vereist datamodel-uitbreiding, dus eerst architectuurbeslissingen vóór Fase 1 spec (S01-PLAN.md).
+
+**Beslissingen:**
+1. **Vestiging is een klas-eigenschap**, niet een leerling- of app-instelling. Reden: deze mentordashboard-instantie wordt gebruikt over meerdere CIOS-vestigingen tegelijk (bevestigd door projectlead) — Roosendaal, Goes en Dordrecht hebben elk eigen criteria. Een klas zonder ingestelde vestiging levert `normen_onbekend` op (zelfde patroon als ADR-16) i.p.v. een gok welke vestigingsnorm van toepassing is.
+2. **WVO-traject-deelname wordt een nieuw handmatig veld**, niet iets wat de parser afleidt. Reden: bevestigd door projectlead — dit staat nergens digitaal in de Cumlaude-export. Analoog aan de bestaande keuzedelen-status-UI (handmatige invoer, persistent in klassenState, overleeft PDF-re-import net als `actiepunten`/`kdStatus`).
+3. **Fase (F1/F2/F3) wordt een structureel veld op datapunt-niveau**, geëxtraheerd uit de bestaande tekstprefix in het datapunt-label (`- F1 ...`, `F2 ...`) tijdens het parsen — geen nieuwe brondata nodig, wel een nieuw `fase: number | null`-veld naast het bestaande `datapunt`-stringveld. Nodig omdat de nieuwe normen per fase tellen (bijv. "≥5 deelgebieden goed in fase twee"), niet over het hele jaar.
+4. **"Betekenisvol Bewegen"-subcriterium en Rekenen-domeintelling zijn afleidbaar uit bestaande datapunten**, geen nieuwe velden: filter datapunten op sectienaam ("Betekenisvol Bewegen" resp. "Rekenen -eindtoets domein N") en tel per leerling hoeveel daarvan ≥voldoende/ingeleverd zijn. Bevestigd aanwezig in beide aangeleverde voorbeeld-PDF's.
+5. **KD-deadline ("behaald/haalbaar vóór 1 december") wordt NIET tijdsgebonden berekend** in deze iteratie — de bestaande `KdStatus` (behaald/haalbaar/niet_behaald, geen datumveld) volstaat als proxy; de deadline blijft een menselijk procesgegeven, geen engine-input. Heropenen als projectlead dit alsnog wil automatiseren.
+
+**Open vraag voor Fase 1 spec (`/plan-eng-review`):** wat "voldaan aan opleidingsactiviteiten" concreet betekent binnen de app (bestaand veld, nieuw handmatig veld, of impliciet via BPV/POK-uren) — nog niet vastgesteld, moet in S01-PLAN.md als concrete taak/aanname landen vóór executie.
+
+**Afgewezen alternatieven:** normen direct coderen zonder vestiging-veld (genegeerd omdat meerdere vestigingen tegelijk in gebruik zijn — zou fout normenprofiel per klas toepassen); fase afleiden uit los periode-veld i.p.v. per-datapunt-tag (te grof — een leerling kan binnen één periode zowel fase 2- als fase 3-datapunten hebben, zoals beide voorbeeld-PDF's laten zien).
+
+**Vervolg:** GSD Fase 1 — milestone `M42-doorstroomnormering-2026-2027/S01-PLAN.md` met concrete taken, daarna `/plan-eng-review` vóór Fase 2-executie.
+
+---
+
+## ADR-17a · Addendum na projectlead-antwoorden op OQ-1/OQ-2/OQ-3 (2026-09-15)
+
+**Status:** Vastgelegd (Fase 1 — antwoorden projectlead op de open vragen uit S01-PLAN.md)
+**Wijzigt:** ADR-17 §1 (vestiging-detectie) — aangevuld, niet vervallen.
+
+**OQ-3 opgelost — wijzigt ADR-17 §1:** vestiging wordt **automatisch afgeleid uit de klassencode** (prefix van de klasnaam): `CSD` → Dordrecht, `CSG` → Goes, `CSR` → Roosendaal. Geen verplichte handmatige invoer nodig als de mentor de gebruikelijke CIOS-klascode-conventie aanhoudt. Randvoorwaarde: klasnamen zijn vrije tekst (F-04) — een klas waarvan de naam geen herkenbare code bevat, of een niet-herkende prefix, valt terug op **handmatige vestiging-override** in klas-instellingen; ontbreekt ook die, dan blijft `normen_onbekend` gelden (ADR-16-patroon, ongewijzigd).
+
+**OQ-1 opgelost:** "voldaan aan stage-eisen en opleidingsactiviteiten" loopt via BPV-uren. Projectlead wil een **hybride import**: BPV-uren automatisch overnemen uit een Onstage-export (nieuwe bronindeling, naast de bestaande Cumlaude-BPV-Excel-import uit F-03) mét mogelijkheid tot handmatige correctie/aanvulling — zelfde patroon als de bestaande BPV-tracking, maar met een nieuwe importbron. **Blokkerend voor implementatie:** nog geen voorbeeld-Onstage-export ontvangen — bestandsstructuur onbekend tot een sample is aangeleverd. Parser-implementatie (nieuwe taak, Lane A) wacht daarop; het "voldaan"-criterium zelf kan intussen wél op de bestaande (handmatige) BPV-velden draaien.
+
+**OQ-2 — deels open, niet blokkerend voor Goes/Dordrecht/BJ1-generiek:** "levels" is Roosendaal-eigen methodiek, betekenis nog onbekend. Projectlead vraagt een voorbeeld-PDF-export op bij Roosendaal-collega's. **Consequentie voor scope:** de Roosendaal-BJ2-eis ("alle levels 2/3 behaald") blijft in S01-PLAN.md een geblokkeerde sub-taak tot die sample er is; de rest van M42 (vestiging-detectie, fase-telling, WVO-traject, Betekenisvol Bewegen, Goes/Dordrecht-SBC, generiek BJ1-advies) is niet van deze sample afhankelijk en kan doorgaan.
+
+---
+
+## ADR-17b · OQ-2 opgelost: "levels" = benoemde datapunten in "Extern praktijkleren" (2026-09-16)
+
+**Status:** Vastgelegd (Fase 1 — na ontvangst 2 Roosendaal-voorbeeldexports: Beij BJ1 Fase 1, Benders BJ2)
+**Wijzigt:** ADR-17a (OQ-2 was open) — nu opgelost, deblokkeert T9c.
+
+**Bevinding:** Roosendaal-rapporten hebben een extra sectie **"Extern praktijkleren"** (naast "Intern praktijkleren") met datapunten genaamd `Level <n> <activiteit>` (bijv. "Level 1 lesgeven", "Level 1 organiseren", "Level 1 begeleiden", "Level 1 promoten", oplopend t/m level 3 later in de opleiding; woordvolgorde niet altijd consistent — ook "Organiseren level 3" gezien). Dit zijn **gewone datapunten** met een status (zelfde `STATUS_STRINGS` als de rest van de app) én deelgebiedscores in de matrix (PrHo/DESK/PO/OIH/GV-kolommen) — geen nieuw databegrip, geen nieuw veld.
+
+**Beslissing:** "Alle levels N behaald" wordt geïmplementeerd als een tellingsfunctie (analoog aan T4/T5) die:
+1. Alle datapunten van de meest recente periode filtert op naam matchend `Level <N>` (los van woordvolgorde — regex op het cijfer, niet op positie).
+2. Controleert dat élk gevonden datapunt een "behaald"/positief-ingeleverde status heeft (dezelfde statusverzameling als elders — geen aparte "level-status"-enum nodig).
+3. Het aantal levels waarnaar gezocht wordt (2 voor SBL, 3 voor SBC) komt uit het vestigingsprofiel (Lane C, T7), niet hardcoded.
+
+**Kanttekening:** het aantal "Level N …"-datapunten in een export groeit gedurende het jaar (BJ1-sample had 4 activiteiten × 2 levels, de BJ2-sample op dat moment nog maar 2 "Level 3"-items) — de telling moet dus "alle op dit moment aanwezige Level-N-datapunten zijn behaald" zijn, niet een vast aantal verwachten.
+
+**Periode-notatie Roosendaal (extra bevestiging, geen nieuwe beslissing):** periode-string bevat een `RSD`-suffix (bijv. "BJ1 Fase 1 RSD - 2026/2027", "BJ2 RSD - 2026/2027"); `Leerjaar`-veld blijft onbetrouwbaar voor BJ2 (toont "1"), zoals al bekend (zie P-06 in KNOWLEDGE.md / ADR-05) — `detectTraject()`'s bestaande substring-match op `periode` blijft leidend en werkt hier ongewijzigd.
+
+**Gevolg:** T9c is niet langer geblokkeerd — kan mee in `/plan-eng-review`.
