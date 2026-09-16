@@ -77,6 +77,12 @@ const COLUMN_X_TOLERANCE = 20;
 // not ASCII U+002D hyphen-minus).
 const DATAPUNT_PREFIX = /^[-‐‑‒–—―−]/;
 
+// Leading "F<n>" fase-token, with or without the same dash-like prefix as
+// DATAPUNT_PREFIX above (reuses that exact character class). Anchored at the
+// very start of the trimmed label so "Formulier F1" never false-positives —
+// the F-token must be the first thing on the line (after an optional dash).
+const FASE_PREFIX = /^[-‐‑‒–—―−]?\s*F(\d)\b/i;
+
 // ---------------------------------------------------------------------------
 // Task 01-02-01: Text extraction and line-grouping utilities
 // ---------------------------------------------------------------------------
@@ -605,6 +611,25 @@ function assignScoreToColumn(item: { str: string; x: number }, columnMap: Record
 }
 
 /**
+ * Extract the fase number (1-3 in every export seen so far) from a datapunt
+ * label, e.g. "- F1 Tussenbeoordeling mijn Lichaam" → 1.
+ *
+ * Anchored at the very start of the trimmed label (optional dash-like
+ * prefix, see FASE_PREFIX/DATAPUNT_PREFIX) so a mid-string "Formulier F1"
+ * never false-positives. Datapunten without a leading F-token (Roosendaal's
+ * "Intern/Extern praktijkleren", or any datapunt imported before this field
+ * existed) are the expected common case, not an error — return null without
+ * warning.
+ *
+ * @param label - the datapunt's full label text (fullLabel)
+ * @returns {number|null} the fase number, or null when no F-prefix is found
+ */
+function extractFase(label: string): number | null {
+  const match = FASE_PREFIX.exec(label.trim());
+  return match ? Number(match[1]) : null;
+}
+
+/**
  * Detects a vak-name wrap continuation: a bare follow-up line directly after
  * a vak heading whose name overflowed onto a second PDF line (e.g.
  * "Bewegingsleer & Conditionele" wraps to "vormen" on the next line).
@@ -799,7 +824,7 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
       ? [labelText, ...labelContinuation].filter(Boolean).join(' ')
       : labelText;
 
-    datapunten.push({ vak: currentVak, datapunt: fullLabel, scores });
+    datapunten.push({ vak: currentVak, datapunt: fullLabel, scores, fase: extractFase(fullLabel) });
   }
 
   // -----------------------------------------------------------------------
@@ -926,6 +951,7 @@ export {
   assignScoreToColumn,
   parseDeelgebiedTable,
   isVakNameContinuation,
+  extractFase,
 
   // Constants
   Y_TOLERANCE,
