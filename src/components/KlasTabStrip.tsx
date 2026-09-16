@@ -13,7 +13,7 @@ interface KlasTabStripProps {
   onFeedback: () => void;
   onDeleteKlas: (klasId: string) => void;
   onRenameKlas: (klasId: string, newNaam: string) => void;
-  onSetVestigingOverride?: (klasId: string, vestiging: Vestiging | null) => void;
+  onSetVestigingOverride: (klasId: string, vestiging: Vestiging | null) => void;
   isSettingsActive: boolean;
   isDark: boolean;
   onHelp: () => void;
@@ -119,7 +119,7 @@ export default function KlasTabStrip({
               onClick={e => e.stopPropagation()}
               onChange={e => {
                 const value = e.target.value;
-                onSetVestigingOverride?.(klas.id, value === '' ? null : (value as Vestiging));
+                onSetVestigingOverride(klas.id, value === '' ? null : (value as Vestiging));
               }}
             >
               <option value="">Vestiging: auto</option>
