@@ -9,6 +9,7 @@ import VerzuimSection from './VerzuimSection';
 import BpvProgressSection from './BpvProgressSection';
 import RekenenNederlandsSection from './RekenenNederlandsSection';
 import KeuzedeelSection from './KeuzedeelSection';
+import TrajectVeldenSection from './TrajectVeldenSection';
 
 interface DetailWeergaveProps {
   leerlingId: string;
@@ -132,6 +133,9 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
 
       {/* Section 3: KeuzedeelSection */}
       <KeuzedeelSection student={student} onSaved={() => setRevision(r => r + 1)} />
+
+      {/* Section 4: TrajectVeldenSection — BJ1-only (wvoTraject; T3b adds a sibling field) */}
+      <TrajectVeldenSection student={student} onSaved={() => setRevision(r => r + 1)} />
 
       {/* Section 5: SpiderChartCard row */}
       <div className="detail-section">
