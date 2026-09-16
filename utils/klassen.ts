@@ -114,6 +114,45 @@ export async function deleteKlas(klasId: string): Promise<boolean> {
   return true;
 }
 
+// ── detecteerVestiging(klasNaam) — M42 T1 (ADR-17a OQ-3, eng-review D7) ──────
+// Matcht alléén het eerste spatie/streepje-gescheiden token van de klasnaam,
+// case-insensitive, tegen exact CSD/CSG/CSR. Geen substring-zoektocht:
+// "CSGroep1" is als token "CSGroep1" (niet "CSG") en matcht dus niet.
+export type Vestiging = 'roosendaal' | 'goes' | 'dordrecht';
+
+const VESTIGING_PREFIXEN: Record<string, Vestiging> = {
+  CSD: 'dordrecht',
+  CSG: 'goes',
+  CSR: 'roosendaal',
+};
+
+export function detecteerVestiging(klasNaam: string): Vestiging | null {
+  if (!klasNaam || typeof klasNaam !== 'string') return null;
+  const eersteToken = klasNaam.trim().split(/[\s-]+/)[0];
+  if (!eersteToken) return null;
+  const code = eersteToken.toUpperCase();
+  return VESTIGING_PREFIXEN[code] ?? null;
+}
+
+// ── getEffectieveVestiging(klas) — M42 T1 ────────────────────────────────────
+// Effectieve vestiging = override ?? gedetecteerd (uit klasnaam) ?? null.
+// Ontbreekt beide, dan blijft normen_onbekend gelden (ADR-16-patroon).
+// Called by T7b (later) to plumb vestiging into berekenPrognose/berekenStatus.
+export function getEffectieveVestiging(klas: { naam: string; vestigingOverride?: Vestiging | null }): Vestiging | null {
+  return klas.vestigingOverride ?? detecteerVestiging(klas.naam) ?? null;
+}
+
+// ── setVestigingOverride(klasId, vestiging) — M42 T1 ─────────────────────────
+// Follows the renameKlas() async-function + saveKlassen() persistence pattern.
+export async function setVestigingOverride(klasId: string, vestiging: Vestiging | null): Promise<boolean> {
+  if (!klassenState.klassen[klasId]) {
+    return false;
+  }
+  klassenState.klassen[klasId].vestigingOverride = vestiging;
+  await saveKlassen();
+  return true;
+}
+
 // ── renameKlas(klasId, newNaam) — KLS-02/KLS-03 ──────────────────────────────
 export async function renameKlas(klasId: string, newNaam: string): Promise<boolean> {
   if (!klassenState.klassen[klasId]) {

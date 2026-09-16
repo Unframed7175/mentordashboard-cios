@@ -2,8 +2,10 @@ import React from 'react';
 import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
 
+type Vestiging = 'roosendaal' | 'goes' | 'dordrecht';
+
 interface KlasTabStripProps {
-  klassen: Array<{ id: string; naam: string }>;
+  klassen: Array<{ id: string; naam: string; vestigingOverride?: Vestiging | null }>;
   activeKlasId: string | null;
   onSwitch: (klasId: string) => void;
   onCreateKlas: () => void;
@@ -11,6 +13,7 @@ interface KlasTabStripProps {
   onFeedback: () => void;
   onDeleteKlas: (klasId: string) => void;
   onRenameKlas: (klasId: string, newNaam: string) => void;
+  onSetVestigingOverride?: (klasId: string, vestiging: Vestiging | null) => void;
   isSettingsActive: boolean;
   isDark: boolean;
   onHelp: () => void;
@@ -29,6 +32,7 @@ export default function KlasTabStrip({
   onFeedback,
   onDeleteKlas,
   onRenameKlas,
+  onSetVestigingOverride,
   isSettingsActive,
   isDark,
   onHelp,
@@ -107,6 +111,22 @@ export default function KlasTabStrip({
               {klas.naam}
             </span>
           )}
+          <select
+              className="vestiging-override-select"
+              title="Vestiging (override)"
+              aria-label={`Vestiging voor klas ${klas.naam}`}
+              value={klas.vestigingOverride ?? ''}
+              onClick={e => e.stopPropagation()}
+              onChange={e => {
+                const value = e.target.value;
+                onSetVestigingOverride?.(klas.id, value === '' ? null : (value as Vestiging));
+              }}
+            >
+              <option value="">Vestiging: auto</option>
+              <option value="roosendaal">Roosendaal</option>
+              <option value="goes">Goes</option>
+              <option value="dordrecht">Dordrecht</option>
+            </select>
           <button
               className="delete-tab-btn"
               title="Klas verwijderen"

@@ -380,6 +380,26 @@ a:hover { text-decoration: underline; }
   pointer-events: auto;
 }
 
+/* --- Vestiging-override select (M42 T1) --- */
+.nav-tab .vestiging-override-select {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0 0 0 0.35rem;
+  color: var(--text-muted);
+  max-width: 6.5rem;
+}
+.nav-tab:hover .vestiging-override-select,
+.nav-tab:focus-within .vestiging-override-select {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* --- Inline rename input (KLS-02) --- */
 .tab-rename-input {
   background: transparent;
