@@ -1,6 +1,6 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-09-16 — M42 (doorstroomnormering 2026/2027): `/plan-eng-review` CLEAR (10 bevindingen verwerkt, 2 nieuwe taken T3b/T7b). Fase 1 afgerond, klaar voor Fase 2-executie op T1–T12 excl. T9b (geblokkeerd op T9b-1) en T13 (geblokkeerd op Onstage-sample). M41 ongewijzigd: Fase 2, wacht op T0 + T1.
+> Laatste update: 2026-09-17 — M42 Fase 2: Lane A (T1/T2/T3/T3b) + Lane B (T4/T5/T6b/T6) klaar, gereviewd, gemerged op `feature/deelgebieden-schema-2026-2027` (commit fdda99a). Lane C (vestiging-bewuste engine, T7-T10) en Lane D (UI) nog te doen. M41 ongewijzigd: Fase 2, wacht op T0 + T1.
 ---
 
 ## Handoff 2026-09-15 (Fase 0 → Fase 1) — M42 doorstroomnormering 2026/2027
