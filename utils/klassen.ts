@@ -29,7 +29,9 @@ function showStorageError(message: string): void {
 
 // ── State object ──────────────────────────────────────────────────────────────
 export const klassenState: { klassen: Record<string, any>; activeKlasId: string | null; onboardingCompleted: boolean } = {
-  klassen: {},       // { [klasId]: { id, naam, students, lastSaved } }
+  klassen: {},       // { [klasId]: { id, naam, students, lastSaved, vestigingOverride? } }
+  // vestigingOverride: Vestiging | null | undefined — manual override of detecteerVestiging(naam);
+  // undefined/null both mean "use auto-detection" (M42 T1, see getEffectieveVestiging() below).
   activeKlasId: null,
   onboardingCompleted: false,
 };
