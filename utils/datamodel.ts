@@ -21,10 +21,15 @@
  * @property {string} vak - Subject name
  * @property {string} datapunt - Assignment name
  * @property {Object<string, string|null>} scores - { 'V&A': 'goed', 'M&M': null, ... }
+ * @property {string} [status] - Inleverstatus set in-place by parsers/pdf-enrich.ts
+ *   (enrichDatapuntenStatus / enrichByProximity), e.g. "niet ingeleverd" — absent
+ *   until enrichment runs (M42 Lane B final-review fix #3: already read by
+ *   utils/prognosis.ts and utils/datapuntTelling.ts, previously undocumented here).
  * @property {number|null} [fase] - Leading "F<n>" token extracted from the datapunt label
  *   (1-3), or null when the label has no F-prefix. Absent (undefined) on datapunten
- *   imported before this field existed — use parsers/pdf.ts's getFase() to normalize
- *   both cases to null rather than reading `.fase` directly (M42 T2, review-fix #1).
+ *   imported before this field existed — use utils/scoreAggregation.ts's getFase() to
+ *   normalize both cases to null rather than reading `.fase` directly (M42 T2,
+ *   review-fix #1; getFase() moved from parsers/pdf.ts in Lane B final-review fix #2).
  */
 
 /**

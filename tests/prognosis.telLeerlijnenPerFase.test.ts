@@ -102,4 +102,24 @@ describe('telLeerlijnenPerFase', () => {
     expect(groep.onvoldoende).toBe(0);
     expect(groep.onbeoordeeld).toBe(AANTAL_LESGEVEN_ORG - 1);
   });
+
+  it('activeDeelgebiedenIds die een HELE groep leegmaakt: die groep blijft aanwezig met totaal 0 i.p.v. te ontbreken of te crashen', () => {
+    // Sluit elk deelgebied van 'professioneel_handelen' uit — de groep zelf
+    // moet toch in het resultaat staan (met alle tellers op 0), niet
+    // ontbreken uit het geretourneerde object en ook niet gooien.
+    const idsZonderProfHandelen = DEELGEBIEDEN
+      .filter(dg => dg.group !== 'professioneel_handelen')
+      .map(dg => dg.id);
+    const datapunten = [dp(1, { 'O&V': 'voldoende' })];
+
+    const result = telLeerlijnenPerFase(datapunten, 1, idsZonderProfHandelen);
+
+    expect(result).toHaveProperty('professioneel_handelen');
+    const groep = result['professioneel_handelen'];
+    expect(groep.totaal).toBe(0);
+    expect(groep.voldoendeOfHoger).toBe(0);
+    expect(groep.goedOfHoger).toBe(0);
+    expect(groep.onvoldoende).toBe(0);
+    expect(groep.onbeoordeeld).toBe(0);
+  });
 });
