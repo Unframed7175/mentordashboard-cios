@@ -18,6 +18,15 @@ vi.mock('../utils/klassen', async () => {
     ...actual,
     get klassenState() { return getMockKlassenState(); },
     saveKlassen: (...args: any[]) => getMockSaveKlassen()(...args),
+    // actual.getMatchingRecords closes over the REAL module's own klassenState
+    // singleton, not this mock's getter, so it must be overridden explicitly
+    // to see the test's mounted state (same reason klassenState/saveKlassen are above).
+    getMatchingRecords: (leerlingId: string) => {
+      const state = getMockKlassenState();
+      if (!state.activeKlasId) return [];
+      const klas = state.klassen[state.activeKlasId];
+      return klas?.students?.filter((s: any) => s.leerlingId === leerlingId) ?? [];
+    },
   };
 });
 

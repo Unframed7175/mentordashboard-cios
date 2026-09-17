@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { saveKlassen, klassenState } from '../../utils/klassen';
+import { saveKlassen, getMatchingRecords } from '../../utils/klassen';
 import { detectTraject } from '../utils/status';
 
 interface TrajectVeldenSectionProps {
@@ -22,12 +22,6 @@ interface TrajectVeld {
 const TRAJECT_VELDEN: TrajectVeld[] = [
   { key: 'wvoTraject', label: 'WVO-traject' },
 ];
-
-function getMatchingRecords(leerlingId: string): any[] {
-  if (!klassenState.activeKlasId) return [];
-  const klas = klassenState.klassen[klassenState.activeKlasId];
-  return klas?.students?.filter((s: any) => s.leerlingId === leerlingId) ?? [];
-}
 
 /** undefined (never set) is treated identically to null ("nog niet ingevuld"). */
 function normalizeTriState(raw: any): boolean | null {

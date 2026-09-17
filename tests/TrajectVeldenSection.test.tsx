@@ -15,6 +15,12 @@ const { getMockKlassenState, setMockKlassenState, getMockSaveKlassen } = vi.hois
 vi.mock('../utils/klassen', () => ({
   get klassenState() { return getMockKlassenState(); },
   saveKlassen: (...args: any[]) => getMockSaveKlassen()(...args),
+  getMatchingRecords: (leerlingId: string) => {
+    const state = getMockKlassenState();
+    if (!state.activeKlasId) return [];
+    const klas = state.klassen[state.activeKlasId];
+    return klas?.students?.filter((s: any) => s.leerlingId === leerlingId) ?? [];
+  },
 }));
 
 import TrajectVeldenSection from '../src/components/TrajectVeldenSection';

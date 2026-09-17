@@ -338,3 +338,17 @@ export function getAllRecordsForStudent(leerlingId: string): any[] {
     return (a.periode || '').localeCompare(b.periode || '');
   });
 }
+
+/**
+ * Get all StudentRecords for a given leerlingId in the active class, in
+ * whatever order they appear in klas.students (i.e. NOT sorted by periode).
+ * Thin alias for getAllRecordsForStudent() — periode-sorting is harmless for
+ * the "mutate every matching record, then save" use case (field-edit sections
+ * like TrajectVeldenSection/RoosendaalTrajectSection/KeuzedeelSection), which
+ * only needs the set of matching records, not their order.
+ * @param leerlingId
+ * @returns StudentRecord[]
+ */
+export function getMatchingRecords(leerlingId: string): any[] {
+  return getAllRecordsForStudent(leerlingId);
+}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { saveKlassen, klassenState, getEffectieveVestiging } from '../../utils/klassen';
+import { saveKlassen, klassenState, getEffectieveVestiging, getMatchingRecords } from '../../utils/klassen';
 import { detectTraject } from '../utils/status';
 
 interface RoosendaalTrajectSectionProps {
@@ -13,13 +13,9 @@ interface RoosendaalTrajectSectionProps {
 // for boolean|null tri-state fields, while this is a 3-value string enum with the
 // OPPOSITE visibility gate (BJ2-only, and only at the Roosendaal vestiging). Reuses
 // the same underlying persistence PATTERN (getMatchingRecords → mutate → saveKlassen),
-// not the same component.
-
-function getMatchingRecords(leerlingId: string): any[] {
-  if (!klassenState.activeKlasId) return [];
-  const klas = klassenState.klassen[klassenState.activeKlasId];
-  return klas?.students?.filter((s: any) => s.leerlingId === leerlingId) ?? [];
-}
+// not the same component. getMatchingRecords itself is imported from utils/klassen.ts
+// (a thin alias for getAllRecordsForStudent) — there is one implementation shared by
+// this component, TrajectVeldenSection and KeuzedeelSection.
 
 /** undefined (never set) is treated identically to null ("nog niet gekozen"). */
 function normalizeRoosendaalTraject(raw: any): 'sbl' | 'sbc' | null {
