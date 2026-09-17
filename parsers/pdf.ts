@@ -630,6 +630,24 @@ function extractFase(label: string): number | null {
 }
 
 /**
+ * Normalize a datapunt's `fase` field for comparison/filtering.
+ *
+ * Newly-parsed datapunten (via extractFase() above) always carry an explicit
+ * `fase: number | null` property. Datapunten imported before this field
+ * existed have no `fase` property at all (`undefined`), not `null`. A
+ * fase-filter that only checks `d.fase === null` would silently exclude
+ * every pre-existing datapunt instead of including it — per the "missing/
+ * unrecognized fase counts toward every fase filter" rule, both cases must
+ * normalize to the same `null` value.
+ *
+ * @param dp - any object with an optional `fase` property
+ * @returns {number|null} the fase number, or null when absent/unrecognized
+ */
+function getFase(dp: { fase?: number | null }): number | null {
+  return dp.fase ?? null;
+}
+
+/**
  * Detects a vak-name wrap continuation: a bare follow-up line directly after
  * a vak heading whose name overflowed onto a second PDF line (e.g.
  * "Bewegingsleer & Conditionele" wraps to "vormen" on the next line).
@@ -952,6 +970,7 @@ export {
   parseDeelgebiedTable,
   isVakNameContinuation,
   extractFase,
+  getFase,
 
   // Constants
   Y_TOLERANCE,

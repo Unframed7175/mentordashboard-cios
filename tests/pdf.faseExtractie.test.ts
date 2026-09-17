@@ -25,7 +25,7 @@ vi.mock('../src/config/leerlijn.json', () => ({
   },
 }));
 
-import { extractFase, parseDeelgebiedTable } from '../parsers/pdf';
+import { extractFase, getFase, parseDeelgebiedTable } from '../parsers/pdf';
 
 // ---------------------------------------------------------------------------
 // extractFase — unit tests
@@ -65,6 +65,24 @@ describe('extractFase', () => {
     // NOT match between "1" and "0" — F10 as a whole therefore does not
     // satisfy the pattern and the result is null, not fase 1.
     expect(extractFase('F10 iets')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getFase — normalizes undefined (legacy, no property at all) and null to null
+// ---------------------------------------------------------------------------
+
+describe('getFase', () => {
+  it('returns null for a legacy datapunt with no fase property at all', () => {
+    expect(getFase({})).toBeNull();
+  });
+
+  it('returns null for a datapunt with an explicit fase: null', () => {
+    expect(getFase({ fase: null })).toBeNull();
+  });
+
+  it('returns the number for a datapunt with a recognized fase', () => {
+    expect(getFase({ fase: 2 })).toBe(2);
   });
 });
 
