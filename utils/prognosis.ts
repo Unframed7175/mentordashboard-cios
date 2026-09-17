@@ -53,7 +53,7 @@ function isNormenSchemaOndersteund(): boolean {
 // Score helpers
 // ---------------------------------------------------------------------------
 
-function isVoldoendeOfHoger(score: string | null): boolean {
+export function isVoldoendeOfHoger(score: string | null): boolean {
   return score === 'voldoende' || score === 'goed' || score === 'excellent';
 }
 
@@ -61,8 +61,11 @@ function isGoedOfHoger(score: string | null): boolean {
   return score === 'goed' || score === 'excellent';
 }
 
-// Statussen die, ongeacht score, als onvoldoende tellen in de prognose (T06)
-const ONVOLDOENDE_INLEVER_STATUSSEN = new Set([
+// Statussen die, ongeacht score, als onvoldoende tellen in de prognose (T06).
+// Exported zodat utils/datapuntTelling.ts (M42 T4/T5/T6b) dezelfde "afgerond"/
+// "ingeleverd"-definitie hergebruikt in plaats van een nieuwe status-vocabulaire
+// te verzinnen.
+export const ONVOLDOENDE_INLEVER_STATUSSEN = new Set([
   'niet ingeleverd',
   'te laat ingeleverd en niet beoordeeld',
 ]);
