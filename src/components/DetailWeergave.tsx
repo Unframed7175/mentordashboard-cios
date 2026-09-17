@@ -10,6 +10,7 @@ import BpvProgressSection from './BpvProgressSection';
 import RekenenNederlandsSection from './RekenenNederlandsSection';
 import KeuzedeelSection from './KeuzedeelSection';
 import TrajectVeldenSection from './TrajectVeldenSection';
+import RoosendaalTrajectSection from './RoosendaalTrajectSection';
 
 interface DetailWeergaveProps {
   leerlingId: string;
@@ -134,8 +135,11 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       {/* Section 3: KeuzedeelSection */}
       <KeuzedeelSection student={student} onSaved={() => setRevision(r => r + 1)} />
 
-      {/* Section 4: TrajectVeldenSection — BJ1-only (wvoTraject; T3b adds a sibling field) */}
+      {/* Section 4: TrajectVeldenSection — BJ1-only (wvoTraject) */}
       <TrajectVeldenSection student={student} onSaved={() => setRevision(r => r + 1)} />
+
+      {/* Section 4b: RoosendaalTrajectSection — BJ2-only, Roosendaal-only (M42 T3b) */}
+      <RoosendaalTrajectSection student={student} onSaved={() => setRevision(r => r + 1)} />
 
       {/* Section 5: SpiderChartCard row */}
       <div className="detail-section">

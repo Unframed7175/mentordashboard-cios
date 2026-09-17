@@ -14,9 +14,11 @@ interface TrajectVeld {
   label: string;
 }
 
-// M42 T3 — wvoTraject. A follow-up task (T3b) adds a sibling field
-// (roosendaalTraject) here — same boolean|null shape, same persistence path.
-// Add new fields to this array; the rendering + persistence logic below is generic.
+// M42 T3 — wvoTraject. Note: roosendaalTraject (M42 T3b) is NOT added here —
+// it's a 3-value string enum with an opposite (BJ2-only, Roosendaal-only)
+// visibility gate, so it lives in its own RoosendaalTrajectSection.tsx instead
+// of being bent into this boolean|null-shaped array. Add new fields to this
+// array only when they share the same boolean|null tri-state shape.
 const TRAJECT_VELDEN: TrajectVeld[] = [
   { key: 'wvoTraject', label: 'WVO-traject' },
 ];
