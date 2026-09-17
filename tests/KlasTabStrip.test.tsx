@@ -193,6 +193,29 @@ describe('KlasTabStrip — vestiging-override select (M42 T1)', () => {
   });
 });
 
+describe('KlasTabStrip — vestiging auto-detectie label zichtbaar in select (final review fix #5)', () => {
+  it('toont "Automatisch (Roosendaal)" als auto-optie wanneer de klasnaam op CSR herkend wordt', () => {
+    render(<KlasTabStrip {...makeProps({
+      klassen: [{ id: 'k1', naam: 'CSR 2A', vestigingOverride: null }],
+    })} />);
+
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    const autoOption = select.querySelector('option[value=""]') as HTMLOptionElement;
+    expect(autoOption.textContent).toBe('Automatisch (Roosendaal)');
+    expect(autoOption.value).toBe(''); // value ongewijzigd — alleen het label verandert
+  });
+
+  it('toont "Automatisch — niet herkend" als de klasnaam geen CSD/CSG/CSR-token bevat', () => {
+    render(<KlasTabStrip {...makeProps({
+      klassen: [{ id: 'k1', naam: 'Sport 2A', vestigingOverride: null }],
+    })} />);
+
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    const autoOption = select.querySelector('option[value=""]') as HTMLOptionElement;
+    expect(autoOption.textContent).toBe('Automatisch — niet herkend');
+  });
+});
+
 describe('KlasTabStrip — TAB-02: double-click inline rename (Phase 27)', () => {
   it('TAB-02: double-clicking naam span shows input pre-filled with klas naam', () => {
     render(<KlasTabStrip {...makeProps()} />);

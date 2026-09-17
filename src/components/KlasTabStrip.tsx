@@ -1,8 +1,17 @@
 import React from 'react';
 import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
+import { detecteerVestiging } from '../../utils/klassen';
+import type { Vestiging } from '../../utils/klassen';
 
-type Vestiging = 'roosendaal' | 'goes' | 'dordrecht';
+// Display labels for the auto-detected vestiging, used only in the "auto" option's
+// text (see the vestiging-override select below). Keep in sync with the manual
+// option labels ("Roosendaal" / "Goes" / "Dordrecht") a few lines further down.
+const VESTIGING_LABELS: Record<Vestiging, string> = {
+  roosendaal: 'Roosendaal',
+  goes: 'Goes',
+  dordrecht: 'Dordrecht',
+};
 
 interface KlasTabStripProps {
   klassen: Array<{ id: string; naam: string; vestigingOverride?: Vestiging | null }>;
@@ -122,7 +131,14 @@ export default function KlasTabStrip({
                 onSetVestigingOverride(klas.id, value === '' ? null : (value as Vestiging));
               }}
             >
-              <option value="">Vestiging: auto</option>
+              <option value="">
+                {(() => {
+                  const detected = detecteerVestiging(klas.naam);
+                  return detected
+                    ? `Automatisch (${VESTIGING_LABELS[detected]})`
+                    : 'Automatisch — niet herkend';
+                })()}
+              </option>
               <option value="roosendaal">Roosendaal</option>
               <option value="goes">Goes</option>
               <option value="dordrecht">Dordrecht</option>
