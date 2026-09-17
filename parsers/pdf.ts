@@ -6,6 +6,7 @@ import * as pdfjsLib from '../vendor/pdf.min.mjs';
 // @ts-ignore — Vite ?url suffix: emits file as static asset and returns its URL string
 import pdfWorkerUrl from '../vendor/pdf.worker.min.mjs?url';
 import { DEELGEBIEDEN, normalizeScore } from '../utils/schema';
+import { aggregateLatestScores, getFase } from '../utils/scoreAggregation';
 
 // WKWebView polyfill: ReadableStream.prototype[Symbol.asyncIterator] was added in Safari 17.4.
 // PDF.js 5.x uses `for await...of` on ReadableStream internally (getTextContent/streamTextContent).
@@ -629,23 +630,12 @@ function extractFase(label: string): number | null {
   return match ? Number(match[1]) : null;
 }
 
-/**
- * Normalize a datapunt's `fase` field for comparison/filtering.
- *
- * Newly-parsed datapunten (via extractFase() above) always carry an explicit
- * `fase: number | null` property. Datapunten imported before this field
- * existed have no `fase` property at all (`undefined`), not `null`. A
- * fase-filter that only checks `d.fase === null` would silently exclude
- * every pre-existing datapunt instead of including it — per the "missing/
- * unrecognized fase counts toward every fase filter" rule, both cases must
- * normalize to the same `null` value.
- *
- * @param dp - any object with an optional `fase` property
- * @returns {number|null} the fase number, or null when absent/unrecognized
- */
-function getFase(dp: { fase?: number | null }): number | null {
-  return dp.fase ?? null;
-}
+// Note: getFase() (normalize dp.fase to number|null) now lives in
+// utils/scoreAggregation.ts — imported above and re-exported below for
+// backward compatibility (tests/pdf.faseExtractie.test.ts imports it from
+// here). extractFase() below stays in this file: it's genuine parser logic
+// (regex extraction from raw PDF label text), unlike getFase()'s plain
+// data-shape normalization.
 
 /**
  * Detects a vak-name wrap continuation: a bare follow-up line directly after
@@ -845,22 +835,10 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
     datapunten.push({ vak: currentVak, datapunt: fullLabel, scores, fase: extractFase(fullLabel) });
   }
 
-  // -----------------------------------------------------------------------
-  // Aggregate deelgebiedScores: initialize all DEELGEBIEDEN as null, then apply
-  // "latest non-null wins" across datapunten (document order = latest last).
-  // -----------------------------------------------------------------------
-  const deelgebiedScores: Record<string, string | null> = {};
-  for (const dg of DEELGEBIEDEN) {
-    deelgebiedScores[dg.label] = null;
-  }
-
-  for (const dp of datapunten) {
-    for (const [label, level] of Object.entries(dp.scores)) {
-      if (level !== null) {
-        deelgebiedScores[label] = level as string;
-      }
-    }
-  }
+  // Aggregate deelgebiedScores: "latest non-null wins" across datapunten
+  // (document order = latest last) — shared with utils/prognosis.ts's
+  // telLeerlijnenPerFase via utils/scoreAggregation.ts (M42 Lane B review-fix #1).
+  const deelgebiedScores = aggregateLatestScores(datapunten, DEELGEBIEDEN);
 
   console.log(
     `[pdf.ts] parseDeelgebiedTable: ${datapunten.length} datapunten,`,

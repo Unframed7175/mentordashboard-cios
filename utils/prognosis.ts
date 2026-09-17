@@ -10,12 +10,17 @@
 //   utils/schema.ts — DEELGEBIEDEN
 //   utils/leerlijnen.ts — getLeerlijnenMapping
 //   utils/datamodel.ts — appState (voor berekenAllePrognoses)
+//   utils/normen.ts — getNormenSync (doorstroomnormen)
+//   utils/scoreAggregation.ts — getFase, aggregateLatestScores (gedeeld met
+//     parsers/pdf.ts; deze aggregatie-laag importeert bewust NIET van
+//     parsers/pdf.ts zelf — dat zou de open-world-parse/closed-world-
+//     aggregatie-laagscheiding omkeren, zie M42 Lane B review-fix #2)
 
 import { DEELGEBIEDEN } from './schema';
 import { getLeerlijnenMappingSync } from './leerlijnen';
 import { appState } from './datamodel';
 import { getNormenSync, type Normen } from './normen';
-import { getFase } from '../parsers/pdf';
+import { getFase, aggregateLatestScores } from './scoreAggregation';
 import type { Datapunt } from './datapuntTelling';
 
 // ---------------------------------------------------------------------------
@@ -159,18 +164,10 @@ export function telLeerlijnenPerFase(
   // Stap 2: reconstrueer een per-deelgebied-label score-map uit de gefilterde
   // subset, met dezelfde "laatste non-null wint over document-volgorde"-regel
   // als parsers/pdf.ts's parseDeelgebiedTable gebruikt voor het hele-jaar-
-  // aggregaat — hier geschaald naar alleen de fase-gefilterde datapunten.
-  const scores: Record<string, string | null> = {};
-  for (const dg of DEELGEBIEDEN) {
-    scores[dg.label] = null;
-  }
-  for (const dp of gefilterd) {
-    for (const [label, score] of Object.entries(dp.scores || {})) {
-      if (score !== null) {
-        scores[label] = score as string;
-      }
-    }
-  }
+  // aggregaat — hier geschaald naar alleen de fase-gefilterde datapunten via
+  // de gedeelde aggregateLatestScores() (utils/scoreAggregation.ts, M42
+  // Lane B review-fix #1).
+  const scores = aggregateLatestScores(gefilterd, DEELGEBIEDEN);
 
   // Stap 3: pas activeDeelgebiedenIds toe, zoals telLeerlijnen() ook doet.
   const deelgebieden = activeDeelgebiedenIds
@@ -179,8 +176,15 @@ export function telLeerlijnenPerFase(
 
   // Stap 4: groepeer DYNAMISCH naar de daadwerkelijk actieve groep-namen
   // (geen hardcoded lijst) en tel exact zoals telLeerlijnen() intern doet.
+  //
+  // Groepnamen komen uit het VOLLEDIGE DEELGEBIEDEN (niet de al-gefilterde
+  // `deelgebieden`): activeDeelgebiedenIds kan toevallig ELK deelgebied van
+  // een groep uitsluiten, en die groep moet dan alsnog met totaal 0 in het
+  // resultaat staan i.p.v. helemaal te ontbreken (M42 Lane B final-review
+  // fix #5 — bug blootgelegd door de bijbehorende test, niet slechts een
+  // ontbrekende test).
   const mapping = getLeerlijnenMappingSync();
-  const groepen = Array.from(new Set(deelgebieden.map(dg => mapping[dg.id] || dg.group)));
+  const groepen = Array.from(new Set(DEELGEBIEDEN.map(dg => mapping[dg.id] || dg.group)));
 
   const telling: Record<string, LeerlijnTelling> = {};
   for (const groep of groepen) {
