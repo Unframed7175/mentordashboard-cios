@@ -15,6 +15,8 @@ import { DEELGEBIEDEN } from './schema';
 import { getLeerlijnenMappingSync } from './leerlijnen';
 import { appState } from './datamodel';
 import { getNormenSync, type Normen } from './normen';
+import { getFase } from '../parsers/pdf';
+import type { Datapunt } from './datapuntTelling';
 
 // ---------------------------------------------------------------------------
 // Constanten
@@ -111,6 +113,98 @@ function telLeerlijnen(scores: any, activeDeelgebiedenIds?: string[]): any {
       }
     }
     telling[ll] = res;
+  }
+  return telling;
+}
+
+// ---------------------------------------------------------------------------
+// telLeerlijnenPerFase(datapunten, fase, activeDeelgebiedenIds?) — M42 T6
+//
+// Zusje van telLeerlijnen() hierboven, maar met twee cruciale verschillen:
+//  1. Bron is student.datapunten (met fase-tag uit T2), NIET
+//     student.deelgebiedScores — dat laatste is een hele-jaar "laatste-
+//     score-wint"-aggregaat zonder fase-informatie (D14, eng-review).
+//  2. Groepeert DYNAMISCH naar de leerlijn/groep-namen die nu daadwerkelijk
+//     actief zijn (via getLeerlijnenMappingSync(), net als
+//     isNormenSchemaOndersteund() hierboven doet) i.p.v. de hardcoded
+//     3-way split ['lesgeven', 'organiseren', 'prof_handelen'] die
+//     telLeerlijnen() gebruikt voor het OUDE schema. Niet aanraken/hergebruiken
+//     van telLeerlijnen() zelf — die blijft de oude-schema-engine, gated
+//     achter isNormenSchemaOndersteund(); Lane C's T10 pensioneert 'm.
+// ---------------------------------------------------------------------------
+
+export interface LeerlijnTelling {
+  leerlijn: string;
+  totaal: number;
+  voldoendeOfHoger: number;
+  goedOfHoger: number;
+  onvoldoende: number;
+  onbeoordeeld: number;
+}
+
+export function telLeerlijnenPerFase(
+  datapunten: Datapunt[],
+  fase: number,
+  activeDeelgebiedenIds?: string[],
+): Record<string, LeerlijnTelling> {
+  // Stap 1: filter op fase. Missende/onherkende fase (undefined of null, via
+  // getFase()) telt mee voor ELKE fase-query (D4) — nooit dp.fase rechtstreeks
+  // lezen, want pre-Lane-A-datapunten hebben geen fase-property (undefined,
+  // geen null) en zouden anders stilzwijgend uitgesloten worden.
+  const gefilterd = (datapunten || []).filter(dp => {
+    const dpFase = getFase(dp);
+    return dpFase === fase || dpFase === null;
+  });
+
+  // Stap 2: reconstrueer een per-deelgebied-label score-map uit de gefilterde
+  // subset, met dezelfde "laatste non-null wint over document-volgorde"-regel
+  // als parsers/pdf.ts's parseDeelgebiedTable gebruikt voor het hele-jaar-
+  // aggregaat — hier geschaald naar alleen de fase-gefilterde datapunten.
+  const scores: Record<string, string | null> = {};
+  for (const dg of DEELGEBIEDEN) {
+    scores[dg.label] = null;
+  }
+  for (const dp of gefilterd) {
+    for (const [label, score] of Object.entries(dp.scores || {})) {
+      if (score !== null) {
+        scores[label] = score as string;
+      }
+    }
+  }
+
+  // Stap 3: pas activeDeelgebiedenIds toe, zoals telLeerlijnen() ook doet.
+  const deelgebieden = activeDeelgebiedenIds
+    ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id))
+    : DEELGEBIEDEN;
+
+  // Stap 4: groepeer DYNAMISCH naar de daadwerkelijk actieve groep-namen
+  // (geen hardcoded lijst) en tel exact zoals telLeerlijnen() intern doet.
+  const mapping = getLeerlijnenMappingSync();
+  const groepen = Array.from(new Set(deelgebieden.map(dg => mapping[dg.id] || dg.group)));
+
+  const telling: Record<string, LeerlijnTelling> = {};
+  for (const groep of groepen) {
+    const dgs = deelgebieden.filter(dg => (mapping[dg.id] || dg.group) === groep);
+    const res: LeerlijnTelling = {
+      leerlijn: groep,
+      totaal: dgs.length,
+      voldoendeOfHoger: 0,
+      goedOfHoger: 0,
+      onvoldoende: 0,
+      onbeoordeeld: 0,
+    };
+    for (const dg of dgs) {
+      const score: string | null = scores[dg.label] !== undefined ? scores[dg.label] : null;
+      if (score === null) {
+        res.onbeoordeeld++;
+      } else if (isOnvoldoende(score)) {
+        res.onvoldoende++;
+      } else if (isVoldoendeOfHoger(score)) {
+        res.voldoendeOfHoger++;
+        if (isGoedOfHoger(score)) res.goedOfHoger++;
+      }
+    }
+    telling[groep] = res;
   }
   return telling;
 }
