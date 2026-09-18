@@ -91,6 +91,13 @@ describe('normenVoorVestiging utility (M42 T7)', () => {
   it('loadNormenVoorVestiging round-trip: saving one vestiging leaves the others unaffected', async () => {
     const { loadNormenVoorVestiging, saveNormenVoorVestiging, DEFAULT_VESTIGING_NORMEN } = await import('../utils/normen');
 
+    // Seed siblings with CUSTOM (non-default) values first, so a read-modify-write
+    // regression that clobbers the whole store record on save is actually caught below.
+    const roosendaalCustom = { ...DEFAULT_VESTIGING_NORMEN.roosendaal, bj1NaarBj2DeelgebiedenVoldoendeMin: 99 };
+    const dordrechtCustom = { ...DEFAULT_VESTIGING_NORMEN.dordrecht, bj1NaarBj2DeelgebiedenVoldoendeMin: 99 };
+    await saveNormenVoorVestiging('roosendaal', roosendaalCustom);
+    await saveNormenVoorVestiging('dordrecht', dordrechtCustom);
+
     const gewijzigd = { ...DEFAULT_VESTIGING_NORMEN.goes, bj1NaarBj2DeelgebiedenVoldoendeMin: 11 };
     await saveNormenVoorVestiging('goes', gewijzigd);
 
@@ -101,11 +108,15 @@ describe('normenVoorVestiging utility (M42 T7)', () => {
     const goesResult = await load2('goes');
     expect(goesResult.bj1NaarBj2DeelgebiedenVoldoendeMin).toBe(11);
 
-    // Sibling vestigingen must be untouched
+    // Sibling vestigingen must retain their earlier CUSTOM values, not fall back to
+    // defaults — a clobbering read-modify-write bug would wipe them to defaults here,
+    // which is indistinguishable from "untouched" if the siblings were never seeded.
     const roosendaalResult = await load2('roosendaal');
     const dordrechtResult = await load2('dordrecht');
-    expect(roosendaalResult).toEqual(DEFAULT_VESTIGING_NORMEN.roosendaal);
-    expect(dordrechtResult).toEqual(DEFAULT_VESTIGING_NORMEN.dordrecht);
+    expect(roosendaalResult).toEqual(roosendaalCustom);
+    expect(dordrechtResult).toEqual(dordrechtCustom);
+    expect(roosendaalResult.bj1NaarBj2DeelgebiedenVoldoendeMin).toBe(99);
+    expect(dordrechtResult.bj1NaarBj2DeelgebiedenVoldoendeMin).toBe(99);
   });
 
   it('loadNormenVoorVestiging falls back per-field to defaults on invalid values, keeping other valid fields', async () => {
