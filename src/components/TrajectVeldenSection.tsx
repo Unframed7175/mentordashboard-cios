@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { saveKlassen, getMatchingRecords } from '../../utils/klassen';
 import { detectTraject } from '../utils/status';
+import { normalizeTriState } from '../../utils/trajectNormalisatie';
 
 interface TrajectVeldenSectionProps {
   student: any;
@@ -22,11 +23,6 @@ interface TrajectVeld {
 const TRAJECT_VELDEN: TrajectVeld[] = [
   { key: 'wvoTraject', label: 'WVO-traject' },
 ];
-
-/** undefined (never set) is treated identically to null ("nog niet ingevuld"). */
-function normalizeTriState(raw: any): boolean | null {
-  return raw === true || raw === false ? raw : null;
-}
 
 export default function TrajectVeldenSection({ student, onSaved }: TrajectVeldenSectionProps) {
   const [hint, setHint] = useState<'idle' | 'saved'>('idle');

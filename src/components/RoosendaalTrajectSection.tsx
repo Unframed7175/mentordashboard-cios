@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { saveKlassen, klassenState, getEffectieveVestiging, getMatchingRecords } from '../../utils/klassen';
 import { detectTraject } from '../utils/status';
+import { normalizeRoosendaalTraject } from '../../utils/trajectNormalisatie';
 
 interface RoosendaalTrajectSectionProps {
   student: any;
@@ -16,11 +17,6 @@ interface RoosendaalTrajectSectionProps {
 // not the same component. getMatchingRecords itself is imported from utils/klassen.ts
 // (a thin alias for getAllRecordsForStudent) — there is one implementation shared by
 // this component, TrajectVeldenSection and KeuzedeelSection.
-
-/** undefined (never set) is treated identically to null ("nog niet gekozen"). */
-function normalizeRoosendaalTraject(raw: any): 'sbl' | 'sbc' | null {
-  return raw === 'sbl' || raw === 'sbc' ? raw : null;
-}
 
 export default function RoosendaalTrajectSection({ student, onSaved }: RoosendaalTrajectSectionProps) {
   const [hint, setHint] = useState<'idle' | 'saved'>('idle');
