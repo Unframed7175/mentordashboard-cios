@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getAllRecordsForStudent, klassenState } from '../../utils/klassen';
+import { getAllRecordsForStudent, klassenState, getEffectieveVestiging } from '../../utils/klassen';
 import { berekenStatus } from '../utils/status';
 import DoortstroomPrognoseSection from './DoortstroomPrognoseSection';
 import FeedbackActiepuntenSection from './FeedbackActiepuntenSection';
@@ -47,9 +47,10 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
   }
   const student = records[idx]; // original array reference — not a copy
 
-  const status = berekenStatus(student);
-  const meta = [student.periode, student.leerjaar].filter(Boolean).join(' · ');
   const klas = klassenState.activeKlasId ? klassenState.klassen[klassenState.activeKlasId] : null;
+  const vestiging = klas ? getEffectieveVestiging(klas) : null;
+  const status = berekenStatus(student, undefined, undefined, vestiging);
+  const meta = [student.periode, student.leerjaar].filter(Boolean).join(' · ');
 
   // Aggregate deelgebiedScores across ALL periods: latest non-null wins.
   // Most-recent record alone only covers one period — when 2+ PDFs are imported,

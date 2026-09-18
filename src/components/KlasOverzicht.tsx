@@ -5,7 +5,7 @@
 // ---------------------------------------------------------------------------
 
 import React, { useMemo } from 'react';
-import { getActiveStudents, getAllRecordsForStudent, klassenState } from '../../utils/klassen';
+import { getActiveStudents, getAllRecordsForStudent, klassenState, getEffectieveVestiging } from '../../utils/klassen';
 import { berekenStatus, STATUS_VOLGORDE, computeKpiCounts } from '../utils/status';
 import LeerlingTegel from './LeerlingTegel';
 
@@ -31,8 +31,10 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, zoekTerm, o
   // that missed content changes (e.g. verzuim update) without a count change (WR-02).
   const statusMap = useMemo(() => {
     const students = getActiveStudents();
+    const klas = klassenState.activeKlasId ? klassenState.klassen[klassenState.activeKlasId] : null;
+    const vestiging = klas ? getEffectieveVestiging(klas) : null;
     const m = new Map<string, ReturnType<typeof berekenStatus>>();
-    for (const s of students) m.set(s.leerlingId, berekenStatus(s));
+    for (const s of students) m.set(s.leerlingId, berekenStatus(s, undefined, undefined, vestiging));
     return m;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey]); // refreshKey alone is the correct invalidation signal (WR-02)
@@ -41,6 +43,8 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, zoekTerm, o
   // the oldest and newest period records via berekenStatus + STATUS_VOLGORDE rank.
   const trendMap = useMemo(() => {
     const students = getActiveStudents();
+    const klas = klassenState.activeKlasId ? klassenState.klassen[klassenState.activeKlasId] : null;
+    const vestiging = klas ? getEffectieveVestiging(klas) : null;
     const m = new Map<string, 'op' | 'neer' | null>();
 
     // Named helper — extracted for readability and future standalone extraction
@@ -58,8 +62,8 @@ export default function KlasOverzicht({ refreshKey, onSelectStudent, zoekTerm, o
       if (sorted[0].periode === sorted[sorted.length - 1].periode) return null;
 
       // Step C — compute status for oldest (fase 1) and newest (fase 2) record
-      const fase1Status = berekenStatus(sorted[0]);
-      const fase2Status = berekenStatus(sorted[sorted.length - 1]);
+      const fase1Status = berekenStatus(sorted[0], undefined, undefined, vestiging);
+      const fase2Status = berekenStatus(sorted[sorted.length - 1], undefined, undefined, vestiging);
 
       // Grijs guard (D-09): only compare two real RAG colours (rood/oranje/groen/paars/blauw)
       if (fase1Status.kleur === 'grijs' || fase2Status.kleur === 'grijs') return null;

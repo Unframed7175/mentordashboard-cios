@@ -22,6 +22,7 @@ import { appState } from './datamodel';
 import { getNormenSync, type Normen } from './normen';
 import { getFase, aggregateLatestScores } from './scoreAggregation';
 import type { Datapunt } from './datapuntTelling';
+import type { Vestiging } from './klassen';
 
 // ---------------------------------------------------------------------------
 // Constanten
@@ -232,7 +233,10 @@ export function telLeerlijnenPerFase(
 //   bj1: 'negatief' | 'versneld_sbc' | 'naar_bj2' | 'neutraal'
 //   bj2: 'negatief' | 'sbc'          | 'sbl'       | 'neutraal'
 // ---------------------------------------------------------------------------
-export function berekenPrognose(student: any, traject?: string, activeDeelgebiedenIds?: string[], normen?: Normen): any {
+// vestiging (5th param, M42 T7b): reachable but currently INERT — the decision
+// body below does not read it yet. T8/T9 will use it to look up a
+// per-vestiging normenprofiel (see utils/normen.ts getNormenVoorVestiging*).
+export function berekenPrognose(student: any, traject?: string, activeDeelgebiedenIds?: string[], normen?: Normen, vestiging?: Vestiging | null): any {
   traject = traject || 'bj2';
 
   if (!isNormenSchemaOndersteund()) {

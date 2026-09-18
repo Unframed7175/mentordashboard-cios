@@ -8,6 +8,7 @@
 import { berekenPrognose } from '../../utils/prognosis';
 import { getVerzuimDrempelsSync } from '../../utils/verzuimDrempels';
 import { aggregateKdStatus } from '../../utils/keuzedelen';
+import type { Vestiging } from '../../utils/klassen';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -113,12 +114,14 @@ export function detectTraject(student: any): string {
  * niet geproduceerd (SBC-trajecten zijn blauw). Beide blijven wel geldige
  * StatusKleur-waarden voor forward-compat.
  *
- * @param student  Student record (from klassenState)
- * @param traject  Optional traject override; if not provided, detectTraject() is used
+ * @param student   Student record (from klassenState)
+ * @param traject   Optional traject override; if not provided, detectTraject() is used
+ * @param vestiging Optional vestiging (4th param, M42 T7b) — forwarded to berekenPrognose,
+ *                  currently INERT there (T8/T9 will use it for per-vestiging normen)
  */
-export function berekenStatus(student: any, traject?: string, _thresholds?: { geoorloofd: number; ongeoorloofd: number }): StatusResult {
+export function berekenStatus(student: any, traject?: string, _thresholds?: { geoorloofd: number; ongeoorloofd: number }, vestiging?: Vestiging | null): StatusResult {
   const effectiveTraject = traject ?? detectTraject(student);
-  const p = berekenPrognose(student, effectiveTraject);
+  const p = berekenPrognose(student, effectiveTraject, undefined, undefined, vestiging);
   const heeftScores  = p.totaalVoldoendeOfHoger + p.totaalOnvoldoende > 0;
   const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
   const kdStatus = keuzedelen.length > 0
