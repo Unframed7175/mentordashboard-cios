@@ -341,4 +341,44 @@ describe('berekenPrognose normen parameter', () => {
     expect(result.label.length).toBeGreaterThan(0);
   });
 
+  // ── Test H: vestiging parameter (M42 T7b) — appended 5th arg, currently inert ─
+  // T7b is pure plumbing: the 5th `vestiging` parameter must be accepted without
+  // throwing and must NOT change the computed label (the decision body doesn't
+  // read it yet — that's T8/T9's job). This also proves the parameter was
+  // APPENDED, not inserted: the existing 4-arg `normen`-passing calls elsewhere
+  // in this file must keep working unmodified (see full-file regression run).
+  it('Test H — vestiging (5th arg): accepted for roosendaal/goes/dordrecht/undefined/null without throwing or changing the label', () => {
+    const scores: Record<string, string | null> = {
+      'V&A':  'voldoende',
+      'M&M':  'voldoende',
+      'INS':  'voldoende',
+      'O&DW': 'voldoende',
+      'C&B':  'voldoende',
+      '1E&B': 'voldoende',
+      'P&O':  'voldoende',
+      'S&O':  'voldoende',
+      'ORG':  'voldoende',
+      'I&B':  'voldoende',
+      '2E&B': 'voldoende',
+      'PrCo': 'voldoende',
+      'VSK':  'voldoende',
+      'LOB':  'voldoende',
+      'INFO': 'voldoende',
+      'DESK': 'voldoende',
+      'BS':   'voldoende',
+      'TOW':  'voldoende',
+      'BH':   'voldoende',
+    };
+    const student = makeStudent(scores);
+    const baseline = berekenPrognose(student, 'bj2', undefined, DEFAULT_NORMEN as Normen);
+
+    for (const vestiging of ['roosendaal', 'goes', 'dordrecht', undefined, null] as const) {
+      let result: any;
+      expect(() => {
+        result = berekenPrognose(student, 'bj2', undefined, DEFAULT_NORMEN as Normen, vestiging);
+      }).not.toThrow();
+      expect(result.label).toBe(baseline.label);
+    }
+  });
+
 });

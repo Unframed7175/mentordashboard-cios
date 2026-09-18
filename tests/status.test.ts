@@ -223,6 +223,43 @@ describe('berekenStatus thresholds (Phase 18)', () => {
 
 });
 
+describe('berekenStatus vestiging parameter (M42 T7b)', () => {
+
+  // Helper: 13 voldoende scores → positive prognose (sbl label for bj2)
+  function makePositiveStudent(): any {
+    const scores = allScores(null);
+    const keys = Object.keys(scores).slice(0, 13);
+    for (const k of keys) scores[k] = 'voldoende';
+    return makeStudent({ deelgebiedScores: scores, verzuim: null });
+  }
+
+  // T7b is pure plumbing: the appended 4th `vestiging` parameter must be
+  // accepted without throwing and must NOT change kleur/label — the decision
+  // body doesn't read it yet (that's T8/T9's job). Also proves `_thresholds`
+  // (3rd param, still positional) keeps working unmodified.
+  it('accepts roosendaal/goes/dordrecht/undefined/null without throwing or changing kleur/label', () => {
+    const student = makePositiveStudent();
+    const baseline = berekenStatus(student);
+
+    for (const vestiging of ['roosendaal', 'goes', 'dordrecht', undefined, null] as const) {
+      let result: StatusResult;
+      expect(() => {
+        result = berekenStatus(student, undefined, undefined, vestiging);
+      }).not.toThrow();
+      expect(result!.kleur).toBe(baseline.kleur);
+      expect(result!.label).toBe(baseline.label);
+    }
+  });
+
+  it('still honours the 3rd positional _thresholds param when vestiging is passed as 4th', () => {
+    const student = makePositiveStudent();
+    const result = berekenStatus(student, undefined, { geoorloofd: 1500, ongeoorloofd: 600 }, 'goes');
+    expect(result.kleur).toBe('groen');
+    expect(result.label).toBe('SBL');
+  });
+
+});
+
 describe('berekenStatus keuzedelen (Phase 39)', () => {
 
   function makeSbcStudent(keuzedelen?: any[]): any {
