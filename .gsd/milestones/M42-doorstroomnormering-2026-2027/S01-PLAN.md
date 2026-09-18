@@ -54,7 +54,7 @@
 
 ### Lane C — Vestiging-bewuste doorstroomengine
 - **T7** — Nieuw normenprofiel-type per vestiging (Roosendaal / Goes / Dordrecht). **D2:** nieuwe functie `getNormenVoorVestiging(vestiging)` in `utils/normen.ts`, náást de bestaande `getNormenSync()` (die ongewijzigd blijft — geen signature-wijziging op een functie met 3+ bestaande aanroepers). **D3:** opgeslagen onder een NIEUWE store-key (bv. `doorstroom_normen_per_vestiging`); de oude `doorstroom_normen`-key blijft ongebruikt staan, geen migratie.
-- **T8** — `berekenPrognose()` BJ1-tak herschrijven naar het nieuwe 3-uitkomsten-model (naar_bj2 / versneld_sbc / negatief) met fase-2-scoping (via T6) + WVO-traject-check (via T3, zie D9). **D8:** het brondocument se "bespreekgeval" (niet aan alle eisen voldaan, geen van beide positieve paden) hergebruikt het bestaande label `neutraal` — geen nieuw label. Geldt voor alle vestigingen (BJ1-advies is generiek in het brondocument).
+- **T8** — `berekenPrognose()` BJ1-tak herschrijven naar het nieuwe 3-uitkomsten-model (naar_bj2 / versneld_sbc / negatief) met fase-2-scoping (via T6) + WVO-traject-check (via T3, zie D9). **D8:** het brondocument se "bespreekgeval" (niet aan alle eisen voldaan, geen van beide positieve paden) hergebruikt het bestaande label `neutraal` — geen nieuw label. **D16 (correctie, Lane C pre-flight — het brondocument, p.3, is NIET generiek):** Roosendaal heeft twee aanvullende BJ1-drempels bovenop de generieke criteria: `naar_bj2` vereist voor Roosendaal aanvullend **minimaal 4 levels afgerond** (via T6b's `alleLevelsBehaald`/level-telling); `versneld_sbc` vereist voor Roosendaal aanvullend **minimaal 8 levels afgerond**. Het brondocument noemt bij `versneld_sbc` letterlijk "minimaal 8 levels afgerond voor SBL en minimaal 10 levels voor SBC" in één kolom zonder BJ1-traject-keuzeveld — **projectlead-beslissing (2026-09-18):** dit is ÉÉN drempel (≥8), niet een dubbele poort; de "10 voor SBC"-vermelding is vooruitwijzende info voor de latere BJ2-traject-keuze (T3b/T9c), geen tweede BJ1-gate. Geen nieuw BJ1-traject-veld nodig. T8 gebruikt hiervoor de al doorgegeven vestiging (T7b) — geen aparte per-vestiging-normen-call nodig voor dit specifieke stuk, want de level-drempel is code-vast (brondocument), niet configureerbaar via T7's normenprofiel.
 - **T9** — `berekenPrognose()` BJ2-tak herschrijven, opgesplitst per vestiging:
   - **T9a** — generiek SBL/SBC-pad. **D13 (eng-review, geverifieerd tegen brondocument):** `KERN_SBC` (`['V&A','P&O','C&B','1E&B']`) wordt verwijderd — het nieuwe document heeft voor dit pad géén kern-deelgebieden-eis, alleen het totaalaantal ("minimaal 10 deelgebieden voldoende"); de oude labels bestaan bovendien niet meer in het huidige schema.
   - **T9b** — Goes/Dordrecht-SBC-pad (basiskerntaken B1K1/B1K2) — **blijft geblokkeerd tot T9b-1 een databron heeft opgeleverd.**
@@ -109,35 +109,49 @@ Niets hiervan wordt onnodig herbouwd — de nieuwe taken zijn allemaal nieuwe *t
 ## Diagram — doorstroombesluit per traject en vestiging
 
 ```
-                          berekenPrognose(student, traject, vestiging)
-                                          │
-                          ┌───────────────┴───────────────┐
-                    vestiging = null?               vestiging bekend?
-                          │                                │
-                    normen_onbekend                  getNormenVoorVestiging(vestiging)
-                    (ADR-16-patroon)                        │
-                                              ┌──────────────┴──────────────┐
-                                          traject=bj1                  traject=bj2
-                                              │                              │
-                              ┌───────────────┼───────────────┐             │
-                        negatief?      versneld_sbc?     naar_bj2?          │
-                        (T8: >4 O in                (T8: fase-2 L&O≥5G      │
-                        fase 2, of                   + ProfH≥3G + BVB 3/4   │
-                        >4 onbeoord.)                + WVO=true + NL 3F     │
-                              │            + Rek MBO4 + stage)              │
-                          negatief          │              │        anders: neutraal
-                                        versneld_sbc    naar_bj2      ("bespreekgeval")
-                                                                            │
-                                                          ┌─────────────────┴─────────────────┐
-                                                    vestiging=Roosendaal?              anders (generiek /
-                                                          │                             Goes/Dordrecht)
-                                              roosendaalTraject?                              │
-                                              ┌─────┴─────┐                    ┌──────────────┴──────────────┐
-                                            'sbl'       'sbc'              generiek SBL/SBC             Goes/Dordrecht?
-                                       (T9c: fase3 ≥7      │              (T9a: ≥7→sbl,                 (T9b: B1K1/B1K2
-                                        + alle levels 2)   │               ≥10→sbc, GEEN                  — GEBLOKKEERD
-                                              │      gebruikt T9a-pad        kern-check meer)              op T9b-1)
-                                          sbl/negatief   + alle levels 3
+berekenPrognose(student, traject, vestiging)
+    │
+    ├─ vestiging = null?  →  normen_onbekend (ADR-16-patroon)
+    │
+    └─ vestiging bekend  →  getNormenVoorVestiging(vestiging)
+            │
+            ├─ traject = bj1 (T8) ─────────────────────────────────────────────
+            │     │
+            │     ├─ negatief?        4+ dg 'onvoldoende' in fase 2, of
+            │     │                   >4 datapunten onbeoordeeld in fase 2
+            │     │                       → negatief
+            │     │
+            │     ├─ versneld_sbc?    fase-2 L&O ≥5 goed + ProfH ≥3 goed
+            │     │                   + BVB 3/4 + WVO=true + NL richting 3F
+            │     │                   + Rek MBO4 (3 domeinen) + stage-eisen
+            │     │                   + Roosendaal aanvullend: ≥8 levels afgerond
+            │     │                       → versneld_sbc
+            │     │
+            │     ├─ naar_bj2?        ≥9 dg voldoende + ProfH-aanvulling BVB 3/4
+            │     │                   + NL richting 2F + Rek MBO3 (3 domeinen)
+            │     │                   + stage-eisen
+            │     │                   + Roosendaal aanvullend: ≥4 levels afgerond
+            │     │                       → naar_bj2
+            │     │
+            │     └─ anders               → neutraal ("bespreekgeval")
+            │
+            └─ traject = bj2 (T9) ─────────────────────────────────────────────
+                  │
+                  ├─ vestiging = Roosendaal? (T9c)
+                  │     │
+                  │     └─ roosendaalTraject?
+                  │           ├─ 'sbl'  fase-3 ≥7 dg voldoende + alle levels 2 behaald
+                  │           │             → sbl / negatief
+                  │           └─ 'sbc'  gebruikt T9a-pad (generiek SBL/SBC) + alle levels 3 behaald
+                  │
+                  └─ anders (generiek / Goes-Dordrecht)
+                        │
+                        ├─ generiek SBL/SBC (T9a)   ≥7 dg voldoende → sbl
+                        │                            ≥10 dg voldoende → sbc
+                        │                            (GEEN kern-deelgebieden-check meer, D13)
+                        │
+                        └─ Goes/Dordrecht (T9b)      basiskerntaken B1K1/B1K2
+                                                       — GEBLOKKEERD op T9b-1
 ```
 
 ## Failure modes (per nieuwe codepad)

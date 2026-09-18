@@ -267,3 +267,22 @@
 **Periode-notatie Roosendaal (extra bevestiging, geen nieuwe beslissing):** periode-string bevat een `RSD`-suffix (bijv. "BJ1 Fase 1 RSD - 2026/2027", "BJ2 RSD - 2026/2027"); `Leerjaar`-veld blijft onbetrouwbaar voor BJ2 (toont "1"), zoals al bekend (zie P-06 in KNOWLEDGE.md / ADR-05) — `detectTraject()`'s bestaande substring-match op `periode` blijft leidend en werkt hier ongewijzigd.
 
 **Gevolg:** T9c is niet langer geblokkeerd — kan mee in `/plan-eng-review`.
+
+---
+
+## ADR-17c · T8-correctie: BJ1 is NIET generiek voor Roosendaal + ruling op dubbelzinnige levels-drempel (2026-09-18)
+
+**Status:** Vastgelegd (Fase 2 — Lane C pre-flight, vóór T8's taakbrief geschreven)
+**Wijzigt:** S01-PLAN.md T8-omschrijving (D8) — "geldt voor alle vestigingen (BJ1-advies is generiek)" was onjuist.
+
+**Bevinding (herverificatie brondocument p.3, letterlijk):** de BJ1-tabel "Voortgangsbesluit naar basisjaar 2 of het profieljaar" bevat wél Roosendaal-specifieke aanvullingen, ondanks dat de rest van de BJ1-criteria generiek is:
+- **naar_bj2** (positief studieadvies): "Voor Roosendaal geldt aanvullend: Minimaal 4 levels afgerond."
+- **versneld_sbc** (positief studieadvies, versneld traject SBC): "Voor Roosendaal geldt aanvullend: Minimaal 8 levels afgerond voor SBL en minimaal 10 levels voor SBC."
+
+**Dubbelzinnigheid:** de versneld_sbc-regel noemt twee getallen (8 en 10) in één kolom zonder dat er op dit punt in BJ1 al een traject-keuzeveld bestaat (`roosendaalTraject` is pas BJ2, via T3b) — onduidelijk of dit één drempel is of een vooruitwijzende dubbele poort.
+
+**Projectlead-beslissing:** één drempel, **≥8 levels afgerond**, voor de hele versneld_sbc-uitkomst. De "10 voor SBC"-vermelding is informatief/vooruitwijzend voor de latere BJ2-traject-keuze (T3b/T9c) en wordt NIET als aparte BJ1-gate geïmplementeerd. Geen nieuw BJ1-traject-veld — voorkomt scope-verdubbeling van wat T3b al bij BJ2 doet.
+
+**Gevolg voor T8:** beide Roosendaal-aanvullingen (≥4 levels voor naar_bj2, ≥8 levels voor versneld_sbc) horen in T8's taakbrief als expliciete extra AND-voorwaarde, gebruikt makend van vestiging (T7b) en T6b's level-telling — géén aparte per-vestiging-normen-call nodig, de drempel is brondocument-vast, niet configureerbaar.
+
+**Afgewezen alternatief:** een nieuw BJ1-traject-intentieveld toevoegen om de 8/10-split te implementeren als dubbele poort — verworpen wegens onnodige scope-toename en duplicatie met T3b's bestaande BJ2-patroon.
