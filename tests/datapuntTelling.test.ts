@@ -21,6 +21,7 @@ import {
   telBetekenisvolBewegenProfHouding,
   telRekenDomeinen,
   alleLevelsBehaald,
+  telLevelsAfgerond,
 } from '../utils/datapuntTelling';
 
 // ── telDatapuntenMetPatroon (shared helper) ────────────────────────────────
@@ -203,5 +204,54 @@ describe('alleLevelsBehaald', () => {
     const datapunten = [level('Level 10 lesgeven', 'Op tijd ingeleverd en wel beoordeeld')];
     // Only a 'Level 10' datapunt exists — level 1 must find zero matches → false.
     expect(alleLevelsBehaald(datapunten, 1)).toBe(false);
+  });
+});
+
+// ── telLevelsAfgerond (M42 T8 — ADR-17c Roosendaal-levels-COUNT) ───────────────
+// Anders dan alleLevelsBehaald (één specifiek level-nummer, all-or-nothing),
+// telt dit ELK level-nummer mee in één COUNT — precies wat de Roosendaal-
+// "minimaal N levels afgerond"-eis nodig heeft (task-T8-brief.md).
+
+describe('telLevelsAfgerond', () => {
+  function level(label: string, status: string) {
+    return { vak: 'Extern praktijkleren', datapunt: label, scores: {}, status };
+  }
+
+  it('lege datapunten array → 0', () => {
+    expect(telLevelsAfgerond([])).toBe(0);
+  });
+
+  it('telt afgeronde Level-N datapunten over VERSCHILLENDE level-nummers heen', () => {
+    const datapunten = [
+      level('Level 1 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 2 lesgeven', 'Zelfevaluatie afgerond'),
+      level('Organiseren level 3', 'Op tijd ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(3);
+  });
+
+  it('niet-afgeronde Level-N datapunten tellen niet mee', () => {
+    const datapunten = [
+      level('Level 1 lesgeven', 'niet ingeleverd'),
+      level('Level 2 lesgeven', ''),
+      level('Level 3 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(1);
+  });
+
+  it('negeert niet-Level datapunten', () => {
+    const datapunten = [
+      { vak: 'Rekenen', datapunt: 'F2 Rekenen ‐eindtoets domein 1', scores: {}, status: 'Op tijd ingeleverd en wel beoordeeld' },
+      level('Level 1 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(1);
+  });
+
+  it('digit-boundary: "Level 1" en "Level 10" tellen allebei apart mee (geen dubbele match/uitsluiting)', () => {
+    const datapunten = [
+      level('Level 1 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 10 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(2);
   });
 });
