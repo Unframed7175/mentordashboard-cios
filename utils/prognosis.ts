@@ -16,13 +16,15 @@
 //     parsers/pdf.ts zelf — dat zou de open-world-parse/closed-world-
 //     aggregatie-laagscheiding omkeren, zie M42 Lane B review-fix #2)
 
-import { DEELGEBIEDEN } from './schema';
+import { DEELGEBIEDEN, normalizeRekenScore } from './schema';
 import { getLeerlijnenMappingSync } from './leerlijnen';
 import { appState } from './datamodel';
-import { getNormenSync, type Normen } from './normen';
+import { getNormenSync, getNormenVoorVestigingSync, type Normen, type VestigingNormen } from './normen';
 import { getFase, aggregateLatestScores } from './scoreAggregation';
+import { telBetekenisvolBewegenProfHouding, telRekenDomeinen, telLevelsAfgerond } from './datapuntTelling';
 import type { Datapunt } from './datapuntTelling';
 import type { Vestiging } from './klassen';
+import { normalizeTriState } from './trajectNormalisatie';
 
 // ---------------------------------------------------------------------------
 // Constanten
@@ -215,6 +217,166 @@ export function telLeerlijnenPerFase(
 }
 
 // ---------------------------------------------------------------------------
+// berekenBj1Uitkomst(student, vestiging, normen, activeDeelgebiedenIds?) — M42 T8
+//
+// Standalone, direct-testbare BJ1 3-uitkomsten-beslissing (naar_bj2 /
+// versneld_sbc / negatief / neutraal), berekend tegen de NIEUWE, per-vestiging
+// VestigingNormen (T7) i.p.v. de oude Normen/DEFAULT_NORMEN. Losgetrokken van
+// berekenPrognose() zelf omdat diens bj1-tak nog achter isNormenSchemaOndersteund()
+// zit (T10's nog-niet-gedane pensioentaak) — die guard geeft 'false' terug voor
+// het ECHTE, huidige 2026/2027-schema, waardoor deze functie de enige plek is
+// waar de nieuwe formule testbaar is tegen het schema dat daadwerkelijk actief
+// is. Zie task-T8-brief.md ("Why this task is structured the way it is").
+//
+// Alle deelgebieden-tellingen zijn hetzelfde soort grootheid als de OUDE motor's
+// totaalVoldoendeOfHoger/totaalOnvoldoende — d.w.z. berekend op
+// student.deelgebiedScores (heel-jaar "laatste-score-wint"-aggregaat) —
+// BEHALVE waar een criterium expliciet "in fase twee" zegt, wat
+// telLeerlijnenPerFase(student.datapunten, 2, activeDeelgebiedenIds) gebruikt.
+// Zie task-T8-brief.md voor de exacte, per-criterium fase-scoping-tabel
+// (bewust NIET uniform — het brondocument scoopt sommige bullets wel naar
+// fase 2 en andere niet, en dat onderscheid is intentioneel).
+//
+// NOTE (gedocumenteerde keuze, T8): de brief's illustratieve signature
+// vermeldt geen activeDeelgebiedenIds-parameter, maar de eis-tekst zelf
+// verwijst er meermaals naar ("filtered by activeDeelgebiedenIds if given").
+// Opgelost door 'm als 4e, optionele parameter toe te voegen — consistent met
+// hoe telLeerlijnen()/telLeerlijnenPerFase() 'm ook als laatste optionele
+// parameter voeren. Zie task-T8-report.md voor de volledige toelichting.
+// ---------------------------------------------------------------------------
+
+export interface Bj1Uitkomst {
+  label: 'naar_bj2' | 'versneld_sbc' | 'negatief' | 'neutraal';
+  gaps: any; // UI-facing "hoe ver van de norm af"-data, zelfde doel als het bestaande gaps-object
+}
+
+function legeTelling(leerlijn: string): LeerlijnTelling {
+  return { leerlijn, totaal: 0, voldoendeOfHoger: 0, goedOfHoger: 0, onvoldoende: 0, onbeoordeeld: 0 };
+}
+
+export function berekenBj1Uitkomst(
+  student: any,
+  vestiging: Vestiging | null,
+  normen: VestigingNormen,
+  activeDeelgebiedenIds?: string[],
+): Bj1Uitkomst {
+  const datapunten: Datapunt[] = student.datapunten ?? [];
+
+  // ── Negatief — Trigger A: >= X deelgebieden onvoldoende ───────────────────
+  // Heel-jaar-aggregaat (student.deelgebiedScores), GEEN fase-scoping — het
+  // brondocument noemt bij deze bullet geen fase. Zelfde filter-patroon als
+  // telLeerlijnen() hierboven (activeDeelgebiedenIds, indien gegeven).
+  const deelgebiedenActief = activeDeelgebiedenIds
+    ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id))
+    : DEELGEBIEDEN;
+  const rawScores: Record<string, string | null> = student.deelgebiedScores || {};
+  const aantalOnvoldoende = deelgebiedenActief.filter(dg => {
+    const score: string | null = rawScores[dg.label] !== undefined ? rawScores[dg.label] : null;
+    return isOnvoldoende(score);
+  }).length;
+  // Let op: >=, NIET > (brondocument: "4 of meer") — andere richting dan Trigger B.
+  const negatiefTriggerA = aantalOnvoldoende >= normen.bj1NegatiefDeelgebiedenOnvoldoendeMin;
+
+  // ── Negatief — Trigger B: > Y onbeoordeelde (niet-ingeleverd) datapunten,
+  // TIJDENS FASE 2 ───────────────────────────────────────────────────────────
+  // Brondocument noemt bij deze bullet wél expliciet fase 2. Hergebruikt
+  // dezelfde ONVOLDOENDE_INLEVER_STATUSSEN-check als de (te vervangen)
+  // top-of-function aantalOnbeoordeeld-berekening, aangevuld met de fase-2-
+  // scoping via getFase() (D4: onherkende/afwezige fase telt mee voor elke
+  // fase-query — vandaar `=== 2 || === null`, nooit dp.fase rechtstreeks).
+  const aantalOnbeoordeeldFase2 = datapunten.filter(dp => {
+    const status = ((dp.status as string) || '').toLowerCase().trim();
+    if (!ONVOLDOENDE_INLEVER_STATUSSEN.has(status)) return false;
+    const fase = getFase(dp);
+    return fase === 2 || fase === null;
+  }).length;
+  // Let op: >, NIET >= (brondocument: "meer dan 4") — zelfde richting als de oude code.
+  const negatiefTriggerB = aantalOnbeoordeeldFase2 > normen.bj1NegatiefOnbeoordeeldMax;
+
+  // 3e brondocument-bullet ("onvoldoende ontwikkeling... bij ontwikkelafspraken")
+  // is een menselijk/coach-kwalitatief oordeel zonder datamodel-veld — zelfde
+  // categorie als de KD-1-december-deadline-uitsluiting (ADR-17 §5). Geen veld
+  // of gate verzinnen hiervoor.
+  const isNegatief = negatiefTriggerA || negatiefTriggerB;
+
+  // ── versneld_sbc / naar_bj2 — beide gescoped op fase 2 (brondocument) ─────
+  const telling = telLeerlijnenPerFase(datapunten, 2, activeDeelgebiedenIds);
+  const lesOrg = telling['lesgeven_en_organiseren'] ?? legeTelling('lesgeven_en_organiseren');
+  const profHandelen = telling['professioneel_handelen'] ?? legeTelling('professioneel_handelen');
+
+  // Betekenisvol Bewegen / Rekenen: bewust NIET fase-gefilterd — het
+  // brondocument scoopt deze bullets niet naar fase 2, en dat is consistent
+  // met het bestaande D6/T4/T5/T6b-ontwerp (opereert op de huidige/laatste
+  // datapunten van de leerling, ongeacht fase).
+  const bvb = telBetekenisvolBewegenProfHouding(datapunten);
+  const reken = telRekenDomeinen(student);
+  const nederlandsNiveau = normalizeRekenScore(student.nederlandsResultaat ?? null);
+  // D9: normalizeTriState(undefined) === normalizeTriState(null) === null →
+  // sluit de versneld_sbc-eis hieronder veilig uit zonder te crashen of
+  // stilzwijgend als 'false' te tellen.
+  const wvo = normalizeTriState(student.wvoTraject);
+  // ADR-17c: "minimaal N levels afgerond" is een COUNT over alle level-
+  // nummers heen (niet één specifiek level, vandaar telLevelsAfgerond i.p.v.
+  // alleLevelsBehaald). Voor Goes/Dordrecht is de norm 0 → altijd triviaal
+  // voldaan, dus GEEN if/else per vestiging nodig (data-driven via normen).
+  const levelsAfgerond = telLevelsAfgerond(datapunten);
+
+  const isVersneldSbc = (
+    lesOrg.goedOfHoger >= normen.bj1VersneldSbcLesgevenOrganiserenGoedMin &&
+    profHandelen.goedOfHoger >= normen.bj1VersneldSbcProfHandelenGoedMin &&
+    bvb.voldoet >= normen.bj1VersneldSbcProfHoudingBvbMin &&
+    wvo === true &&
+    nederlandsNiveau === 'goed' &&
+    reken.domeinenAfgerond >= normen.bj1VersneldSbcRekenDomeinenMin &&
+    reken.niveau === 'goed' &&
+    levelsAfgerond >= normen.bj1VersneldSbcRoosendaalLevelsMin
+  );
+
+  const naarBj2DeelgebiedenVoldoende = lesOrg.voldoendeOfHoger + profHandelen.voldoendeOfHoger;
+  const isNaarBj2 = (
+    naarBj2DeelgebiedenVoldoende >= normen.bj1NaarBj2DeelgebiedenVoldoendeMin &&
+    bvb.voldoet >= normen.bj1NaarBj2ProfHoudingBvbMin &&
+    (nederlandsNiveau === 'voldoende' || nederlandsNiveau === 'goed') &&
+    reken.domeinenAfgerond >= normen.bj1NaarBj2RekenDomeinenMin &&
+    (reken.niveau === 'voldoende' || reken.niveau === 'goed') &&
+    levelsAfgerond >= normen.bj1NaarBj2RoosendaalLevelsMin
+  );
+
+  let label: Bj1Uitkomst['label'];
+  if (isNegatief) {
+    label = 'negatief';
+  } else if (isVersneldSbc) {
+    // versneld_sbc VOOR naar_bj2 (zelfde if/else-if-volgorde als de oude code:
+    // versneld is de "betere" uitkomst, die krijgt voorrang).
+    label = 'versneld_sbc';
+  } else if (isNaarBj2) {
+    label = 'naar_bj2';
+  } else {
+    label = 'neutraal';
+  }
+
+  const gaps = {
+    aantalOnvoldoendeDeelgebieden: aantalOnvoldoende,
+    onvoldoendeDeelgebiedenRuimte: Math.max(0, normen.bj1NegatiefDeelgebiedenOnvoldoendeMin - 1 - aantalOnvoldoende),
+    aantalOnbeoordeeldFase2,
+    onbeoordeeldRuimte: normen.bj1NegatiefOnbeoordeeldMax - aantalOnbeoordeeldFase2,
+    nodigNaarBj2Deelgebieden: Math.max(0, normen.bj1NaarBj2DeelgebiedenVoldoendeMin - naarBj2DeelgebiedenVoldoende),
+    nodigNaarBj2ProfHoudingBvb: Math.max(0, normen.bj1NaarBj2ProfHoudingBvbMin - bvb.voldoet),
+    nodigNaarBj2RekenDomeinen: Math.max(0, normen.bj1NaarBj2RekenDomeinenMin - reken.domeinenAfgerond),
+    nodigVersneldSbc_lesgevenOrganiseren: Math.max(0, normen.bj1VersneldSbcLesgevenOrganiserenGoedMin - lesOrg.goedOfHoger),
+    nodigVersneldSbc_profHandelen: Math.max(0, normen.bj1VersneldSbcProfHandelenGoedMin - profHandelen.goedOfHoger),
+    nodigVersneldSbc_profHoudingBvb: Math.max(0, normen.bj1VersneldSbcProfHoudingBvbMin - bvb.voldoet),
+    nodigVersneldSbc_rekenDomeinen: Math.max(0, normen.bj1VersneldSbcRekenDomeinenMin - reken.domeinenAfgerond),
+    wvoTraject: wvo,
+    nederlandsNiveau,
+    rekenNiveau: reken.niveau,
+    levelsAfgerond,
+  };
+
+  return { label, gaps };
+}
+
+// ---------------------------------------------------------------------------
 // berekenPrognose(student, traject)
 //
 // @param student   - StudentRecord (student.deelgebiedScores)
@@ -296,45 +458,28 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
   var label: string;
   var gaps: any;
 
-  // ── BJ1 → BJ2 of Versneld SBC ─────────────────────────────────────────
+  // ── BJ1 → BJ2, Versneld SBC of Negatief (M42 T8 — nieuw 3-uitkomsten-model) ──
+  // isNegatief/totaalVoldoendeOfHoger/totaalOnvoldoende hierboven (OUDE
+  // telLeerlijnen-gebaseerde tellingen) worden NIET meer gebruikt om het BJ1-
+  // label te bepalen — berekenBj1Uitkomst() berekent zijn eigen negatief-check
+  // met de nieuwe criteria (zie die functie). Ze blijven wel op het
+  // geretourneerde object staan (hieronder), want src/utils/status.ts's
+  // berekenStatus leest totaalVoldoendeOfHoger + totaalOnvoldoende > 0 als
+  // algemeen "heeft deze leerling al scores"-signaal, onafhankelijk van welke
+  // BJ1-formule het label bepaalt.
   if (traject === 'bj1') {
-    // Versneld SBC (pagina 3): lesgeven ≥versneldLesgeven G/E + org ≥versneldOrganiseren G/E + prof ≥versneldProfHandelen G/E
-    var isVersneldSBC = (
-      telling['lesgeven'].goedOfHoger      >= n.versneldLesgeven &&
-      telling['organiseren'].goedOfHoger   >= n.versneldOrganiseren &&
-      telling['prof_handelen'].goedOfHoger >= n.versneldProfHandelen
-    );
-    // BJ2 positief (pagina 3): ≥bj1Positief deelgebieden voldoende
-    var isBJ2 = totaalVoldoendeOfHoger >= n.bj1Positief;
-
-    if (isNegatief) {
-      label = 'negatief';
-    } else if (isVersneldSBC) {
-      label = 'versneld_sbc';
-    } else if (isBJ2) {
-      label = 'naar_bj2'; // renamed from 'bj2' to avoid collision with the traject parameter name
+    if (!vestiging) {
+      // Zelfde "veilig terugvallen op onbekend" filosofie als isNormenSchemaOndersteund()
+      // hierboven (ADR-16): een BJ1-leerling in een klas zonder herleidbare vestiging
+      // krijgt normen_onbekend, nooit een stilzwijgend foutief label.
+      label = 'normen_onbekend';
+      gaps = {};
     } else {
-      label = 'neutraal';
+      const vn = getNormenVoorVestigingSync(vestiging);
+      const uitkomst = berekenBj1Uitkomst(student, vestiging, vn, activeDeelgebiedenIds);
+      label = uitkomst.label;
+      gaps = uitkomst.gaps;
     }
-
-    gaps = {
-      // BJ2-norm: hoeveel ≥V nog nodig
-      nodigBJ2: Math.max(0, n.bj1Positief - totaalVoldoendeOfHoger),
-      // Versneld SBC: per leerlijn hoeveel ≥G nog nodig
-      nodigVersneld_lesgeven:      Math.max(0, n.versneldLesgeven      - telling['lesgeven'].goedOfHoger),
-      nodigVersneld_organiseren:   Math.max(0, n.versneldOrganiseren   - telling['organiseren'].goedOfHoger),
-      nodigVersneld_profHandelen:  Math.max(0, n.versneldProfHandelen  - telling['prof_handelen'].goedOfHoger),
-      // Negatief-ruimte
-      onvoldoendeRuimte: n.negatiefTotaal - totaalOnvoldoende,
-      // Per leerlijn: hoeveel O nog toegestaan
-      onvoldoendeRuimtePerLeerlijn: {
-        lesgeven:      n.negatiefPerLeerlijn - telling['lesgeven'].onvoldoende,
-        organiseren:   n.negatiefPerLeerlijn - telling['organiseren'].onvoldoende,
-        prof_handelen: n.negatiefPerLeerlijn - telling['prof_handelen'].onvoldoende,
-      },
-      // BJ1-onbeoordeeld: huidig aantal voor UI-weergave
-      aantalOnbeoordeeld,
-    };
 
   // ── BJ2 → SBL of Profieljaar SBC ──────────────────────────────────────
   } else {
