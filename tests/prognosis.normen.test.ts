@@ -220,89 +220,17 @@ describe('berekenPrognose normen parameter', () => {
     expect(result.gaps.onvoldoendeRuimtePerLeerlijn.lesgeven).toBe(2); // 5 - 3
   });
 
-  // ── Test E: BJ1 versneld-SBC trio custom thresholds (NORM-05) ────────────
-  // traject='bj1'. Student has lesgeven=3G, organiseren=2G, prof_handelen=4G (goedOfHoger).
-  // Default VERSNELD: lesgeven>=4, org>=3, ph>=5 → 3>=4? No → isVersneldSBC=false.
-  // Custom: lesgeven>=3, org>=2, ph>=4 → 3>=3, 2>=2, 4>=4 → isVersneldSBC=true → label='versneld_sbc'.
-  // Total voldoende = 9 < bj1Positief(13) → isBJ2=false (versneld check runs first anyway).
-  it('Test E — custom versneld trio (3/2/4): student gets label versneld_sbc', () => {
-    const scores: Record<string, string | null> = {
-      // lesgeven: 3 goed
-      'V&A':  'goed',
-      'M&M':  'goed',
-      'INS':  'goed',
-      'O&DW': null,
-      'C&B':  null,
-      '1E&B': null,
-      // organiseren: 2 goed
-      'P&O':  'goed',
-      'S&O':  'goed',
-      'ORG':  null,
-      'I&B':  null,
-      '2E&B': null,
-      // prof_handelen: 4 goed
-      'PrCo': 'goed',
-      'VSK':  'goed',
-      'LOB':  'goed',
-      'INFO': 'goed',
-      'DESK': null,
-      'BS':   null,
-      'TOW':  null,
-      'BH':   null,
-    };
-    // totaalVoldoendeOfHoger=9, goedOfHoger: lesgeven=3, org=2, ph=4
-    // isNegatief: 0 onvoldoende → false
-    // With default normen (4/3/5): 3>=4? No → isVersneldSBC=false → 9<13 → isBJ2=false → 'neutraal'
-    // With custom (3/2/4): 3>=3, 2>=2, 4>=4 → isVersneldSBC=true → label='versneld_sbc'
-    const student = makeStudent(scores);
-    const customNormen: Normen = {
-      ...DEFAULT_NORMEN,
-      versneldLesgeven: 3,
-      versneldOrganiseren: 2,
-      versneldProfHandelen: 4,
-    };
-    const result = berekenPrognose(student, 'bj1', undefined, customNormen);
-    expect(result.label).toBe('versneld_sbc');
-  });
-
-  // ── Test F: BJ1 positief threshold (NORM-05 supplement) ──────────────────
-  // traject='bj1'. Student has totaalVoldoendeOfHoger=11, all voldoende (goedOfHoger=0).
-  // Default bj1Positief=13: 11<13 → isBJ2=false → label not 'naar_bj2'.
-  // Custom bj1Positief=10: 11>=10 → isBJ2=true → label='naar_bj2', nodigBJ2=0.
-  // isVersneldSBC=false (all voldoende, none goed → goedOfHoger=0 per leerlijn).
-  it('Test F — custom bj1Positief=10: student with 11 voldoende gets label naar_bj2', () => {
-    const scores: Record<string, string | null> = {
-      // 11 voldoende spread across leerlijnen (no goed → goedOfHoger=0, isVersneldSBC=false)
-      'V&A':  'voldoende',
-      'M&M':  'voldoende',
-      'INS':  'voldoende',
-      'O&DW': 'voldoende',
-      'C&B':  'voldoende',
-      '1E&B': 'voldoende',
-      'P&O':  'voldoende',
-      'S&O':  'voldoende',
-      'ORG':  'voldoende',
-      'I&B':  'voldoende',
-      '2E&B': 'voldoende',
-      'PrCo': null,
-      'VSK':  null,
-      'LOB':  null,
-      'INFO': null,
-      'DESK': null,
-      'BS':   null,
-      'TOW':  null,
-      'BH':   null,
-    };
-    // totaalVoldoendeOfHoger=11, goedOfHoger=0
-    // isNegatief: 0 onvoldoende → false
-    // isVersneldSBC: goedOfHoger per leerlijn=0 → 0>=4? No → false
-    // With default bj1Positief=13: 11>=13? No → isBJ2=false → 'neutraal'
-    // With custom bj1Positief=10: 11>=10? Yes → isBJ2=true → label='naar_bj2'
-    const student = makeStudent(scores);
-    const result = berekenPrognose(student, 'bj1', undefined, { ...DEFAULT_NORMEN, bj1Positief: 10 } as Normen);
-    expect(result.label).toBe('naar_bj2');
-    expect(result.gaps.nodigBJ2).toBe(0);
-  });
+  // ── Test E/F removed (M42 T8) ─────────────────────────────────────────────
+  // Tested the OLD Normen fields versneldLesgeven/versneldOrganiseren/
+  // versneldProfHandelen/bj1Positief, which berekenBj1Uitkomst (the new BJ1
+  // engine) no longer reads at all, and called berekenPrognose(student,'bj1',
+  // ...) WITHOUT vestiging, which now correctly returns 'normen_onbekend'.
+  // This file's OLD-schema mock (top of file) also makes them impossible to
+  // port in place: the new engine reads telLeerlijnenPerFase's real-schema
+  // group keys ('lesgeven_en_organiseren'/'professioneel_handelen'), which
+  // don't exist under this mock. Equivalent "custom normen threshold changes
+  // the outcome" coverage now lives in tests/prognosis.bj1Uitkomst.test.ts
+  // (no schema mock, real schema, VestigingNormen instead of Normen).
 
   // ── Test G: undefined normen falls back to sync cache ────────────────────
   // berekenPrognose(student, 'bj2') with no 4th arg must not throw and must return

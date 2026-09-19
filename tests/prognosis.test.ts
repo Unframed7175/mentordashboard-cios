@@ -140,49 +140,29 @@ test('berekenAllePrognoses met lege students array geeft lege array', () => {
 });
 
 // ── BJ1: onbeoordeeld/niet ingeleverd negatief-trigger ────────────────────────
-
-test('BJ1 negatief wanneer >4 datapunten niet ingeleverd (expliciete status)', () => {
-  const scores = allScores('voldoende');
-  const student = makeStudentWithOnbeoordeeld(scores, 0, 5); // 5 niet-ingeleverd > drempel 4
-  const result = berekenPrognose(student, 'bj1');
-  expect(result.label).toBe('negatief');
-});
-
-test('BJ1 niet negatief wanneer exact 4 datapunten niet ingeleverd', () => {
-  const scores = allScores('voldoende');
-  const student = makeStudentWithOnbeoordeeld(scores, 0, 4); // 4 === drempel, niet >4
-  const result = berekenPrognose(student, 'bj1');
-  expect(result.label).not.toBe('negatief');
-});
-
-test('BJ1 datapunten zonder status tellen niet mee als onbeoordeeld', () => {
-  const scores = allScores('voldoende');
-  const student = makeStudentWithOnbeoordeeld(scores, 10); // 10 met lege status → tellen niet mee
-  const result = berekenPrognose(student, 'bj1');
-  expect(result.label).not.toBe('negatief');
-  expect(result.gaps.aantalOnbeoordeeld).toBe(0);
-});
-
-test('BJ1 negatief wanneer >4 datapunten niet ingeleverd', () => {
-  const scores = allScores('voldoende');
-  const student = makeStudentWithOnbeoordeeld(scores, 0, 5); // 5 niet ingeleverd > drempel 4
-  const result = berekenPrognose(student, 'bj1');
-  expect(result.label).toBe('negatief');
-});
+//
+// M42 T8: de BJ1-tak van berekenPrognose() is herschreven naar het nieuwe
+// vestiging-bewuste 3-uitkomsten-model (berekenBj1Uitkomst). Deze OLD-schema-
+// gemockte tests riepen berekenPrognose(student, 'bj1') aan ZONDER vestiging —
+// dat retourneert nu terecht 'normen_onbekend' (veilige fallback), niet meer
+// het oude label. De onbeoordeeld/niet-ingeleverd-negatief-trigger die deze
+// tests dekten is 1:1 herbouwd tegen het ECHTE (niet-gemockte) schema in
+// tests/prognosis.bj1Uitkomst.test.ts, describe-blokken "happy paths" (Trigger
+// B happy path) en "grenswaarden" (Trigger B grens: exact 4 → geen negatief,
+// 5 → wel negatief) — zie die tests voor de equivalente dekking.
+//
+// De OLD-schema-mock aan de top van dit bestand levert group-namen
+// ('lesgeven'/'organiseren'/'prof_handelen') die niet bestaan onder het
+// nieuwe schema — berekenBj1Uitkomst zou hier crashen (leest
+// 'lesgeven_en_organiseren'/'professioneel_handelen'), dus deze tests konden
+// niet in-place herschreven worden; ze moesten verhuizen naar een bestand
+// zonder schema-mock.
 
 test('BJ2 NIET negatief door onbeoordeeld-criterium (BJ1-only)', () => {
   const scores = allScores('voldoende');
   const student = makeStudentWithOnbeoordeeld(scores, 10); // >4 maar BJ2 → geen trigger
   const result = berekenPrognose(student, 'bj2');
   expect(result.label).not.toBe('negatief');
-});
-
-test('BJ1 gaps.aantalOnbeoordeeld telt alleen datapunten met expliciete niet-ingeleverd status', () => {
-  const scores = allScores('voldoende');
-  // 2 met expliciete status + 5 zonder status → alleen de 2 tellen mee
-  const student = makeStudentWithOnbeoordeeld(scores, 5, 2);
-  const result = berekenPrognose(student, 'bj1');
-  expect(result.gaps.aantalOnbeoordeeld).toBe(2);
 });
 
 // ---------------------------------------------------------------------------
