@@ -4,39 +4,23 @@
 // Tests run as-is once prognosis.ts and schema.ts exist.
 // ---------------------------------------------------------------------------
 
-// Deze tests valideren de doorstroomnorm-REKENLOGICA (kern-check, versneld-check,
-// negatief-triggers, sbl/sbc-drempels) aan de hand van het 19-deelgebieden/3-leerlijnen-
-// schema waarop KERN_SBC en DEFAULT_NORMEN zijn gekalibreerd (ADR-06). Sinds het
-// schooljaar 2026/2027 levert de echte src/config/leerlijn.json een ander schema
-// (12 deelgebieden, 2 leerlijnen) — zie tests/prognosis.schemaGuard.test.ts voor het
-// gedrag daarvan (berekenPrognose geeft dan 'normen_onbekend' terug). Deze mock houdt
-// de rekenlogica-tests onafhankelijk van welk schooljaar toevallig actief is.
-vi.mock('../src/config/leerlijn.json', () => ({
-  default: {
-    deelgebieden: [
-      { id: 'va',   label: 'V&A',  group: 'lesgeven' },
-      { id: 'mm',   label: 'M&M',  group: 'lesgeven' },
-      { id: 'ins',  label: 'INS',  group: 'lesgeven' },
-      { id: 'odw',  label: 'O&DW', group: 'lesgeven' },
-      { id: 'cb',   label: 'C&B',  group: 'lesgeven' },
-      { id: 'eb1',  label: '1E&B', group: 'lesgeven' },
-      { id: 'po',   label: 'P&O',  group: 'organiseren' },
-      { id: 'so',   label: 'S&O',  group: 'organiseren' },
-      { id: 'org',  label: 'ORG',  group: 'organiseren' },
-      { id: 'ib',   label: 'I&B',  group: 'organiseren' },
-      { id: 'eb2',  label: '2E&B', group: 'organiseren' },
-      { id: 'prco', label: 'PrCo', group: 'prof_handelen' },
-      { id: 'vsk',  label: 'VSK',  group: 'prof_handelen' },
-      { id: 'lob',  label: 'LOB',  group: 'prof_handelen' },
-      { id: 'info', label: 'INFO', group: 'prof_handelen' },
-      { id: 'desk', label: 'DESK', group: 'prof_handelen' },
-      { id: 'bs',   label: 'BS',   group: 'prof_handelen' },
-      { id: 'tow',  label: 'TOW',  group: 'prof_handelen' },
-      { id: 'bh',   label: 'BH',   group: 'prof_handelen' },
-    ],
-  },
-}));
-
+// Deze tests valideerden oorspronkelijk de doorstroomnorm-REKENLOGICA aan de
+// hand van het 19-deelgebieden/3-leerlijnen-schema waarop KERN_SBC en
+// DEFAULT_NORMEN zijn gekalibreerd (ADR-06), via een vi.mock die het schema
+// bevroor onafhankelijk van welk schooljaar toevallig actief was.
+//
+// M42 T10: die vi.mock is verwijderd. SUPPORTED_LEERLIJNEN (utils/prognosis.ts)
+// is nu bijgewerkt naar de ECHTE, live schema-groepen — en telLeerlijnen()
+// gebruikt daardoor óók die groepen (T10-bugfix, zie utils/prognosis.ts). Een
+// bevroren OUD-schema-mock zou nu de schema-guard juist laten FALEN (de
+// groepsnamen matchen SUPPORTED_LEERLIJNEN niet meer) — precies averechts van
+// wat dit bestand nodig heeft (de T9c-routingtests hieronder hebben de guard
+// juist NODIG om te SLAGEN). Alle helpers hieronder (allScores/
+// scoresWithOverride) leiden hun labels al af van het geïmporteerde
+// DEELGEBIEDEN, dus zijn schema-agnostisch — dit bestand draait nu gewoon
+// tegen het ECHTE, live schema (12 deelgebieden, 2 groepen), net als
+// tests/prognosis.bj1Uitkomst.test.ts / prognosis.bj2GeneriekPad.test.ts /
+// prognosis.bj2RoosendaalSblKeuze.test.ts.
 import { berekenPrognose, berekenAllePrognoses, berekenBj2GeneriekPad } from '../utils/prognosis';
 import { DEELGEBIEDEN } from '../utils/schema';
 import { appState } from '../utils/datamodel';
@@ -124,21 +108,18 @@ test('berekenAllePrognoses met lege students array geeft lege array', () => {
 // ── BJ1: onbeoordeeld/niet ingeleverd negatief-trigger ────────────────────────
 //
 // M42 T8: de BJ1-tak van berekenPrognose() is herschreven naar het nieuwe
-// vestiging-bewuste 3-uitkomsten-model (berekenBj1Uitkomst). Deze OLD-schema-
-// gemockte tests riepen berekenPrognose(student, 'bj1') aan ZONDER vestiging —
-// dat retourneert nu terecht 'normen_onbekend' (veilige fallback), niet meer
-// het oude label. De onbeoordeeld/niet-ingeleverd-negatief-trigger die deze
-// tests dekten is 1:1 herbouwd tegen het ECHTE (niet-gemockte) schema in
-// tests/prognosis.bj1Uitkomst.test.ts, describe-blokken "happy paths" (Trigger
-// B happy path) en "grenswaarden" (Trigger B grens: exact 4 → geen negatief,
-// 5 → wel negatief) — zie die tests voor de equivalente dekking.
-//
-// De OLD-schema-mock aan de top van dit bestand levert group-namen
-// ('lesgeven'/'organiseren'/'prof_handelen') die niet bestaan onder het
-// nieuwe schema — berekenBj1Uitkomst zou hier crashen (leest
-// 'lesgeven_en_organiseren'/'professioneel_handelen'), dus deze tests konden
-// niet in-place herschreven worden; ze moesten verhuizen naar een bestand
-// zonder schema-mock.
+// vestiging-bewuste 3-uitkomsten-model (berekenBj1Uitkomst). De destijds
+// OLD-schema-gemockte tests die hier stonden riepen berekenPrognose(student,
+// 'bj1') aan ZONDER vestiging — dat retourneert nog steeds 'normen_onbekend'
+// (veilige vestiging-null-guard-fallback, ADR-16), niet meer het oude label.
+// De onbeoordeeld/niet-ingeleverd-negatief-trigger die deze tests dekten is
+// 1:1 herbouwd tegen het ECHTE schema in tests/prognosis.bj1Uitkomst.test.ts,
+// describe-blokken "happy paths" (Trigger B happy path) en "grenswaarden"
+// (Trigger B grens: exact 4 → geen negatief, 5 → wel negatief) — zie die
+// tests voor de equivalente dekking. (M42 T10: de OLD-schema-mock die hier
+// destijds bovenaan dit bestand stond is inmiddels verwijderd — dit bestand
+// draait nu zelf ook tegen het ECHTE, live schema, maar deze specifieke BJ1-
+// tests bleven verhuisd naar bj1Uitkomst.test.ts.)
 
 // ── 'BJ2 NIET negatief door onbeoordeeld-criterium (BJ1-only)' verwijderd (M42 T9a) ──
 // Deze test bewees dat de BJ1-only onbeoordeeld-negatief-trigger niet ook per
@@ -158,18 +139,18 @@ test('berekenAllePrognoses met lege students array geeft lege array', () => {
 
 describe('berekenPrognose activeDeelgebiedenIds filter (Phase 18)', () => {
 
-  it('without activeDeelgebiedenIds counts all 19 deelgebieden', () => {
-    // All 19 scored 'voldoende' — should produce totaalVoldoendeOfHoger === 19
+  it('without activeDeelgebiedenIds counts all deelgebieden', () => {
+    // All deelgebieden scored 'voldoende' — should produce totaalVoldoendeOfHoger === DEELGEBIEDEN.length
     const scores = allScores('voldoende');
     const student = makeStudent(scores);
 
     const result = berekenPrognose(student);
 
-    expect(result.totaalVoldoendeOfHoger).toBe(DEELGEBIEDEN.length); // 19
+    expect(result.totaalVoldoendeOfHoger).toBe(DEELGEBIEDEN.length);
   });
 
   it('with activeDeelgebiedenIds filters out inactive deelgebieden', () => {
-    // All 19 scored 'voldoende', but only 3 are active → only 3 count
+    // All deelgebieden scored 'voldoende', but only 3 are active → only 3 count
     const scores = allScores('voldoende');
     const student = makeStudent(scores);
 
@@ -218,15 +199,16 @@ describe('berekenPrognose activeDeelgebiedenIds filter (Phase 18)', () => {
 // ---------------------------------------------------------------------------
 // M42 T9c — berekenPrognose bj2-tak routing: Roosendaal SBL-keuzeproces
 //
-// Deze routing-tests hebben de OLD-schema vi.mock aan de top van dit bestand
+// Deze routing-tests riepen berekenPrognose() aan met een echte vestiging en
+// hadden daarom, VOOR T10, de OLD-schema vi.mock aan de top van dit bestand
 // NODIG om isNormenSchemaOndersteund() door te laten (onder het ECHTE, live
-// schema geeft berekenPrognose voor bj2 altijd 'normen_onbekend' terug, VOOR
-// de routing-code ooit bereikt wordt — zie tests/prognosis.bj2GeneriekPad.test.ts's
-// eigen "vestiging-null-guard" describe-blok voor dezelfde constatering).
-// Daarom staan ze hier (waar de mock al bestaat voor exact dit doel, zie T9a's
-// eigen berekenPrognose-test hierboven), NIET in het no-mock
-// tests/prognosis.bj2RoosendaalSblKeuze.test.ts-bestand — dat bestand test de
-// criteria van berekenBj2RoosendaalSblKeuze zelf tegen het ECHTE, live schema;
+// schema gaf berekenPrognose voor bj2 destijds altijd 'normen_onbekend'
+// terug, VOOR de routing-code ooit bereikt werd). M42 T10 heeft die mock
+// verwijderd en de schema-guard bijgewerkt naar het ECHTE schema — deze
+// tests draaien nu gewoon rechtstreeks tegen dat ECHTE, live schema, zonder
+// mock nodig te hebben. Ze staan nog steeds hier (niet in het
+// tests/prognosis.bj2RoosendaalSblKeuze.test.ts-bestand) omdat dat bestand de
+// criteria van berekenBj2RoosendaalSblKeuze zelf test (rechtstreekse aanroep);
 // dit blok test alleen WANNEER berekenPrognose ernaartoe routeert.
 //
 // ADR-17e: 'sbl'-keuze routeert naar de nieuwe, kleinere functie; 'sbc'-keuze
@@ -255,11 +237,11 @@ describe('M42 T9c — berekenPrognose bj2-tak routing (Roosendaal SBL-keuzeproce
       // (op student.datapunten, een andere databron) kan komen.
       deelgebiedScores: {},
       datapunten: [
-        // 7 van de 19 OLD-schema-labels, fase 3, 'voldoende' (drempel
-        // bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin = 7).
+        // Alle 7 lesgeven_en_organiseren-labels (ECHTE, live schema), fase 3,
+        // 'voldoende' (drempel bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin = 7).
         fase3ScoreDp({
-          'V&A': 'voldoende', 'M&M': 'voldoende', 'INS': 'voldoende',
-          'O&DW': 'voldoende', 'C&B': 'voldoende', '1E&B': 'voldoende', 'P&O': 'voldoende',
+          'O&V': 'voldoende', 'S&O': 'voldoende', 'PH': 'voldoende',
+          'DH': 'voldoende', 'I&P': 'voldoende', 'O&C': 'voldoende', 'E&V': 'voldoende',
         }),
         ...vijfRekenDomeinen(),
         ...tweeLevelsAfgerond(),
