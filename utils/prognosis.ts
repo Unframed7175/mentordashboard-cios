@@ -21,18 +21,19 @@ import { getLeerlijnenMappingSync } from './leerlijnen';
 import { appState } from './datamodel';
 import { getNormenSync, getNormenVoorVestigingSync, type Normen, type VestigingNormen } from './normen';
 import { getFase, aggregateLatestScores } from './scoreAggregation';
-import { telBetekenisvolBewegenProfHouding, telRekenDomeinen, telLevelsAfgerond } from './datapuntTelling';
+import { telBetekenisvolBewegenProfHouding, telRekenDomeinen, telLevelsAfgerond, alleLevelsBehaald } from './datapuntTelling';
 import type { Datapunt } from './datapuntTelling';
 import type { Vestiging } from './klassen';
 import { normalizeTriState } from './trajectNormalisatie';
+import { aggregateKdStatus } from './keuzedelen';
 
 // ---------------------------------------------------------------------------
 // Constanten
 // ---------------------------------------------------------------------------
 
-// Kerndeelgebieden voor BJ2 → Profieljaar SBC (pagina 4)
-// V&A, P&O, C&B en E&B (= 1E&B conform doorstroomnorm engine v1.0) moeten elk ≥V zijn
-var KERN_SBC = ['V&A', 'P&O', 'C&B', '1E&B'];
+// KERN_SBC (V&A/P&O/C&B/1E&B kern-deelgebieden-eis) is verwijderd (M42 T9a, D13):
+// het brondocument kent voor BJ2 → Profieljaar SBC geen aparte kern-deelgebieden-
+// eis, alleen het totaalaantal ≥V. Zie berekenBj2GeneriekPad hieronder.
 
 // Note: per-leerlijn minima voor BJ1 → Versneld SBC (lesgeven/organiseren/prof_handelen)
 // are now sourced from utils/normen.ts via getNormenSync() (Phase 25 parametrisation).
@@ -377,6 +378,144 @@ export function berekenBj1Uitkomst(
 }
 
 // ---------------------------------------------------------------------------
+// berekenBj2GeneriekPad(student, vestiging, normen, activeDeelgebiedenIds?) — M42 T9a
+//
+// Standalone, direct-testbare BJ2 generiek-pad-beslissing (sbl / sbc /
+// bespreekgeval), berekend tegen VestigingNormen (T7) i.p.v. de oude
+// Normen/DEFAULT_NORMEN. Zelfde structuur/reden als berekenBj1Uitkomst (T8):
+// losgetrokken van berekenPrognose() zelf omdat diens bj2-tak nog achter
+// isNormenSchemaOndersteund() zit — die guard geeft 'false' terug voor het
+// ECHTE, huidige 2026/2027-schema totdat T10 die pensioneert.
+//
+// D13: geen kern-deelgebieden-eis meer (KERN_SBC is verwijderd) — alleen het
+// totaalaantal ≥V telt.
+// D17 (ADR-17d, projectlead-beslissing): het brondocument heeft voor BJ2 GEEN
+// eigen negatief-kolom (anders dan BJ1) — dit pad retourneert nooit 'negatief',
+// en de fallback-uitkomst is het NIEUWE, eigen label 'bespreekgeval' (niet
+// BJ1's 'neutraal' hergebruikt).
+//
+// Alle tellingen zijn heel-jaar-aggregaat (student.deelgebiedScores) — pagina 4
+// van het brondocument noemt bij GEEN van deze bullets "fase twee" (anders dan
+// BJ1's pagina-3-tabel), dus geen fase-scoping hier.
+//
+// Belangrijk (T9c, "Why the name matters" in task-T9a-brief.md): deze functie
+// is DE universele generieke pad — ook voor Roosendaal-leerlingen die op de
+// SBC-tak zitten (Roosendaal's addendum zit al in de meegegeven VestigingNormen
+// via getNormenVoorVestigingSync('roosendaal')). Alleen Roosendaal-leerlingen
+// die het 'sbl'-keuzetraject kozen slaan deze functie helemaal over — dat is
+// T9c's eigen, kleinere criteria-set, niet deze functie.
+// ---------------------------------------------------------------------------
+
+export interface Bj2Uitkomst {
+  label: 'sbl' | 'sbc' | 'bespreekgeval';
+  gaps: any;
+}
+
+export function berekenBj2GeneriekPad(
+  student: any,
+  vestiging: Vestiging | null,
+  normen: VestigingNormen,
+  activeDeelgebiedenIds?: string[],
+): Bj2Uitkomst {
+  const datapunten: Datapunt[] = student.datapunten ?? [];
+
+  // ── Deelgebieden ≥V — heel-jaar-aggregaat, zelfde filter-patroon als elders ──
+  const deelgebiedenActief = activeDeelgebiedenIds
+    ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id))
+    : DEELGEBIEDEN;
+  const rawScores: Record<string, string | null> = student.deelgebiedScores || {};
+  const aantalVoldoendeOfHoger = deelgebiedenActief.filter(dg => {
+    const score: string | null = rawScores[dg.label] !== undefined ? rawScores[dg.label] : null;
+    return isVoldoendeOfHoger(score);
+  }).length;
+
+  // ── KD: "minimaal één KD behaald of haalbaar voor 1 december" — zelfde idioom
+  // als src/utils/status.ts / DoortstroomPrognoseSection.tsx. Een expliciete
+  // 'niet_behaald' ÓF een ontbrekende/null status faalt allebei deze eis — een
+  // missende status wordt NIET aangenomen als "in orde" (brondocument-eis).
+  const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
+  const kdStatus = keuzedelen.length > 0
+    ? aggregateKdStatus(keuzedelen)
+    : (student.kdStatus ?? null);
+  const kdVoldoet = kdStatus === 'behaald' || kdStatus === 'haalbaar';
+
+  // ── Rekenen (gedeeld tussen SBC/SBL, alleen het niveau-criterium verschilt) ──
+  const reken = telRekenDomeinen(student);
+
+  // ── WVO-traject — SBC-only (SBL toetst dit veld niet, per de tabel) ────────
+  const wvo = normalizeTriState(student.wvoTraject);
+
+  // ── Nederlands — SBC toetst schrijven/gesprekvoeren los, SBL één totaalveld ─
+  const nlSchrijvenNiveau = normalizeRekenScore(student.nlSchrijven ?? null);
+  const nlGesprekvoerenNiveau = normalizeRekenScore(student.nlGesprekvoeren ?? null);
+  const nederlandsNiveau = normalizeRekenScore(student.nederlandsResultaat ?? null);
+
+  // ── Roosendaal-only "alle levels N behaald" — KRITIEK (ADR-17e) ────────────
+  // alleLevelsBehaald is ALL-OR-NOTHING: alleLevelsBehaald(dp, 0) zoekt naar
+  // niet-bestaande "Level 0"-datapunten en geeft dan ALTIJD false terug. Voor
+  // Goes/Dordrecht (drempel 0) moet deze check dus volledig worden OVERGESLAGEN
+  // (triviaal voldaan), NOOIT alleLevelsBehaald(dp, 0) aanroepen — dat zou stil
+  // elke Goes/Dordrecht-leerling uitsluiten van sbc/sbl. Vandaar de expliciete
+  // `!== 0`-guard hieronder — niet vereenvoudigen tot een onvoorwaardelijke
+  // aanroep.
+  const sbcRoosendaalLevelsOk = normen.bj2SbcRoosendaalLevelsMin === 0
+    ? true
+    : alleLevelsBehaald(datapunten, normen.bj2SbcRoosendaalLevelsMin);
+  const sblRoosendaalLevelsOk = normen.bj2SblRoosendaalLevelsMin === 0
+    ? true
+    : alleLevelsBehaald(datapunten, normen.bj2SblRoosendaalLevelsMin);
+
+  // ── SBC (gecheckt EERST — zelfde precedentie als de oude code: "betere"
+  // uitkomst krijgt voorrang) ─────────────────────────────────────────────────
+  const isSbc = (
+    aantalVoldoendeOfHoger >= normen.bj2SbcDeelgebiedenVoldoendeMin &&
+    (nlSchrijvenNiveau === 'voldoende' || nlSchrijvenNiveau === 'goed') &&
+    nlGesprekvoerenNiveau === 'goed' &&
+    reken.domeinenAfgerond >= normen.bj2SbcRekenDomeinenMin &&
+    reken.niveau === 'goed' &&
+    kdVoldoet &&
+    wvo === true &&
+    sbcRoosendaalLevelsOk
+  );
+
+  // ── SBL (gecheckt na SBC) ───────────────────────────────────────────────────
+  const isSbl = (
+    aantalVoldoendeOfHoger >= normen.bj2SblDeelgebiedenVoldoendeMin &&
+    (nederlandsNiveau === 'voldoende' || nederlandsNiveau === 'goed') &&
+    reken.domeinenAfgerond >= normen.bj2SblRekenDomeinenMin &&
+    (reken.niveau === 'voldoende' || reken.niveau === 'goed') &&
+    kdVoldoet &&
+    sblRoosendaalLevelsOk
+  );
+
+  let label: Bj2Uitkomst['label'];
+  if (isSbc) {
+    label = 'sbc';
+  } else if (isSbl) {
+    label = 'sbl';
+  } else {
+    // Fallback (D17/ADR-17d): GEEN negatief-tier voor BJ2 — nieuw, eigen label.
+    label = 'bespreekgeval';
+  }
+
+  const gaps = {
+    aantalVoldoendeOfHoger,
+    nodigSBC_deelgebieden: Math.max(0, normen.bj2SbcDeelgebiedenVoldoendeMin - aantalVoldoendeOfHoger),
+    nodigSBL_deelgebieden: Math.max(0, normen.bj2SblDeelgebiedenVoldoendeMin - aantalVoldoendeOfHoger),
+    nodigSBC_rekenDomeinen: Math.max(0, normen.bj2SbcRekenDomeinenMin - reken.domeinenAfgerond),
+    nodigSBL_rekenDomeinen: Math.max(0, normen.bj2SblRekenDomeinenMin - reken.domeinenAfgerond),
+    nlSchrijvenNiveau,
+    nlGesprekvoerenNiveau,
+    nederlandsNiveau,
+    rekenNiveau: reken.niveau,
+    kdStatus,
+    wvoTraject: wvo,
+  };
+
+  return { label, gaps };
+}
+
+// ---------------------------------------------------------------------------
 // berekenPrognose(student, traject)
 //
 // @param student   - StudentRecord (student.deelgebiedScores)
@@ -393,7 +532,7 @@ export function berekenBj1Uitkomst(
 //
 // Labels per traject:
 //   bj1: 'negatief' | 'versneld_sbc' | 'naar_bj2' | 'neutraal'
-//   bj2: 'negatief' | 'sbc'          | 'sbl'       | 'neutraal'
+//   bj2: 'sbc' | 'sbl' | 'bespreekgeval' (M42 T9a, D17: geen negatief-tier meer)
 // ---------------------------------------------------------------------------
 // vestiging (5th param, M42 T7b): reachable but currently INERT — the decision
 // body below does not read it yet. T8/T9 will use it to look up a
@@ -481,44 +620,29 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
       gaps = uitkomst.gaps;
     }
 
-  // ── BJ2 → SBL of Profieljaar SBC ──────────────────────────────────────
+  // ── BJ2 → SBL of Profieljaar SBC (M42 T9a — generiek pad, VestigingNormen) ──
+  // isNegatief/totaalVoldoendeOfHoger/totaalOnvoldoende hierboven (OUDE
+  // telLeerlijnen-gebaseerde tellingen) worden NIET meer gebruikt om het BJ2-
+  // label te bepalen — berekenBj2GeneriekPad() berekent zijn eigen criteria
+  // (zie die functie). D17: BJ2 heeft geen negatief-tier meer, dus isNegatief
+  // bepaalt hier nooit het label. Ze blijven wel op het geretourneerde object
+  // staan (hieronder) — zelfde reden als bij BJ1 (T8): berekenStatus leest
+  // totaalVoldoendeOfHoger + totaalOnvoldoende > 0 als algemeen "heeft deze
+  // leerling al scores"-signaal, onafhankelijk van welke BJ2-formule het label
+  // bepaalt.
   } else {
-    // SBC profieljaar (pagina 4): ≥sbc voldoende + V&A/P&O/C&B/1E&B elk ≥V
-    var kernNietVoldaan = KERN_SBC.filter(function(lbl: string) {
-      var score: string | null = scores[lbl] !== undefined ? scores[lbl] : null;
-      return !isVoldoendeOfHoger(score);
-    });
-    var isSBC = totaalVoldoendeOfHoger >= n.sbc && kernNietVoldaan.length === 0;
-
-    // SBL standaard (pagina 4): ≥sbl voldoende
-    var isSBL = totaalVoldoendeOfHoger >= n.sbl;
-
-    if (isNegatief) {
-      label = 'negatief';
-    } else if (isSBC) {
-      label = 'sbc';
-    } else if (isSBL) {
-      label = 'sbl';
+    if (!vestiging) {
+      // Zelfde "veilig terugvallen op onbekend" filosofie als de bj1-tak
+      // hierboven (ADR-16): een BJ2-leerling in een klas zonder herleidbare
+      // vestiging krijgt normen_onbekend, nooit een stilzwijgend foutief label.
+      label = 'normen_onbekend';
+      gaps = {};
     } else {
-      label = 'neutraal';
+      const vn = getNormenVoorVestigingSync(vestiging);
+      const uitkomst = berekenBj2GeneriekPad(student, vestiging, vn, activeDeelgebiedenIds);
+      label = uitkomst.label;
+      gaps = uitkomst.gaps;
     }
-
-    gaps = {
-      // SBL: hoeveel ≥V nog nodig
-      nodigSBL: Math.max(0, n.sbl - totaalVoldoendeOfHoger),
-      // SBC deelgebied-tel: hoeveel ≥V nog nodig voor sbc
-      nodigSBC_deelgebieden: Math.max(0, n.sbc - totaalVoldoendeOfHoger),
-      // SBC kerndeelgebieden die nog niet ≥V zijn
-      nodigSBC_kern: kernNietVoldaan,
-      // Negatief-ruimte
-      onvoldoendeRuimte: n.negatiefTotaal - totaalOnvoldoende,
-      // Per leerlijn: hoeveel O nog toegestaan
-      onvoldoendeRuimtePerLeerlijn: {
-        lesgeven:      n.negatiefPerLeerlijn - telling['lesgeven'].onvoldoende,
-        organiseren:   n.negatiefPerLeerlijn - telling['organiseren'].onvoldoende,
-        prof_handelen: n.negatiefPerLeerlijn - telling['prof_handelen'].onvoldoende,
-      },
-    };
   }
 
   return {
@@ -579,13 +703,14 @@ export function debugPrognose(query: string, traject?: string): void {
     console.log('  organiseren ≥' + n.versneldOrganiseren + ' G/E:   ' + telling_str(telling_val(p, 'organiseren', 'goedOfHoger'), n.versneldOrganiseren, p.gaps.nodigVersneld_organiseren));
     console.log('  prof.handelen ≥' + n.versneldProfHandelen + ' G/E: ' + telling_str(telling_val(p, 'prof_handelen', 'goedOfHoger'), n.versneldProfHandelen, p.gaps.nodigVersneld_profHandelen));
   } else {
-    console.log('SBL-norm  (≥' + n.sbl + ' ≥V): ' + (p.totaalVoldoendeOfHoger >= n.sbl ? '✅' : '❌ nog ' + p.gaps.nodigSBL + ' nodig'));
-    console.log('SBC-norm  (≥' + n.sbc + ' ≥V): ' + (p.totaalVoldoendeOfHoger >= n.sbc ? '✅' : '❌ nog ' + p.gaps.nodigSBC_deelgebieden + ' nodig'));
-    if (p.gaps.nodigSBC_kern.length > 0) {
-      console.log('SBC kern  (niet ≥V): ' + p.gaps.nodigSBC_kern.join(', '));
-    } else {
-      console.log('SBC kern: ✅ alle kerndeelgebieden ≥V');
-    }
+    // M42 T9a: berekenBj2GeneriekPad's gaps-object heeft geen n.sbl/n.sbc/
+    // nodigSBC_kern meer (KERN_SBC is verwijderd, D13) — dit console-debug-
+    // blok print nu p.gaps.label rechtstreeks i.p.v. de oude (afgeschafte)
+    // deelgebieden-telling-vergelijking, zodat het niet crasht op de
+    // verwijderde velden. Zelfde "niet volledig herbouwd, wel niet-crashend"-
+    // precedent als T8 al toepaste op het BJ1-blok hierboven (n.bj1Positief/
+    // n.versneldLesgeven zijn ook al stale t.o.v. berekenBj1Uitkomst).
+    console.log('Label: ' + p.label + ' (aantal ≥V: ' + p.gaps.aantalVoldoendeOfHoger + ', nog nodig voor SBC: ' + p.gaps.nodigSBC_deelgebieden + ', voor SBL: ' + p.gaps.nodigSBL_deelgebieden + ')');
   }
 
   var ruimte = p.gaps.onvoldoendeRuimte;

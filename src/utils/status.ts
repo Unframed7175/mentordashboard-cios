@@ -132,6 +132,13 @@ export function berekenStatus(student: any, traject?: string, _thresholds?: { ge
   if (!heeftScores)                return { kleur: 'grijs',  label: 'Onbekend',        prognose: p };
   if (p.label === 'negatief')      return { kleur: 'rood',   label: 'Risico',          prognose: p };
   if (p.label === 'neutraal')      return { kleur: 'oranje', label: 'Twijfelgeval',    prognose: p };
+  // M42 T9a (D17): BJ2's generieke pad heeft geen negatief-tier, maar wel een
+  // NIEUW, eigen fallback-label 'bespreekgeval' (niet BJ1's 'neutraal'
+  // hergebruikt). Zonder deze expliciete branch valt 'bespreekgeval' stil door
+  // naar de groene 'SBL'-catch-all onderaan deze functie — een bespreekgeval-
+  // leerling zou dan ten onrechte als "in orde" getoond worden. Zie
+  // tests/status.bespreekgeval.test.ts voor de regressie-proef.
+  if (p.label === 'bespreekgeval') return { kleur: 'oranje', label: 'Bespreekgeval',   prognose: p };
   // BJ2 outcomes
   if (p.label === 'sbc') {
     if (kdStatus === 'niet_behaald' || kdStatus === 'haalbaar')
