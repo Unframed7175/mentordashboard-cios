@@ -199,7 +199,7 @@ const DEFAULT_VESTIGING_NORMEN_SHARED = {
   bj2SbcDeelgebiedenVoldoendeMin: 10,
   bj2SbcRekenDomeinenMin: 5,
   bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin: 7,
-  bj2RoosendaalSblKeuzeRekenDomeinenMin: 3,
+  bj2RoosendaalSblKeuzeRekenDomeinenMin: 5,
 } as const;
 
 export const DEFAULT_VESTIGING_NORMEN: Record<Vestiging, VestigingNormen> = {

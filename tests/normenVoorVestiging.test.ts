@@ -84,7 +84,7 @@ describe('normenVoorVestiging utility (M42 T7)', () => {
       expect(profiel.bj2SbcDeelgebiedenVoldoendeMin).toBe(10);
       expect(profiel.bj2SbcRekenDomeinenMin).toBe(5);
       expect(profiel.bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin).toBe(7);
-      expect(profiel.bj2RoosendaalSblKeuzeRekenDomeinenMin).toBe(3);
+      expect(profiel.bj2RoosendaalSblKeuzeRekenDomeinenMin).toBe(5);
     }
   });
 
