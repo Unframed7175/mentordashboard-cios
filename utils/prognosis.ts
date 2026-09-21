@@ -42,14 +42,18 @@ import { aggregateKdStatus } from './keuzedelen';
 // Schema-guard (2026-2027 curriculumwijziging)
 //
 // KERN_SBC, de per-leerlijn drempels hierboven en alle DEFAULT_NORMEN-getallen
-// (sbl/sbc/bj1Positief/negatiefTotaal) zijn gekalibreerd op de 19-deelgebieden/
-// 3-leerlijnen-indeling uit ADR-06. Sinds het nieuwe schooljaar levert
-// src/config/leerlijn.json een andere set (12 deelgebieden, 2 leerlijnen) —
-// die getallen kloppen dan niet meer en zouden stilzwijgend een verkeerde
-// prognose opleveren. SUPPORTED_LEERLIJNEN is de set groepen waarvoor de
-// huidige normen geldig zijn; zolang de nieuwe doorstroomnormen niet bekend
-// zijn, geeft berekenPrognose 'normen_onbekend' terug in plaats van een cijfer.
-var SUPPORTED_LEERLIJNEN = ['lesgeven', 'organiseren', 'prof_handelen'];
+// (sbl/sbc/bj1Positief/negatiefTotaal) zijn gekalibreerd op de OUDE
+// 19-deelgebieden/3-leerlijnen-indeling uit ADR-06 en worden niet meer
+// gebruikt om bj1/bj2-labels te bepalen (zie berekenBj1Uitkomst/
+// berekenBj2GeneriekPad/berekenBj2RoosendaalSblKeuze, alle op VestigingNormen).
+// SUPPORTED_LEERLIJNEN is bijgewerkt (M42 T10) naar de groepsnamen van het
+// ECHTE, huidige schema (src/config/leerlijn.json — 12 deelgebieden, 2
+// leerlijnen): 'lesgeven_en_organiseren' / 'professioneel_handelen'. Zodra
+// een vestiging bekend is, geeft berekenPrognose nu dus een genuine,
+// berekend label terug i.p.v. 'normen_onbekend' — de losstaande
+// vestiging-null-guard in de bj1/bj2-takken hieronder (ADR-16) blijft wel
+// bestaan en vangt nog steeds het "geen herleidbare vestiging"-geval af.
+var SUPPORTED_LEERLIJNEN = ['lesgeven_en_organiseren', 'professioneel_handelen'];
 
 function isNormenSchemaOndersteund(): boolean {
   const mapping = getLeerlijnenMappingSync();
@@ -92,7 +96,19 @@ function isOnvoldoende(score: string | null): boolean {
 
 function telLeerlijnen(scores: any, activeDeelgebiedenIds?: string[]): any {
   const deelgebieden = activeDeelgebiedenIds ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id)) : DEELGEBIEDEN;
-  var leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
+  // M42 T10-bevinding: dit was hardcoded op de OUDE 3-leerlijn-namen
+  // ('lesgeven'/'organiseren'/'prof_handelen', ADR-06), los van
+  // SUPPORTED_LEERLIJNEN hierboven. Zolang de schema-guard altijd 'false'
+  // teruggaf voor het echte schema, kwam deze functie voor bj1/bj2 nooit aan
+  // bod, dus bleef dit onopgemerkt. Nu de guard 'true' geeft, matchten deze
+  // OUDE namen NOOIT de ECHTE groepsnamen ('lesgeven_en_organiseren'/
+  // 'professioneel_handelen') — elke bucket zou altijd leeg (0 tellingen)
+  // blijven, en daarmee zou totaalVoldoendeOfHoger/totaalOnvoldoende (gebruikt
+  // door berekenStatus's "heeft deze leerling scores"-check) ALTIJD 0 zijn,
+  // ongeacht de werkelijke scores — elke leerling zou dan permanent grijs/
+  // "Onbekend" tonen i.p.v. een echte kleur. Vandaar: dezelfde bron van
+  // waarheid als de schema-guard (SUPPORTED_LEERLIJNEN), niet een eigen kopie.
+  var leerlijnen = SUPPORTED_LEERLIJNEN;
   var telling: Record<string, any> = {};
   const mapping = getLeerlijnenMappingSync();
 
@@ -668,7 +684,10 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
     }
   }
 
-  var leerlijnen = ['lesgeven', 'organiseren', 'prof_handelen'];
+  // M42 T10: zelfde bron van waarheid als telLeerlijnen()'s eigen fix hierboven
+  // — dit was een tweede, losse kopie van dezelfde (inmiddels achterhaalde)
+  // OUDE 3-leerlijn-namenlijst.
+  var leerlijnen = SUPPORTED_LEERLIJNEN;
 
   var telling = telLeerlijnen(scores, activeDeelgebiedenIds);
 
