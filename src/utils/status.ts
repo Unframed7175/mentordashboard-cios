@@ -117,7 +117,8 @@ export function detectTraject(student: any): string {
  * @param student   Student record (from klassenState)
  * @param traject   Optional traject override; if not provided, detectTraject() is used
  * @param vestiging Optional vestiging (4th param, M42 T7b) — forwarded to berekenPrognose,
- *                  currently INERT there (T8/T9 will use it for per-vestiging normen)
+ *                  which uses it to select the VestigingNormen profiel for the bj1/bj2
+ *                  decision (null/undefined → 'normen_onbekend')
  */
 export function berekenStatus(student: any, traject?: string, _thresholds?: { geoorloofd: number; ongeoorloofd: number }, vestiging?: Vestiging | null): StatusResult {
   const effectiveTraject = traject ?? detectTraject(student);

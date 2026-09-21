@@ -422,6 +422,19 @@ export function berekenBj1Uitkomst(
 // T9c's eigen, kleinere criteria-set, niet deze functie.
 // ---------------------------------------------------------------------------
 
+// M42 review-fix (maintainability): this exact 4-line KD-status resolution was
+// duplicated verbatim in berekenBj2GeneriekPad and berekenBj2RoosendaalSblKeuze
+// (and mirrors the same idiom already used in src/utils/status.ts and
+// DoortstroomPrognoseSection.tsx). "Minimaal één KD behaald of haalbaar" —
+// an explicit 'niet_behaald' OR a missing/null status both fail this; a
+// missing status is never assumed positive (brondocument-eis).
+function resolveKdStatus(student: any): string | null {
+  const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
+  return keuzedelen.length > 0
+    ? aggregateKdStatus(keuzedelen)
+    : (student.kdStatus ?? null);
+}
+
 export interface Bj2Uitkomst {
   label: 'sbl' | 'sbc' | 'bespreekgeval';
   gaps: any;
@@ -445,14 +458,8 @@ export function berekenBj2GeneriekPad(
     return isVoldoendeOfHoger(score);
   }).length;
 
-  // ── KD: "minimaal één KD behaald of haalbaar voor 1 december" — zelfde idioom
-  // als src/utils/status.ts / DoortstroomPrognoseSection.tsx. Een expliciete
-  // 'niet_behaald' ÓF een ontbrekende/null status faalt allebei deze eis — een
-  // missende status wordt NIET aangenomen als "in orde" (brondocument-eis).
-  const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
-  const kdStatus = keuzedelen.length > 0
-    ? aggregateKdStatus(keuzedelen)
-    : (student.kdStatus ?? null);
+  // ── KD: "minimaal één KD behaald of haalbaar voor 1 december" ──────────────
+  const kdStatus = resolveKdStatus(student);
   const kdVoldoet = kdStatus === 'behaald' || kdStatus === 'haalbaar';
 
   // ── Rekenen (gedeeld tussen SBC/SBL, alleen het niveau-criterium verschilt) ──
@@ -599,10 +606,7 @@ export function berekenBj2RoosendaalSblKeuze(
   const reken = telRekenDomeinen(student);
 
   // ── KD: "behaald of haalbaar voor 1 december" — zelfde idioom als T9a ──────
-  const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
-  const kdStatus = keuzedelen.length > 0
-    ? aggregateKdStatus(keuzedelen)
-    : (student.kdStatus ?? null);
+  const kdStatus = resolveKdStatus(student);
   const kdVoldoet = kdStatus === 'behaald' || kdStatus === 'haalbaar';
 
   // ── "Alle levels 2 behaald" — deze functie is Roosendaal-exclusief (nooit
@@ -659,9 +663,9 @@ export function berekenBj2RoosendaalSblKeuze(
 //   bj1: 'negatief' | 'versneld_sbc' | 'naar_bj2' | 'neutraal'
 //   bj2: 'sbc' | 'sbl' | 'bespreekgeval' (M42 T9a, D17: geen negatief-tier meer)
 // ---------------------------------------------------------------------------
-// vestiging (5th param, M42 T7b): reachable but currently INERT — the decision
-// body below does not read it yet. T8/T9 will use it to look up a
-// per-vestiging normenprofiel (see utils/normen.ts getNormenVoorVestiging*).
+// vestiging (5th param, M42 T7b): selects the VestigingNormen profiel used by
+// the bj1/bj2 branches below (via getNormenVoorVestigingSync) — null/undefined
+// falls back to 'normen_onbekend' (ADR-16's safe-fallback philosophy).
 export function berekenPrognose(student: any, traject?: string, activeDeelgebiedenIds?: string[], normen?: Normen, vestiging?: Vestiging | null): any {
   traject = traject || 'bj2';
 
@@ -829,7 +833,6 @@ export function debugPrognose(query: string, traject?: string): void {
     return;
   }
 
-  const n = getNormenSync();
   var p = berekenPrognose(student, traject);
   var isBJ1 = p.traject === 'bj1';
 
@@ -839,24 +842,37 @@ export function debugPrognose(query: string, traject?: string): void {
   console.log('Totaal ≥V: ' + p.totaalVoldoendeOfHoger + '/19  |  Totaal O: ' + p.totaalOnvoldoende);
 
   if (isBJ1) {
-    console.log('BJ2-norm  (≥' + n.bj1Positief + ' ≥V): ' + (p.totaalVoldoendeOfHoger >= n.bj1Positief ? '✅' : '❌ nog ' + p.gaps.nodigBJ2 + ' nodig'));
-    console.log('Versneld SBC:');
-    console.log('  lesgeven ≥' + n.versneldLesgeven + ' G/E:      ' + telling_str(telling_val(p, 'lesgeven', 'goedOfHoger'), n.versneldLesgeven, p.gaps.nodigVersneld_lesgeven));
-    console.log('  organiseren ≥' + n.versneldOrganiseren + ' G/E:   ' + telling_str(telling_val(p, 'organiseren', 'goedOfHoger'), n.versneldOrganiseren, p.gaps.nodigVersneld_organiseren));
-    console.log('  prof.handelen ≥' + n.versneldProfHandelen + ' G/E: ' + telling_str(telling_val(p, 'prof_handelen', 'goedOfHoger'), n.versneldProfHandelen, p.gaps.nodigVersneld_profHandelen));
+    // M42 review-fix: dit blok las nog p.gaps.nodigBJ2/nodigVersneld_lesgeven/
+    // n.versneldLesgeven etc. — velden die niet meer bestaan sinds
+    // berekenBj1Uitkomst (M42 T8) de BJ1-tak herschreef. Niet-crashend maar wel
+    // stil fout: nodigBJ2 was altijd undefined, telling_val('lesgeven',...)
+    // vond nooit een match (echte leerlijn-namen zijn nu
+    // 'lesgeven_en_organiseren'/'professioneel_handelen') en gaf dus altijd 0
+    // terug — elke Versneld-SBC-teller toonde dus altijd "0/norm ❌", ongeacht
+    // de werkelijke score. Print nu de echte Bj1Uitkomst-gaps-velden direct,
+    // zelfde "niet-crashend, wel correct"-precedent als de bj2-tak hieronder.
+    console.log('Naar BJ2 (nog nodig): ' + p.gaps.nodigNaarBj2Deelgebieden + ' deelgebieden, ' + p.gaps.nodigNaarBj2ProfHoudingBvb + ' BVB, ' + p.gaps.nodigNaarBj2RekenDomeinen + ' rekendomeinen');
+    console.log('Versneld SBC (nog nodig): ' + p.gaps.nodigVersneldSbc_lesgevenOrganiseren + ' lesgeven/organiseren ≥G, ' + p.gaps.nodigVersneldSbc_profHandelen + ' prof.handelen ≥G, ' + p.gaps.nodigVersneldSbc_profHoudingBvb + ' BVB ≥G, ' + p.gaps.nodigVersneldSbc_rekenDomeinen + ' rekendomeinen');
+    console.log('WVO-traject: ' + p.gaps.wvoTraject + ' | Nederlands: ' + p.gaps.nederlandsNiveau + ' | Rekenen: ' + p.gaps.rekenNiveau + ' | Levels afgerond: ' + p.gaps.levelsAfgerond);
   } else {
     // M42 T9a: berekenBj2GeneriekPad's gaps-object heeft geen n.sbl/n.sbc/
     // nodigSBC_kern meer (KERN_SBC is verwijderd, D13) — dit console-debug-
-    // blok print nu p.gaps.label rechtstreeks i.p.v. de oude (afgeschafte)
-    // deelgebieden-telling-vergelijking, zodat het niet crasht op de
-    // verwijderde velden. Zelfde "niet volledig herbouwd, wel niet-crashend"-
-    // precedent als T8 al toepaste op het BJ1-blok hierboven (n.bj1Positief/
-    // n.versneldLesgeven zijn ook al stale t.o.v. berekenBj1Uitkomst).
+    // blok print p.gaps.label rechtstreeks i.p.v. de oude (afgeschafte)
+    // deelgebieden-telling-vergelijking. (M42 review-fix: het BJ1-blok
+    // hierboven is inmiddels ook bijgewerkt — beide takken zijn nu correct.)
     console.log('Label: ' + p.label + ' (aantal ≥V: ' + p.gaps.aantalVoldoendeOfHoger + ', nog nodig voor SBC: ' + p.gaps.nodigSBC_deelgebieden + ', voor SBL: ' + p.gaps.nodigSBL_deelgebieden + ')');
   }
 
-  var ruimte = p.gaps.onvoldoendeRuimte;
-  console.log('Negatief-ruimte: ' + (ruimte >= 0 ? ruimte + ' O nog toegestaan' : Math.abs(ruimte) + ' O te veel ⚠️'));
+  // M42 review-fix: p.gaps.onvoldoendeRuimte bestaat niet meer op GEEN van de
+  // 3 nieuwe gaps-vormen (was altijd undefined, dus 'ruimte >= 0' viel altijd
+  // op false en toonde stil een vals-alarm "NaN O te veel ⚠️", ongeacht de
+  // werkelijke telling). D17: BJ2 heeft sowieso geen "ruimte"-concept meer
+  // (geen negatief-tier) — alleen BJ1's Bj1Uitkomst.gaps heeft het equivalent
+  // (onvoldoendeDeelgebiedenRuimte), dus alleen daar tonen.
+  if (isBJ1) {
+    var ruimte = p.gaps.onvoldoendeDeelgebiedenRuimte;
+    console.log('Negatief-ruimte (deelgebieden ≤O): ' + ruimte + ' nog toegestaan boven de huidige telling');
+  }
   console.groupEnd();
 
   console.group('Per leerlijn');
@@ -874,15 +890,6 @@ export function debugPrognose(query: string, traject?: string): void {
   console.groupEnd();
 
   console.groupEnd();
-}
-
-// Helpers voor debug output
-function telling_val(p: any, leerlijn: string, prop: string): any {
-  var ll = p.leerlijnen.find(function(l: any) { return l.leerlijn === leerlijn; });
-  return ll ? ll[prop] : 0;
-}
-function telling_str(huidig: any, norm: number, tekort: number): string {
-  return huidig + '/' + norm + (tekort === 0 ? ' ✅' : ' ❌ nog ' + tekort + ' nodig');
 }
 
 console.log('[prognosis.ts] Doorstroomnorm engine geladen (BJ1 + BJ2)');
