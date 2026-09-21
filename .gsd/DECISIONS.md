@@ -286,3 +286,19 @@
 **Gevolg voor T8:** beide Roosendaal-aanvullingen (≥4 levels voor naar_bj2, ≥8 levels voor versneld_sbc) horen in T8's taakbrief als expliciete extra AND-voorwaarde, gebruikt makend van vestiging (T7b) en T6b's level-telling — géén aparte per-vestiging-normen-call nodig, de drempel is brondocument-vast, niet configureerbaar.
 
 **Afgewezen alternatief:** een nieuw BJ1-traject-intentieveld toevoegen om de 8/10-split te implementeren als dubbele poort — verworpen wegens onnodige scope-toename en duplicatie met T3b's bestaande BJ2-patroon.
+
+---
+
+## ADR-17d · T9a: BJ2 heeft geen eigen negatief-drempel meer + nieuw label 'bespreekgeval' (2026-09-21)
+
+**Status:** Vastgelegd (Fase 2 — Lane C, vóór T9a's taakbrief geschreven)
+**Wijzigt:** impliciete aanname in S01-PLAN.md dat BJ2 hetzelfde `negatief`/`neutraal`-labelpaar als BJ1 zou hergebruiken.
+
+**Bevinding:** het brondocument (p.4, "A. Voortgangsbesluit doorstroom naar Examineringsjaar SBL of profieljaar SBC") heeft — anders dan BJ1's expliciete 3-kolom-tabel (Positief-BJ2 / Positief-versneld / Negatief-bindend, p.3) — GEEN aparte negatief-kolom: alleen een SBL- en een SBC-kolom, plus een gedeelde opmerking dat wie niet aan de eisen voldoet een "bespreekgeval" is. De oude `negatiefTotaal`/`negatiefPerLeerlijn`-drempels zijn gekalibreerd op het afgeschreven 19-deelgebieden-schema (ADR-16) en mogen niet hergebruikt worden voor het nieuwe 12-deelgebieden-schema — er bestaat geen brondocument-cijfer om een nieuwe BJ2-negatief-drempel op te baseren.
+
+**Projectlead-beslissing:**
+1. BJ2 krijgt in T9a **geen eigen `negatief`-uitkomst** — elke leerling die niet aan SBL (≥7 deelgebieden voldoende) of SBC (≥10 deelgebieden voldoende) voldoet, valt in een nieuwe, aparte uitkomst.
+2. Die nieuwe uitkomst krijgt een **eigen label, niet `neutraal`** (BJ1's `neutraal`/"Twijfelgeval" blijft ongewijzigd, apart concept): **`bespreekgeval`** (letterlijke brondocument-term), getoond als **oranje / "Bespreekgeval"** in de klasoverzicht-tegel — zelfde kleurfamilie als `neutraal` (geen nieuwe `StatusKleur`-waarde nodig), maar met eigen tekst zodat een mentor het onderscheidt van BJ1's twijfelgeval.
+3. `berekenStatus()`'s label→kleur-tabel (`src/utils/status.ts`) krijgt een EXPLICIETE branch voor `'bespreekgeval'` — zonder die branch valt een onherkend label stil door naar de catch-all (`groen`/"SBL"), wat een bespreekgeval-leerling ten onrechte als "in orde" zou tonen. Dit is een verplicht onderdeel van T9a, geen losse taak.
+
+**Gevolg voor T9a:** `berekenBj2GeneriekPad()` (of hoe de geëxtraheerde, direct testbare functie ook genoemd wordt) retourneert `'sbl' | 'sbc' | 'bespreekgeval'` voor het generieke pad — geen `'negatief'` meer aan de BJ2-kant van dat pad. `src/utils/status.ts` krijgt de nieuwe branch. `DoortstroomPrognoseSection.tsx` (Lane D, T12) zal deze nieuwe uitkomst ook moeten tonen — buiten scope van T9a zelf, wel genoteerd als vervolgpunt.
