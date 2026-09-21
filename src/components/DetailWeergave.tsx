@@ -128,7 +128,7 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       </div>
 
       {/* Section 1: DoortstroomPrognoseSection */}
-      <DoortstroomPrognoseSection student={student} status={status} />
+      <DoortstroomPrognoseSection student={student} status={status} vestiging={vestiging} />
 
       {/* Section 2: RekenenNederlandsSection — RNL-01..03 */}
       <RekenenNederlandsSection student={student} onSaved={() => setRevision(r => r + 1)} />
