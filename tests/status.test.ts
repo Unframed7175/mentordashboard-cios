@@ -71,6 +71,49 @@ function allScores(level: string | null): Record<string, string | null> {
 }
 
 // ---------------------------------------------------------------------------
+// M42 T9a fixtures — berekenBj2GeneriekPad's SBC/SBL criteria are checked
+// against student.datapunten (Rekenen) + several dedicated fields (nlSchrijven/
+// nlGesprekvoeren/nederlandsResultaat/rekenResultaat/wvoTraject/keuzedelen),
+// NOT just a deelgebieden-count anymore (see utils/prognosis.ts). Every BJ2
+// test below that needs a real 'sbc'/'sbl' outcome (rather than the new
+// 'bespreekgeval' fallback) must set all of these — a bare deelgebieden count
+// is no longer sufficient by itself.
+// ---------------------------------------------------------------------------
+
+function rekenenDatapunten(): any[] {
+  return [1, 2, 3, 4, 5].map((n) => ({
+    vak: 'Rekenen',
+    datapunt: `F2 Rekenen -eindtoets domein ${n}`,
+    scores: {},
+    status: 'Op tijd ingeleverd en wel beoordeeld',
+  }));
+}
+
+function makeFullSbcStudent(overrides: Partial<any> = {}): any {
+  return makeStudent({
+    deelgebiedScores: allScores('voldoende'), // 19 >= bj2SbcDeelgebiedenVoldoendeMin (10)
+    nlSchrijven: '2f',                        // → 'voldoende' (2F-of-hoger volstaat)
+    nlGesprekvoeren: '3f',                    // → 'goed' (exact 3F vereist)
+    rekenResultaat: '3f',                     // → 'goed' (MBO4)
+    datapunten: rekenenDatapunten(),          // 5 domeinen afgerond
+    wvoTraject: true,
+    keuzedelen: [{ id: '1', naam: 'KD Sport', status: 'behaald' }],
+    ...overrides,
+  });
+}
+
+function makeFullSblStudent(overrides: Partial<any> = {}): any {
+  return makeStudent({
+    deelgebiedScores: allScores('voldoende'), // 19 >= bj2SblDeelgebiedenVoldoendeMin (7)
+    nederlandsResultaat: '2f',                // → 'voldoende' (2F-of-hoger volstaat, single-veld)
+    rekenResultaat: '2f',                     // → 'voldoende' (MBO3-of-hoger)
+    datapunten: rekenenDatapunten(),          // 5 domeinen afgerond
+    keuzedelen: [{ id: '1', naam: 'KD Sport', status: 'behaald' }],
+    ...overrides,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Setup
 // ---------------------------------------------------------------------------
 
@@ -83,57 +126,52 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 test('grijs: no scores → kleur=grijs, label=Onbekend', () => {
+  // M42 T9a: BJ2 gaat nu ook door de vestiging-null-guard, dus een vestiging
+  // is nodig om de "heeft geen scores"-tak te bereiken i.p.v. 'normen_onbekend'.
   // Empty deelgebiedScores means totaalVoldoendeOfHoger + totaalOnvoldoende === 0
   const student = makeStudent({ deelgebiedScores: {} });
-  const result = berekenStatus(student);
+  const result = berekenStatus(student, undefined, undefined, 'goes');
   expect(result.kleur).toBe('grijs');
   expect(result.label).toBe('Onbekend');
 });
 
-test('rood: negatief prognose (7 onvoldoende) → kleur=rood, label=Risico', () => {
-  // 7 onvoldoende scores triggers isNegatief (>6 threshold) → label='negatief'
-  const scores = allScores('voldoende');
-  const keys = Object.keys(scores).slice(0, 7);
-  for (const k of keys) scores[k] = 'onvoldoende';
-  const student = makeStudent({ deelgebiedScores: scores });
-  const result = berekenStatus(student);
-  expect(result.kleur).toBe('rood');
-  expect(result.label).toBe('Risico');
-});
+// ── 'rood: negatief prognose (7 onvoldoende)' verwijderd (M42 T9a, D17) ───────
+// D17/ADR-17d: het brondocument heeft voor BJ2 GEEN eigen negatief-kolom —
+// berekenBj2GeneriekPad retourneert nooit 'negatief' (alleen 'sbl'/'sbc'/
+// 'bespreekgeval'). Deze test testte precies dat, nu afgeschafte, gedrag.
+// 'rood'/'Risico' blijft een geldige RAG-uitkomst — alleen via BJ1
+// (berekenBj1Uitkomst's eigen negatief-triggers, zie
+// tests/prognosis.bj1Uitkomst.test.ts) is die nog bereikbaar, nooit meer via
+// BJ2.
 
-test('oranje/Twijfelgeval: neutraal prognose (10 voldoende, not negatief) → kleur=oranje, label=Twijfelgeval', () => {
-  // 10 voldoende → totaalVoldoendeOfHoger=10 which is <13 (neutraal for bj2) and not negatief
+test('oranje/Bespreekgeval: bespreekgeval-prognose (10 deelgebieden voldoende, mist Nederlands/Rekenen/KD) → kleur=oranje, label=Bespreekgeval', () => {
+  // M42 T9a/D17: BJ2's fallback-label heet nu 'bespreekgeval' (niet meer
+  // 'neutraal' — dat blijft BJ1's eigen label). 10 voldoende alleen is niet
+  // genoeg: zonder nlSchrijven/nlGesprekvoeren/nederlandsResultaat/Rekenen/KD
+  // voldoet dit noch aan SBC noch aan SBL.
   const scores = allScores(null);
   const keys = Object.keys(scores).slice(0, 10);
   for (const k of keys) scores[k] = 'voldoende';
   const student = makeStudent({ deelgebiedScores: scores });
-  const result = berekenStatus(student);
+  const result = berekenStatus(student, undefined, undefined, 'goes');
   expect(result.kleur).toBe('oranje');
-  expect(result.label).toBe('Twijfelgeval');
+  expect(result.label).toBe('Bespreekgeval');
 });
 
 test('groen/SBL: hoog verzuim beïnvloedt kleur NIET meer (verzuim als ring, niet kleur)', () => {
   // T02: verzuim is no longer a color override — shown as box-shadow ring on tile instead.
-  // 13 voldoende → sbl → groen/SBL regardless of ongeoorloofd hours.
-  const scores = allScores(null);
-  const keys = Object.keys(scores).slice(0, 13);
-  for (const k of keys) scores[k] = 'voldoende';
-  const student = makeStudent({
-    deelgebiedScores: scores,
-    verzuim:          { aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 601 },
+  // Volledige SBL-criteria (M42 T9a) → groen/SBL regardless of ongeoorloofd hours.
+  const student = makeFullSblStudent({
+    verzuim: { aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 601 },
   });
-  const result = berekenStatus(student);
+  const result = berekenStatus(student, undefined, undefined, 'goes');
   expect(result.kleur).toBe('groen');
   expect(result.label).toBe('SBL');
 });
 
-test('groen/SBL: sbl prognose (13 voldoende) → kleur=groen, label=SBL', () => {
-  // 13 voldoende → sbl for bj2 traject
-  const scores = allScores(null);
-  const keys = Object.keys(scores).slice(0, 13);
-  for (const k of keys) scores[k] = 'voldoende';
-  const student = makeStudent({ deelgebiedScores: scores });
-  const result = berekenStatus(student);
+test('groen/SBL: sbl prognose (volledige SBL-criteria) → kleur=groen, label=SBL', () => {
+  const student = makeFullSblStudent();
+  const result = berekenStatus(student, undefined, undefined, 'goes');
   expect(result.kleur).toBe('groen');
   expect(result.label).toBe('SBL');
 });
@@ -171,30 +209,27 @@ test('STATUS_VOLGORDE: rood < oranje < groen < paars < blauw < grijs', () => {
 
 describe('berekenStatus thresholds (Phase 18)', () => {
 
-  // Helper: 13 voldoende scores → positive prognose (sbl label for bj2)
+  // Helper: volledige SBL-criteria (M42 T9a) → positive prognose (sbl label for bj2)
   function makePositiveStudent(verzuim?: { aanwezigheid: number; geoorloofd: number; ongeoorloofd: number }): any {
-    const scores = allScores(null);
-    const keys = Object.keys(scores).slice(0, 13);
-    for (const k of keys) scores[k] = 'voldoende';
-    return makeStudent({ deelgebiedScores: scores, verzuim: verzuim ?? null });
+    return makeFullSblStudent({ verzuim: verzuim ?? null });
   }
 
   it('T02: hoog ongeoorloofd verzuim verandert kleur NIET — altijd prognose-driven (ring op tegel)', () => {
-    // T02: verzuim is no longer a color override. 13 voldoende → sbl → groen/SBL
+    // T02: verzuim is no longer a color override. Volledige SBL-criteria → groen/SBL
     // regardless of ongeoorloofd hours exceeding the threshold.
     const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 700 });
 
-    const result = berekenStatus(student, undefined, { geoorloofd: 1500, ongeoorloofd: 600 });
+    const result = berekenStatus(student, undefined, { geoorloofd: 1500, ongeoorloofd: 600 }, 'goes');
 
     expect(result.kleur).toBe('groen');
     expect(result.label).toBe('SBL');
   });
 
   it('T02: hoog geoorloofd verzuim verandert kleur NIET — altijd prognose-driven', () => {
-    // T02: verzuim color override removed. 13 voldoende → sbl → groen/SBL
+    // T02: verzuim color override removed. Volledige SBL-criteria → groen/SBL
     const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 1000, ongeoorloofd: 0 });
 
-    const result = berekenStatus(student, undefined, { geoorloofd: 900, ongeoorloofd: 600 });
+    const result = berekenStatus(student, undefined, { geoorloofd: 900, ongeoorloofd: 600 }, 'goes');
 
     expect(result.kleur).toBe('groen');
     expect(result.label).toBe('SBL');
@@ -204,7 +239,7 @@ describe('berekenStatus thresholds (Phase 18)', () => {
     // T02: color no longer changes for high verzuim — ring is shown instead.
     const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 0, ongeoorloofd: 601 });
 
-    const result = berekenStatus(student);
+    const result = berekenStatus(student, undefined, undefined, 'goes');
 
     expect(result.kleur).toBe('groen');
     expect(result.label).toBe('SBL');
@@ -212,10 +247,10 @@ describe('berekenStatus thresholds (Phase 18)', () => {
 
   it('prognose-driven status: laag verzuim → groen/SBL', () => {
     // Both ongeoorloofd=10 and geoorloofd=10 are well below thresholds
-    // 13 voldoende → sbl → groen/SBL
+    // Volledige SBL-criteria → groen/SBL
     const student = makePositiveStudent({ aanwezigheid: 0, geoorloofd: 10, ongeoorloofd: 10 });
 
-    const result = berekenStatus(student, undefined, { geoorloofd: 900, ongeoorloofd: 600 });
+    const result = berekenStatus(student, undefined, { geoorloofd: 900, ongeoorloofd: 600 }, 'goes');
 
     expect(result.kleur).toBe('groen');
     expect(result.label).toBe('SBL');
@@ -223,36 +258,38 @@ describe('berekenStatus thresholds (Phase 18)', () => {
 
 });
 
-describe('berekenStatus vestiging parameter (M42 T7b)', () => {
+describe('berekenStatus vestiging parameter (M42 T7b/T9a)', () => {
 
-  // Helper: 13 voldoende scores → positive prognose (sbl label for bj2)
-  function makePositiveStudent(): any {
-    const scores = allScores(null);
-    const keys = Object.keys(scores).slice(0, 13);
-    for (const k of keys) scores[k] = 'voldoende';
-    return makeStudent({ deelgebiedScores: scores, verzuim: null });
-  }
-
-  // T7b is pure plumbing: the appended 4th `vestiging` parameter must be
-  // accepted without throwing and must NOT change kleur/label — the decision
-  // body doesn't read it yet (that's T8/T9's job). Also proves `_thresholds`
-  // (3rd param, still positional) keeps working unmodified.
-  it('accepts roosendaal/goes/dordrecht/undefined/null without throwing or changing kleur/label', () => {
-    const student = makePositiveStudent();
-    const baseline = berekenStatus(student);
+  // ── 'accepts .../ without throwing or changing kleur/label' herschreven (M42 T9a) ──
+  // T7b's oorspronkelijke aanname ("vestiging is pure plumbing, verandert nooit
+  // kleur/label") is met T9a's per-vestiging VestigingNormen-motor precies
+  // ONGEDAAN gemaakt — dat IS het hele punt van T9a: verschillende vestigingen
+  // kunnen nu, terecht, verschillende sbc/sbl/bespreekgeval-uitkomsten geven
+  // (bv. de Roosendaal-levels-eis). De "labels moeten identiek zijn"-assertie
+  // hieronder is dus vervangen door twee dingen die WEL nog moeten kloppen:
+  // geen enkele vestigingswaarde mag een throw geven, en null/undefined moeten
+  // allebei consistent op 'normen_onbekend' uitkomen (de vestiging-null-guard,
+  // ADR-16-stijl). Echte "verschillende vestiging → verschillende uitkomst"-
+  // dekking staat in tests/prognosis.bj2GeneriekPad.test.ts (Roosendaal-only
+  // levels-eis, 0-sentinel-tests).
+  it('accepts roosendaal/goes/dordrecht/undefined/null without throwing; null/undefined consistently give normen_onbekend', () => {
+    const student = makeFullSblStudent();
 
     for (const vestiging of ['roosendaal', 'goes', 'dordrecht', undefined, null] as const) {
       let result: StatusResult;
       expect(() => {
         result = berekenStatus(student, undefined, undefined, vestiging);
       }).not.toThrow();
-      expect(result!.kleur).toBe(baseline.kleur);
-      expect(result!.label).toBe(baseline.label);
     }
+
+    const zonderVestiging = berekenStatus(student, undefined, undefined, undefined);
+    const metNull = berekenStatus(student, undefined, undefined, null);
+    expect(zonderVestiging.label).toBe('Normen onbekend');
+    expect(metNull.label).toBe('Normen onbekend');
   });
 
   it('still honours the 3rd positional _thresholds param when vestiging is passed as 4th', () => {
-    const student = makePositiveStudent();
+    const student = makeFullSblStudent();
     const result = berekenStatus(student, undefined, { geoorloofd: 1500, ongeoorloofd: 600 }, 'goes');
     expect(result.kleur).toBe('groen');
     expect(result.label).toBe('SBL');
@@ -263,10 +300,7 @@ describe('berekenStatus vestiging parameter (M42 T7b)', () => {
 describe('berekenStatus keuzedelen (Phase 39)', () => {
 
   function makeSbcStudent(keuzedelen?: any[]): any {
-    return makeStudent({
-      deelgebiedScores: allScores('voldoende'),
-      keuzedelen: keuzedelen ?? [],
-    });
+    return makeFullSbcStudent({ keuzedelen: keuzedelen ?? [] });
   }
 
   const kdBehaald     = [{ id: '1', naam: 'KD Sport', status: 'behaald'      }];
@@ -274,37 +308,57 @@ describe('berekenStatus keuzedelen (Phase 39)', () => {
   const kdNietBehaald = [{ id: '1', naam: 'KD Sport', status: 'niet_behaald' }];
 
   it('sbc + behaald KD → blauw / SBC (geen downgrade)', () => {
-    const result = berekenStatus(makeSbcStudent(kdBehaald));
+    const result = berekenStatus(makeSbcStudent(kdBehaald), undefined, undefined, 'goes');
     expect(result.kleur).toBe('blauw');
     expect(result.label).toBe('SBC');
   });
 
   it('sbc + haalbaar KD → oranje / Let op — KD (SBC vereist behaald)', () => {
-    const result = berekenStatus(makeSbcStudent(kdHaalbaar));
+    const result = berekenStatus(makeSbcStudent(kdHaalbaar), undefined, undefined, 'goes');
     expect(result.kleur).toBe('oranje');
     expect(result.label).toBe('Let op — KD');
   });
 
-  it('sbc + niet_behaald KD → oranje / Let op — KD', () => {
-    const result = berekenStatus(makeSbcStudent(kdNietBehaald));
+  // ── 'sbc + niet_behaald KD' aangepast (M42 T9a) ───────────────────────────
+  // VOOR T9a: kdStatus zat ALLEEN in status.ts's downgrade-logica (na afloop
+  // van de prognose-berekening), dus 'niet_behaald' liet het label op 'sbc'
+  // staan en downgradede pas de KLEUR naar oranje/'Let op — KD'.
+  // SINDS T9a: de KD-eis zit IN berekenBj2GeneriekPad's eigen sbc/sbl-criteria
+  // (brief-tabel: "kdStatus === 'behaald' || 'haalbaar'" — 'niet_behaald' faalt
+  // dat AL bij het bepalen van het label zelf). Een 'niet_behaald'-leerling kan
+  // dus nooit meer label 'sbc' bereiken — het label wordt al 'bespreekgeval'
+  // vóórdat status.ts's eigen (ongewijzigde, brief-verplicht met rust gelaten)
+  // downgrade-check ooit gezien wordt. Kleur blijft oranje, labeltekst wijzigt.
+  it('sbc + niet_behaald KD → oranje / Bespreekgeval (KD-eis zit nu IN de sbc/sbl-criteria zelf)', () => {
+    const result = berekenStatus(makeSbcStudent(kdNietBehaald), undefined, undefined, 'goes');
     expect(result.kleur).toBe('oranje');
-    expect(result.label).toBe('Let op — KD');
+    expect(result.label).toBe('Bespreekgeval');
   });
 
-  it('sbc + geen keuzedelen → blauw / SBC (null = geen downgrade)', () => {
-    const result = berekenStatus(makeSbcStudent([]));
-    expect(result.kleur).toBe('blauw');
-    expect(result.label).toBe('SBC');
+  // ── 'sbc + geen keuzedelen' aangepast (M42 T9a) ───────────────────────────
+  // VOOR T9a: kdStatus===null (geen keuzedelen ingevuld) werd door status.ts's
+  // downgrade-check NIET als 'niet_behaald'/'haalbaar' herkend, dus geen
+  // downgrade → label bleef 'sbc'/blauw ("null = geen downgrade").
+  // SINDS T9a: de brief is expliciet dat een missende/null KD-status de sbc/
+  // sbl-eis ZELF laat falen ("een missende status is niet automatisch 'in
+  // orde'") — dus dit is nu een bespreekgeval, niet langer een stille SBC-pass.
+  it('sbc + geen keuzedelen → oranje / Bespreekgeval (missende KD-status is geen "aannemen dat het goed zit" meer)', () => {
+    const result = berekenStatus(makeSbcStudent([]), undefined, undefined, 'goes');
+    expect(result.kleur).toBe('oranje');
+    expect(result.label).toBe('Bespreekgeval');
   });
 
-  it('sbl + niet_behaald KD → groen / SBL (SBL heeft geen KD-eis)', () => {
-    const scores = allScores(null);
-    const keys = Object.keys(scores).slice(0, 13);
-    for (const k of keys) scores[k] = 'voldoende';
-    const student = makeStudent({ deelgebiedScores: scores, keuzedelen: kdNietBehaald });
-    const result = berekenStatus(student);
-    expect(result.kleur).toBe('groen');
-    expect(result.label).toBe('SBL');
+  // ── 'sbl + niet_behaald KD' aangepast (M42 T9a) ───────────────────────────
+  // De oorspronkelijke test-naam/comment ("SBL heeft geen KD-eis") klopte voor
+  // de OUDE motor (status.ts's downgrade-check zat alleen op het sbc-pad).
+  // De brief is expliciet dat SBL nu WEL een eigen KD-eis heeft ("KD: same
+  // check as SBC") — 'niet_behaald' sluit dus ook SBL uit, vóór status.ts ooit
+  // een label 'sbl' te zien krijgt.
+  it('sbl + niet_behaald KD → oranje / Bespreekgeval (SBL heeft nu OOK een KD-eis, T9a)', () => {
+    const student = makeFullSblStudent({ keuzedelen: kdNietBehaald });
+    const result = berekenStatus(student, undefined, undefined, 'goes');
+    expect(result.kleur).toBe('oranje');
+    expect(result.label).toBe('Bespreekgeval');
   });
 
   // ── 2 tests removed (M42 T8) ──────────────────────────────────────────────
