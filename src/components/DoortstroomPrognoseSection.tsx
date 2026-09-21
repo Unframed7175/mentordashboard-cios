@@ -48,6 +48,8 @@ interface Bj2Gaps {
   rekenNiveau: Niveau;
   kdStatus: string | null;
   wvoTraject: boolean | null;
+  sbcRoosendaalLevelsOk: boolean;
+  sblRoosendaalLevelsOk: boolean;
 }
 
 interface Bj2RoosendaalSblKeuzeGaps {
@@ -57,6 +59,7 @@ interface Bj2RoosendaalSblKeuzeGaps {
   nederlandsNiveau: Niveau;
   rekenNiveau: Niveau;
   kdStatus: string | null;
+  levelsOk: boolean;
 }
 
 // Maps prognose label to readable uitkomst text shown in the badge
@@ -220,6 +223,11 @@ export default function DoortstroomPrognoseSection({ student, status, vestiging 
   const isRoosendaalSblKeuze =
     vestiging === 'roosendaal' && normalizeRoosendaalTraject(student.roosendaalTraject) === 'sbl';
 
+  // Gates the Roosendaal-only "levels" criterion rows across BOTH bj1 and bj2 blocks
+  // (ADR-17e: for Goes/Dordrecht this criterion is always trivially satisfied, so
+  // showing it there would be confusing noise).
+  const toonRoosendaalLevels = vestiging === 'roosendaal';
+
   // BJ1 → Versneld SBC: alle datapunten op tijd — UNRELATED to Lane C (reads
   // student.datapunten directly, no engine field changed here), kept as-is.
   const aantalNietIngeleverd = (student.datapunten || []).filter((dp: any) =>
@@ -300,7 +308,6 @@ export default function DoortstroomPrognoseSection({ student, status, vestiging 
   let bj1Ordered: React.ReactNode = null;
   if (traject === 'bj1') {
     const gaps = p.gaps as Bj1Gaps;
-    const toonRoosendaalLevels = vestiging === 'roosendaal';
 
     // ── Negatief (M42 T12: rebuilt against the new gaps fields) ────────────────
     // The new engine has exactly 2 negatief-triggers (berekenBj1Uitkomst) — no
@@ -478,6 +485,7 @@ export default function DoortstroomPrognoseSection({ student, status, vestiging 
             gaps.nodigRekenDomeinen,
             niveauNodig(gaps.rekenNiveau, 'voldoende'),
             kdNodig(gaps.kdStatus),
+            gaps.levelsOk ? 0 : 3,
           )}
           isEmpty={globalEmpty}
         >
@@ -506,6 +514,13 @@ export default function DoortstroomPrognoseSection({ student, status, vestiging 
             scoreDisplay={behaaldDisplay(gaps.kdStatus)}
             nodig={kdNodig(gaps.kdStatus)}
           />
+          {toonRoosendaalLevels && (
+            <CriterionRow
+              label="Alle levels 2 behaald"
+              scoreDisplay={gaps.levelsOk ? 'Voldaan' : 'Niet voldaan'}
+              nodig={gaps.levelsOk ? 0 : 3}
+            />
+          )}
         </PrognoseBlock>
       );
       bj2Ordered = <>{sblBlock}{pokBlock}</>;
@@ -522,6 +537,7 @@ export default function DoortstroomPrognoseSection({ student, status, vestiging 
             gaps.nodigSBL_rekenDomeinen,
             niveauNodig(gaps.rekenNiveau, 'voldoende'),
             kdNodig(gaps.kdStatus),
+            gaps.sblRoosendaalLevelsOk ? 0 : 3,
           )}
           isEmpty={globalEmpty}
         >
@@ -550,6 +566,13 @@ export default function DoortstroomPrognoseSection({ student, status, vestiging 
             scoreDisplay={behaaldDisplay(gaps.kdStatus)}
             nodig={kdNodig(gaps.kdStatus)}
           />
+          {toonRoosendaalLevels && (
+            <CriterionRow
+              label="Alle levels 2 behaald"
+              scoreDisplay={gaps.sblRoosendaalLevelsOk ? 'Voldaan' : 'Niet voldaan'}
+              nodig={gaps.sblRoosendaalLevelsOk ? 0 : 3}
+            />
+          )}
         </PrognoseBlock>
       );
 
@@ -564,6 +587,7 @@ export default function DoortstroomPrognoseSection({ student, status, vestiging 
             niveauNodig(gaps.rekenNiveau, 'goed'),
             kdNodig(gaps.kdStatus),
             wvoNodig(gaps.wvoTraject),
+            gaps.sbcRoosendaalLevelsOk ? 0 : 3,
           )}
           isEmpty={globalEmpty}
         >
@@ -602,6 +626,13 @@ export default function DoortstroomPrognoseSection({ student, status, vestiging 
             scoreDisplay={wvoDisplay(gaps.wvoTraject)}
             nodig={wvoNodig(gaps.wvoTraject)}
           />
+          {toonRoosendaalLevels && (
+            <CriterionRow
+              label="Alle levels 3 behaald"
+              scoreDisplay={gaps.sbcRoosendaalLevelsOk ? 'Voldaan' : 'Niet voldaan'}
+              nodig={gaps.sbcRoosendaalLevelsOk ? 0 : 3}
+            />
+          )}
         </PrognoseBlock>
       );
 

@@ -526,6 +526,12 @@ export function berekenBj2GeneriekPad(
     rekenNiveau: reken.niveau,
     kdStatus,
     wvoTraject: wvo,
+    // M42 T12-review-fix: sbcRoosendaalLevelsOk/sblRoosendaalLevelsOk waren al
+    // berekend en gebruikt in isSbc/isSbl hierboven, maar stonden niet op het
+    // geretourneerde gaps-object — de UI (T12) kon de Roosendaal-levels-eis
+    // daardoor niet tonen (in tegenstelling tot BJ1's gaps.levelsAfgerond).
+    sbcRoosendaalLevelsOk,
+    sblRoosendaalLevelsOk,
   };
 
   return { label, gaps };
@@ -626,6 +632,9 @@ export function berekenBj2RoosendaalSblKeuze(
     nederlandsNiveau,
     rekenNiveau: reken.niveau,
     kdStatus,
+    // M42 T12-review-fix: levelsOk was al berekend en gebruikt in isSbl
+    // hierboven, maar stond niet op het geretourneerde gaps-object.
+    levelsOk,
   };
 
   return { label, gaps };

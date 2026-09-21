@@ -81,6 +81,12 @@ function makeBj2GeneriekStatus(gapsOverrides: Record<string, any> = {}, label = 
         rekenNiveau: 'voldoende',
         kdStatus: 'behaald',
         wvoTraject: true,
+        // M42 T12-review-fix: sbcRoosendaalLevelsOk/sblRoosendaalLevelsOk were
+        // added to the real engine's gaps object after this file's initial
+        // version — default to a passing fixture (true), only relevant when
+        // vestiging === 'roosendaal' (toonRoosendaalLevels gate).
+        sbcRoosendaalLevelsOk: true,
+        sblRoosendaalLevelsOk: true,
         ...gapsOverrides,
       },
     },
@@ -105,6 +111,11 @@ function makeBj2RoosendaalSblKeuzeStatus(gapsOverrides: Record<string, any> = {}
         nederlandsNiveau: 'goed',
         rekenNiveau: 'goed',
         kdStatus: 'haalbaar',
+        // M42 T12-review-fix: levelsOk was added to the real engine's gaps
+        // object after this file's initial version — default to a passing
+        // fixture (this function is only ever used for Roosendaal students,
+        // so no toonRoosendaalLevels gate needed here).
+        levelsOk: true,
         ...gapsOverrides,
       },
     },
@@ -228,6 +239,55 @@ describe('BJ2 — generic pad (berekenBj2GeneriekPad)', () => {
     // Generic-pad SBL uses whole-year deelgebieden, not the fase-3 label.
     expect(html).not.toContain('fase 3');
   });
+
+  // M42 T12-review-fix: sbcRoosendaalLevelsOk/sblRoosendaalLevelsOk were computed
+  // and used in berekenBj2GeneriekPad's own isSbc/isSbl checks but not exposed on
+  // its returned gaps object, so the component could not show this criterion for
+  // BJ2 (unlike BJ1's gaps.levelsAfgerond) — fixed by adding both fields to the
+  // engine's gaps object; these tests prove the UI now renders them correctly.
+  test('Roosendaal student: SBC block shows "Alle levels 3 behaald" as niet voldaan when sbcRoosendaalLevelsOk is false', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, nlSchrijven: '2F', nlGesprekvoeren: '3F', rekenResultaat: '3F' },
+        status: makeBj2GeneriekStatus(
+          { nodigSBC_deelgebieden: 0, nlSchrijvenNiveau: 'voldoende', nlGesprekvoerenNiveau: 'goed', rekenNiveau: 'goed', sbcRoosendaalLevelsOk: false },
+          'sbc',
+        ),
+        vestiging: 'roosendaal',
+      })
+    );
+
+    expect(html).toContain('Alle levels 3 behaald');
+    expect(html).toContain('Niet voldaan');
+  });
+
+  test('Roosendaal student: SBL block shows "Alle levels 2 behaald" as voldaan when sblRoosendaalLevelsOk is true', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE },
+        status: makeBj2GeneriekStatus({ nodigSBL_deelgebieden: 0, sblRoosendaalLevelsOk: true }, 'sbl'),
+        vestiging: 'roosendaal',
+      })
+    );
+
+    expect(html).toContain('Alle levels 2 behaald');
+    expect(html).toContain('Voldaan');
+  });
+
+  test('Goes/Dordrecht student: no "Alle levels" row rendered at all (ADR-17e — criterion is not applicable)', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, nlSchrijven: '2F', nlGesprekvoeren: '3F', rekenResultaat: '3F' },
+        status: makeBj2GeneriekStatus(
+          { nodigSBC_deelgebieden: 0, nlSchrijvenNiveau: 'voldoende', nlGesprekvoerenNiveau: 'goed', rekenNiveau: 'goed' },
+          'sbc',
+        ),
+        vestiging: 'goes',
+      })
+    );
+
+    expect(html).not.toContain('Alle levels');
+  });
 });
 
 // ── BJ2 Roosendaal SBL-keuze pad — the disambiguation regression test ───────
@@ -280,6 +340,22 @@ describe('BJ2 — Roosendaal SBL-keuze pad (berekenBj2RoosendaalSblKeuze)', () =
 
     expect(html).toContain('Bespreekgeval');
     expect(html).not.toContain('>SBC<');
+  });
+
+  // M42 T12-review-fix: levelsOk was computed and used in berekenBj2RoosendaalSblKeuze's
+  // own isSbl check but not exposed on its returned gaps object — same fix/proof as the
+  // generic-pad test above.
+  test('shows "Alle levels 2 behaald" as niet voldaan when levelsOk is false', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, roosendaalTraject: 'sbl' },
+        status: makeBj2RoosendaalSblKeuzeStatus({ nodigDeelgebiedenFase3: 0, levelsOk: false }),
+        vestiging: 'roosendaal',
+      })
+    );
+
+    expect(html).toContain('Alle levels 2 behaald');
+    expect(html).toContain('Niet voldaan');
   });
 });
 
