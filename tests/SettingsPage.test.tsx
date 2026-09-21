@@ -19,10 +19,10 @@ const {
   mockGetLeerlijnenMapping,
   mockSaveLeerlijnenMapping,
   mockResetLeerlijnenMapping,
-  mockLoadNormen,
-  mockSaveNormen,
-  mockResetNormen,
-  DEFAULT_NORMEN_MOCK,
+  mockLoadNormenVoorVestiging,
+  mockSaveNormenVoorVestiging,
+  mockResetNormenVoorVestiging,
+  DEFAULT_VESTIGING_NORMEN_MOCK,
 } = vi.hoisted(() => {
   let _map = new Map<string, unknown>();
   const defaultDgConfig = [
@@ -30,10 +30,54 @@ const {
     { id: 'mm', label: 'M&M', active: true },
   ];
   const defaultMapping: Record<string, string> = { va: 'lesgeven', mm: 'lesgeven' };
-  const DEFAULT_NORMEN_MOCK = {
-    sbl: 13, sbc: 15, negatiefTotaal: 6, negatiefPerLeerlijn: 2,
-    bj1Positief: 13, versneldLesgeven: 4, versneldOrganiseren: 3, versneldProfHandelen: 5,
+
+  // M42 T11 — per-vestiging normen mock, mirrors utils/normen.ts's real
+  // DEFAULT_VESTIGING_NORMEN shape (Roosendaal-only "levels" fields are 0 for Goes/Dordrecht).
+  type VestigingKey = 'roosendaal' | 'goes' | 'dordrecht';
+  const vestigingNormenShared = {
+    bj1NaarBj2DeelgebiedenVoldoendeMin: 9,
+    bj1NaarBj2ProfHoudingBvbMin: 3,
+    bj1NaarBj2RekenDomeinenMin: 3,
+    bj1VersneldSbcLesgevenOrganiserenGoedMin: 5,
+    bj1VersneldSbcProfHandelenGoedMin: 3,
+    bj1VersneldSbcProfHoudingBvbMin: 3,
+    bj1VersneldSbcRekenDomeinenMin: 3,
+    bj1NegatiefDeelgebiedenOnvoldoendeMin: 4,
+    bj1NegatiefOnbeoordeeldMax: 4,
+    bj2SblDeelgebiedenVoldoendeMin: 7,
+    bj2SblRekenDomeinenMin: 5,
+    bj2SbcDeelgebiedenVoldoendeMin: 10,
+    bj2SbcRekenDomeinenMin: 5,
+    bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin: 7,
+    bj2RoosendaalSblKeuzeRekenDomeinenMin: 5,
   };
+  const DEFAULT_VESTIGING_NORMEN_MOCK: Record<VestigingKey, Record<string, number>> = {
+    roosendaal: {
+      ...vestigingNormenShared,
+      bj1NaarBj2RoosendaalLevelsMin: 4,
+      bj1VersneldSbcRoosendaalLevelsMin: 8,
+      bj2SblRoosendaalLevelsMin: 2,
+      bj2SbcRoosendaalLevelsMin: 3,
+      bj2RoosendaalSblKeuzeLevelsMin: 2,
+    },
+    goes: {
+      ...vestigingNormenShared,
+      bj1NaarBj2RoosendaalLevelsMin: 0,
+      bj1VersneldSbcRoosendaalLevelsMin: 0,
+      bj2SblRoosendaalLevelsMin: 0,
+      bj2SbcRoosendaalLevelsMin: 0,
+      bj2RoosendaalSblKeuzeLevelsMin: 0,
+    },
+    dordrecht: {
+      ...vestigingNormenShared,
+      bj1NaarBj2RoosendaalLevelsMin: 0,
+      bj1VersneldSbcRoosendaalLevelsMin: 0,
+      bj2SblRoosendaalLevelsMin: 0,
+      bj2SbcRoosendaalLevelsMin: 0,
+      bj2RoosendaalSblKeuzeLevelsMin: 0,
+    },
+  };
+
   return {
     getStoreMap: () => _map,
     setStoreMap: (m: Map<string, unknown>) => { _map = m; },
@@ -43,10 +87,14 @@ const {
     mockGetLeerlijnenMapping: vi.fn().mockResolvedValue(defaultMapping),
     mockSaveLeerlijnenMapping: vi.fn().mockResolvedValue(true),
     mockResetLeerlijnenMapping: vi.fn().mockResolvedValue(undefined),
-    mockLoadNormen: vi.fn().mockResolvedValue({ ...DEFAULT_NORMEN_MOCK }),
-    mockSaveNormen: vi.fn().mockResolvedValue(true),
-    mockResetNormen: vi.fn().mockResolvedValue({ ...DEFAULT_NORMEN_MOCK }),
-    DEFAULT_NORMEN_MOCK,
+    mockLoadNormenVoorVestiging: vi.fn((vestiging: VestigingKey) =>
+      Promise.resolve({ ...DEFAULT_VESTIGING_NORMEN_MOCK[vestiging] })
+    ),
+    mockSaveNormenVoorVestiging: vi.fn().mockResolvedValue(true),
+    mockResetNormenVoorVestiging: vi.fn((vestiging: VestigingKey) =>
+      Promise.resolve({ ...DEFAULT_VESTIGING_NORMEN_MOCK[vestiging] })
+    ),
+    DEFAULT_VESTIGING_NORMEN_MOCK,
   };
 });
 
@@ -64,10 +112,10 @@ vi.mock('../utils/leerlijnen', () => ({
 }));
 
 vi.mock('../utils/normen', () => ({
-  loadNormen: mockLoadNormen,
-  saveNormen: mockSaveNormen,
-  resetNormen: mockResetNormen,
-  DEFAULT_NORMEN: DEFAULT_NORMEN_MOCK,
+  loadNormenVoorVestiging: mockLoadNormenVoorVestiging,
+  saveNormenVoorVestiging: mockSaveNormenVoorVestiging,
+  resetNormenVoorVestiging: mockResetNormenVoorVestiging,
+  DEFAULT_VESTIGING_NORMEN: DEFAULT_VESTIGING_NORMEN_MOCK,
 }));
 
 const mockCheckForUpdate = vi.fn();
@@ -121,10 +169,14 @@ beforeEach(() => {
 
   vi.clearAllMocks();
 
-  // Re-initialize normen mocks after clearAllMocks
-  mockLoadNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK });
-  mockSaveNormen.mockResolvedValue(true);
-  mockResetNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK });
+  // Re-initialize vestiging-normen mocks after clearAllMocks
+  mockLoadNormenVoorVestiging.mockImplementation((vestiging: 'roosendaal' | 'goes' | 'dordrecht') =>
+    Promise.resolve({ ...DEFAULT_VESTIGING_NORMEN_MOCK[vestiging] })
+  );
+  mockSaveNormenVoorVestiging.mockResolvedValue(true);
+  mockResetNormenVoorVestiging.mockImplementation((vestiging: 'roosendaal' | 'goes' | 'dordrecht') =>
+    Promise.resolve({ ...DEFAULT_VESTIGING_NORMEN_MOCK[vestiging] })
+  );
 });
 
 describe('SettingsPage', () => {
@@ -420,9 +472,9 @@ describe('SettingsPage section 3 — Deelgebieden & Leerlijnen (Phase 18)', () =
 
 });
 
-// ── Phase 25 doorstroom norm settings tests ────────────────────────────────────
+// ── M42 T11 — per-vestiging doorstroomdrempels (VestigingNormen, T7-T10) tests ──
 
-describe('Section 5: Doorstroomdrempels', () => {
+describe('Section 5: Doorstroomdrempels (per-vestiging, M42 T11)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -438,9 +490,13 @@ describe('Section 5: Doorstroomdrempels', () => {
     mockSaveLeerlijnenMapping.mockResolvedValue(true);
     mockResetDeelgebiedenConfig.mockResolvedValue(undefined);
     mockResetLeerlijnenMapping.mockResolvedValue(undefined);
-    mockLoadNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK });
-    mockSaveNormen.mockResolvedValue(true);
-    mockResetNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK });
+    mockLoadNormenVoorVestiging.mockImplementation((vestiging: 'roosendaal' | 'goes' | 'dordrecht') =>
+      Promise.resolve({ ...DEFAULT_VESTIGING_NORMEN_MOCK[vestiging] })
+    );
+    mockSaveNormenVoorVestiging.mockResolvedValue(true);
+    mockResetNormenVoorVestiging.mockImplementation((vestiging: 'roosendaal' | 'goes' | 'dordrecht') =>
+      Promise.resolve({ ...DEFAULT_VESTIGING_NORMEN_MOCK[vestiging] })
+    );
   });
 
   function renderSection5(onNormenChanged = vi.fn()) {
@@ -455,124 +511,172 @@ describe('Section 5: Doorstroomdrempels', () => {
     );
   }
 
-  // ── Test S5-01: section renders with heading and sub-block headings ─────────
-  it('S5-01: Section 5 renders "Doorstroomdrempels" heading with BJ2 and BJ1 sub-blocks', async () => {
+  // ── Test S5-01: section renders with heading, vestiging selector and sub-block headings ──
+  it('S5-01: Section 5 renders "Doorstroomdrempels" heading with vestiging selector and sub-blocks', async () => {
     renderSection5();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
     expect(screen.getByText('Doorstroomdrempels')).toBeDefined();
-    expect(screen.getByText('BJ2-drempels')).toBeDefined();
-    expect(screen.getByText('BJ1-drempels')).toBeDefined();
+    expect(screen.getByLabelText('Vestiging (drempelwaarden)')).toBeDefined();
+    expect(screen.getByText('BJ1 — naar basisjaar 2')).toBeDefined();
+    expect(screen.getByText('BJ1 — versneld SBC-traject')).toBeDefined();
+    expect(screen.getByText('BJ1 — negatief bindend studieadvies')).toBeDefined();
+    expect(screen.getByText('BJ2 generiek — SBL')).toBeDefined();
+    expect(screen.getByText('BJ2 generiek — SBC')).toBeDefined();
+    expect(screen.getByText('Alleen Roosendaal — level-eisen')).toBeDefined();
   });
 
-  // ── Test S5-02: blur triggers saveNormen + onNormenChanged ─────────────────
-  it('S5-02: changing SBL input and blurring calls saveNormen and onNormenChanged', async () => {
-    const onNormenChanged = vi.fn();
-    renderSection5(onNormenChanged);
-    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
-
-    const sblInput = screen.getByLabelText('SBL-drempel (≥V)');
-
-    await act(async () => {
-      fireEvent.change(sblInput, { target: { value: '10' } });
-      await new Promise(r => setTimeout(r, 0));
+  // ── Test S5-02: switching vestiging selector loads that vestiging's real values ──
+  it('S5-02: switching the vestiging selector calls loadNormenVoorVestiging and shows that vestiging\'s values', async () => {
+    mockLoadNormenVoorVestiging.mockImplementation((vestiging: 'roosendaal' | 'goes' | 'dordrecht') => {
+      const base = DEFAULT_VESTIGING_NORMEN_MOCK[vestiging];
+      const distinguisher = vestiging === 'roosendaal' ? 7 : vestiging === 'goes' ? 11 : 13;
+      return Promise.resolve({ ...base, bj2SblDeelgebiedenVoldoendeMin: distinguisher });
     });
-
-    await act(async () => {
-      fireEvent.blur(sblInput);
-      await new Promise(r => setTimeout(r, 0));
-    });
-
-    expect(mockSaveNormen).toHaveBeenCalledWith(expect.objectContaining({ sbl: 10 }));
-    expect(onNormenChanged).toHaveBeenCalledTimes(1);
-  });
-
-  // ── Test S5-03: Enter key triggers blur (and thus save) ───────────────────
-  it('S5-03: pressing Enter on SBL input triggers blur handler (saveNormen called)', async () => {
-    const onNormenChanged = vi.fn();
-    renderSection5(onNormenChanged);
-    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
-
-    const sblInput = screen.getByLabelText('SBL-drempel (≥V)');
-
-    await act(async () => {
-      fireEvent.change(sblInput, { target: { value: '11' } });
-      await new Promise(r => setTimeout(r, 0));
-    });
-
-    await act(async () => {
-      fireEvent.keyDown(sblInput, { key: 'Enter' });
-      // blur fires synchronously after keyDown in jsdom environment
-      fireEvent.blur(sblInput);
-      await new Promise(r => setTimeout(r, 0));
-    });
-
-    expect(mockSaveNormen).toHaveBeenCalled();
-  });
-
-  // ── Test S5-04: SBC<SBL warning appears when sbc < sbl ───────────────────
-  it('S5-04: SBC < SBL warning appears when SBC is below SBL', async () => {
-    // Seed loadNormen to return sbc < sbl
-    mockLoadNormen.mockResolvedValue({ ...DEFAULT_NORMEN_MOCK, sbc: 10, sbl: 13 });
     renderSection5();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
-    expect(screen.getByText('Let op: SBC-drempel is normaal hoger dan SBL-drempel (standaard: 15 vs 13).')).toBeDefined();
+    expect(mockLoadNormenVoorVestiging).toHaveBeenCalledWith('roosendaal');
+    const sblInput = screen.getByLabelText('BJ2 SBL: deelgebieden ≥V (min.)') as HTMLInputElement;
+    expect(sblInput.value).toBe('7');
+
+    const select = screen.getByLabelText('Vestiging (drempelwaarden)');
+    await act(async () => {
+      fireEvent.change(select, { target: { value: 'goes' } });
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    expect(mockLoadNormenVoorVestiging).toHaveBeenCalledWith('goes');
+    const sblInputAfter = screen.getByLabelText('BJ2 SBL: deelgebieden ≥V (min.)') as HTMLInputElement;
+    expect(sblInputAfter.value).toBe('11');
   });
 
-  // ── Test S5-05: reset confirmation flow ───────────────────────────────────
-  it('S5-05: reset confirmation flow — Herstel standaard → confirm → resetNormen called', async () => {
+  // ── Test S5-03: blur triggers saveNormenVoorVestiging with correct vestiging + onNormenChanged ──
+  it('S5-03: editing a field and blurring calls saveNormenVoorVestiging with the selected vestiging and updated profile', async () => {
     const onNormenChanged = vi.fn();
     renderSection5(onNormenChanged);
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
-    // Click Section 5 "Herstel standaard" (second one, index 1)
-    const herstelBtns = screen.getAllByRole('button', { name: 'Herstel standaard' });
-    const section5HerstelBtn = herstelBtns[herstelBtns.length - 1]; // Section 5 is last
-    await act(async () => { fireEvent.click(section5HerstelBtn); });
+    const input = screen.getByLabelText('Negatief: onbeoordeelde datapunten fase 2 (max.)');
 
-    // Confirm row appears with CIOS copy
-    expect(screen.getByText('Alles terugzetten naar CIOS-standaard?')).toBeDefined();
-    const nietHerstelBtns = screen.getAllByRole('button', { name: 'Niet herstellen' });
-    expect(nietHerstelBtns.length).toBeGreaterThanOrEqual(1);
-
-    // Click "Niet herstellen" (last one — Section 5)
-    await act(async () => { fireEvent.click(nietHerstelBtns[nietHerstelBtns.length - 1]); });
-    expect(screen.queryByText('Alles terugzetten naar CIOS-standaard?')).toBeNull();
-
-    // Click again and then confirm
-    const herstelBtns2 = screen.getAllByRole('button', { name: 'Herstel standaard' });
-    await act(async () => { fireEvent.click(herstelBtns2[herstelBtns2.length - 1]); });
-
-    const jaHerstelBtns = screen.getAllByRole('button', { name: 'Ja, herstel' });
     await act(async () => {
-      fireEvent.click(jaHerstelBtns[jaHerstelBtns.length - 1]);
+      fireEvent.change(input, { target: { value: '10' } });
       await new Promise(r => setTimeout(r, 0));
     });
 
-    expect(mockResetNormen).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      fireEvent.blur(input);
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    expect(mockSaveNormenVoorVestiging).toHaveBeenCalledWith(
+      'roosendaal',
+      expect.objectContaining({ bj1NegatiefOnbeoordeeldMax: 10 })
+    );
+    expect(onNormenChanged).toHaveBeenCalledTimes(1);
+  });
+
+  // ── Test S5-04: Enter key triggers blur (and thus save) ───────────────────
+  it('S5-04: pressing Enter on a field triggers blur handler (saveNormenVoorVestiging called)', async () => {
+    renderSection5();
+    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+
+    const input = screen.getByLabelText('Negatief: onbeoordeelde datapunten fase 2 (max.)');
+
+    await act(async () => {
+      fireEvent.change(input, { target: { value: '11' } });
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' });
+      // blur fires synchronously after keyDown in jsdom environment
+      fireEvent.blur(input);
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    expect(mockSaveNormenVoorVestiging).toHaveBeenCalled();
+  });
+
+  // ── Test S5-05: reset flow scoped to selected vestiging only ──────────────
+  it('S5-05: reset confirmation flow — Herstel standaard voor Roosendaal → confirm → resetNormenVoorVestiging(\'roosendaal\') only', async () => {
+    const onNormenChanged = vi.fn();
+    renderSection5(onNormenChanged);
+    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+
+    const herstelBtn = screen.getByRole('button', { name: 'Herstel standaard voor Roosendaal' });
+    await act(async () => { fireEvent.click(herstelBtn); });
+
+    expect(screen.getByText('Doorstroomdrempels voor Roosendaal terugzetten naar standaard?')).toBeDefined();
+    const nietHerstelBtn = screen.getByRole('button', { name: 'Niet herstellen' });
+
+    await act(async () => { fireEvent.click(nietHerstelBtn); });
+    expect(screen.queryByText('Doorstroomdrempels voor Roosendaal terugzetten naar standaard?')).toBeNull();
+    expect(mockResetNormenVoorVestiging).not.toHaveBeenCalled();
+
+    // Click again and confirm
+    const herstelBtn2 = screen.getByRole('button', { name: 'Herstel standaard voor Roosendaal' });
+    await act(async () => { fireEvent.click(herstelBtn2); });
+    const jaHerstelBtn = screen.getByRole('button', { name: 'Ja, herstel' });
+    await act(async () => {
+      fireEvent.click(jaHerstelBtn);
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    expect(mockResetNormenVoorVestiging).toHaveBeenCalledTimes(1);
+    expect(mockResetNormenVoorVestiging).toHaveBeenCalledWith('roosendaal');
     expect(onNormenChanged).toHaveBeenCalled();
   });
 
-  // ── Test S5-06: onNormenChanged fires exactly once per blur ───────────────
-  it('S5-06: onNormenChanged fires exactly once per blur event on an input', async () => {
-    const onNormenChanged = vi.fn();
-    renderSection5(onNormenChanged);
+  // ── Test S5-06: Roosendaal-only fields not rendered when Goes/Dordrecht selected ──
+  it('S5-06: Roosendaal-only level fields are not rendered when Goes is selected, and an N.v.t. note shows instead', async () => {
+    renderSection5();
     await act(async () => { await new Promise(r => setTimeout(r, 0)); });
 
-    const sblInput = screen.getByLabelText('SBL-drempel (≥V)');
+    // Present for the default vestiging (Roosendaal)
+    expect(screen.getByLabelText('BJ1→BJ2: levels behaald (min., Roosendaal)')).toBeDefined();
+
+    const select = screen.getByLabelText('Vestiging (drempelwaarden)');
+    await act(async () => {
+      fireEvent.change(select, { target: { value: 'goes' } });
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    expect(screen.queryByLabelText('BJ1→BJ2: levels behaald (min., Roosendaal)')).toBeNull();
+    expect(screen.queryByLabelText('Versneld SBC: levels behaald (min., Roosendaal)')).toBeNull();
+    expect(screen.queryByLabelText('BJ2 SBL: levels behaald (min., Roosendaal)')).toBeNull();
+    expect(screen.queryByLabelText('BJ2 SBC: levels behaald (min., Roosendaal)')).toBeNull();
+    expect(screen.queryByLabelText('SBL-keuze: deelgebieden ≥V (min., Roosendaal)')).toBeNull();
+    expect(screen.queryByLabelText('SBL-keuze: rekendomeinen afgerond (min., Roosendaal)')).toBeNull();
+    expect(screen.queryByLabelText('SBL-keuze: levels behaald (min., Roosendaal)')).toBeNull();
+    expect(screen.getByText('N.v.t. voor deze vestiging — level-eisen gelden alleen voor Roosendaal.')).toBeDefined();
+
+    // Also confirm the reset button now correctly labels Goes, not Roosendaal
+    expect(screen.getByRole('button', { name: 'Herstel standaard voor Goes' })).toBeDefined();
+  });
+
+  // ── Test S5-07: value typed below 0 clamps to 0 on blur ───────────────────
+  it('S5-07: typing a negative value into a field clamps to 0 on blur', async () => {
+    renderSection5();
+    await act(async () => { await new Promise(r => setTimeout(r, 0)); });
+
+    const input = screen.getByLabelText('Negatief: onbeoordeelde datapunten fase 2 (max.)') as HTMLInputElement;
 
     await act(async () => {
-      fireEvent.change(sblInput, { target: { value: '12' } });
+      fireEvent.change(input, { target: { value: '-5' } });
       await new Promise(r => setTimeout(r, 0));
     });
 
     await act(async () => {
-      fireEvent.blur(sblInput);
+      fireEvent.blur(input);
       await new Promise(r => setTimeout(r, 0));
     });
 
-    expect(onNormenChanged).toHaveBeenCalledTimes(1);
+    expect(input.value).toBe('0');
+    expect(mockSaveNormenVoorVestiging).toHaveBeenCalledWith(
+      'roosendaal',
+      expect.objectContaining({ bj1NegatiefOnbeoordeeldMax: 0 })
+    );
   });
 
 });

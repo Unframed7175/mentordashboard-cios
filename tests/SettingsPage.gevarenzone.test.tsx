@@ -9,15 +9,42 @@ import React from 'react';
 const {
   mockFactoryReset,
   mockBuildBackupPayload,
-  DEFAULT_NORMEN_MOCK,
-} = vi.hoisted(() => ({
-  mockFactoryReset: vi.fn(),
-  mockBuildBackupPayload: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
-  DEFAULT_NORMEN_MOCK: {
-    sbl: 13, sbc: 15, negatiefTotaal: 6, negatiefPerLeerlijn: 2,
-    bj1Positief: 13, versneldLesgeven: 4, versneldOrganiseren: 3, versneldProfHandelen: 5,
-  },
-}));
+  DEFAULT_VESTIGING_NORMEN_MOCK,
+} = vi.hoisted(() => {
+  // M42 T11 — minimal per-vestiging normen mock (this test file doesn't exercise
+  // Section 5 itself, so a single flat profiel reused for all 3 vestigingen suffices).
+  const vestigingNormen = {
+    bj1NaarBj2DeelgebiedenVoldoendeMin: 9,
+    bj1NaarBj2ProfHoudingBvbMin: 3,
+    bj1NaarBj2RekenDomeinenMin: 3,
+    bj1NaarBj2RoosendaalLevelsMin: 0,
+    bj1VersneldSbcLesgevenOrganiserenGoedMin: 5,
+    bj1VersneldSbcProfHandelenGoedMin: 3,
+    bj1VersneldSbcProfHoudingBvbMin: 3,
+    bj1VersneldSbcRekenDomeinenMin: 3,
+    bj1VersneldSbcRoosendaalLevelsMin: 0,
+    bj1NegatiefDeelgebiedenOnvoldoendeMin: 4,
+    bj1NegatiefOnbeoordeeldMax: 4,
+    bj2SblDeelgebiedenVoldoendeMin: 7,
+    bj2SblRekenDomeinenMin: 5,
+    bj2SblRoosendaalLevelsMin: 0,
+    bj2SbcDeelgebiedenVoldoendeMin: 10,
+    bj2SbcRekenDomeinenMin: 5,
+    bj2SbcRoosendaalLevelsMin: 0,
+    bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin: 7,
+    bj2RoosendaalSblKeuzeRekenDomeinenMin: 5,
+    bj2RoosendaalSblKeuzeLevelsMin: 0,
+  };
+  return {
+    mockFactoryReset: vi.fn(),
+    mockBuildBackupPayload: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
+    DEFAULT_VESTIGING_NORMEN_MOCK: {
+      roosendaal: { ...vestigingNormen },
+      goes: { ...vestigingNormen },
+      dordrecht: { ...vestigingNormen },
+    },
+  };
+});
 
 vi.mock('@tauri-apps/api/app', () => ({ getVersion: vi.fn().mockResolvedValue('2.7.0') }));
 vi.mock('../utils/settings', () => ({
@@ -46,10 +73,14 @@ vi.mock('../utils/bpv', () => ({
   getBpvData: vi.fn().mockResolvedValue(null),
 }));
 vi.mock('../utils/normen', () => ({
-  loadNormen: vi.fn().mockResolvedValue({ ...DEFAULT_NORMEN_MOCK }),
-  saveNormen: vi.fn(),
-  resetNormen: vi.fn().mockResolvedValue({ ...DEFAULT_NORMEN_MOCK }),
-  DEFAULT_NORMEN: DEFAULT_NORMEN_MOCK,
+  loadNormenVoorVestiging: vi.fn((vestiging: 'roosendaal' | 'goes' | 'dordrecht') =>
+    Promise.resolve({ ...DEFAULT_VESTIGING_NORMEN_MOCK[vestiging] })
+  ),
+  saveNormenVoorVestiging: vi.fn(),
+  resetNormenVoorVestiging: vi.fn((vestiging: 'roosendaal' | 'goes' | 'dordrecht') =>
+    Promise.resolve({ ...DEFAULT_VESTIGING_NORMEN_MOCK[vestiging] })
+  ),
+  DEFAULT_VESTIGING_NORMEN: DEFAULT_VESTIGING_NORMEN_MOCK,
 }));
 vi.mock('../utils/backup', () => ({ buildBackupPayload: mockBuildBackupPayload }));
 vi.mock('../utils/updateCheck', () => ({ checkForUpdate: vi.fn().mockResolvedValue(null) }));
