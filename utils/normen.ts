@@ -291,6 +291,28 @@ export async function loadNormenVoorVestiging(vestiging: Vestiging): Promise<Ves
 
 // ── saveNormenVoorVestiging(vestiging, normen) ──────────────────────────────────
 
+// M42 review-fix (red-team finding): saveNormenVoorVestiging's read-modify-write
+// shares ONE store key (VESTIGING_STORE_KEY) across all 3 vestigingen. Two
+// overlapping calls — e.g. a SettingsPage admin tabbing through several
+// VestigingNormen number fields, each onBlur firing its own independent async
+// save — can complete OUT OF INITIATION ORDER: if save A (started first) reads
+// the store BEFORE save B (started second) writes, then finishes its own
+// store.set()/store.save() AFTER B, A's write silently overwrites B's change
+// with a payload that never knew about it. The in-memory _vestigingCache stays
+// correct (each call's synchronous cache-write happens in call order), but the
+// PERSISTED store can regress a field back to its pre-edit value — invisible
+// until the next app restart / config reload, since getNormenVoorVestigingSync
+// reads the (correct) cache, not the (possibly wrong) store. Fixed by
+// serializing every read-modify-write on this key through one FIFO promise
+// chain, so each save's full cycle completes before the next one's read runs.
+let _vestigingStoreQueue: Promise<void> = Promise.resolve();
+
+function _enqueueVestigingStoreWrite<T>(fn: () => Promise<T>): Promise<T> {
+  const result = _vestigingStoreQueue.then(fn, fn);
+  _vestigingStoreQueue = result.then((): void => undefined, (): void => undefined);
+  return result;
+}
+
 /**
  * Persists one vestiging's VestigingNormen profiel to plugin-store.
  * CRITICAL: updates _vestigingCache FIRST (instant-apply, pitfall 5), then
@@ -299,20 +321,25 @@ export async function loadNormenVoorVestiging(vestiging: Vestiging): Promise<Ves
  * stored profiles are read from the store and carried through unchanged, so
  * saving one vestiging never clobbers its siblings.
  * CRITICAL: store.set() + store.save() must both be awaited (Phase 12 pitfall).
+ * CRITICAL: the read-modify-write itself is serialized via
+ * _enqueueVestigingStoreWrite (see comment above) — never call store.get/set
+ * for this key outside that queue, or the race it closes reopens.
  * Returns true on success, false on error.
  */
 export async function saveNormenVoorVestiging(vestiging: Vestiging, normen: VestigingNormen): Promise<boolean> {
   _vestigingCache[vestiging] = normen; // instant-apply: update cache before async write (pitfall 5)
-  try {
-    const existing = (await store.get<Record<Vestiging, VestigingNormen>>(VESTIGING_STORE_KEY)) ?? ({} as Record<Vestiging, VestigingNormen>);
-    const updated: Record<Vestiging, VestigingNormen> = { ...existing, [vestiging]: normen };
-    await store.set(VESTIGING_STORE_KEY, updated);
-    await store.save(); // VERPLICHT: set() is alleen in-memory
-    return true;
-  } catch (e: any) {
-    console.error('[normen.ts] saveNormenVoorVestiging failed — settings not persisted');
-    return false;
-  }
+  return _enqueueVestigingStoreWrite(async () => {
+    try {
+      const existing = (await store.get<Record<Vestiging, VestigingNormen>>(VESTIGING_STORE_KEY)) ?? ({} as Record<Vestiging, VestigingNormen>);
+      const updated: Record<Vestiging, VestigingNormen> = { ...existing, [vestiging]: normen };
+      await store.set(VESTIGING_STORE_KEY, updated);
+      await store.save(); // VERPLICHT: set() is alleen in-memory
+      return true;
+    } catch (e: any) {
+      console.error('[normen.ts] saveNormenVoorVestiging failed — settings not persisted');
+      return false;
+    }
+  });
 }
 
 // ── resetNormenVoorVestiging(vestiging) ─────────────────────────────────────────

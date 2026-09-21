@@ -187,6 +187,78 @@ describe('normenVoorVestiging utility (M42 T7)', () => {
     expect(goesStillModified.bj2SbcRekenDomeinenMin).toBe(9);
   });
 
+  // M42 review-fix (red-team finding): two overlapping saves for the SAME vestiging
+  // (e.g. an admin tabbing through several fields, each onBlur firing its own async
+  // save) must not let an earlier call's slow read-modify-write complete AFTER a
+  // later call's, because the earlier call's write payload was captured before the
+  // later edit happened and would silently regress it. Proves the fix by stalling
+  // the FIRST save's store.get() and firing the SECOND save concurrently (not
+  // awaited) — with serialization, the second call's own get() must not even START
+  // until the first call's entire read-modify-write has finished, so it always ends
+  // up reading the store WITH the first save's change already applied.
+  it('two overlapping saves for the same vestiging serialize instead of racing — the later edit is never lost', async () => {
+    let releaseFirstGet: (() => void) | null = null;
+    const firstGetGate = new Promise<void>((resolve) => { releaseFirstGet = resolve; });
+    const getCallOrder: number[] = [];
+    let getCallCount = 0;
+
+    vi.resetModules();
+    vi.doMock('@tauri-apps/plugin-store', () => {
+      class LazyStore {
+        async get<T>(key: string): Promise<T | null> {
+          const callNum = ++getCallCount;
+          getCallOrder.push(callNum);
+          if (callNum === 1) {
+            // Stall the FIRST save's read — if the queue is broken (calls run
+            // concurrently instead of FIFO), the SECOND save's get()/set()/save()
+            // would complete while this is still pending.
+            await firstGetGate;
+          }
+          return (getStoreMap().get(key) as T) ?? null;
+        }
+        async set(key: string, value: unknown): Promise<void> {
+          getStoreMap().set(key, value);
+        }
+        async save(): Promise<void> {}
+        async delete(key: string): Promise<void> {
+          getStoreMap().delete(key);
+        }
+      }
+      return { LazyStore };
+    });
+
+    const { saveNormenVoorVestiging, DEFAULT_VESTIGING_NORMEN } = await import('../utils/normen');
+
+    // Save A: only fieldA changed (captured before B's edit happened, exactly like
+    // a real onBlur handler's closure over React state at the moment it fired).
+    const afterA = { ...DEFAULT_VESTIGING_NORMEN.roosendaal, bj1NaarBj2DeelgebiedenVoldoendeMin: 11 };
+    const saveAPromise = saveNormenVoorVestiging('roosendaal', afterA);
+
+    // Fire save B immediately after, WITHOUT awaiting A — this is the overlap.
+    // B's payload is a superset including A's change, exactly as the real
+    // component always sends (each save reads current React state, which
+    // already reflects every prior edit in the session).
+    const afterB = { ...afterA, bj2SblDeelgebiedenVoldoendeMin: 12 };
+    const saveBPromise = saveNormenVoorVestiging('roosendaal', afterB);
+
+    // Give B every opportunity to run ahead of A if the queue were broken.
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    // B's get() must NOT have run yet — it should still be queued behind A's
+    // stalled read. This is the actual serialization proof, not just the final
+    // stored value (which a lucky ordering could get right by accident).
+    expect(getCallCount).toBe(1);
+
+    releaseFirstGet!();
+    await Promise.all([saveAPromise, saveBPromise]);
+
+    expect(getCallOrder).toEqual([1, 2]); // strictly FIFO, never interleaved
+    const stored = getStoreMap().get(STORE_KEY) as Record<string, any>;
+    expect(stored.roosendaal.bj1NaarBj2DeelgebiedenVoldoendeMin).toBe(11);
+    expect(stored.roosendaal.bj2SblDeelgebiedenVoldoendeMin).toBe(12);
+  });
+
 });
 
 describe('old Normen (doorstroom_normen) unaffected by new per-vestiging store key', () => {
