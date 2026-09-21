@@ -169,6 +169,21 @@ describe('berekenBj1Uitkomst — happy paths (één per uitkomst)', () => {
     const result = berekenBj1Uitkomst(student, 'goes', NORMEN_GOES);
     expect(result.label).toBe('neutraal');
   });
+
+  // M42 review-fix (testing specialist): het if/else-if-blok in
+  // berekenBj1Uitkomst checkt negatief VOOR versneld_sbc, maar dat werd tot nu
+  // toe alleen getest via losse fixtures waarbij het andere pad toevallig al
+  // faalde — nooit met allebei de criteria-sets tegelijk waar. Dit vergrendelt
+  // de daadwerkelijke precedentie-beslissing.
+  it('negatief heeft voorrang boven versneld_sbc wanneer beide criteria-sets tegelijk voldaan zijn', () => {
+    const student = versneldSbcStudent({
+      // Triggert Trigger A (>=4 onvoldoende, heel-jaar-aggregaat) BOVENOP alle
+      // versneld_sbc-criteria die versneldSbcStudent() al laat slagen.
+      deelgebiedScores: { 'O&V': 'onvoldoende', 'S&O': 'onvoldoende', 'PH': 'onvoldoende', 'DH': 'onvoldoende' },
+    });
+    const result = berekenBj1Uitkomst(student, 'goes', NORMEN_GOES);
+    expect(result.label).toBe('negatief');
+  });
 });
 
 describe('berekenBj1Uitkomst — grenswaarden (boundary)', () => {

@@ -94,6 +94,17 @@ describe('berekenBj2GeneriekPad — happy paths (één per uitkomst)', () => {
     const result = berekenBj2GeneriekPad(makeStudent(), 'goes', NORMEN_GOES);
     expect(result.label).toBe('bespreekgeval');
   });
+
+  // M42 review-fix (testing specialist): sbc en sbl werden tot nu toe alleen
+  // los getest, elk via een fixture waarbij het andere pad toevallig al faalde
+  // (sbcStudent() zet nederlandsResultaat nooit, dus sbl's eigen check faalde
+  // altijd stilzwijgend). Dit vergrendelt de daadwerkelijke if/else-if-
+  // precedentie: sbc wint wanneer een leerling AAN BEIDE criteria-sets voldoet.
+  it('sbc heeft voorrang boven sbl wanneer beide criteria-sets tegelijk voldaan zijn', () => {
+    const student = sbcStudent({ nederlandsResultaat: '2f' }); // voldoet nu ook aan sbl's eigen Nederlands-eis
+    const result = berekenBj2GeneriekPad(student, 'goes', NORMEN_GOES);
+    expect(result.label).toBe('sbc');
+  });
 });
 
 describe('berekenBj2GeneriekPad — grenswaarden (boundary)', () => {
