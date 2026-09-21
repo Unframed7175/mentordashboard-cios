@@ -37,9 +37,10 @@ vi.mock('../src/config/leerlijn.json', () => ({
   },
 }));
 
-import { berekenPrognose, berekenAllePrognoses } from '../utils/prognosis';
+import { berekenPrognose, berekenAllePrognoses, berekenBj2GeneriekPad } from '../utils/prognosis';
 import { DEELGEBIEDEN } from '../utils/schema';
 import { appState } from '../utils/datamodel';
+import { getNormenVoorVestigingSync } from '../utils/normen';
 
 // Helper: build a minimal student record with specific deelgebied scores
 function makeStudent(scores: Record<string, string | null> = {}): any {
@@ -212,4 +213,122 @@ describe('berekenPrognose activeDeelgebiedenIds filter (Phase 18)', () => {
     expect(result.label).not.toBeUndefined();
   });
 
+});
+
+// ---------------------------------------------------------------------------
+// M42 T9c — berekenPrognose bj2-tak routing: Roosendaal SBL-keuzeproces
+//
+// Deze routing-tests hebben de OLD-schema vi.mock aan de top van dit bestand
+// NODIG om isNormenSchemaOndersteund() door te laten (onder het ECHTE, live
+// schema geeft berekenPrognose voor bj2 altijd 'normen_onbekend' terug, VOOR
+// de routing-code ooit bereikt wordt — zie tests/prognosis.bj2GeneriekPad.test.ts's
+// eigen "vestiging-null-guard" describe-blok voor dezelfde constatering).
+// Daarom staan ze hier (waar de mock al bestaat voor exact dit doel, zie T9a's
+// eigen berekenPrognose-test hierboven), NIET in het no-mock
+// tests/prognosis.bj2RoosendaalSblKeuze.test.ts-bestand — dat bestand test de
+// criteria van berekenBj2RoosendaalSblKeuze zelf tegen het ECHTE, live schema;
+// dit blok test alleen WANNEER berekenPrognose ernaartoe routeert.
+//
+// ADR-17e: 'sbl'-keuze routeert naar de nieuwe, kleinere functie; 'sbc'-keuze
+// en "geen keuze" blijven ONVERANDERD via berekenBj2GeneriekPad lopen (Tabel A).
+describe('M42 T9c — berekenPrognose bj2-tak routing (Roosendaal SBL-keuzeproces)', () => {
+  function fase3ScoreDp(scores: Record<string, string | null>): any {
+    return { vak: 'Resultaten', datapunt: 'Resultatentabel', scores, fase: 3 };
+  }
+  function rekenDomeinDp(n: number): any {
+    return { vak: 'Rekenen', datapunt: `F2 Rekenen ‐eindtoets domein ${n}`, scores: {}, status: 'Op tijd ingeleverd en wel beoordeeld' };
+  }
+  function levelDp(n: number): any {
+    return { vak: 'Extern praktijkleren', datapunt: `Level ${n} lesgeven`, scores: {}, status: 'Op tijd ingeleverd en wel beoordeeld' };
+  }
+  function vijfRekenDomeinen(): any[] { return [1, 2, 3, 4, 5].map(rekenDomeinDp); }
+  function tweeLevelsAfgerond(): any[] { return [levelDp(2), levelDp(2)]; }
+
+  it("roosendaalTraject: 'sbl' routeert via berekenBj2RoosendaalSblKeuze (bereikt sbl via de SBL-keuze-criteria, NIET via de generieke criteria)", () => {
+    const student = {
+      leerlingId: 'L1',
+      naam: 'Test Leerling',
+      // Heel-jaar-aggregaat leeg -> berekenBj2GeneriekPad's eigen
+      // aantalVoldoendeOfHoger is 0, dus generic sbl (drempel 7) EN sbc
+      // (drempel 10) zijn allebei onbereikbaar via die functie — bewijst dat
+      // een 'sbl'-resultaat hier alleen via de nieuwe SBL-keuze-fase-3-telling
+      // (op student.datapunten, een andere databron) kan komen.
+      deelgebiedScores: {},
+      datapunten: [
+        // 7 van de 19 OLD-schema-labels, fase 3, 'voldoende' (drempel
+        // bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin = 7).
+        fase3ScoreDp({
+          'V&A': 'voldoende', 'M&M': 'voldoende', 'INS': 'voldoende',
+          'O&DW': 'voldoende', 'C&B': 'voldoende', '1E&B': 'voldoende', 'P&O': 'voldoende',
+        }),
+        ...vijfRekenDomeinen(),
+        ...tweeLevelsAfgerond(),
+      ],
+      nederlandsResultaat: '2f',
+      rekenResultaat: '2f',
+      kdStatus: 'behaald',
+      roosendaalTraject: 'sbl',
+    };
+
+    const result = berekenPrognose(student, 'bj2', undefined, undefined, 'roosendaal');
+    expect(result.label).toBe('sbl');
+
+    // Bevestigt dat het 'sbl'-resultaat NIET stilzwijgend via de generieke
+    // functie tot stand kwam (die zou hier 'bespreekgeval' geven).
+    const generic = berekenBj2GeneriekPad(student, 'roosendaal', getNormenVoorVestigingSync('roosendaal'));
+    expect(generic.label).toBe('bespreekgeval');
+  });
+
+  it("roosendaalTraject: 'sbc' routeert ONVERANDERD via berekenBj2GeneriekPad (geen speciale interceptie)", () => {
+    const student = {
+      leerlingId: 'L1',
+      naam: 'Test Leerling',
+      deelgebiedScores: {},
+      datapunten: [],
+      roosendaalTraject: 'sbc',
+    };
+
+    const viaPrognose = berekenPrognose(student, 'bj2', undefined, undefined, 'roosendaal');
+    const direct = berekenBj2GeneriekPad(student, 'roosendaal', getNormenVoorVestigingSync('roosendaal'));
+
+    expect(viaPrognose.label).toBe(direct.label);
+    expect(viaPrognose.gaps).toEqual(direct.gaps);
+  });
+
+  it('roosendaalTraject: null/undefined routeert OOK via berekenBj2GeneriekPad (geen derde fork)', () => {
+    const studentNull = {
+      leerlingId: 'L1', naam: 'Test Leerling',
+      deelgebiedScores: {}, datapunten: [], roosendaalTraject: null,
+    };
+    const studentUndefined = {
+      leerlingId: 'L2', naam: 'Test Leerling 2',
+      deelgebiedScores: {}, datapunten: [],
+      // roosendaalTraject bewust weggelaten (nooit ingevuld)
+    };
+
+    const normen = getNormenVoorVestigingSync('roosendaal');
+
+    for (const student of [studentNull, studentUndefined]) {
+      const viaPrognose = berekenPrognose(student, 'bj2', undefined, undefined, 'roosendaal');
+      const direct = berekenBj2GeneriekPad(student, 'roosendaal', normen);
+      expect(viaPrognose.label).toBe(direct.label);
+      expect(viaPrognose.gaps).toEqual(direct.gaps);
+    }
+  });
+
+  it('een niet-Roosendaal (goes) student is onaangetast, ongeacht roosendaalTraject-waarde (bewijst dat de vestiging-guard écht gate\'t, niet alleen de traject-waarde)', () => {
+    const student = {
+      leerlingId: 'L1',
+      naam: 'Test Leerling',
+      deelgebiedScores: {},
+      datapunten: [],
+      roosendaalTraject: 'sbl', // zou voor Roosendaal wél de nieuwe route triggeren
+    };
+
+    const viaPrognose = berekenPrognose(student, 'bj2', undefined, undefined, 'goes');
+    const direct = berekenBj2GeneriekPad(student, 'goes', getNormenVoorVestigingSync('goes'));
+
+    expect(viaPrognose.label).toBe(direct.label);
+    expect(viaPrognose.gaps).toEqual(direct.gaps);
+  });
 });
