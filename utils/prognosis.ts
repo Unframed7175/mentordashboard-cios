@@ -739,9 +739,23 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
       gaps = {};
     } else {
       const vn = getNormenVoorVestigingSync(vestiging);
-      const uitkomst = berekenBj2GeneriekPad(student, vestiging, vn, activeDeelgebiedenIds);
-      label = uitkomst.label;
-      gaps = uitkomst.gaps;
+      // M42 T9c (ADR-17e): alleen Roosendaal-leerlingen die EXPLICIET 'sbl'
+      // kozen in het optionele mid-year keuzeproces (T3b's roosendaalTraject-
+      // veld) gebruiken de eigen, kleinere SBL-keuze-eisenset. 'sbc'-keuze en
+      // "geen keuze gemaakt" (normalizeRoosendaalTraject(undefined/null) →
+      // null, D9-stijl null-safety) vallen allebei door naar de else-tak
+      // hieronder — precies de bestaande berekenBj2GeneriekPad-aanroep,
+      // ONGEWIJZIGD — want het brondocument zegt voor die twee gevallen
+      // letterlijk "Tabel A is van kracht".
+      if (vestiging === 'roosendaal' && normalizeRoosendaalTraject(student.roosendaalTraject) === 'sbl') {
+        const uitkomst = berekenBj2RoosendaalSblKeuze(student, vn, activeDeelgebiedenIds);
+        label = uitkomst.label;
+        gaps = uitkomst.gaps;
+      } else {
+        const uitkomst = berekenBj2GeneriekPad(student, vestiging, vn, activeDeelgebiedenIds);
+        label = uitkomst.label;
+        gaps = uitkomst.gaps;
+      }
     }
   }
 
