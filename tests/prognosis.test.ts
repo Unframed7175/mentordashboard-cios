@@ -72,64 +72,45 @@ beforeEach(() => {
   appState.students = [];
 });
 
-// Helper: build a student with N datapunten that have no scores (onbeoordeeld)
-function makeStudentWithOnbeoordeeld(
-  scores: Record<string, string | null>,
-  aantalOnbeoordeeld: number,
-  aantalNietIngeleverd = 0,
-): any {
-  const datapunten = [
-    ...Array.from({ length: aantalOnbeoordeeld }, (_, i) => ({
-      datapunt: `DP-onbeoordeeld-${i}`,
-      scores: {},
-      status: '',
-    })),
-    ...Array.from({ length: aantalNietIngeleverd }, (_, i) => ({
-      datapunt: `DP-niet-ingeleverd-${i}`,
-      scores: {},
-      status: 'niet ingeleverd',
-    })),
-  ];
-  return { leerlingId: 'L1', naam: 'Test Leerling', deelgebiedScores: scores, datapunten };
-}
+// M42 T9a: makeStudentWithOnbeoordeeld() (bouwde studenten met N onbeoordeelde/
+// niet-ingeleverde datapunten) is verwijderd — de enige twee tests die 'm
+// gebruikten (de bj2-onbeoordeeld-negatief-tests hieronder) zijn beide
+// verwijderd, om de hieronder gedocumenteerde redenen (D17: bj2 heeft geen
+// negatief-tier meer).
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-test('negatief label wanneer >6 deelgebieden onvoldoende zijn', () => {
-  // 7 onvoldoende → negatief
-  const scores = scoresWithOverride('voldoende', 'onvoldoende', 7);
-  const result = berekenPrognose(makeStudent(scores));
-  expect(result.label).toBe('negatief');
-});
+// ── 3 tests removed (M42 T9a) ─────────────────────────────────────────────────
+// 'negatief label wanneer >6 deelgebieden onvoldoende zijn',
+// 'neutraal label wanneer <13 deelgebieden voldoende (niet negatief)' en
+// 'sbl label wanneer >=13 voldoende maar geen sbc-norm gehaald' testten de OLD
+// deelgebieden-count-only bj2-formule (>6 onvoldoende -> negatief, 13/15 als
+// sbl/sbc-drempel) via berekenPrognose(makeStudent(scores)) ZONDER traject
+// (default 'bj2') en ZONDER vestiging. Twee dingen maken deze onherstelbaar
+// in-place:
+//   1. D13/D17 (ADR-17d): KERN_SBC is weg, en BJ2 heeft sinds T9a helemaal geen
+//      'negatief'-tier meer — >6 onvoldoende kan simpelweg nooit meer tot
+//      label 'negatief' leiden voor bj2.
+//   2. De nieuwe vestiging-null-guard op de bj2-tak (T9a, zelfde patroon als
+//      T8's bj1-guard) laat berekenPrognose(student) zonder vestiging altijd
+//      'normen_onbekend' teruggeven, ongeacht de scores — dus zelfs een
+//      1:1-poging om deze tests hier te laten slagen zou ze vacuous maken
+//      (assert op 'normen_onbekend', ongeacht welke drempel getest werd).
+// Equivalente dekking (sbc/sbl/bespreekgeval happy paths, boundary-tests op de
+// ECHTE bj2SbcDeelgebiedenVoldoendeMin/bj2SblDeelgebiedenVoldoendeMin-drempels)
+// staat in tests/prognosis.bj2GeneriekPad.test.ts, tegen het echte schema en
+// met een echte vestiging.
 
-test('neutraal label wanneer <13 deelgebieden voldoende (niet negatief)', () => {
-  // 10 voldoende, 9 null (not enough for SBL)
-  const scores = allScores(null as any);
-  const keys = Object.keys(scores).slice(0, 10);
-  for (const k of keys) scores[k] = 'voldoende';
-  const result = berekenPrognose(makeStudent(scores));
-  expect(['neutraal', 'onvoldoende', 'negatief']).toContain(result.label);
-  // Must NOT be sbl or sbc
-  expect(result.label).not.toBe('sbl');
-  expect(result.label).not.toBe('sbc');
-});
-
-test('sbl label wanneer >=13 voldoende maar geen sbc-norm gehaald', () => {
-  // 13 voldoende — meets SBL threshold
-  const scores = scoresWithOverride('voldoende', 'onvoldoende', 0);
-  // Set exactly 13 to voldoende, rest null
-  const keys = Object.keys(scores);
-  for (let i = 13; i < keys.length; i++) scores[keys[i]] = null as any;
-  const result = berekenPrognose(makeStudent(scores));
-  // Should be sbl or better (not negatief/neutraal)
-  expect(['sbl', 'sbc', 'versneld_sbc']).toContain(result.label);
-});
-
-test('berekenPrognose met leeg scores object geeft een geldig label terug', () => {
-  const result = berekenPrognose(makeStudent({}));
+test('berekenPrognose met leeg scores object en vestiging geeft een geldig, niet-triviaal label terug', () => {
+  // M42 T9a: zonder vestiging zou dit altijd 'normen_onbekend' teruggeven,
+  // ongeacht de scores (vestiging-null-guard) — dat zou deze test vacuous
+  // maken (een "geldig label"-check die niets meer over de rekenlogica zegt).
+  // Met een vestiging doorloopt dit de echte berekenBj2GeneriekPad-logica.
+  const result = berekenPrognose(makeStudent({}), 'bj2', undefined, undefined, 'goes');
   expect(result).toBeDefined();
   expect(typeof result.label).toBe('string');
   expect(result.label.length).toBeGreaterThan(0);
+  expect(result.label).toBe('bespreekgeval'); // leeg record voldoet aan geen enkel criterium
 });
 
 test('berekenAllePrognoses met lege students array geeft lege array', () => {
@@ -158,12 +139,16 @@ test('berekenAllePrognoses met lege students array geeft lege array', () => {
 // niet in-place herschreven worden; ze moesten verhuizen naar een bestand
 // zonder schema-mock.
 
-test('BJ2 NIET negatief door onbeoordeeld-criterium (BJ1-only)', () => {
-  const scores = allScores('voldoende');
-  const student = makeStudentWithOnbeoordeeld(scores, 10); // >4 maar BJ2 → geen trigger
-  const result = berekenPrognose(student, 'bj2');
-  expect(result.label).not.toBe('negatief');
-});
+// ── 'BJ2 NIET negatief door onbeoordeeld-criterium (BJ1-only)' verwijderd (M42 T9a) ──
+// Deze test bewees dat de BJ1-only onbeoordeeld-negatief-trigger niet ook per
+// ongeluk voor bj2 gold. Sinds T9a heeft bj2 HELEMAAL geen negatief-tier meer
+// (D17/ADR-17d) — "result.label niet 'negatief'" is nu triviaal waar voor ELKE
+// bj2-student, ongeacht het aantal onbeoordeelde datapunten, dus deze
+// assertie test niets meer (exact het soort vacuous-test-risico dat T8's
+// rapport ook al signaleerde). Geen vervangende test nodig: de afwezigheid
+// van een negatief-tier voor bj2 is zelf al gedekt door
+// tests/prognosis.bj2GeneriekPad.test.ts's happy-path/bespreekgeval-tests
+// (die label altijd 'sbl'|'sbc'|'bespreekgeval' verwachten, nooit 'negatief').
 
 // ---------------------------------------------------------------------------
 // berekenPrognose activeDeelgebiedenIds filter — Phase 18 RED tests
@@ -207,6 +192,11 @@ describe('berekenPrognose activeDeelgebiedenIds filter (Phase 18)', () => {
   it('uses getLeerlijnenMappingSync (no Promise leak)', () => {
     // getLeerlijnenMappingSync is synchronous by design; cold-cache returns schema defaults.
     // No mock needed — calling it inside berekenPrognose must not return a Promise.
+    // M42 T9a: bj2 (default traject) now needs a vestiging to reach a computed
+    // label instead of 'normen_onbekend' — added as the 5th arg. validLabels
+    // updated to the new bj2 label set (no more 'negatief'/'neutraal' for bj2,
+    // see D17/ADR-17d); the real point of this test (mapping is a plain object,
+    // not an unresolved Promise) is unaffected by which label set applies.
     const activeIds = DEELGEBIEDEN.slice(0, 4).map(dg => dg.id);
     const scores: Record<string, string | null> = {};
     for (const dg of DEELGEBIEDEN) {
@@ -214,10 +204,10 @@ describe('berekenPrognose activeDeelgebiedenIds filter (Phase 18)', () => {
     }
     const student = makeStudent(scores);
 
-    const result = berekenPrognose(student, undefined, activeIds);
+    const result = berekenPrognose(student, undefined, activeIds, undefined, 'goes');
 
     // Result label must be a valid string (proves mapping was a real object, not a Promise)
-    const validLabels = ['sbc', 'sbl', 'negatief', 'neutraal'];
+    const validLabels = ['sbc', 'sbl', 'bespreekgeval'];
     expect(validLabels).toContain(result.label);
     expect(result.label).not.toBeUndefined();
   });

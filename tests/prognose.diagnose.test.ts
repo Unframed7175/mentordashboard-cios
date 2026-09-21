@@ -77,19 +77,29 @@ const student: any = {
   verzuim: { geoorloofd: 0, ongeoorloofd: 0 },
 };
 
-// VERWACHTE uitkomst op basis van handmatige berekening:
+// VERWACHTE uitkomst — BIJGEWERKT voor M42 T9a (berekenBj2GeneriekPad):
 //   traject:  'bj2'  (periode "BJ2 Fase 3 DD" → detectTraject geeft bj2)
 //   leerjaar: '2'    — correct afgeleid uit periode (R-01a fix werkt)
-//   totaalV:  13     (lesgeven 6/6 + organiseren 1/5 + prof_handelen 6/8)
-//   totaalO:  0
-//   isNegatief: 0 > 6 → NEE; per leerlijn: 0 > 2 → NEE
-//   SBL vereist ≥13 → 13 ≥ 13 → JA
-//   SBC vereist ≥15 → 13 < 15 → NEE; kern: P&O=null → NEE
-//   → label = 'sbl'  →  Groen / "On track"
 //
-// Null-scores (P&O, S&O, I&B, 2E&B, VSK, BH): pedagogisch correct voor BJ2 Fase 3.
-// Organiseren-leerlijn wordt in latere fasen beoordeeld; ORG scoort al wel.
-const verwachtLabel = 'sbl';
+// De oorspronkelijke handmatige berekening hieronder (VOOR T9a, bewaard voor
+// context) rekende met de inmiddels afgeschafte deelgebieden-count-only
+// formule (KERN_SBC, SBL≥13/SBC≥15, D13/D17 hebben dat allebei vervangen):
+//   totaalV:  13     (lesgeven 6/6 + organiseren 1/5 + prof_handelen 6/8)
+//   SBL vereist ≥13 → 13 ≥ 13 → JA; SBC vereist ≥15 → 13 < 15 → NEE
+//   → (OUDE motor) label = 'sbl'
+//
+// De ECHTE, huidige berekenBj2GeneriekPad-criteria (VestigingNormen) vereisen
+// behalve een deelgebieden-count ook Nederlands/Rekenen/KD/(SBC: WVO) — geen
+// van die velden staat op deze legacy-fixture (geen nederlandsResultaat,
+// rekenResultaat, keuzedelen/kdStatus, of Rekenen-domein-datapunten) — dus
+// zowel de SBC- als de SBL-criteria falen nu op die ontbrekende velden,
+// ongeacht de deelgebieden-count. Nieuwe verwachte uitkomst: 'bespreekgeval'
+// (D17: BJ2's nieuwe, eigen fallback-label — geen negatief-tier meer).
+// Vestiging ('goes', triviale Roosendaal-levels-eis) toegevoegd aan de
+// berekenPrognose-aanroep hieronder — zonder vestiging geeft de nieuwe
+// vestiging-null-guard altijd 'normen_onbekend' terug, wat deze diagnose-
+// fixture zinloos zou maken.
+const verwachtLabel = 'bespreekgeval';
 
 // ---------------------------------------------------------------------------
 
@@ -125,7 +135,9 @@ describe('prognose diagnose', () => {
 
   it('berekenPrognose geeft verwacht label', () => {
     const traject = detectTraject(student);
-    const p = berekenPrognose(student, traject);
+    // 'goes' vestiging (M42 T9a: bj2 heeft nu een vestiging nodig, anders
+    // normen_onbekend via de vestiging-null-guard — zie comment bij verwachtLabel).
+    const p = berekenPrognose(student, traject, undefined, undefined, 'goes');
 
     console.log('\n--- berekenPrognose output ---');
     console.log('traject:  ', traject);

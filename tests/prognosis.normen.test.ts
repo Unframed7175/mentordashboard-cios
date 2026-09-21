@@ -65,80 +65,27 @@ function makeStudent(scores: Record<string, string | null>): any {
 
 describe('berekenPrognose normen parameter', () => {
 
-  // ── Test A: SBL custom threshold (NORM-01) ────────────────────────────────
-  // Student with 10 ≥V. Default sbl=13 → 10<13 → not SBL → 'neutraal'.
-  // Custom sbl=10 → 10>=10 → isSBL=true → label='sbl', nodigSBL=0.
-  it('Test A — custom sbl=10: student with 10 voldoende gets label sbl', () => {
-    const scores: Record<string, string | null> = {
-      // 10 voldoende: 6 in lesgeven + 4 in organiseren
-      'V&A':  'voldoende',
-      'M&M':  'voldoende',
-      'INS':  'voldoende',
-      'O&DW': 'voldoende',
-      'C&B':  'voldoende',
-      '1E&B': 'voldoende',
-      'P&O':  'voldoende',
-      'S&O':  'voldoende',
-      'ORG':  'voldoende',
-      'I&B':  'voldoende',
-      // remaining 9 deelgebieden: null (not assessed)
-      '2E&B': null,
-      'PrCo': null,
-      'VSK':  null,
-      'LOB':  null,
-      'INFO': null,
-      'DESK': null,
-      'BS':   null,
-      'TOW':  null,
-      'BH':   null,
-    };
-    const student = makeStudent(scores);
-    // isSBC requires >=15 (10<15 → false). isNegatief: 0 onvoldoende → false.
-    // With default sbl=13: 10<13 → isSBL=false → label='neutraal'.
-    // With custom sbl=10:  10>=10 → isSBL=true → label='sbl'.
-    const result = berekenPrognose(student, 'bj2', undefined, { ...DEFAULT_NORMEN, sbl: 10 } as Normen);
-    expect(result.label).toBe('sbl');
-    expect(result.gaps.nodigSBL).toBe(0);
-  });
-
-  // ── Test B: SBC custom threshold (NORM-02) ───────────────────────────────
-  // Student with 10 ≥V including all KERN_SBC=['V&A','P&O','C&B','1E&B'] voldoende.
-  // Default sbc=15 → 10<15 → not SBC.
-  // Custom sbc=10 → 10>=10 && kernNietVoldaan.length===0 → isSBC=true → label='sbc'.
-  it('Test B — custom sbc=10: student with 10 voldoende incl all KERN_SBC gets label sbc', () => {
-    const scores: Record<string, string | null> = {
-      // KERN_SBC must ALL be voldoende (V&A, P&O, C&B, 1E&B)
-      'V&A':  'voldoende',
-      'P&O':  'voldoende',
-      'C&B':  'voldoende',
-      '1E&B': 'voldoende',
-      // 6 more voldoende to reach total=10
-      'M&M':  'voldoende',
-      'INS':  'voldoende',
-      'O&DW': 'voldoende',
-      'S&O':  'voldoende',
-      'ORG':  'voldoende',
-      'I&B':  'voldoende',
-      // remaining 9: null
-      '2E&B': null,
-      'PrCo': null,
-      'VSK':  null,
-      'LOB':  null,
-      'INFO': null,
-      'DESK': null,
-      'BS':   null,
-      'TOW':  null,
-      'BH':   null,
-    };
-    const student = makeStudent(scores);
-    // isNegatief: 0 onvoldoende → false.
-    // With default sbc=15: 10<15 → isSBC=false → check isSBL: with default sbl=13 → 10<13 → 'neutraal'.
-    // With custom sbc=10 (sbl still 13): 10>=10 && kern all met → isSBC=true → label='sbc'.
-    // Note: isSBC is checked before isSBL in berekenPrognose, so sbc wins.
-    const result = berekenPrognose(student, 'bj2', undefined, { ...DEFAULT_NORMEN, sbc: 10 } as Normen);
-    expect(result.label).toBe('sbc');
-    expect(result.gaps.nodigSBC_deelgebieden).toBe(0);
-  });
+  // ── Test A/B removed (M42 T9a) ─────────────────────────────────────────────
+  // Test A ("custom sbl=10") and Test B ("custom sbc=10, incl all KERN_SBC")
+  // both drove berekenPrognose(student, 'bj2', undefined, customNormen) with
+  // the OLD Normen type's sbl/sbc fields and the (now-deleted, D13) KERN_SBC
+  // kern-deelgebieden check, and called WITHOUT vestiging. Two independent
+  // reasons make these impossible to port in place:
+  //   1. berekenBj2GeneriekPad (T9a) reads VestigingNormen's
+  //      bj2SblDeelgebiedenVoldoendeMin/bj2SbcDeelgebiedenVoldoendeMin, not the
+  //      old Normen.sbl/Normen.sbc these tests override — those fields are
+  //      simply not read anymore for bj2. KERN_SBC itself no longer exists
+  //      (D13: no kern-deelgebieden eis for bj2 at all).
+  //   2. The new vestiging-null-guard on the bj2 branch (same pattern as T8's
+  //      bj1 guard) makes berekenPrognose(student, 'bj2', ...) WITHOUT
+  //      vestiging always return 'normen_onbekend' now, regardless of scores
+  //      or the (irrelevant) old Normen override — porting these in place
+  //      would just assert 'normen_onbekend', which tests nothing.
+  // Equivalent coverage ("custom VestigingNormen threshold changes the
+  // sbc/sbl outcome", boundary tests at the real bj2SbcDeelgebiedenVoldoendeMin
+  // (10) / bj2SblDeelgebiedenVoldoendeMin (7) thresholds) now lives in
+  // tests/prognosis.bj2GeneriekPad.test.ts, against the real schema with a
+  // real vestiging and VestigingNormen.
 
   // ── Test C: negatiefTotaal custom threshold (NORM-03) ────────────────────
   // 7 onvoldoende spread as lesgeven=2, organiseren=2, prof_handelen=3.
@@ -177,8 +124,20 @@ describe('berekenPrognose normen parameter', () => {
     const student = makeStudent(scores);
     const customNormen: Normen = { ...DEFAULT_NORMEN, negatiefTotaal: 10, negatiefPerLeerlijn: 5 };
     const result = berekenPrognose(student, 'bj2', undefined, customNormen);
+    // result.isNegatief is still the generic, OLD telLeerlijnen-based
+    // computation at the top of berekenPrognose (unchanged by T9a — it's kept
+    // on the return object per D17/T8 precedent even though it no longer
+    // drives the bj2 LABEL), so this assertion remains valid and meaningful.
     expect(result.isNegatief).toBe(false);
-    expect(result.gaps.onvoldoendeRuimte).toBe(3); // 10 - 7
+    // ── gaps.onvoldoendeRuimte assertion removed (M42 T9a) ──────────────────
+    // That field belonged to the OLD bj2 gaps object (built from
+    // n.negatiefTotaal/totaalOnvoldoende in the now-replaced bj2 branch).
+    // berekenBj2GeneriekPad's gaps shape has no such field (D17: bj2 has no
+    // negatief-tier to compute "ruimte" against) — without a vestiging this
+    // call now returns gaps: {} entirely (vestiging-null-guard), so asserting
+    // a specific numeric value here would either throw (T8-report-style
+    // "genuinely obsolete") or, if softened, be vacuous. Dropped rather than
+    // ported.
   });
 
   // ── Test D: negatiefPerLeerlijn custom threshold (NORM-04) ───────────────
@@ -216,8 +175,12 @@ describe('berekenPrognose normen parameter', () => {
     const student = makeStudent(scores);
     const customNormen: Normen = { ...DEFAULT_NORMEN, negatiefPerLeerlijn: 5 };
     const result = berekenPrognose(student, 'bj2', undefined, customNormen);
+    // Zelfde redenering als Test C hierboven: isNegatief blijft de generieke,
+    // ongewijzigde top-of-function berekening.
     expect(result.isNegatief).toBe(false);
-    expect(result.gaps.onvoldoendeRuimtePerLeerlijn.lesgeven).toBe(2); // 5 - 3
+    // gaps.onvoldoendeRuimtePerLeerlijn assertion removed (M42 T9a) — zelfde
+    // reden als Test C: dat veld hoorde bij de OLD bj2-gaps-vorm, niet bij
+    // berekenBj2GeneriekPad's gaps-shape.
   });
 
   // ── Test E/F removed (M42 T8) ─────────────────────────────────────────────
@@ -269,13 +232,17 @@ describe('berekenPrognose normen parameter', () => {
     expect(result.label.length).toBeGreaterThan(0);
   });
 
-  // ── Test H: vestiging parameter (M42 T7b) — appended 5th arg, currently inert ─
-  // T7b is pure plumbing: the 5th `vestiging` parameter must be accepted without
-  // throwing and must NOT change the computed label (the decision body doesn't
-  // read it yet — that's T8/T9's job). This also proves the parameter was
-  // APPENDED, not inserted: the existing 4-arg `normen`-passing calls elsewhere
-  // in this file must keep working unmodified (see full-file regression run).
-  it('Test H — vestiging (5th arg): accepted for roosendaal/goes/dordrecht/undefined/null without throwing or changing the label', () => {
+  // ── Test H: vestiging parameter (M42 T7b, herzien in T9a) ──────────────────
+  // T7b's oorspronkelijke aanname was dat vestiging PURE plumbing was (nog
+  // niet gelezen door de bj2-tak) en dus nooit het label kon veranderen. T9a
+  // maakt vestiging voor bj2 precies NIET meer inert (elke vestiging heeft nu
+  // zijn eigen VestigingNormen, en de Roosendaal-levels-eis kan het label
+  // daadwerkelijk laten verschillen) — dat is het hele doel van deze taak.
+  // Wat WEL nog moet blijven kloppen: geen enkele vestigingswaarde geeft een
+  // throw, en de vestiging-null-guard geeft consistent 'normen_onbekend' voor
+  // zowel undefined als null. Echte "verschillende vestiging → mogelijk
+  // andere uitkomst"-dekking staat in tests/prognosis.bj2GeneriekPad.test.ts.
+  it('Test H — vestiging (5th arg): accepted for roosendaal/goes/dordrecht without throwing; undefined/null consistently give normen_onbekend', () => {
     const scores: Record<string, string | null> = {
       'V&A':  'voldoende',
       'M&M':  'voldoende',
@@ -298,15 +265,17 @@ describe('berekenPrognose normen parameter', () => {
       'BH':   'voldoende',
     };
     const student = makeStudent(scores);
-    const baseline = berekenPrognose(student, 'bj2', undefined, DEFAULT_NORMEN as Normen);
 
     for (const vestiging of ['roosendaal', 'goes', 'dordrecht', undefined, null] as const) {
-      let result: any;
       expect(() => {
-        result = berekenPrognose(student, 'bj2', undefined, DEFAULT_NORMEN as Normen, vestiging);
+        berekenPrognose(student, 'bj2', undefined, DEFAULT_NORMEN as Normen, vestiging);
       }).not.toThrow();
-      expect(result.label).toBe(baseline.label);
     }
+
+    const zonderVestiging = berekenPrognose(student, 'bj2', undefined, DEFAULT_NORMEN as Normen, undefined);
+    const metNull = berekenPrognose(student, 'bj2', undefined, DEFAULT_NORMEN as Normen, null);
+    expect(zonderVestiging.label).toBe('normen_onbekend');
+    expect(metNull.label).toBe('normen_onbekend');
   });
 
 });
