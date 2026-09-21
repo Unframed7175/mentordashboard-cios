@@ -4,37 +4,22 @@
 // plus 2 detectTraject patterns (bj1/bj2).
 // ---------------------------------------------------------------------------
 
-// Rekenlogica-tests tegen het 19-deelgebieden/3-leerlijnen-schema waarop de
-// doorstroomnormen zijn gekalibreerd — zie tests/prognosis.test.ts voor de toelichting.
-vi.mock('../src/config/leerlijn.json', () => ({
-  default: {
-    deelgebieden: [
-      { id: 'va',   label: 'V&A',  group: 'lesgeven' },
-      { id: 'mm',   label: 'M&M',  group: 'lesgeven' },
-      { id: 'ins',  label: 'INS',  group: 'lesgeven' },
-      { id: 'odw',  label: 'O&DW', group: 'lesgeven' },
-      { id: 'cb',   label: 'C&B',  group: 'lesgeven' },
-      { id: 'eb1',  label: '1E&B', group: 'lesgeven' },
-      { id: 'po',   label: 'P&O',  group: 'organiseren' },
-      { id: 'so',   label: 'S&O',  group: 'organiseren' },
-      { id: 'org',  label: 'ORG',  group: 'organiseren' },
-      { id: 'ib',   label: 'I&B',  group: 'organiseren' },
-      { id: 'eb2',  label: '2E&B', group: 'organiseren' },
-      { id: 'prco', label: 'PrCo', group: 'prof_handelen' },
-      { id: 'vsk',  label: 'VSK',  group: 'prof_handelen' },
-      { id: 'lob',  label: 'LOB',  group: 'prof_handelen' },
-      { id: 'info', label: 'INFO', group: 'prof_handelen' },
-      { id: 'desk', label: 'DESK', group: 'prof_handelen' },
-      { id: 'bs',   label: 'BS',   group: 'prof_handelen' },
-      { id: 'tow',  label: 'TOW',  group: 'prof_handelen' },
-      { id: 'bh',   label: 'BH',   group: 'prof_handelen' },
-    ],
-  },
-}));
-
+// Dit bestand mockte oorspronkelijk het 19-deelgebieden/3-leerlijnen-schema
+// (zelfde reden als tests/prognosis.test.ts destijds) om onafhankelijk te
+// blijven van welk schooljaar toevallig actief was.
+//
+// M42 T10: die vi.mock is verwijderd. Sinds T10 is SUPPORTED_LEERLIJNEN
+// (utils/prognosis.ts) bijgewerkt naar de ECHTE, live schema-groepen — een
+// bevroren OUD-schema-mock zou de schema-guard nu juist laten FALEN (de
+// groepsnamen matchen niet meer), wat elke test hier terug zou zetten naar
+// 'normen_onbekend' i.p.v. de bedoelde sbc/sbl/bespreekgeval-uitkomsten. Dit
+// bestand draait nu tegen het ECHTE, live schema (12 deelgebieden, 2 groepen),
+// en allScores() hieronder leidt zijn labels af van het geïmporteerde
+// DEELGEBIEDEN i.p.v. een hardcoded 19-labellijst.
 import { berekenStatus, detectTraject, STATUS_VOLGORDE, computeKpiCounts } from '../src/utils/status';
 import type { StatusResult } from '../src/utils/status';
 import { appState } from '../utils/datamodel';
+import { DEELGEBIEDEN } from '../utils/schema';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -58,16 +43,12 @@ function makeStudent(overrides: Partial<any> = {}): any {
 }
 
 /**
- * Build a deelgebiedScores object with all 19 CIOS deelgebied labels set to the same score.
- * Labels must match exactly what berekenPrognose indexes (the label field from DEELGEBIEDEN).
+ * Build a deelgebiedScores object with all real (live-schema) deelgebied labels
+ * set to the same score. Labels are derived from DEELGEBIEDEN (schema-agnostic,
+ * M42 T10 — previously a hardcoded 19-label list from the retired schema).
  */
 function allScores(level: string | null): Record<string, string | null> {
-  const labels = [
-    'V&A', 'M&M', 'INS', 'O&DW', 'C&B', '1E&B',
-    'P&O', 'S&O', 'ORG', 'I&B', '2E&B',
-    'PrCo', 'VSK', 'LOB', 'INFO', 'DESK', 'BS', 'TOW', 'BH',
-  ];
-  return Object.fromEntries(labels.map((lbl) => [lbl, level]));
+  return Object.fromEntries(DEELGEBIEDEN.map((dg) => [dg.label, level]));
 }
 
 // ---------------------------------------------------------------------------
@@ -91,7 +72,7 @@ function rekenenDatapunten(): any[] {
 
 function makeFullSbcStudent(overrides: Partial<any> = {}): any {
   return makeStudent({
-    deelgebiedScores: allScores('voldoende'), // 19 >= bj2SbcDeelgebiedenVoldoendeMin (10)
+    deelgebiedScores: allScores('voldoende'), // 12 >= bj2SbcDeelgebiedenVoldoendeMin (10)
     nlSchrijven: '2f',                        // → 'voldoende' (2F-of-hoger volstaat)
     nlGesprekvoeren: '3f',                    // → 'goed' (exact 3F vereist)
     rekenResultaat: '3f',                     // → 'goed' (MBO4)
@@ -104,7 +85,7 @@ function makeFullSbcStudent(overrides: Partial<any> = {}): any {
 
 function makeFullSblStudent(overrides: Partial<any> = {}): any {
   return makeStudent({
-    deelgebiedScores: allScores('voldoende'), // 19 >= bj2SblDeelgebiedenVoldoendeMin (7)
+    deelgebiedScores: allScores('voldoende'), // 12 >= bj2SblDeelgebiedenVoldoendeMin (7)
     nederlandsResultaat: '2f',                // → 'voldoende' (2F-of-hoger volstaat, single-veld)
     rekenResultaat: '2f',                     // → 'voldoende' (MBO3-of-hoger)
     datapunten: rekenenDatapunten(),          // 5 domeinen afgerond
@@ -361,24 +342,63 @@ describe('berekenStatus keuzedelen (Phase 39)', () => {
     expect(result.label).toBe('Bespreekgeval');
   });
 
-  // ── 2 tests removed (M42 T8) ──────────────────────────────────────────────
-  // 'naar_bj2 + niet_behaald KD → oranje' and 'naar_bj2 + haalbaar KD → groen'
-  // tested berekenStatus's KD-downgrade branch (unchanged by T8) driven by a
-  // BJ1 'naar_bj2' label from the OLD formula, via makeBj1Student() (no
-  // vestiging passed). This file's OLD-schema mock (top of file) means even
-  // passing a real vestiging here would crash the new engine (it indexes
-  // telLeerlijnenPerFase's real-schema group keys, absent under this mock).
-  // More fundamentally: berekenStatus -> berekenPrognose is still gated by
-  // isNormenSchemaOndersteund(), which returns false for the real schema
-  // until T10 lands — so this exact KD+naar_bj2 interaction is genuinely
-  // unreachable end-to-end right now, through no fault of T8's change; it
-  // only ever exercised this branch via the old, now-deleted formula.
-  // NOTE FOR T10's BRIEF: once isNormenSchemaOndersteund() supports the real
-  // schema, re-verify/restore this KD+naar_bj2 interaction with a real
-  // vestiging and a naar_bj2-achieving fixture (see
-  // tests/prognosis.bj1Uitkomst.test.ts's naar_bj2 happy-path fixture for the
-  // shape) — the KD-downgrade logic itself in berekenStatus is untouched and
-  // still needs this coverage once the guard makes it reachable again.
+  // ── 2 tests restored (M42 T10) ────────────────────────────────────────────
+  // Originally removed at M42 T8 because this KD+naar_bj2 interaction was
+  // genuinely unreachable end-to-end (berekenPrognose was still gated by
+  // isNormenSchemaOndersteund(), false for the real schema) — T8 left an
+  // explicit "NOTE FOR T10's BRIEF" asking for this coverage to be restored
+  // once the guard supports the real schema. It now does; fixture mirrors
+  // tests/prognosis.bj1Uitkomst.test.ts's naar_bj2 happy-path (9 deelgebieden
+  // voldoende in fase 2 across both groups, Nederlands/Rekenen op 2F, geen
+  // versneld-niveau) via a real vestiging ('goes') and explicit traject 'bj1'.
+  function makeNaarBj2Student(overrides: Partial<any> = {}): any {
+    return makeStudent({
+      periode: 'bj1 fase 2',
+      leerjaar: '1',
+      // heel-jaar-aggregaat (nodig voor berekenStatus's eigen, van
+      // berekenBj1Uitkomst losstaande "heeft deze leerling scores"-check —
+      // zie utils/prognosis.ts's telLeerlijnen()); berekenBj1Uitkomst zelf
+      // leest de fase-2-tabel hieronder via student.datapunten.
+      deelgebiedScores: {
+        'O&V': 'voldoende', 'S&O': 'voldoende', 'PH': 'voldoende', 'DH': 'voldoende',
+        'I&P': 'voldoende', 'O&C': 'voldoende', 'E&V': 'voldoende',
+        'PrHo': 'voldoende', 'DESK': 'voldoende',
+      },
+      datapunten: [
+        {
+          vak: 'Resultaten', datapunt: 'Resultatentabel', fase: 2,
+          scores: {
+            'O&V': 'voldoende', 'S&O': 'voldoende', 'PH': 'voldoende', 'DH': 'voldoende',
+            'I&P': 'voldoende', 'O&C': 'voldoende', 'E&V': 'voldoende',
+            'PrHo': 'voldoende', 'DESK': 'voldoende',
+          },
+        },
+        ...[1, 2, 3].map((n) => ({
+          vak: 'Betekenisvol Bewegen', datapunt: `BVB Professionele houding ${n}`,
+          scores: { PrHo: 'voldoende' }, fase: 1,
+        })),
+        ...[1, 2, 3].map((n) => ({
+          vak: 'Rekenen', datapunt: `F2 Rekenen -eindtoets domein ${n}`,
+          scores: {}, status: 'Op tijd ingeleverd en wel beoordeeld', fase: 1,
+        })),
+      ],
+      nederlandsResultaat: '2f',
+      rekenResultaat: '2f',
+      ...overrides,
+    });
+  }
+
+  it('naar_bj2 + niet_behaald KD → oranje / Let op — KD', () => {
+    const result = berekenStatus(makeNaarBj2Student({ keuzedelen: kdNietBehaald }), 'bj1', undefined, 'goes');
+    expect(result.kleur).toBe('oranje');
+    expect(result.label).toBe('Let op — KD');
+  });
+
+  it('naar_bj2 + haalbaar KD → groen / Naar BJ2 (haalbaar downgradet naar_bj2 NIET, anders dan sbc/versneld_sbc)', () => {
+    const result = berekenStatus(makeNaarBj2Student({ keuzedelen: kdHaalbaar }), 'bj1', undefined, 'goes');
+    expect(result.kleur).toBe('groen');
+    expect(result.label).toBe('Naar BJ2');
+  });
 
 });
 
