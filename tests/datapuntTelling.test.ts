@@ -254,4 +254,31 @@ describe('telLevelsAfgerond', () => {
     ];
     expect(telLevelsAfgerond(datapunten)).toBe(2);
   });
+
+  // M42 /review-fix (red-team finding, geverifieerd tegen de echte Roosendaal
+  // sample-PDF's): één level-NUMMER bestaat in de praktijk uit tot 4 losse
+  // activiteit-datapunten (lesgeven/organiseren/begeleiden/promoten). "N levels
+  // afgerond" moet N VOLLEDIG afgeronde level-nummers tellen, niet N losse
+  // afgeronde activiteit-datapunten — anders telt 1 volledig afgerond level
+  // (4/4 activiteiten) als 4 "levels", tot 4x te soepel voor de Roosendaal-
+  // drempels in berekenBj1Uitkomst.
+  it('één level-nummer met MEERDERE afgeronde activiteiten telt als 1 level, niet als N', () => {
+    const datapunten = [
+      level('Level 1 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 1 organiseren', 'Zelfevaluatie afgerond'),
+      level('Level 1 begeleiden', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 1 promoten', 'Te laat ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(1);
+  });
+
+  it('een level-nummer waarvan niet ALLE activiteiten zijn afgerond telt niet mee, ook al zijn er meerdere afgerond', () => {
+    const datapunten = [
+      level('Level 2 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 2 organiseren', 'Zelfevaluatie afgerond'),
+      level('Level 2 begeleiden', 'niet ingeleverd'), // deze ontbreekt nog
+      level('Level 3 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'), // los level, wel volledig (1/1)
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(1); // alleen level 3
+  });
 });

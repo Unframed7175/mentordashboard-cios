@@ -153,12 +153,30 @@ export function alleLevelsBehaald(datapunten: Datapunt[], level: number): boolea
 // (zelfde isPositiefIngeleverd als alleLevelsBehaald/telRekenDomeinen).
 // ---------------------------------------------------------------------------
 const ANY_LEVEL_RE = /\blevel\s*\d+\b/i;
+const LEVEL_NUMBER_RE = /\blevel\s*(\d+)\b/i;
 
+// M42 review-fix (red-team finding, verified against the real Roosendaal
+// sample PDFs — "Rapport ... Beij" en "... Benders", pagina "Extern
+// praktijkleren"): een level-NUMMER is een milestone opgebouwd uit MEERDERE
+// aparte activiteit-datapunten (lesgeven/organiseren/begeleiden/promoten —
+// tot 4 per level, groeiend gedurende het jaar, ADR-17b). "Minimaal N levels
+// afgerond" betekent dus "N VERSCHILLENDE level-nummers waarvan ALLE
+// bijbehorende activiteiten zijn afgerond" — niet een ruwe telling van
+// individuele afgeronde activiteit-datapunten. De oorspronkelijke
+// implementatie (telDatapuntenMetPatroon over ANY_LEVEL_RE) telde elke
+// afgeronde "Level N <activiteit>" apart, dus 1 volledig afgerond level (4/4
+// activiteiten) telde als 4 — een leerling kon de BJ1-Roosendaal-drempel
+// (bv. "minimaal 4 levels afgerond") daardoor al halen met slechts 1 echt
+// afgerond level-milestone i.p.v. 4, tot 4x te soepel.
 export function telLevelsAfgerond(datapunten: Datapunt[]): number {
-  const { voldoet } = telDatapuntenMetPatroon(
-    datapunten,
-    dp => ANY_LEVEL_RE.test(dp.datapunt),
-    dp => isPositiefIngeleverd(dp),
-  );
-  return voldoet;
+  const levelNummers = new Set<number>();
+  for (const dp of datapunten ?? []) {
+    const match = LEVEL_NUMBER_RE.exec(dp.datapunt);
+    if (match) levelNummers.add(Number(match[1]));
+  }
+  let afgerond = 0;
+  for (const nummer of levelNummers) {
+    if (alleLevelsBehaald(datapunten, nummer)) afgerond++;
+  }
+  return afgerond;
 }
