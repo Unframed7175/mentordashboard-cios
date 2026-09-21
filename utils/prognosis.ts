@@ -24,7 +24,7 @@ import { getFase, aggregateLatestScores } from './scoreAggregation';
 import { telBetekenisvolBewegenProfHouding, telRekenDomeinen, telLevelsAfgerond, alleLevelsBehaald } from './datapuntTelling';
 import type { Datapunt } from './datapuntTelling';
 import type { Vestiging } from './klassen';
-import { normalizeTriState } from './trajectNormalisatie';
+import { normalizeTriState, normalizeRoosendaalTraject } from './trajectNormalisatie';
 import { aggregateKdStatus } from './keuzedelen';
 
 // ---------------------------------------------------------------------------
@@ -510,6 +510,106 @@ export function berekenBj2GeneriekPad(
     rekenNiveau: reken.niveau,
     kdStatus,
     wvoTraject: wvo,
+  };
+
+  return { label, gaps };
+}
+
+// ---------------------------------------------------------------------------
+// berekenBj2RoosendaalSblKeuze(student, normen, activeDeelgebiedenIds?) — M42 T9c
+//
+// Roosendaal-exclusief, KLEINER criteria-pad (brondocument p.6, "Doorstroom
+// naar traject Examinering SBL") voor leerlingen die in Roosendaal's
+// optionele mid-year keuzeproces expliciet 'sbl' kozen (T3b's
+// roosendaalTraject-veld, via normalizeRoosendaalTraject).
+//
+// ADR-17e (routing-correctie, belangrijk): dit is GEEN volledig parallel
+// BJ2-pad dat berekenBj2GeneriekPad vervangt. Het brondocument zegt: kiest de
+// leerling 'sbc', dan is Tabel A (berekenBj2GeneriekPad) van kracht; is er
+// geen keuze gemaakt, dan geldt ook gewoon Tabel A. Alleen de 'sbl'-keuze
+// heeft deze eigen, kleinere eisenset. Zie de routing-tak in berekenPrognose
+// hieronder voor waar dat onderscheid wordt gemaakt.
+//
+// Deze functie wordt ALTIJD met Roosendaal's eigen VestigingNormen
+// aangeroepen (de caller checkt vestiging === 'roosendaal' al vóór de
+// aanroep) — geen vestiging-parameter nodig, anders dan berekenBj2GeneriekPad.
+//
+// Fase-3-scoping (p.6 noemt expliciet "fase drie" — anders dan T9a's
+// generieke pad, dat heel-jaar-aggregaat is, en anders dan T8's BJ1-tabel,
+// die fase 2 gebruikt): hergebruikt telLeerlijnenPerFase (M42 T6, al gebruikt
+// door berekenBj1Uitkomst voor fase 2) en telt voldoendeOfHoger op over ALLE
+// teruggegeven groepen (Object.values(telling), niet twee hardcoded
+// groepsnamen zoals berekenBj1Uitkomst doet) — zo blijft de telling correct
+// ongeacht hoeveel leerlijn-groepen het actieve schema kent op het moment van
+// aanroepen (2 nu, 3 onder het oude/gemockte schema in tests/prognosis.test.ts
+// — die tweede vorm is precies waarom de routing-tests in dát bestand staan,
+// zie de describe-blok daar).
+//
+// D17/ADR-17d: geen negatief-tier — de fallback is hetzelfde 'bespreekgeval'-
+// label als berekenBj2GeneriekPad's eigen fallback.
+// ---------------------------------------------------------------------------
+
+export interface Bj2RoosendaalSblKeuzeUitkomst {
+  label: 'sbl' | 'bespreekgeval';
+  gaps: any;
+}
+
+export function berekenBj2RoosendaalSblKeuze(
+  student: any,
+  normen: VestigingNormen,
+  activeDeelgebiedenIds?: string[],
+): Bj2RoosendaalSblKeuzeUitkomst {
+  const datapunten: Datapunt[] = student.datapunten ?? [];
+
+  // ── Deelgebieden ≥V, FASE 3 (p.6 — anders dan T9a's heel-jaar-aggregaat) ───
+  const telling = telLeerlijnenPerFase(datapunten, 3, activeDeelgebiedenIds);
+  const fase3DeelgebiedenVoldoende = Object.values(telling).reduce(
+    (som, t) => som + t.voldoendeOfHoger,
+    0,
+  );
+
+  // ── Nederlands — één totaalveld, zelfde "voldoende-of-goed" idioom als
+  // T9a's generieke SBL-check ────────────────────────────────────────────────
+  const nederlandsNiveau = normalizeRekenScore(student.nederlandsResultaat ?? null);
+
+  // ── Rekenen — heel-jaar (het brondocument scoopt deze bullet niet naar
+  // fase 3, zelfde als T9a's generieke pad) ─────────────────────────────────
+  const reken = telRekenDomeinen(student);
+
+  // ── KD: "behaald of haalbaar voor 1 december" — zelfde idioom als T9a ──────
+  const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
+  const kdStatus = keuzedelen.length > 0
+    ? aggregateKdStatus(keuzedelen)
+    : (student.kdStatus ?? null);
+  const kdVoldoet = kdStatus === 'behaald' || kdStatus === 'haalbaar';
+
+  // ── "Alle levels 2 behaald" — deze functie is Roosendaal-exclusief (nooit
+  // aangeroepen voor Goes/Dordrecht), dus het ADR-17e 0-sentinel-scenario doet
+  // zich hier in de praktijk niet voor. Dezelfde defensieve guard wordt hier
+  // toch geschreven, voor consistentie met berekenBj2GeneriekPad's Roosendaal-
+  // levels-checks en toekomstbestendigheid (goedkoop, onschadelijk).
+  const levelsOk = normen.bj2RoosendaalSblKeuzeLevelsMin === 0
+    ? true
+    : alleLevelsBehaald(datapunten, normen.bj2RoosendaalSblKeuzeLevelsMin);
+
+  const isSbl = (
+    fase3DeelgebiedenVoldoende >= normen.bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin &&
+    (nederlandsNiveau === 'voldoende' || nederlandsNiveau === 'goed') &&
+    reken.domeinenAfgerond >= normen.bj2RoosendaalSblKeuzeRekenDomeinenMin &&
+    (reken.niveau === 'voldoende' || reken.niveau === 'goed') &&
+    kdVoldoet &&
+    levelsOk
+  );
+
+  const label: Bj2RoosendaalSblKeuzeUitkomst['label'] = isSbl ? 'sbl' : 'bespreekgeval';
+
+  const gaps = {
+    fase3DeelgebiedenVoldoende,
+    nodigDeelgebiedenFase3: Math.max(0, normen.bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin - fase3DeelgebiedenVoldoende),
+    nodigRekenDomeinen: Math.max(0, normen.bj2RoosendaalSblKeuzeRekenDomeinenMin - reken.domeinenAfgerond),
+    nederlandsNiveau,
+    rekenNiveau: reken.niveau,
+    kdStatus,
   };
 
   return { label, gaps };

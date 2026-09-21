@@ -71,10 +71,22 @@ function zesFase3Voldoende(fase: number | null | undefined = 3): Datapunt {
   return scoreDp(fase, { 'O&V': 'voldoende', 'S&O': 'voldoende', 'PH': 'voldoende', 'DH': 'voldoende', 'I&P': 'voldoende', 'O&C': 'voldoende' });
 }
 
+function tweeLevelsAfgerond(): Datapunt[] {
+  return [
+    levelDp(2, 'Op tijd ingeleverd en wel beoordeeld'),
+    levelDp(2, 'Op tijd ingeleverd en wel beoordeeld'),
+  ];
+}
+
 // Bouwt een student die ALLE sbl-keuze-criteria voldoet (behalve evt. overrides).
+// Roosendaal's bj2RoosendaalSblKeuzeLevelsMin default is 2 (geen 0-sentinel,
+// zie de dedicated levels-tests hieronder) — dus de happy-path/boundary/
+// KD-fallback-fixtures moeten standaard 2 afgeronde levels bevatten, anders
+// zou ELKE test hieronder impliciet ook de levels-eis testen i.p.v. alleen
+// zijn eigen criterium.
 function sblKeuzeStudent(overrides: any = {}): any {
   return makeStudent({
-    datapunten: [zevenFase3Voldoende(), ...vijfRekenDomeinen()],
+    datapunten: [zevenFase3Voldoende(), ...vijfRekenDomeinen(), ...tweeLevelsAfgerond()],
     nederlandsResultaat: '2f', // → 'voldoende'
     rekenResultaat: '2f',      // → 'voldoende' (MBO3-of-hoger)
     kdStatus: 'behaald',
@@ -91,12 +103,12 @@ describe('berekenBj2RoosendaalSblKeuze — happy path', () => {
 
 describe('berekenBj2RoosendaalSblKeuze — grenswaarden (fase-3-scoping)', () => {
   it('exact 7 deelgebieden voldoende IN FASE 3 → wel sbl', () => {
-    const student = sblKeuzeStudent({ datapunten: [zevenFase3Voldoende(), ...vijfRekenDomeinen()] });
+    const student = sblKeuzeStudent({ datapunten: [zevenFase3Voldoende(), ...vijfRekenDomeinen(), ...tweeLevelsAfgerond()] });
     expect(berekenBj2RoosendaalSblKeuze(student, NORMEN_ROOSENDAAL).label).toBe('sbl');
   });
 
   it('6 deelgebieden voldoende in fase 3 (één minder) → geen sbl (bespreekgeval)', () => {
-    const student = sblKeuzeStudent({ datapunten: [zesFase3Voldoende(), ...vijfRekenDomeinen()] });
+    const student = sblKeuzeStudent({ datapunten: [zesFase3Voldoende(), ...vijfRekenDomeinen(), ...tweeLevelsAfgerond()] });
     const result = berekenBj2RoosendaalSblKeuze(student, NORMEN_ROOSENDAAL);
     expect(result.label).toBe('bespreekgeval');
   });
@@ -113,6 +125,7 @@ describe('berekenBj2RoosendaalSblKeuze — grenswaarden (fase-3-scoping)', () =>
         zevenFase3Voldoende(2),
         zesFase3Voldoende(3),
         ...vijfRekenDomeinen(),
+        ...tweeLevelsAfgerond(),
       ],
     });
     const result = berekenBj2RoosendaalSblKeuze(student, NORMEN_ROOSENDAAL);
@@ -125,7 +138,7 @@ describe('berekenBj2RoosendaalSblKeuze — D4: ontbrekende fase telt mee voor el
     // fase weggelaten (undefined) i.p.v. expliciet 3 — getFase() geeft dan null
     // terug, en telLeerlijnenPerFase(datapunten, 3, ...) telt null-fase altijd
     // mee (D4), dus dit moet exact hetzelfde resultaat geven als expliciet fase 3.
-    const student = sblKeuzeStudent({ datapunten: [zevenFase3Voldoende(undefined), ...vijfRekenDomeinen()] });
+    const student = sblKeuzeStudent({ datapunten: [zevenFase3Voldoende(undefined), ...vijfRekenDomeinen(), ...tweeLevelsAfgerond()] });
     const result = berekenBj2RoosendaalSblKeuze(student, NORMEN_ROOSENDAAL);
     expect(result.label).toBe('sbl');
   });
@@ -146,7 +159,7 @@ describe('berekenBj2RoosendaalSblKeuze — fallback (nooit "negatief", ADR-17d)'
   });
 
   it('te weinig rekendomeinen afgerond → bespreekgeval', () => {
-    const student = sblKeuzeStudent({ datapunten: [zevenFase3Voldoende()] }); // 0 rekendomeinen
+    const student = sblKeuzeStudent({ datapunten: [zevenFase3Voldoende(), ...tweeLevelsAfgerond()] }); // 0 rekendomeinen
     const result = berekenBj2RoosendaalSblKeuze(student, NORMEN_ROOSENDAAL);
     expect(result.label).toBe('bespreekgeval');
   });
@@ -170,7 +183,11 @@ describe('berekenBj2RoosendaalSblKeuze — fallback (nooit "negatief", ADR-17d)'
   });
 
   it('0 levels afgerond (drempel 2, geen 0-sentinel voor Roosendaal) → bespreekgeval', () => {
-    const student = sblKeuzeStudent(); // geen Level-N-datapunten
+    // Override datapunten expliciet ZONDER tweeLevelsAfgerond() — het
+    // standaard sblKeuzeStudent()-fixture bevat die by default juist wél,
+    // om te voorkomen dat elke andere test hierboven impliciet ook de
+    // levels-eis test i.p.v. alleen zijn eigen criterium.
+    const student = sblKeuzeStudent({ datapunten: [zevenFase3Voldoende(), ...vijfRekenDomeinen()] });
     const result = berekenBj2RoosendaalSblKeuze(student, NORMEN_ROOSENDAAL);
     expect(result.label).toBe('bespreekgeval');
   });
