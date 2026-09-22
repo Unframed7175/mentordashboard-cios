@@ -1,228 +1,393 @@
-// tests/DoortstroomPrognoseSection.test.tsx — Phase 29 Plan 01 (PROG-01)
-// TDD RED scaffold: tests written before the block-layout implementation exists.
-// All 7 tests are RED against the current DoortstroomPrognoseSection (uses flat gap-item list).
-// Tests turn GREEN when Plan 29-03 ships the prognose-block layout rewrite.
+// tests/DoortstroomPrognoseSection.test.tsx — M42 T12
+//
+// Full rewrite (M42 T12) — the component now reads the NEW engine's gaps shapes
+// (berekenBj1Uitkomst / berekenBj2GeneriekPad / berekenBj2RoosendaalSblKeuze,
+// see utils/prognosis.ts) instead of the retired getNormenSync()-based gap field
+// names. The component reads status.prognose directly (never recomputes it), so
+// these tests build `status` fixtures with the exact gaps shape each traject/
+// vestiging/roosendaalTraject combination actually produces — no engine mocking
+// needed since DoortstroomPrognoseSection itself no longer imports the engine.
+//
+// Critical case (see task-T12-brief.md "3 possible result shapes"): a BJ2
+// student can hit EITHER berekenBj2GeneriekPad OR berekenBj2RoosendaalSblKeuze,
+// both of which can produce label: 'sbl' with DIFFERENT gaps field names. The
+// component must disambiguate using vestiging + student.roosendaalTraject, the
+// same way berekenPrognose's own routing does — NOT from the label alone.
 
-import { vi, describe, test, expect, beforeEach } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-// ── Mock getNormenSync (hoisted before component import) ───────────────────────
-vi.mock('../../utils/normen', () => ({
-  getNormenSync: vi.fn().mockReturnValue({
-    sbl: 13,
-    sbc: 15,
-    negatiefTotaal: 6,
-    negatiefPerLeerlijn: 2,
-    bj1Positief: 10,
-    versneldLesgeven: 4,
-    versneldOrganiseren: 3,
-    versneldProfHandelen: 5,
-    // aliased names used in the component
-    bj1VersneldLesgeven: 4,
-    bj1VersneldOrganiseren: 3,
-    bj1VersneldProfHandelen: 5,
-  }),
-}));
-
-// Import AFTER mock declaration
 import DoortstroomPrognoseSection from '../src/components/DoortstroomPrognoseSection';
 
-// ── Stub helpers ─────────────────────────────────────────────────────────────
+// detectTraject (src/utils/status.ts) uses student.periode (primary) or
+// student.leerjaar (fallback) — real function, not mocked.
+const BJ1_STUDENT_BASE = { periode: 'BJ1 fase 2', leerjaar: '1' };
+const BJ2_STUDENT_BASE = { periode: 'BJ2 fase 2', leerjaar: '2' };
 
-function makeBJ2Status(overrides: Record<string, any> = {}): any {
+function makeBj1Status(gapsOverrides: Record<string, any> = {}, label = 'naar_bj2'): any {
+  return {
+    kleur: 'groen',
+    label: 'Naar BJ2',
+    prognose: {
+      traject: 'bj1',
+      label,
+      isNegatief: label === 'negatief',
+      totaalVoldoendeOfHoger: 8,
+      totaalOnvoldoende: 1,
+      leerlijnen: [],
+      gaps: {
+        aantalOnvoldoendeDeelgebieden: 1,
+        onvoldoendeDeelgebiedenRuimte: 2,
+        aantalOnbeoordeeldFase2: 0,
+        onbeoordeeldRuimte: 4,
+        nodigNaarBj2Deelgebieden: 0,
+        nodigNaarBj2ProfHoudingBvb: 0,
+        nodigNaarBj2RekenDomeinen: 0,
+        nodigVersneldSbc_lesgevenOrganiseren: 2,
+        nodigVersneldSbc_profHandelen: 3,
+        nodigVersneldSbc_profHoudingBvb: 1,
+        nodigVersneldSbc_rekenDomeinen: 2,
+        wvoTraject: true,
+        nederlandsNiveau: 'voldoende',
+        rekenNiveau: 'voldoende',
+        levelsAfgerond: 2,
+        ...gapsOverrides,
+      },
+    },
+  };
+}
+
+function makeBj2GeneriekStatus(gapsOverrides: Record<string, any> = {}, label = 'sbl'): any {
   return {
     kleur: 'groen',
     label: 'SBL',
     prognose: {
       traject: 'bj2',
-      label: 'sbl',
+      label,
       isNegatief: false,
-      totaalVoldoendeOfHoger: 14,
-      totaalOnvoldoende: 2,
-      leerlijnen: [
-        { leerlijn: 'lesgeven',       totaal: 8, voldoendeOfHoger: 5, goedOfHoger: 3, onvoldoende: 1, onbeoordeeld: 2 },
-        { leerlijn: 'organiseren',    totaal: 6, voldoendeOfHoger: 4, goedOfHoger: 2, onvoldoende: 1, onbeoordeeld: 1 },
-        { leerlijn: 'prof_handelen',  totaal: 5, voldoendeOfHoger: 5, goedOfHoger: 3, onvoldoende: 0, onbeoordeeld: 0 },
-      ],
-      gaps: {
-        nodigSBL: 0,
-        nodigSBC_deelgebieden: 1,
-        nodigSBC_kern: [],
-        onvoldoendeRuimte: 2,
-        onvoldoendeRuimtePerLeerlijn: { lesgeven: 1, organiseren: 2, prof_handelen: 0 },
-      },
-      ...overrides,
-    },
-  };
-}
-
-function makeBJ1Status(overrides: Record<string, any> = {}): any {
-  return {
-    kleur: 'oranje',
-    label: 'Doorstroom BJ2',
-    prognose: {
-      traject: 'bj1',
-      label: 'naar_bj2',
-      isNegatief: false,
-      totaalVoldoendeOfHoger: 8,
+      totaalVoldoendeOfHoger: 10,
       totaalOnvoldoende: 1,
-      leerlijnen: [
-        { leerlijn: 'lesgeven',       totaal: 5, voldoendeOfHoger: 3, goedOfHoger: 1, onvoldoende: 1, onbeoordeeld: 1 },
-        { leerlijn: 'organiseren',    totaal: 4, voldoendeOfHoger: 3, goedOfHoger: 1, onvoldoende: 0, onbeoordeeld: 1 },
-        { leerlijn: 'prof_handelen',  totaal: 4, voldoendeOfHoger: 2, goedOfHoger: 0, onvoldoende: 0, onbeoordeeld: 2 },
-      ],
+      leerlijnen: [],
       gaps: {
-        nodigBJ2: 2,
-        nodigVersneld_lesgeven: 1,
-        nodigVersneld_organiseren: 0,
-        nodigVersneld_profHandelen: 2,
-        onvoldoendeRuimte: 3,
-        onvoldoendeRuimtePerLeerlijn: { lesgeven: 1, organiseren: 2, prof_handelen: 0 },
+        aantalVoldoendeOfHoger: 10,
+        nodigSBC_deelgebieden: 2,
+        nodigSBL_deelgebieden: 0,
+        nodigSBC_rekenDomeinen: 1,
+        nodigSBL_rekenDomeinen: 0,
+        nlSchrijvenNiveau: 'voldoende',
+        nlGesprekvoerenNiveau: 'voldoende',
+        nederlandsNiveau: 'voldoende',
+        rekenNiveau: 'voldoende',
+        kdStatus: 'behaald',
+        wvoTraject: true,
+        // M42 T12-review-fix: sbcRoosendaalLevelsOk/sblRoosendaalLevelsOk were
+        // added to the real engine's gaps object after this file's initial
+        // version — default to a passing fixture (true), only relevant when
+        // vestiging === 'roosendaal' (toonRoosendaalLevels gate).
+        sbcRoosendaalLevelsOk: true,
+        sblRoosendaalLevelsOk: true,
+        ...gapsOverrides,
       },
-      ...overrides,
     },
   };
 }
 
-// detectTraject uses student.periode (primary) or student.leerjaar (fallback)
-const BJ2_STUDENT = { periode: 'BJ2 fase 2', leerjaar: '2' };
-const BJ1_STUDENT = { periode: 'BJ1 fase 1', leerjaar: '1' };
-
-// ── BJ2 tests ─────────────────────────────────────────────────────────────────
-
-test('BJ2: renders SBL block as a prognose-block container', () => {
-  const html = renderToStaticMarkup(
-    React.createElement(DoortstroomPrognoseSection, {
-      student: BJ2_STUDENT,
-      status: makeBJ2Status(),
-    })
-  );
-
-  // RED: current component renders SBL in button/toggle only, not as a .prognose-block heading.
-  // After PROG-01 ships, "SBL" should appear as a block heading within a .prognose-block element.
-  expect(html).toContain('prognose-block');
-});
-
-test('BJ2: renders SBC block as a prognose-block container', () => {
-  const html = renderToStaticMarkup(
-    React.createElement(DoortstroomPrognoseSection, {
-      student: BJ2_STUDENT,
-      status: makeBJ2Status(),
-    })
-  );
-
-  // RED: current component does not render .prognose-block structure.
-  // After PROG-01 ships, both SBL and SBC blocks should be visible simultaneously (no toggle).
-  expect(html).toContain('prognose-block');
-  // Additionally verify the SBC block heading text is present (not just a toggle button)
-  // The current component renders "SBC" only as a toggle button, not as a block heading.
-  // We check for the block-heading pattern that the rewrite will introduce.
-  const sblCount = (html.match(/prognose-block/g) || []).length;
-  // After PROG-01: at least 2 blocks (SBL + SBC) — RED now because 0 blocks exist
-  expect(sblCount).toBeGreaterThanOrEqual(2);
-});
-
-test('BJ2: renders Negatief block for negative prognosis', () => {
-  const negatiefStatus = makeBJ2Status({
-    isNegatief: true,
-    totaalOnvoldoende: 7,
-    gaps: {
-      nodigSBL: 3,
-      nodigSBC_deelgebieden: 5,
-      nodigSBC_kern: ['V&A', 'M&M'],
-      onvoldoendeRuimte: 0,
-      onvoldoendeRuimtePerLeerlijn: { lesgeven: 0, organiseren: 0, prof_handelen: 1 },
+function makeBj2RoosendaalSblKeuzeStatus(gapsOverrides: Record<string, any> = {}, label = 'sbl'): any {
+  return {
+    kleur: 'groen',
+    label: 'SBL',
+    prognose: {
+      traject: 'bj2',
+      label,
+      isNegatief: false,
+      totaalVoldoendeOfHoger: 6,
+      totaalOnvoldoende: 0,
+      leerlijnen: [],
+      gaps: {
+        fase3DeelgebiedenVoldoende: 4,
+        nodigDeelgebiedenFase3: 0,
+        nodigRekenDomeinen: 0,
+        nederlandsNiveau: 'goed',
+        rekenNiveau: 'goed',
+        kdStatus: 'haalbaar',
+        // M42 T12-review-fix: levelsOk was added to the real engine's gaps
+        // object after this file's initial version — default to a passing
+        // fixture (this function is only ever used for Roosendaal students,
+        // so no toonRoosendaalLevels gate needed here).
+        levelsOk: true,
+        ...gapsOverrides,
+      },
     },
+  };
+}
+
+// ── BJ1 ──────────────────────────────────────────────────────────────────────
+
+describe('BJ1', () => {
+  test('naar_bj2 fixture renders the BJ2-doorstroom and Versneld SBC blocks with Betekenisvol Bewegen and WVO-traject rows', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ1_STUDENT_BASE, nederlandsResultaat: '2F', rekenResultaat: '2F', wvoTraject: true },
+        status: makeBj1Status(),
+        vestiging: null,
+      })
+    );
+
+    expect(html).toContain('prognose-block');
+    expect(html).toContain('BJ2 doorstroom');
+    expect(html).toContain('Versneld SBC');
+    expect(html).toContain('Betekenisvol Bewegen');
+    expect(html).toContain('WVO-traject');
+    // No stale/removed field names should ever leak through as literal text.
+    expect(html).not.toContain('undefined');
+    expect(html).not.toContain('NaN');
   });
 
-  const html = renderToStaticMarkup(
-    React.createElement(DoortstroomPrognoseSection, {
-      student: BJ2_STUDENT,
-      status: negatiefStatus,
-    })
-  );
+  test('negatief fixture still renders a Negatief block using the new gaps fields (no more per-leerlijn breakdown)', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ1_STUDENT_BASE },
+        status: makeBj1Status(
+          { aantalOnvoldoendeDeelgebieden: 5, onvoldoendeDeelgebiedenRuimte: 0, aantalOnbeoordeeldFase2: 6, onbeoordeeldRuimte: -2 },
+          'negatief',
+        ),
+        vestiging: null,
+      })
+    );
 
-  // RED: current component shows "Negatief advies: ..." as a gap-item text (not a block heading).
-  // After PROG-01 ships, "Negatief" should appear as a standalone .prognose-block heading.
-  // We check for the block heading containing "Negatief" (not just the inline advies text).
-  expect(html).toContain('prognose-block');
-  // Verify block count includes Negatief block — RED because current has 0 prognose-blocks
-  const blockCount = (html.match(/prognose-block/g) || []).length;
-  expect(blockCount).toBeGreaterThanOrEqual(3);
+    expect(html).toContain('Negatief');
+    expect(html).not.toContain('undefined');
+    expect(html).not.toContain('NaN');
+  });
+
+  test('Goes/Dordrecht student never shows a Roosendaal-levels row', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ1_STUDENT_BASE },
+        status: makeBj1Status(),
+        vestiging: 'goes',
+      })
+    );
+
+    expect(html).not.toContain('Roosendaal levels');
+  });
+
+  test('Roosendaal student DOES show a Roosendaal-levels row', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ1_STUDENT_BASE },
+        status: makeBj1Status({ levelsAfgerond: 3 }),
+        vestiging: 'roosendaal',
+      })
+    );
+
+    expect(html).toContain('Roosendaal levels');
+    expect(html).toContain('3');
+  });
 });
 
-test('BJ2: SBL criterion row shows score vs threshold in a prognose-criterion-row', () => {
-  const html = renderToStaticMarkup(
-    React.createElement(DoortstroomPrognoseSection, {
-      student: BJ2_STUDENT,
-      status: makeBJ2Status(),
-    })
-  );
+// ── BJ2 generic pad ──────────────────────────────────────────────────────────
 
-  // RED: current component does not render .prognose-criterion-row elements.
-  // After PROG-01 ships, each leerlijn criterion should appear as a row showing "score / threshold".
-  expect(html).toContain('prognose-criterion-row');
+describe('BJ2 — generic pad (berekenBj2GeneriekPad)', () => {
+  test('sbc fixture renders the SBC block with split Nederlands schrijven/gesprekken rows', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, nlSchrijven: '2F', nlGesprekvoeren: '3F', rekenResultaat: '3F' },
+        status: makeBj2GeneriekStatus(
+          { nodigSBC_deelgebieden: 0, nlSchrijvenNiveau: 'voldoende', nlGesprekvoerenNiveau: 'goed', rekenNiveau: 'goed' },
+          'sbc',
+        ),
+        vestiging: 'goes',
+      })
+    );
+
+    expect(html).toContain('SBC');
+    expect(html).toContain('Nederlands schrijven');
+    expect(html).toContain('Nederlands gesprekken');
+    expect(html).not.toContain('undefined');
+    expect(html).not.toContain('NaN');
+  });
+
+  test('bespreekgeval fixture shows the new Bespreekgeval label/block (not Twijfelgeval)', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE },
+        status: makeBj2GeneriekStatus(
+          { nodigSBL_deelgebieden: 3, nederlandsNiveau: 'onvoldoende', rekenNiveau: 'onvoldoende', kdStatus: null },
+          'bespreekgeval',
+        ),
+        vestiging: 'dordrecht',
+      })
+    );
+
+    expect(html).toContain('Bespreekgeval');
+    expect(html).not.toContain('Twijfelgeval');
+  });
+
+  test('Roosendaal student WITHOUT an sbl-keuze uses the generic gaps shape (nodigSBL_deelgebieden)', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, roosendaalTraject: 'sbc' },
+        status: makeBj2GeneriekStatus({ nodigSBL_deelgebieden: 2 }, 'sbl'),
+        vestiging: 'roosendaal',
+      })
+    );
+
+    expect(html).not.toContain('undefined');
+    expect(html).not.toContain('NaN');
+    // Generic-pad SBL uses whole-year deelgebieden, not the fase-3 label.
+    expect(html).not.toContain('fase 3');
+  });
+
+  // M42 T12-review-fix: sbcRoosendaalLevelsOk/sblRoosendaalLevelsOk were computed
+  // and used in berekenBj2GeneriekPad's own isSbc/isSbl checks but not exposed on
+  // its returned gaps object, so the component could not show this criterion for
+  // BJ2 (unlike BJ1's gaps.levelsAfgerond) — fixed by adding both fields to the
+  // engine's gaps object; these tests prove the UI now renders them correctly.
+  test('Roosendaal student: SBC block shows "Alle levels 3 behaald" as niet voldaan when sbcRoosendaalLevelsOk is false', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, nlSchrijven: '2F', nlGesprekvoeren: '3F', rekenResultaat: '3F' },
+        status: makeBj2GeneriekStatus(
+          { nodigSBC_deelgebieden: 0, nlSchrijvenNiveau: 'voldoende', nlGesprekvoerenNiveau: 'goed', rekenNiveau: 'goed', sbcRoosendaalLevelsOk: false },
+          'sbc',
+        ),
+        vestiging: 'roosendaal',
+      })
+    );
+
+    expect(html).toContain('Alle levels 3 behaald');
+    expect(html).toContain('Niet voldaan');
+  });
+
+  test('Roosendaal student: SBL block shows "Alle levels 2 behaald" as voldaan when sblRoosendaalLevelsOk is true', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE },
+        status: makeBj2GeneriekStatus({ nodigSBL_deelgebieden: 0, sblRoosendaalLevelsOk: true }, 'sbl'),
+        vestiging: 'roosendaal',
+      })
+    );
+
+    expect(html).toContain('Alle levels 2 behaald');
+    expect(html).toContain('Voldaan');
+  });
+
+  test('Goes/Dordrecht student: no "Alle levels" row rendered at all (ADR-17e — criterion is not applicable)', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, nlSchrijven: '2F', nlGesprekvoeren: '3F', rekenResultaat: '3F' },
+        status: makeBj2GeneriekStatus(
+          { nodigSBC_deelgebieden: 0, nlSchrijvenNiveau: 'voldoende', nlGesprekvoerenNiveau: 'goed', rekenNiveau: 'goed' },
+          'sbc',
+        ),
+        vestiging: 'goes',
+      })
+    );
+
+    expect(html).not.toContain('Alle levels');
+  });
 });
 
-// ── BJ1 tests ─────────────────────────────────────────────────────────────────
+// ── BJ2 Roosendaal SBL-keuze pad — the disambiguation regression test ───────
 
-test('BJ1: renders BJ2 doorstroom block as a prognose-block', () => {
-  const html = renderToStaticMarkup(
-    React.createElement(DoortstroomPrognoseSection, {
-      student: BJ1_STUDENT,
-      status: makeBJ1Status(),
-    })
-  );
+describe('BJ2 — Roosendaal SBL-keuze pad (berekenBj2RoosendaalSblKeuze)', () => {
+  test('renders via the Bj2RoosendaalSblKeuzeUitkomst gaps shape (fase-3-labeled deelgebieden, different numbers than the generic path)', () => {
+    // Deliberately shaped with ONLY the roosendaal-sbl-keuze fields (no
+    // nodigSBL_deelgebieden at all) — if the component mis-disambiguates and
+    // reads the generic-pad field name instead, it renders undefined/NaN,
+    // exactly the historical bug this task fixes. This is the test that
+    // proves the shape-disambiguation logic actually works.
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, roosendaalTraject: 'sbl', nederlandsResultaat: '2F', rekenResultaat: '2F' },
+        status: makeBj2RoosendaalSblKeuzeStatus({ nodigDeelgebiedenFase3: 4, fase3DeelgebiedenVoldoende: 2 }),
+        vestiging: 'roosendaal',
+      })
+    );
 
-  // RED: current component renders "doorstroom BJ2" inside a gap-item label (not a block heading).
-  // After PROG-01 ships, "BJ2 doorstroom" should appear as a .prognose-block heading.
-  expect(html).toContain('prognose-block');
-  // Verify the specific BJ2 doorstroom heading text (different word order from current gap-item text)
-  expect(html).toContain('BJ2 doorstroom');
+    expect(html).toContain('fase 3');
+    expect(html).toContain('4');
+    expect(html).not.toContain('undefined');
+    expect(html).not.toContain('NaN');
+    // Must not accidentally also render a Profieljaar SBC block — the
+    // roosendaal-sbl-keuze path never produces label 'sbc'.
+    expect(html).not.toContain('>SBC<');
+  });
+
+  test('roosendaalTraject "sbl" is only honored when vestiging is roosendaal (a non-Roosendaal student with the field set still uses the generic shape)', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, roosendaalTraject: 'sbl' },
+        status: makeBj2GeneriekStatus({ nodigSBL_deelgebieden: 1 }, 'sbl'),
+        vestiging: 'goes',
+      })
+    );
+
+    expect(html).not.toContain('fase 3');
+    expect(html).not.toContain('undefined');
+  });
+
+  test('bespreekgeval fallback on the roosendaal-sbl-keuze path shows Bespreekgeval, not SBC', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, roosendaalTraject: 'sbl' },
+        status: makeBj2RoosendaalSblKeuzeStatus({ nodigDeelgebiedenFase3: 3 }, 'bespreekgeval'),
+        vestiging: 'roosendaal',
+      })
+    );
+
+    expect(html).toContain('Bespreekgeval');
+    expect(html).not.toContain('>SBC<');
+  });
+
+  // M42 T12-review-fix: levelsOk was computed and used in berekenBj2RoosendaalSblKeuze's
+  // own isSbl check but not exposed on its returned gaps object — same fix/proof as the
+  // generic-pad test above.
+  test('shows "Alle levels 2 behaald" as niet voldaan when levelsOk is false', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DoortstroomPrognoseSection, {
+        student: { ...BJ2_STUDENT_BASE, roosendaalTraject: 'sbl' },
+        status: makeBj2RoosendaalSblKeuzeStatus({ nodigDeelgebiedenFase3: 0, levelsOk: false }),
+        vestiging: 'roosendaal',
+      })
+    );
+
+    expect(html).toContain('Alle levels 2 behaald');
+    expect(html).toContain('Niet voldaan');
+  });
 });
 
-test('BJ1: renders Versneld SBC block as a prognose-block', () => {
-  const html = renderToStaticMarkup(
-    React.createElement(DoortstroomPrognoseSection, {
-      student: BJ1_STUDENT,
-      status: makeBJ1Status(),
-    })
-  );
-
-  // RED: current component renders "Versneld SBC" as gap-item label text (not a block heading).
-  // After PROG-01 ships, "Versneld SBC" should appear as a separate .prognose-block heading.
-  expect(html).toContain('prognose-block');
-  const blockCount = (html.match(/prognose-block/g) || []).length;
-  // After PROG-01: at least 2 blocks (BJ2 doorstroom + Versneld SBC) — RED now (0 blocks)
-  expect(blockCount).toBeGreaterThanOrEqual(2);
-});
-
-// ── Empty/grijs test ─────────────────────────────────────────────────────────
+// ── Empty/grijs state ────────────────────────────────────────────────────────
 
 test('no scores: shows "Nog geen scores beschikbaar" when totaalVoldoendeOfHoger and totaalOnvoldoende are both 0', () => {
-  const grijsStatus = makeBJ2Status({
-    totaalVoldoendeOfHoger: 0,
-    totaalOnvoldoende: 0,
-    isNegatief: false,
-    gaps: {
-      nodigSBL: 13,
-      nodigSBC_deelgebieden: 15,
-      nodigSBC_kern: [],
-      onvoldoendeRuimte: 6,
-      onvoldoendeRuimtePerLeerlijn: { lesgeven: 2, organiseren: 2, prof_handelen: 2 },
-    },
-  });
-  grijsStatus.kleur = 'grijs';
+  const status = makeBj2GeneriekStatus({}, 'bespreekgeval');
+  status.prognose.totaalVoldoendeOfHoger = 0;
+  status.prognose.totaalOnvoldoende = 0;
+  status.kleur = 'grijs';
 
   const html = renderToStaticMarkup(
     React.createElement(DoortstroomPrognoseSection, {
-      student: BJ2_STUDENT,
-      status: grijsStatus,
+      student: { ...BJ2_STUDENT_BASE },
+      status,
+      vestiging: 'goes',
     })
   );
 
-  // RED: current component does not have a "Nog geen scores beschikbaar" empty state.
-  // After PROG-01 ships, this message should appear when both score counts are 0.
   expect(html).toContain('Nog geen scores beschikbaar');
+});
+
+// ── normen_onbekend passthrough (unrelated to Lane C, must still work) ─────
+
+test('normen_onbekend label short-circuits to the existing explanatory message', () => {
+  const html = renderToStaticMarkup(
+    React.createElement(DoortstroomPrognoseSection, {
+      student: { ...BJ2_STUDENT_BASE },
+      status: { kleur: 'grijs', label: 'Normen onbekend', prognose: { label: 'normen_onbekend' } },
+      vestiging: null,
+    })
+  );
+
+  expect(html).toContain('Doorstroomnormen nog niet ingesteld');
 });

@@ -8,6 +8,7 @@
 import { berekenPrognose } from '../../utils/prognosis';
 import { getVerzuimDrempelsSync } from '../../utils/verzuimDrempels';
 import { aggregateKdStatus } from '../../utils/keuzedelen';
+import type { Vestiging } from '../../utils/klassen';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -113,12 +114,15 @@ export function detectTraject(student: any): string {
  * niet geproduceerd (SBC-trajecten zijn blauw). Beide blijven wel geldige
  * StatusKleur-waarden voor forward-compat.
  *
- * @param student  Student record (from klassenState)
- * @param traject  Optional traject override; if not provided, detectTraject() is used
+ * @param student   Student record (from klassenState)
+ * @param traject   Optional traject override; if not provided, detectTraject() is used
+ * @param vestiging Optional vestiging (4th param, M42 T7b) — forwarded to berekenPrognose,
+ *                  which uses it to select the VestigingNormen profiel for the bj1/bj2
+ *                  decision (null/undefined → 'normen_onbekend')
  */
-export function berekenStatus(student: any, traject?: string, _thresholds?: { geoorloofd: number; ongeoorloofd: number }): StatusResult {
+export function berekenStatus(student: any, traject?: string, _thresholds?: { geoorloofd: number; ongeoorloofd: number }, vestiging?: Vestiging | null): StatusResult {
   const effectiveTraject = traject ?? detectTraject(student);
-  const p = berekenPrognose(student, effectiveTraject);
+  const p = berekenPrognose(student, effectiveTraject, undefined, undefined, vestiging);
   const heeftScores  = p.totaalVoldoendeOfHoger + p.totaalOnvoldoende > 0;
   const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
   const kdStatus = keuzedelen.length > 0
@@ -129,6 +133,13 @@ export function berekenStatus(student: any, traject?: string, _thresholds?: { ge
   if (!heeftScores)                return { kleur: 'grijs',  label: 'Onbekend',        prognose: p };
   if (p.label === 'negatief')      return { kleur: 'rood',   label: 'Risico',          prognose: p };
   if (p.label === 'neutraal')      return { kleur: 'oranje', label: 'Twijfelgeval',    prognose: p };
+  // M42 T9a (D17): BJ2's generieke pad heeft geen negatief-tier, maar wel een
+  // NIEUW, eigen fallback-label 'bespreekgeval' (niet BJ1's 'neutraal'
+  // hergebruikt). Zonder deze expliciete branch valt 'bespreekgeval' stil door
+  // naar de groene 'SBL'-catch-all onderaan deze functie — een bespreekgeval-
+  // leerling zou dan ten onrechte als "in orde" getoond worden. Zie
+  // tests/status.bespreekgeval.test.ts voor de regressie-proef.
+  if (p.label === 'bespreekgeval') return { kleur: 'oranje', label: 'Bespreekgeval',   prognose: p };
   // BJ2 outcomes
   if (p.label === 'sbc') {
     if (kdStatus === 'niet_behaald' || kdStatus === 'haalbaar')

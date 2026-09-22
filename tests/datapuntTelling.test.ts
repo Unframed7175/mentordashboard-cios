@@ -21,6 +21,7 @@ import {
   telBetekenisvolBewegenProfHouding,
   telRekenDomeinen,
   alleLevelsBehaald,
+  telLevelsAfgerond,
 } from '../utils/datapuntTelling';
 
 // ── telDatapuntenMetPatroon (shared helper) ────────────────────────────────
@@ -203,5 +204,81 @@ describe('alleLevelsBehaald', () => {
     const datapunten = [level('Level 10 lesgeven', 'Op tijd ingeleverd en wel beoordeeld')];
     // Only a 'Level 10' datapunt exists — level 1 must find zero matches → false.
     expect(alleLevelsBehaald(datapunten, 1)).toBe(false);
+  });
+});
+
+// ── telLevelsAfgerond (M42 T8 — ADR-17c Roosendaal-levels-COUNT) ───────────────
+// Anders dan alleLevelsBehaald (één specifiek level-nummer, all-or-nothing),
+// telt dit ELK level-nummer mee in één COUNT — precies wat de Roosendaal-
+// "minimaal N levels afgerond"-eis nodig heeft (task-T8-brief.md).
+
+describe('telLevelsAfgerond', () => {
+  function level(label: string, status: string) {
+    return { vak: 'Extern praktijkleren', datapunt: label, scores: {}, status };
+  }
+
+  it('lege datapunten array → 0', () => {
+    expect(telLevelsAfgerond([])).toBe(0);
+  });
+
+  it('telt afgeronde Level-N datapunten over VERSCHILLENDE level-nummers heen', () => {
+    const datapunten = [
+      level('Level 1 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 2 lesgeven', 'Zelfevaluatie afgerond'),
+      level('Organiseren level 3', 'Op tijd ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(3);
+  });
+
+  it('niet-afgeronde Level-N datapunten tellen niet mee', () => {
+    const datapunten = [
+      level('Level 1 lesgeven', 'niet ingeleverd'),
+      level('Level 2 lesgeven', ''),
+      level('Level 3 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(1);
+  });
+
+  it('negeert niet-Level datapunten', () => {
+    const datapunten = [
+      { vak: 'Rekenen', datapunt: 'F2 Rekenen ‐eindtoets domein 1', scores: {}, status: 'Op tijd ingeleverd en wel beoordeeld' },
+      level('Level 1 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(1);
+  });
+
+  it('digit-boundary: "Level 1" en "Level 10" tellen allebei apart mee (geen dubbele match/uitsluiting)', () => {
+    const datapunten = [
+      level('Level 1 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 10 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(2);
+  });
+
+  // M42 /review-fix (red-team finding, geverifieerd tegen de echte Roosendaal
+  // sample-PDF's): één level-NUMMER bestaat in de praktijk uit tot 4 losse
+  // activiteit-datapunten (lesgeven/organiseren/begeleiden/promoten). "N levels
+  // afgerond" moet N VOLLEDIG afgeronde level-nummers tellen, niet N losse
+  // afgeronde activiteit-datapunten — anders telt 1 volledig afgerond level
+  // (4/4 activiteiten) als 4 "levels", tot 4x te soepel voor de Roosendaal-
+  // drempels in berekenBj1Uitkomst.
+  it('één level-nummer met MEERDERE afgeronde activiteiten telt als 1 level, niet als N', () => {
+    const datapunten = [
+      level('Level 1 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 1 organiseren', 'Zelfevaluatie afgerond'),
+      level('Level 1 begeleiden', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 1 promoten', 'Te laat ingeleverd en wel beoordeeld'),
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(1);
+  });
+
+  it('een level-nummer waarvan niet ALLE activiteiten zijn afgerond telt niet mee, ook al zijn er meerdere afgerond', () => {
+    const datapunten = [
+      level('Level 2 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'),
+      level('Level 2 organiseren', 'Zelfevaluatie afgerond'),
+      level('Level 2 begeleiden', 'niet ingeleverd'), // deze ontbreekt nog
+      level('Level 3 lesgeven', 'Op tijd ingeleverd en wel beoordeeld'), // los level, wel volledig (1/1)
+    ];
+    expect(telLevelsAfgerond(datapunten)).toBe(1); // alleen level 3
   });
 });

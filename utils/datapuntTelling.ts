@@ -137,3 +137,46 @@ export function alleLevelsBehaald(datapunten: Datapunt[], level: number): boolea
   );
   return totaal > 0 && voldoet === totaal;
 }
+
+// ---------------------------------------------------------------------------
+// telLevelsAfgerond — M42 T8 (ADR-17c Roosendaal-levels-COUNT, niet single-level)
+//
+// alleLevelsBehaald() hierboven checkt "zijn ALLE datapunten voor ÉÉN
+// specifiek level-nummer afgerond" (single-level, all-or-nothing). T8's
+// Roosendaal-eisen ("minimaal N levels afgerond") zijn een heel andere vraag:
+// "hoeveel datapunten VAN ELK level-nummer samen zijn afgerond" (een COUNT
+// over alle level-nummers heen, niet één specifiek level). alleLevelsBehaald
+// past dus niet — vandaar deze aparte, kleine telfunctie i.p.v. het bestaande
+// signatuur te misbruiken. Matcher: naam bevat "level <n>" voor willekeurig
+// welk cijfer (zelfde brede woordgrens-regex-aanpak als hierboven, maar zonder
+// een specifiek level-nummer erin te bakken). Eis: positieve inleverstatus
+// (zelfde isPositiefIngeleverd als alleLevelsBehaald/telRekenDomeinen).
+// ---------------------------------------------------------------------------
+const ANY_LEVEL_RE = /\blevel\s*\d+\b/i;
+const LEVEL_NUMBER_RE = /\blevel\s*(\d+)\b/i;
+
+// M42 review-fix (red-team finding, verified against the real Roosendaal
+// sample PDFs — "Rapport ... Beij" en "... Benders", pagina "Extern
+// praktijkleren"): een level-NUMMER is een milestone opgebouwd uit MEERDERE
+// aparte activiteit-datapunten (lesgeven/organiseren/begeleiden/promoten —
+// tot 4 per level, groeiend gedurende het jaar, ADR-17b). "Minimaal N levels
+// afgerond" betekent dus "N VERSCHILLENDE level-nummers waarvan ALLE
+// bijbehorende activiteiten zijn afgerond" — niet een ruwe telling van
+// individuele afgeronde activiteit-datapunten. De oorspronkelijke
+// implementatie (telDatapuntenMetPatroon over ANY_LEVEL_RE) telde elke
+// afgeronde "Level N <activiteit>" apart, dus 1 volledig afgerond level (4/4
+// activiteiten) telde als 4 — een leerling kon de BJ1-Roosendaal-drempel
+// (bv. "minimaal 4 levels afgerond") daardoor al halen met slechts 1 echt
+// afgerond level-milestone i.p.v. 4, tot 4x te soepel.
+export function telLevelsAfgerond(datapunten: Datapunt[]): number {
+  const levelNummers = new Set<number>();
+  for (const dp of datapunten ?? []) {
+    const match = LEVEL_NUMBER_RE.exec(dp.datapunt);
+    if (match) levelNummers.add(Number(match[1]));
+  }
+  let afgerond = 0;
+  for (const nummer of levelNummers) {
+    if (alleLevelsBehaald(datapunten, nummer)) afgerond++;
+  }
+  return afgerond;
+}
