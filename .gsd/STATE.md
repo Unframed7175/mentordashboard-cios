@@ -1,6 +1,23 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-09-22 — M42 volledig klaar (Lane A t/m D, T1-T12), gereviewd (`/review`), gemerged op `feature/deelgebieden-schema-2026-2027` (commit 65d64cd). Branch klaar voor master: PR #29 open, CI groen, `npm audit --audit-level=high` schoon, axe wcag2aa-sweep gedaan (bevindingen gefixt of genoteerd, zie handoff), CHANGELOG + versiebump (2.12.0) gedaan. **Nog niet getagd/gereleased** — dat is een aparte, bewuste vervolgstap. M41 ongewijzigd: Fase 2, wacht op T0 + T1.
+> Laatste update: 2026-09-22 — M42 volledig klaar (Lane A t/m D, T1-T12), gereviewd (`/review`), gemerged op `feature/deelgebieden-schema-2026-2027` (commit 6d0f5b9). Branch klaar voor master: PR #29 open, CI groen, `npm audit --audit-level=high` schoon, axe wcag2aa volledig schoon (0 violations, live geverifieerd over alle schermen), CHANGELOG + versiebump (2.12.0) gedaan. **Nog niet getagd/gereleased** — dat is een aparte, bewuste vervolgstap. `/qa`-skill nog te draaien vóór merge naar master. M41 ongewijzigd: Fase 2, wacht op T0 + T1.
+---
+
+## Handoff 2026-09-22b (Fase 4, vervolg) — resterende axe-schuld alsnog gefixt
+
+Van/naar: GStack — Fase 4, zelfde sessie als handoff hieronder
+
+**Status:** Op expliciet verzoek van de projectlead zijn de bij de vorige handoff bewust opengelaten, vooraf-bestaande axe-bevindingen alsnog gefixt (commit 6d0f5b9), plús de merkkleur-knop-contrast:
+- `--accent-button`/`--accent-button-hover` toegevoegd (zelfde kleurtoon als `--accent`, verdonkerd tot ≥4.5:1 met witte tekst) en toegepast op `.btn-primary`, `.sort-btn.active`, `.btn-primary-accent`. `--accent` zelf ongewijzigd (niet-tekst-gebruik: iconen, randen, decoratieve vullingen).
+- `--text-faint` (donkere modus) van `#475569` naar `#7C90A8` (≥4.84:1 op alle donkere achtergronden waar hij op voorkomt).
+- `KlasTabStrip.tsx`: `role="tab"` → `role="button"` (dit widget implementeert geen volledig ARIA Tabs-patroon — geen tabpanel/aria-controls/aria-selected — dus `role="tablist"` toevoegen zou alleen een nieuwe `aria-required-children`-fout hebben gegeven zonder de onderliggende select/verwijder-knop-nesting op te lossen).
+- Instellingen "Deelgebieden & Leerlijnen"-tabel: 12x `aria-label` op naam-inputs + 12x per-rij `aria-label` op leerlijn-selects + 3x `htmlFor`/`id`-koppeling op de verzuim/BPV-labels.
+- `KeuzedeelSection.tsx`: `aria-label` op de 2 naamloze selects.
+
+**Geverifieerd:** live axe-core wcag2aa-sweep opnieuw gedraaid over onboarding, dashboard, Instellingen (volledige pagina) en het leerling-detailscherm met echte PDF-data — **0 violations overal**, tegenover 1 (M42-regressie) + ~30 (vooraf bestaand) bij de vorige sweep. Volledige testsuite + beide typecheck-configs groen; `KlasTabStrip`'s 18 tests ongewijzigd geslaagd na de role-wijziging. Gepusht naar PR #29, CI groen.
+
+**Openstaand voor Fase 4:** `/qa`-skill draaien, daarna merge PR #29 → `master` (op expliciet verzoek van de projectlead, in die volgorde). LEARNINGS nog niet geschreven. Geen release-tag gepusht.
+
 ---
 
 ## Handoff 2026-09-22 (Fase 2 → Fase 4) — M42 doorstroomnormering 2026/2027, release-prep
