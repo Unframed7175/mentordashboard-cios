@@ -1,6 +1,22 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-09-22 — M42 volledig klaar (Lane A t/m D, T1-T12), gereviewd (`/review`), gemerged op `feature/deelgebieden-schema-2026-2027` (commit 6d0f5b9). Branch klaar voor master: PR #29 open, CI groen, `npm audit --audit-level=high` schoon, axe wcag2aa volledig schoon (0 violations, live geverifieerd over alle schermen), CHANGELOG + versiebump (2.12.0) gedaan. **Nog niet getagd/gereleased** — dat is een aparte, bewuste vervolgstap. `/qa`-skill nog te draaien vóór merge naar master. M41 ongewijzigd: Fase 2, wacht op T0 + T1.
+> Laatste update: 2026-09-22 — M42 + deelgebieden-schema-2026/2027 **gemerged op `master`** (PR #29, commit 2b9fa93), CI groen op master. `/qa` gedraaid vóór merge (Standard tier, health score 98/100) — vond en fixte 1 nieuwe bevinding (light-mode contrast, dezelfde bug-klasse als een al-gefixte dark-mode variant). Milestone-werk (T1-T12 + review + release-prep + qa) is inhoudelijk compleet. **Nog niet getagd/gereleased** (`v2.12.0`) — dat is een aparte, bewuste vervolgstap die de projectlead expliciet moet triggeren (fires `release.yml` + de auto-updater richting echte gebruikers). LEARNINGS-write-up nog niet gedaan. M41 ongewijzigd: Fase 2, wacht op T0 + T1.
+---
+
+## Handoff 2026-09-22c (Fase 4 → afgerond) — /qa gedraaid, PR #29 gemerged naar master
+
+Van/naar: GStack — Fase 4, zelfde sessie als de handoffs hieronder
+
+**Status:** Op expliciet verzoek van de projectlead ("fix 1. fix 2. merge after run de /qa skill") is de resterende a11y-schuld gefixt (zie hieronder), de `/qa`-skill gedraaid, en PR #29 gemerged naar `master`.
+
+**`/qa` (Standard tier, diff-aware):** volledige onboarding→PDF-import→vestiging→prognose→Instellingen-flow getest met echte PDF-data, in zowel licht als donker thema, via een verse `$B`-browsersessie (Aside niet geïnstalleerd). Health score 98/100. Vond 1 nieuwe, echte bevinding: **licht-modus** `--text-muted`/`--text-faint` faalden óók WCAG AA-contrast (`#64748B` 4.34:1 worst-case, `#94A3B8` 2.34:1) — dezelfde bug-klasse als de al-gefixte donkere-modus-variant, gemist omdat die eerdere handmatige pas in een sessie draaide die standaard op donkere modus stond. Gefixt naar `#5A6B85`/`#637089` (commit a996a5d), geverifieerd met een herhaalde axe-sweep: 0 violations, licht + donker, dashboard + volledige Instellingen-pagina + detailscherm. Volledige testsuite + beide typecheck-configs groen. Volledig rapport: `.gstack/qa-reports/qa-report-localhost-2026-09-22.md` (lokaal, gitignored).
+
+**TODOS.md bijgewerkt** (commit a340482): staleness-notities op T-2026-06-18-14 (verwijst naar de vervangen M39 S/C-formule) en T-2026-06-18-13 (verwijst naar de vervangen 19-deelgebieden-telling); nieuwe entry T-2026-09-22-01 voor de vooraf-bestaande `DeelgebiedenMatrix`-hydration-warning.
+
+**Merge:** PR #29 (`feature/deelgebieden-schema-2026-2027` → `master`) gemerged via `gh pr merge --merge` (commit 2b9fa93). CI op master groen. Lokale `master`-checkout gesynchroniseerd en volledige suite + typecheck opnieuw groen bevestigd.
+
+**Openstaand:** LEARNINGS-write-up (`/retro` of vergelijkbaar) nog niet gedaan. Geen release-tag gepusht — `v2.12.0` staat klaar in `package.json`/`package-lock.json`/`src-tauri/tauri.conf.json` en het CHANGELOG, maar het daadwerkelijke taggen (`git tag v2.12.0` + push, wat `release.yml` en de auto-updater triggert) is een aparte, bewuste actie die de projectlead expliciet moet aanvragen.
+
 ---
 
 ## Handoff 2026-09-22b (Fase 4, vervolg) — resterende axe-schuld alsnog gefixt
