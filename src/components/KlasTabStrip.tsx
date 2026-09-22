@@ -81,8 +81,13 @@ export default function KlasTabStrip({
           key={klas.id}
           className={`nav-tab${klas.id === activeKlasId ? ' active' : ''}`}
         >
+          {/* role="button" (not "tab"): this widget has no tabpanel/aria-controls/
+              aria-selected — it's a click-to-switch nav item, not a full ARIA Tabs
+              pattern, so "tab" would need a tablist ancestor + tab-only children
+              (axe wcag2aa: aria-required-parent / aria-required-children) it can't
+              satisfy without the select/delete-button breaking nested-interactive. */}
           <div
-            role="tab"
+            role="button"
             tabIndex={0}
             onClick={() => { if (editingKlasId !== klas.id) onSwitch(klas.id); }}
             onKeyDown={e => {

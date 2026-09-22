@@ -156,6 +156,7 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
         />
         <select
           id="kd-nieuw-basisjaar"
+          aria-label="Basisjaar van het nieuwe keuzedeel"
           value={newBasisjaar}
           onChange={e => setNewBasisjaar(e.target.value as Basisjaar)}
           style={{ fontSize: '0.85rem', padding: '4px 6px' }}
@@ -165,6 +166,7 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
         </select>
         <select
           id="kd-nieuw-status"
+          aria-label="Status van het nieuwe keuzedeel"
           value={newStatus}
           onChange={e => setNewStatus(e.target.value as KdStatus)}
           style={{ fontSize: '0.85rem', padding: '4px 6px' }}

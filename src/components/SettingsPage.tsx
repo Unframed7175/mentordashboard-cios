@@ -147,6 +147,7 @@ function NaamInput({ id, label, onApply }: NaamInputProps) {
     <input
       type="text"
       className="dg-naam-input"
+      aria-label="Naam van dit deelgebied"
       value={value}
       onChange={e => setValue(e.target.value)}
       onBlur={applyIfChanged}
@@ -668,6 +669,7 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
                   <td>
                     <select
                       className="dg-leerlijn-select"
+                      aria-label={`Leerlijn voor ${row.label}`}
                       value={leerlijnenMapping[row.id] ?? schemaDefaultFor(row.id)}
                       onChange={e => handleLeerlijnChange(row.id, e.target.value)}
                     >
@@ -724,8 +726,9 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
         {/* Verzuim drempelwaarden subsection */}
         <div className="settings-threshold-group">
           <div className="settings-threshold-row">
-            <label style={{ minWidth: 160 }}>Geoorloofd verzuim waarschuwing</label>
+            <label htmlFor="settings-geoorloofd-uren" style={{ minWidth: 160 }}>Geoorloofd verzuim waarschuwing</label>
             <input
+              id="settings-geoorloofd-uren"
               type="number"
               className="settings-number-input"
               min={0}
@@ -737,8 +740,9 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
             <span style={{ color: 'var(--text-muted)' }}>uur</span>
           </div>
           <div className="settings-threshold-row">
-            <label style={{ minWidth: 160 }}>Ongeoorloofd verzuim waarschuwing</label>
+            <label htmlFor="settings-ongeoorloofd-uren" style={{ minWidth: 160 }}>Ongeoorloofd verzuim waarschuwing</label>
             <input
+              id="settings-ongeoorloofd-uren"
               type="number"
               className="settings-number-input"
               min={0}
@@ -755,8 +759,9 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
 
         {/* BPV subsection */}
         <div className="settings-threshold-row">
-          <label style={{ minWidth: 160 }}>Verwachte BPV-uren per periode</label>
+          <label htmlFor="settings-bpv-uren" style={{ minWidth: 160 }}>Verwachte BPV-uren per periode</label>
           <input
+            id="settings-bpv-uren"
             type="number"
             className="settings-number-input"
             min={0}
