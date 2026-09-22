@@ -417,10 +417,11 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
         {step === 5 && (
           <div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ fontSize: '0.875rem', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+              <label htmlFor="onboarding-geoorloofd-uren" style={{ fontSize: '0.875rem', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
                 Geoorloofd verzuim (uren)
               </label>
               <input
+                id="onboarding-geoorloofd-uren"
                 type="number"
                 min={0}
                 max={200}
@@ -433,10 +434,11 @@ export default function OnboardingWizard({ onComplete, onAbort }: OnboardingWiza
               </p>
             </div>
             <div>
-              <label style={{ fontSize: '0.875rem', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+              <label htmlFor="onboarding-ongeoorloofd-uren" style={{ fontSize: '0.875rem', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
                 Ongeoorloofd verzuim (uren)
               </label>
               <input
+                id="onboarding-ongeoorloofd-uren"
                 type="number"
                 min={0}
                 max={200}

@@ -6,7 +6,7 @@
 //
 // Phase 12 Plan 03: Gemigreerd van localStorage naar plugin-store (plain JSON, onversleuteld per D-12-06)
 // Legacy key 'mentordashboard_leerlijnen_v1' wordt eenmalig gemigreerd bij eerste aanroep.
-// Mapping format: { 'va': 'lesgeven', 'mm': 'lesgeven', ... }
+// Mapping format: { 'ov': 'lesgeven_en_organiseren', 'prho': 'professioneel_handelen', ... }
 
 import { DEELGEBIEDEN } from './schema';
 import { LazyStore } from '@tauri-apps/plugin-store';

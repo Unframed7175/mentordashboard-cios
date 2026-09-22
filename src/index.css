@@ -38,6 +38,11 @@
   --accent-light:     #E0F5FD;
   --accent-border:    #99D9F4;
   --accent-text:      #00547A;
+  /* Darker accent variant for solid button fills with white text — --accent
+     itself only reaches 2.97:1 against white (fails WCAG AA 4.5:1); same
+     hue, darkened until compliant (axe wcag2aa fix). */
+  --accent-button:       #0076A8;
+  --accent-button-hover: #00608A;
 
   /* Surfaces */
   --bg-page:          #F1F5F9;
@@ -45,11 +50,15 @@
   --bg-surface-alt:   #F8FAFC;
   --nav-bg:           #FFFFFF;
 
-  /* Text — WCAG AA+ */
+  /* Text — WCAG AA+ (the "AA+" label was aspirational, not verified: --text-muted
+     and --text-faint both failed 4.5:1 against these surfaces — worst-case 4.34
+     and 2.34 respectively. Found via /qa's live axe-core sweep. Retuned to clear
+     >=4.5:1 on bg-page/bg-surface/bg-surface-alt while staying visually distinct
+     from --text-secondary.) */
   --text-primary:     #0F172A;
   --text-secondary:   #475569;
-  --text-muted:       #64748B;
-  --text-faint:       #94A3B8;
+  --text-muted:       #5A6B85;
+  --text-faint:       #637089;
 
   /* Borders */
   --border-default:   #E2E8F0;
@@ -147,6 +156,8 @@ body.dark {
   --accent-light:     #003B57;
   --accent-border:    #005F8E;
   --accent-text:      #7DD4F5;
+  --accent-button:       #0076A8;
+  --accent-button-hover: #00608A;
   --border-focus:     #009FE3;
 
   --bg-page:          #0B0F1A;
@@ -156,8 +167,8 @@ body.dark {
 
   --text-primary:     #F1F5F9;
   --text-secondary:   #94A3B8;
-  --text-muted:       #64748B;
-  --text-faint:       #475569;
+  --text-muted:       #98A8C4;
+  --text-faint:       #7C90A8;
 
   --border-default:   #1E293B;
   --border-light:     #0F172A;
@@ -280,12 +291,12 @@ a:hover { text-decoration: underline; }
 }
 
 .btn-primary {
-  background: var(--accent);
+  background: var(--accent-button);
   color: #fff;
-  border-color: var(--accent);
+  border-color: var(--accent-button);
   box-shadow: var(--shadow-xs);
 }
-.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--accent-button-hover); border-color: var(--accent-button-hover); box-shadow: var(--shadow-sm); }
 .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .btn-ghost {
@@ -380,6 +391,26 @@ a:hover { text-decoration: underline; }
   pointer-events: auto;
 }
 
+/* --- Vestiging-override select (M42 T1) --- */
+.nav-tab .vestiging-override-select {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0 0 0 0.35rem;
+  color: var(--text-muted);
+  max-width: 6.5rem;
+}
+.nav-tab:hover .vestiging-override-select,
+.nav-tab:focus-within .vestiging-override-select {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* --- Inline rename input (KLS-02) --- */
 .tab-rename-input {
   background: transparent;
@@ -445,8 +476,8 @@ a:hover { text-decoration: underline; }
   color: var(--accent-text);
 }
 .sort-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--accent-button);
+  border-color: var(--accent-button);
   color: #fff;
   font-weight: 600;
 }
@@ -1651,7 +1682,7 @@ a:hover { text-decoration: underline; }
 }
 
 .btn-primary-accent {
-  background: var(--accent);
+  background: var(--accent-button);
   color: #fff;
   border: none;
   padding: 0.5rem 1.25rem;
@@ -1663,7 +1694,7 @@ a:hover { text-decoration: underline; }
 }
 
 .btn-primary-accent:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--accent-button-hover);
 }
 
 .btn-primary-accent:disabled {

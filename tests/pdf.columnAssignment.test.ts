@@ -15,7 +15,37 @@
 // strictly less than (column_spacing / 2). These tests use 40pt spacing to
 // simulate the realistic multi-page sub-table layout.
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Fixtures hieronder gebruiken de 19-deelgebieden-labels (V&A, M&M, ...) als
+// realistische kolomkoppen — mock dat schema zodat de tests niet meebewegen met
+// welk schooljaar toevallig in src/config/leerlijn.json actief is.
+vi.mock('../src/config/leerlijn.json', () => ({
+  default: {
+    deelgebieden: [
+      { id: 'va',   label: 'V&A',  group: 'lesgeven' },
+      { id: 'mm',   label: 'M&M',  group: 'lesgeven' },
+      { id: 'ins',  label: 'INS',  group: 'lesgeven' },
+      { id: 'odw',  label: 'O&DW', group: 'lesgeven' },
+      { id: 'cb',   label: 'C&B',  group: 'lesgeven' },
+      { id: 'eb1',  label: '1E&B', group: 'lesgeven' },
+      { id: 'po',   label: 'P&O',  group: 'organiseren' },
+      { id: 'so',   label: 'S&O',  group: 'organiseren' },
+      { id: 'org',  label: 'ORG',  group: 'organiseren' },
+      { id: 'ib',   label: 'I&B',  group: 'organiseren' },
+      { id: 'eb2',  label: '2E&B', group: 'organiseren' },
+      { id: 'prco', label: 'PrCo', group: 'prof_handelen' },
+      { id: 'vsk',  label: 'VSK',  group: 'prof_handelen' },
+      { id: 'lob',  label: 'LOB',  group: 'prof_handelen' },
+      { id: 'info', label: 'INFO', group: 'prof_handelen' },
+      { id: 'desk', label: 'DESK', group: 'prof_handelen' },
+      { id: 'bs',   label: 'BS',   group: 'prof_handelen' },
+      { id: 'tow',  label: 'TOW',  group: 'prof_handelen' },
+      { id: 'bh',   label: 'BH',   group: 'prof_handelen' },
+    ],
+  },
+}));
+
 import {
   assignScoreToColumn,
   buildColumnMap,

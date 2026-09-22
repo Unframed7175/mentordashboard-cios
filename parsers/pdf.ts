@@ -6,6 +6,7 @@ import * as pdfjsLib from '../vendor/pdf.min.mjs';
 // @ts-ignore — Vite ?url suffix: emits file as static asset and returns its URL string
 import pdfWorkerUrl from '../vendor/pdf.worker.min.mjs?url';
 import { DEELGEBIEDEN, normalizeScore } from '../utils/schema';
+import { aggregateLatestScores, getFase } from '../utils/scoreAggregation';
 
 // WKWebView polyfill: ReadableStream.prototype[Symbol.asyncIterator] was added in Safari 17.4.
 // PDF.js 5.x uses `for await...of` on ReadableStream internally (getTextContent/streamTextContent).
@@ -76,6 +77,12 @@ const COLUMN_X_TOLERANCE = 20;
 // Datapunten always start with a dash-like character (PDF uses U+2010 HYPHEN,
 // not ASCII U+002D hyphen-minus).
 const DATAPUNT_PREFIX = /^[-‐‑‒–—―−]/;
+
+// Leading "F<n>" fase-token, with or without the same dash-like prefix as
+// DATAPUNT_PREFIX above (reuses that exact character class). Anchored at the
+// very start of the trimmed label so "Formulier F1" never false-positives —
+// the F-token must be the first thing on the line (after an optional dash).
+const FASE_PREFIX = /^[-‐‑‒–—―−]?\s*F(\d)\b/i;
 
 // ---------------------------------------------------------------------------
 // Task 01-02-01: Text extraction and line-grouping utilities
@@ -565,7 +572,7 @@ function buildColumnMap(headerLine: any[]): { map: Record<string, number>; unkno
   if (count < MIN_COLUMN_WARN_THRESHOLD) {
     console.warn(`[pdf.ts] buildColumnMap: only ${count} deelgebied columns detected — table may be malformed`);
   } else {
-    console.log(`[pdf.ts] buildColumnMap: detected ${count}/19 columns`, map);
+    console.log(`[pdf.ts] buildColumnMap: detected ${count}/${DEELGEBIEDEN.length} columns`, map);
   }
   if (unknownLabels.length > 0) {
     console.warn(`[pdf.ts] buildColumnMap: ${unknownLabels.length} unknown column(s):`, unknownLabels);
@@ -603,6 +610,32 @@ function assignScoreToColumn(item: { str: string; x: number }, columnMap: Record
 
   return best;
 }
+
+/**
+ * Extract the fase number (1-3 in every export seen so far) from a datapunt
+ * label, e.g. "- F1 Tussenbeoordeling mijn Lichaam" → 1.
+ *
+ * Anchored at the very start of the trimmed label (optional dash-like
+ * prefix, see FASE_PREFIX/DATAPUNT_PREFIX) so a mid-string "Formulier F1"
+ * never false-positives. Datapunten without a leading F-token (Roosendaal's
+ * "Intern/Extern praktijkleren", or any datapunt imported before this field
+ * existed) are the expected common case, not an error — return null without
+ * warning.
+ *
+ * @param label - the datapunt's full label text (fullLabel)
+ * @returns {number|null} the fase number, or null when no F-prefix is found
+ */
+function extractFase(label: string): number | null {
+  const match = FASE_PREFIX.exec(label.trim());
+  return match ? Number(match[1]) : null;
+}
+
+// Note: getFase() (normalize dp.fase to number|null) now lives in
+// utils/scoreAggregation.ts — imported above and re-exported below for
+// backward compatibility (tests/pdf.faseExtractie.test.ts imports it from
+// here). extractFase() below stays in this file: it's genuine parser logic
+// (regex extraction from raw PDF label text), unlike getFase()'s plain
+// data-shape normalization.
 
 /**
  * Detects a vak-name wrap continuation: a bare follow-up line directly after
@@ -799,29 +832,17 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
       ? [labelText, ...labelContinuation].filter(Boolean).join(' ')
       : labelText;
 
-    datapunten.push({ vak: currentVak, datapunt: fullLabel, scores });
+    datapunten.push({ vak: currentVak, datapunt: fullLabel, scores, fase: extractFase(fullLabel) });
   }
 
-  // -----------------------------------------------------------------------
-  // Aggregate deelgebiedScores: initialize all 19 as null, then apply
-  // "latest non-null wins" across datapunten (document order = latest last).
-  // -----------------------------------------------------------------------
-  const deelgebiedScores: Record<string, string | null> = {};
-  for (const dg of DEELGEBIEDEN) {
-    deelgebiedScores[dg.label] = null;
-  }
-
-  for (const dp of datapunten) {
-    for (const [label, level] of Object.entries(dp.scores)) {
-      if (level !== null) {
-        deelgebiedScores[label] = level as string;
-      }
-    }
-  }
+  // Aggregate deelgebiedScores: "latest non-null wins" across datapunten
+  // (document order = latest last) — shared with utils/prognosis.ts's
+  // telLeerlijnenPerFase via utils/scoreAggregation.ts (M42 Lane B review-fix #1).
+  const deelgebiedScores = aggregateLatestScores(datapunten, DEELGEBIEDEN);
 
   console.log(
     `[pdf.ts] parseDeelgebiedTable: ${datapunten.length} datapunten,`,
-    `${Object.values(deelgebiedScores).filter(v => v !== null).length}/19 deelgebieden scored`
+    `${Object.values(deelgebiedScores).filter(v => v !== null).length}/${DEELGEBIEDEN.length} deelgebieden scored`
   );
 
   return { datapunten, deelgebiedScores, unknownLabels, endIndex };
@@ -926,6 +947,8 @@ export {
   assignScoreToColumn,
   parseDeelgebiedTable,
   isVakNameContinuation,
+  extractFase,
+  getFase,
 
   // Constants
   Y_TOLERANCE,

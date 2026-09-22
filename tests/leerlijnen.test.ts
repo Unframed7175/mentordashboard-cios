@@ -62,7 +62,7 @@ describe('getLeerlijnenMappingSync (Phase 18)', () => {
     const customMapping = Object.fromEntries(
       DEELGEBIEDEN.map(dg => [dg.id, dg.group])
     );
-    customMapping['va'] = 'organiseren'; // override for test
+    customMapping['ov'] = 'professioneel_handelen'; // override for test
     getStoreMap().set('leerlijnen', JSON.stringify(customMapping));
 
     const { getLeerlijnenMapping, getLeerlijnenMappingSync } = await import('../utils/leerlijnen');
@@ -72,7 +72,7 @@ describe('getLeerlijnenMappingSync (Phase 18)', () => {
 
     // Sync accessor must now reflect the cached (custom) value
     const result = getLeerlijnenMappingSync();
-    expect(result['va']).toBe('organiseren');
+    expect(result['ov']).toBe('professioneel_handelen');
   });
 
   it('getLeerlijnenMappingSync never returns a Promise', async () => {

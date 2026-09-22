@@ -8,7 +8,7 @@ import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
 import OnboardingWizard from './components/OnboardingWizard';
 import KlasVerwijderenModal from './components/KlasVerwijderenModal';
-import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted, deleteKlas, renameKlas, countUniekeLeerlingen } from '../utils/klassen';
+import { klassenState, switchActiveKlas, getActiveStudents, saveOnboardingCompleted, deleteKlas, renameKlas, countUniekeLeerlingen, setVestigingOverride, type Vestiging } from '../utils/klassen';
 import { loadSettings, applyTheme } from '../utils/settings';
 import type { Update } from '@tauri-apps/plugin-updater';
 import { checkForUpdate } from '../utils/updateCheck';
@@ -165,6 +165,11 @@ function App() {
     setRefreshKey(k => k + 1);
   }
 
+  async function handleSetVestigingOverride(klasId: string, vestiging: Vestiging | null): Promise<void> {
+    await setVestigingOverride(klasId, vestiging);
+    setRefreshKey(k => k + 1);
+  }
+
   async function handleOnboardingComplete(klasId: string) {
     try { await saveOnboardingCompleted(); } catch { /* Tauri niet beschikbaar in browser */ }
     try { await switchActiveKlas(klasId); } catch { /* Tauri niet beschikbaar in browser */ }
@@ -187,6 +192,7 @@ function App() {
         klassen={Object.values(klassenState.klassen).map((klas: any) => ({
           id: klas.id,
           naam: klas.naam,
+          vestigingOverride: klas.vestigingOverride ?? null,
         }))}
         activeKlasId={klassenState.activeKlasId}
         onSwitch={handleKlasSwitch}
@@ -195,6 +201,7 @@ function App() {
         onFeedback={handleFeedback}
         onDeleteKlas={handleDeleteKlas}
         onRenameKlas={handleRenameKlas}
+        onSetVestigingOverride={handleSetVestigingOverride}
         isSettingsActive={view === 'settings'}
         isDark={isDark}
         onHelp={handleOpenHelp}

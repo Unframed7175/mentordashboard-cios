@@ -22,12 +22,84 @@ import {
 } from '../../utils/leerlijnen';
 import { loadVerzuimDrempels, saveVerzuimDrempels } from '../../utils/verzuimDrempels';
 import { getBpvConfig, saveBpvConfig, parseBpvExcel, saveBpvData, getBpvData, type BpvConfig, type BpvData } from '../../utils/bpv';
-import { loadNormen, saveNormen, resetNormen, DEFAULT_NORMEN, type Normen } from '../../utils/normen';
+import {
+  loadNormenVoorVestiging,
+  saveNormenVoorVestiging,
+  resetNormenVoorVestiging,
+  DEFAULT_VESTIGING_NORMEN,
+  type VestigingNormen,
+} from '../../utils/normen';
+import type { Vestiging } from '../../utils/klassen';
 import { buildBackupPayload } from '../../utils/backup';
 import { factoryReset } from '../../utils/reset';
 import type { Update } from '@tauri-apps/plugin-updater';
 import { checkForUpdate } from '../../utils/updateCheck';
 import UpdateModal from './UpdateModal';
+
+// ── M42 T11 — per-vestiging doorstroomdrempels (VestigingNormen, T7-T10) ──────
+// Display labels for the vestiging selector + dynamically-labeled reset button.
+// Keep in sync with KlasTabStrip.tsx's own VESTIGING_LABELS map.
+const VESTIGING_LABELS: Record<Vestiging, string> = {
+  roosendaal: 'Roosendaal',
+  goes: 'Goes',
+  dordrecht: 'Dordrecht',
+};
+
+// Field groups mirror the engine's own structure (see utils/normen.ts's VestigingNormen
+// interface for the authoritative field list/comments). Kept outside the component so
+// they aren't recreated every render.
+const VESTIGING_NORM_GROUPS: Array<{ heading: string; fields: Array<[keyof VestigingNormen, string]> }> = [
+  {
+    heading: 'BJ1 — naar basisjaar 2',
+    fields: [
+      ['bj1NaarBj2DeelgebiedenVoldoendeMin', 'BJ1→BJ2: deelgebieden ≥V (min.)'],
+      ['bj1NaarBj2ProfHoudingBvbMin', 'BJ1→BJ2: bewegen-beoordelingen ≥V (min. van 4)'],
+      ['bj1NaarBj2RekenDomeinenMin', 'BJ1→BJ2: rekendomeinen afgerond (min.)'],
+    ],
+  },
+  {
+    heading: 'BJ1 — versneld SBC-traject',
+    fields: [
+      ['bj1VersneldSbcLesgevenOrganiserenGoedMin', 'Versneld SBC: lesgeven en organiseren ≥G (min.)'],
+      ['bj1VersneldSbcProfHandelenGoedMin', 'Versneld SBC: professioneel handelen ≥G (min.)'],
+      ['bj1VersneldSbcProfHoudingBvbMin', 'Versneld SBC: bewegen-beoordelingen ≥V (min. van 4)'],
+      ['bj1VersneldSbcRekenDomeinenMin', 'Versneld SBC: rekendomeinen afgerond (min.)'],
+    ],
+  },
+  {
+    heading: 'BJ1 — negatief bindend studieadvies',
+    fields: [
+      ['bj1NegatiefDeelgebiedenOnvoldoendeMin', 'Negatief: deelgebieden onvoldoende (min.)'],
+      ['bj1NegatiefOnbeoordeeldMax', 'Negatief: onbeoordeelde datapunten fase 2 (max.)'],
+    ],
+  },
+  {
+    heading: 'BJ2 generiek — SBL',
+    fields: [
+      ['bj2SblDeelgebiedenVoldoendeMin', 'BJ2 SBL: deelgebieden ≥V (min.)'],
+      ['bj2SblRekenDomeinenMin', 'BJ2 SBL: rekendomeinen afgerond (min.)'],
+    ],
+  },
+  {
+    heading: 'BJ2 generiek — SBC',
+    fields: [
+      ['bj2SbcDeelgebiedenVoldoendeMin', 'BJ2 SBC: deelgebieden ≥V (min.)'],
+      ['bj2SbcRekenDomeinenMin', 'BJ2 SBC: rekendomeinen afgerond (min.)'],
+    ],
+  },
+];
+
+// Roosendaal-only fields — Goes/Dordrecht keep these at the 0 sentinel (ADR-17e); only
+// rendered/editable when Roosendaal is the selected vestiging (task-T11-brief.md).
+const ROOSENDAAL_ONLY_NORM_FIELDS: Array<[keyof VestigingNormen, string]> = [
+  ['bj1NaarBj2RoosendaalLevelsMin', 'BJ1→BJ2: levels behaald (min., Roosendaal)'],
+  ['bj1VersneldSbcRoosendaalLevelsMin', 'Versneld SBC: levels behaald (min., Roosendaal)'],
+  ['bj2SblRoosendaalLevelsMin', 'BJ2 SBL: levels behaald (min., Roosendaal)'],
+  ['bj2SbcRoosendaalLevelsMin', 'BJ2 SBC: levels behaald (min., Roosendaal)'],
+  ['bj2RoosendaalSblKeuzeDeelgebiedenVoldoendeMin', 'SBL-keuze: deelgebieden ≥V (min., Roosendaal)'],
+  ['bj2RoosendaalSblKeuzeRekenDomeinenMin', 'SBL-keuze: rekendomeinen afgerond (min., Roosendaal)'],
+  ['bj2RoosendaalSblKeuzeLevelsMin', 'SBL-keuze: levels behaald (min., Roosendaal)'],
+];
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -75,6 +147,7 @@ function NaamInput({ id, label, onApply }: NaamInputProps) {
     <input
       type="text"
       className="dg-naam-input"
+      aria-label="Naam van dit deelgebied"
       value={value}
       onChange={e => setValue(e.target.value)}
       onBlur={applyIfChanged}
@@ -302,9 +375,10 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
   const [bpvImportError, setBpvImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Section 5 state — doorstroom normen
-  const [normen, setNormen] = useState<Normen>(DEFAULT_NORMEN);
-  const [confirmingResetNormen, setConfirmingResetNormen] = useState(false);
+  // Section 5 state — per-vestiging doorstroom normen (M42 T11)
+  const [selectedVestiging, setSelectedVestiging] = useState<Vestiging>('roosendaal');
+  const [vestigingNormen, setVestigingNormen] = useState<VestigingNormen>(DEFAULT_VESTIGING_NORMEN.roosendaal);
+  const [confirmingResetVestigingNormen, setConfirmingResetVestigingNormen] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // Section 6 state — over / versie / update
@@ -343,10 +417,12 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
       .catch(err => console.warn('[SettingsPage] section 4 load failed:', err));
   }, []);
 
-  // On mount: load section 5 config — doorstroom normen
+  // On mount AND whenever selectedVestiging changes: load that vestiging's doorstroom-normen profiel
   useEffect(() => {
-    loadNormen().then(setNormen).catch(err => console.warn('[SettingsPage] section 5 load failed:', err));
-  }, []);
+    loadNormenVoorVestiging(selectedVestiging)
+      .then(setVestigingNormen)
+      .catch(err => console.warn('[SettingsPage] section 5 (vestiging normen) load failed:', err));
+  }, [selectedVestiging]);
 
   // Toggle handler: update DOM + persist + notify parent (Pitfall 6: must update DOM atomically)
   async function handleToggle(checked: boolean) {
@@ -427,16 +503,16 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
     }
   }
 
-  // Section 5 handlers — doorstroom normen (D-06, D-07, D-09, D-10)
+  // Section 5 handlers — per-vestiging doorstroom normen (M42 T11)
 
-  async function handleNormenBlur(field: keyof Normen, rawValue: number, min: number, max: number) {
-    const rounded = Math.round(Number.isFinite(rawValue) ? rawValue : DEFAULT_NORMEN[field]);
-    const clamped = Math.max(min, Math.min(max, rounded));
-    const updated = { ...normen, [field]: clamped };
-    setNormen(updated);
-    const ok = await saveNormen(updated);
+  async function handleVestigingNormBlur(field: keyof VestigingNormen, rawValue: number) {
+    const rounded = Math.round(Number.isFinite(rawValue) ? rawValue : vestigingNormen[field]);
+    const clamped = Math.max(0, rounded); // open-ended counts, no upper bound (T7 validation)
+    const updated: VestigingNormen = { ...vestigingNormen, [field]: clamped };
+    setVestigingNormen(updated);
+    const ok = await saveNormenVoorVestiging(selectedVestiging, updated);
     if (!ok) {
-      console.error('[SettingsPage] saveNormen returned false — doorstroom norm niet opgeslagen');
+      console.error('[SettingsPage] saveNormenVoorVestiging returned false — doorstroom norm niet opgeslagen');
       setSaveError('Opslaan mislukt. Probeer het opnieuw.');
       return;
     }
@@ -444,12 +520,42 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
     onNormenChanged();
   }
 
-  async function handleResetNormen() {
-    const fresh = await resetNormen();
-    setNormen(fresh);
-    setConfirmingResetNormen(false);
+  async function handleResetVestigingNormen() {
+    const fresh = await resetNormenVoorVestiging(selectedVestiging);
+    setVestigingNormen(fresh);
+    setConfirmingResetVestigingNormen(false);
     setSaveError(null);
     onNormenChanged();
+  }
+
+  function handleVestigingSelectChange(vestiging: Vestiging) {
+    setConfirmingResetVestigingNormen(false); // switching tabs cancels any pending reset confirmation
+    setSelectedVestiging(vestiging);
+  }
+
+  // Renders one number-input row for a VestigingNormen field, reusing the existing
+  // settings-threshold-row/settings-number-input CSS classes (D-06/D-07 visual pattern).
+  function renderVestigingNormRow([field, label]: [keyof VestigingNormen, string]) {
+    const htmlId = `vn-${field}`;
+    return (
+      <div className="settings-threshold-row" key={field}>
+        <label htmlFor={htmlId}>{label}</label>
+        <input
+          type="number"
+          className="settings-number-input"
+          id={htmlId}
+          min={0}
+          step={1}
+          value={vestigingNormen[field]}
+          onChange={e => {
+            const next = Number(e.target.value);
+            setVestigingNormen(n => ({ ...n, [field]: next }));
+          }}
+          onBlur={e => handleVestigingNormBlur(field, Number((e.target as HTMLInputElement).value))}
+          onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+        />
+      </div>
+    );
   }
 
   // Section 6 handlers — backup export + update check
@@ -489,12 +595,9 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
     }
   }
 
-  // SBC < SBL warning predicate (D-10)
-  const sbcWaarschuwing = normen.sbc < normen.sbl;
-
   // Helper: get schema-default leerlijn group for a deelgebied (fallback when not in mapping)
   function schemaDefaultFor(id: string): string {
-    return DEELGEBIEDEN.find(d => d.id === id)?.group ?? 'lesgeven';
+    return DEELGEBIEDEN.find(d => d.id === id)?.group ?? 'lesgeven_en_organiseren';
   }
 
   return (
@@ -566,12 +669,12 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
                   <td>
                     <select
                       className="dg-leerlijn-select"
+                      aria-label={`Leerlijn voor ${row.label}`}
                       value={leerlijnenMapping[row.id] ?? schemaDefaultFor(row.id)}
                       onChange={e => handleLeerlijnChange(row.id, e.target.value)}
                     >
-                      <option value="lesgeven">Lesgeven</option>
-                      <option value="organiseren">Organiseren</option>
-                      <option value="prof_handelen">Prof. handelen</option>
+                      <option value="lesgeven_en_organiseren">Lesgeven en organiseren</option>
+                      <option value="professioneel_handelen">Professioneel handelen</option>
                     </select>
                   </td>
                   <td>
@@ -623,8 +726,9 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
         {/* Verzuim drempelwaarden subsection */}
         <div className="settings-threshold-group">
           <div className="settings-threshold-row">
-            <label style={{ minWidth: 160 }}>Geoorloofd verzuim waarschuwing</label>
+            <label htmlFor="settings-geoorloofd-uren" style={{ minWidth: 160 }}>Geoorloofd verzuim waarschuwing</label>
             <input
+              id="settings-geoorloofd-uren"
               type="number"
               className="settings-number-input"
               min={0}
@@ -636,8 +740,9 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
             <span style={{ color: 'var(--text-muted)' }}>uur</span>
           </div>
           <div className="settings-threshold-row">
-            <label style={{ minWidth: 160 }}>Ongeoorloofd verzuim waarschuwing</label>
+            <label htmlFor="settings-ongeoorloofd-uren" style={{ minWidth: 160 }}>Ongeoorloofd verzuim waarschuwing</label>
             <input
+              id="settings-ongeoorloofd-uren"
               type="number"
               className="settings-number-input"
               min={0}
@@ -654,8 +759,9 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
 
         {/* BPV subsection */}
         <div className="settings-threshold-row">
-          <label style={{ minWidth: 160 }}>Verwachte BPV-uren per periode</label>
+          <label htmlFor="settings-bpv-uren" style={{ minWidth: 160 }}>Verwachte BPV-uren per periode</label>
           <input
+            id="settings-bpv-uren"
             type="number"
             className="settings-number-input"
             min={0}
@@ -690,176 +796,71 @@ export default function SettingsPage({ onBack, onNavigateToImport, isDark, onTog
         )}
       </section>
 
-      {/* Section 5: Phase 25 — NORM-01..07 */}
+      {/* Section 5: M42 T11 — per-vestiging doorstroomdrempels (VestigingNormen, engine: T7-T10) */}
       <section className="detail-section">
         <h2 className="detail-section-title">Doorstroomdrempels</h2>
         {saveError && (
           <p style={{ fontSize: '0.875rem', color: 'var(--status-rood-text)', marginTop: 4 }} role="alert">{saveError}</p>
         )}
 
-        {/* Sub-block 1 */}
-        <p className="settings-sub-heading">BJ2-drempels</p>
-        <div className="settings-threshold-group">
-          <div className="settings-threshold-row">
-            <label htmlFor="norm-sbl">SBL-drempel (≥V)</label>
-            <input
-              type="number"
-              className="settings-number-input"
-              id="norm-sbl"
-              min={1}
-              max={19}
-              step={1}
-              value={normen.sbl}
-              onChange={e => setNormen(n => ({ ...n, sbl: Number(e.target.value) }))}
-              onBlur={e => handleNormenBlur('sbl', Number((e.target as HTMLInputElement).value), 1, 19)}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            />
-            <span className="text-muted">≥V</span>
-          </div>
-          <div className="settings-threshold-row">
-            <label htmlFor="norm-sbc">SBC-drempel (≥V)</label>
-            <input
-              type="number"
-              className="settings-number-input"
-              id="norm-sbc"
-              min={1}
-              max={19}
-              step={1}
-              value={normen.sbc}
-              onChange={e => setNormen(n => ({ ...n, sbc: Number(e.target.value) }))}
-              onBlur={e => handleNormenBlur('sbc', Number((e.target as HTMLInputElement).value), 1, 19)}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            />
-            <span className="text-muted">≥V</span>
-          </div>
-          {sbcWaarschuwing && (
-            <p className="norm-warning" role="status">
-              Let op: SBC-drempel is normaal hoger dan SBL-drempel (standaard: 15 vs 13).
-            </p>
-          )}
-          <div className="settings-threshold-row">
-            <label htmlFor="norm-negatiefTotaal">Negatief totaal (O)</label>
-            <input
-              type="number"
-              className="settings-number-input"
-              id="norm-negatiefTotaal"
-              min={1}
-              max={19}
-              step={1}
-              value={normen.negatiefTotaal}
-              onChange={e => setNormen(n => ({ ...n, negatiefTotaal: Number(e.target.value) }))}
-              onBlur={e => handleNormenBlur('negatiefTotaal', Number((e.target as HTMLInputElement).value), 1, 19)}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            />
-            <span className="text-muted">O totaal</span>
-          </div>
-          <div className="settings-threshold-row">
-            <label htmlFor="norm-negatiefPerLeerlijn">Negatief per leerlijn (O)</label>
-            <input
-              type="number"
-              className="settings-number-input"
-              id="norm-negatiefPerLeerlijn"
-              min={1}
-              max={6}
-              step={1}
-              value={normen.negatiefPerLeerlijn}
-              onChange={e => setNormen(n => ({ ...n, negatiefPerLeerlijn: Number(e.target.value) }))}
-              onBlur={e => handleNormenBlur('negatiefPerLeerlijn', Number((e.target as HTMLInputElement).value), 1, 6)}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            />
-            <span className="text-muted">O per leerlijn</span>
-          </div>
+        {/* Vestiging selector — reuses KlasTabStrip.tsx's plain <select> pattern for choosing a vestiging */}
+        <div className="settings-threshold-row" style={{ marginBottom: 16 }}>
+          <label htmlFor="vestiging-normen-select">Vestiging (drempelwaarden)</label>
+          <select
+            id="vestiging-normen-select"
+            className="dg-leerlijn-select"
+            value={selectedVestiging}
+            onChange={e => handleVestigingSelectChange(e.target.value as Vestiging)}
+          >
+            <option value="roosendaal">Roosendaal</option>
+            <option value="goes">Goes</option>
+            <option value="dordrecht">Dordrecht</option>
+          </select>
         </div>
+
+        {VESTIGING_NORM_GROUPS.map((group, i) => (
+          <div key={group.heading}>
+            {i > 0 && <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)', margin: '16px 0' }} />}
+            <p className="settings-sub-heading">{group.heading}</p>
+            <div className="settings-threshold-group">
+              {group.fields.map(renderVestigingNormRow)}
+            </div>
+          </div>
+        ))}
 
         <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)', margin: '16px 0' }} />
 
-        {/* Sub-block 2 */}
-        <p className="settings-sub-heading">BJ1-drempels</p>
-        <div className="settings-threshold-group">
-          <div className="settings-threshold-row">
-            <label htmlFor="norm-bj1Positief">BJ1-positief drempel (≥V)</label>
-            <input
-              type="number"
-              className="settings-number-input"
-              id="norm-bj1Positief"
-              min={1}
-              max={19}
-              step={1}
-              value={normen.bj1Positief}
-              onChange={e => setNormen(n => ({ ...n, bj1Positief: Number(e.target.value) }))}
-              onBlur={e => handleNormenBlur('bj1Positief', Number((e.target as HTMLInputElement).value), 1, 19)}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            />
-            <span className="text-muted">≥V</span>
+        {/* Roosendaal-only level-eisen — hidden (not rendered) for Goes/Dordrecht so an admin
+            there cannot push these off the 0 sentinel other engine code depends on (ADR-17e). */}
+        <p className="settings-sub-heading">Alleen Roosendaal — level-eisen</p>
+        {selectedVestiging === 'roosendaal' ? (
+          <div className="settings-threshold-group">
+            {ROOSENDAAL_ONLY_NORM_FIELDS.map(renderVestigingNormRow)}
           </div>
-          <div className="settings-threshold-row">
-            <label htmlFor="norm-versneldLesgeven">Versneld-SBC lesgeven (≥G)</label>
-            <input
-              type="number"
-              className="settings-number-input"
-              id="norm-versneldLesgeven"
-              min={1}
-              max={6}
-              step={1}
-              value={normen.versneldLesgeven}
-              onChange={e => setNormen(n => ({ ...n, versneldLesgeven: Number(e.target.value) }))}
-              onBlur={e => handleNormenBlur('versneldLesgeven', Number((e.target as HTMLInputElement).value), 1, 6)}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            />
-            <span className="text-muted">≥G</span>
-          </div>
-          <div className="settings-threshold-row">
-            <label htmlFor="norm-versneldOrganiseren">Versneld-SBC organiseren (≥G)</label>
-            <input
-              type="number"
-              className="settings-number-input"
-              id="norm-versneldOrganiseren"
-              min={1}
-              max={6}
-              step={1}
-              value={normen.versneldOrganiseren}
-              onChange={e => setNormen(n => ({ ...n, versneldOrganiseren: Number(e.target.value) }))}
-              onBlur={e => handleNormenBlur('versneldOrganiseren', Number((e.target as HTMLInputElement).value), 1, 6)}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            />
-            <span className="text-muted">≥G</span>
-          </div>
-          <div className="settings-threshold-row">
-            <label htmlFor="norm-versneldProfHandelen">Versneld-SBC prof. handelen (≥G)</label>
-            <input
-              type="number"
-              className="settings-number-input"
-              id="norm-versneldProfHandelen"
-              min={1}
-              max={6}
-              step={1}
-              value={normen.versneldProfHandelen}
-              onChange={e => setNormen(n => ({ ...n, versneldProfHandelen: Number(e.target.value) }))}
-              onBlur={e => handleNormenBlur('versneldProfHandelen', Number((e.target as HTMLInputElement).value), 1, 6)}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            />
-            <span className="text-muted">≥G</span>
-          </div>
-        </div>
+        ) : (
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: 16 }}>
+            N.v.t. voor deze vestiging — level-eisen gelden alleen voor Roosendaal.
+          </p>
+        )}
 
-        {/* Two-step reset button — Section 3 pattern (D-02) */}
-        {!confirmingResetNormen ? (
+        {/* Two-step reset button — Section 3 pattern (D-02), scoped to selectedVestiging only */}
+        {!confirmingResetVestigingNormen ? (
           <button
             className="btn btn-ghost"
             style={{ marginTop: 8 }}
-            onClick={() => setConfirmingResetNormen(true)}
+            onClick={() => setConfirmingResetVestigingNormen(true)}
           >
-            Herstel standaard
+            {`Herstel standaard voor ${VESTIGING_LABELS[selectedVestiging]}`}
           </button>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
             <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              Alles terugzetten naar CIOS-standaard?
+              {`Doorstroomdrempels voor ${VESTIGING_LABELS[selectedVestiging]} terugzetten naar standaard?`}
             </span>
-            <button className="btn btn-ghost" onClick={() => setConfirmingResetNormen(false)}>
+            <button className="btn btn-ghost" onClick={() => setConfirmingResetVestigingNormen(false)}>
               Niet herstellen
             </button>
-            <button className="btn btn-primary" onClick={handleResetNormen}>
+            <button className="btn btn-primary" onClick={handleResetVestigingNormen}>
               Ja, herstel
             </button>
           </div>

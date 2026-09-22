@@ -9,7 +9,7 @@ export type ScoreLevel = typeof SCORE_LEVELS[number];
 export interface Deelgebied {
   id: string;
   label: string;
-  group: 'lesgeven' | 'organiseren' | 'prof_handelen';
+  group: 'lesgeven_en_organiseren' | 'professioneel_handelen';
 }
 
 // Loaded from src/config/leerlijn.json — edit that file to update the schema without code changes

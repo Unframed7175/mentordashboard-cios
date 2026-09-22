@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { saveKlassen, klassenState } from '../../utils/klassen';
+import { saveKlassen, getMatchingRecords } from '../../utils/klassen';
 import type { Keuzedeel, KdStatus, Basisjaar } from '../../utils/keuzedelen';
 
 interface KeuzedeelSectionProps {
@@ -18,12 +18,6 @@ const STATUS_COLOR: Record<KdStatus, string> = {
   haalbaar: 'var(--rag-oranje)',
   niet_behaald: 'var(--status-rood-text)',
 };
-
-function getMatchingRecords(leerlingId: string): any[] {
-  if (!klassenState.activeKlasId) return [];
-  const klas = klassenState.klassen[klassenState.activeKlasId];
-  return klas?.students?.filter((s: any) => s.leerlingId === leerlingId) ?? [];
-}
 
 export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionProps) {
   const [newNaam, setNewNaam] = useState('');
@@ -162,6 +156,7 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
         />
         <select
           id="kd-nieuw-basisjaar"
+          aria-label="Basisjaar van het nieuwe keuzedeel"
           value={newBasisjaar}
           onChange={e => setNewBasisjaar(e.target.value as Basisjaar)}
           style={{ fontSize: '0.85rem', padding: '4px 6px' }}
@@ -171,6 +166,7 @@ export default function KeuzedeelSection({ student, onSaved }: KeuzedeelSectionP
         </select>
         <select
           id="kd-nieuw-status"
+          aria-label="Status van het nieuwe keuzedeel"
           value={newStatus}
           onChange={e => setNewStatus(e.target.value as KdStatus)}
           style={{ fontSize: '0.85rem', padding: '4px 6px' }}

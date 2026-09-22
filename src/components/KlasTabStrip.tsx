@@ -1,9 +1,20 @@
 import React from 'react';
 import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
+import { detecteerVestiging } from '../../utils/klassen';
+import type { Vestiging } from '../../utils/klassen';
+
+// Display labels for the auto-detected vestiging, used only in the "auto" option's
+// text (see the vestiging-override select below). Keep in sync with the manual
+// option labels ("Roosendaal" / "Goes" / "Dordrecht") a few lines further down.
+const VESTIGING_LABELS: Record<Vestiging, string> = {
+  roosendaal: 'Roosendaal',
+  goes: 'Goes',
+  dordrecht: 'Dordrecht',
+};
 
 interface KlasTabStripProps {
-  klassen: Array<{ id: string; naam: string }>;
+  klassen: Array<{ id: string; naam: string; vestigingOverride?: Vestiging | null }>;
   activeKlasId: string | null;
   onSwitch: (klasId: string) => void;
   onCreateKlas: () => void;
@@ -11,6 +22,7 @@ interface KlasTabStripProps {
   onFeedback: () => void;
   onDeleteKlas: (klasId: string) => void;
   onRenameKlas: (klasId: string, newNaam: string) => void;
+  onSetVestigingOverride: (klasId: string, vestiging: Vestiging | null) => void;
   isSettingsActive: boolean;
   isDark: boolean;
   onHelp: () => void;
@@ -29,6 +41,7 @@ export default function KlasTabStrip({
   onFeedback,
   onDeleteKlas,
   onRenameKlas,
+  onSetVestigingOverride,
   isSettingsActive,
   isDark,
   onHelp,
@@ -66,47 +79,78 @@ export default function KlasTabStrip({
       {klassen.map(klas => (
         <div
           key={klas.id}
-          role="tab"
-          tabIndex={0}
           className={`nav-tab${klas.id === activeKlasId ? ' active' : ''}`}
-          onClick={() => { if (editingKlasId !== klas.id) onSwitch(klas.id); }}
-          onKeyDown={e => {
-            if ((e.key === 'Enter' || e.key === ' ') && editingKlasId !== klas.id) {
-              e.preventDefault(); // WR-05: prevent Space from scrolling the page
-              onSwitch(klas.id);
-            }
-          }}
         >
-          {editingKlasId === klas.id ? (
-            <input
-              ref={inputRef}
-              type="text"
-              value={editValue}
-              autoFocus
-              className="tab-rename-input"
-              onChange={e => setEditValue(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') commitRename(klas.id);
-                if (e.key === 'Escape') {
-                  setEditingKlasId(null);
+          {/* role="button" (not "tab"): this widget has no tabpanel/aria-controls/
+              aria-selected — it's a click-to-switch nav item, not a full ARIA Tabs
+              pattern, so "tab" would need a tablist ancestor + tab-only children
+              (axe wcag2aa: aria-required-parent / aria-required-children) it can't
+              satisfy without the select/delete-button breaking nested-interactive. */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => { if (editingKlasId !== klas.id) onSwitch(klas.id); }}
+            onKeyDown={e => {
+              if ((e.key === 'Enter' || e.key === ' ') && editingKlasId !== klas.id) {
+                e.preventDefault(); // WR-05: prevent Space from scrolling the page
+                onSwitch(klas.id);
+              }
+            }}
+          >
+            {editingKlasId === klas.id ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={editValue}
+                autoFocus
+                className="tab-rename-input"
+                onChange={e => setEditValue(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') commitRename(klas.id);
+                  if (e.key === 'Escape') {
+                    setEditingKlasId(null);
+                    isCommittingRef.current = false;
+                  }
+                }}
+                onBlur={() => { setEditingKlasId(null); isCommittingRef.current = false; }}
+                onClick={e => e.stopPropagation()}
+              />
+            ) : (
+              <span
+                onDoubleClick={e => {
+                  e.stopPropagation();
+                  setEditingKlasId(klas.id);
+                  setEditValue(klas.naam);
                   isCommittingRef.current = false;
-                }
-              }}
-              onBlur={() => { setEditingKlasId(null); isCommittingRef.current = false; }}
+                }}
+              >
+                {klas.naam}
+              </span>
+            )}
+          </div>
+          <select
+              className="vestiging-override-select"
+              title="Vestiging (override)"
+              aria-label={`Vestiging voor klas ${klas.naam}`}
+              value={klas.vestigingOverride ?? ''}
               onClick={e => e.stopPropagation()}
-            />
-          ) : (
-            <span
-              onDoubleClick={e => {
-                e.stopPropagation();
-                setEditingKlasId(klas.id);
-                setEditValue(klas.naam);
-                isCommittingRef.current = false;
+              onChange={e => {
+                const value = e.target.value;
+                onSetVestigingOverride(klas.id, value === '' ? null : (value as Vestiging));
               }}
             >
-              {klas.naam}
-            </span>
-          )}
+              <option value="">
+                {(() => {
+                  const detected = detecteerVestiging(klas.naam);
+                  return detected
+                    ? `Automatisch (${VESTIGING_LABELS[detected]})`
+                    : 'Automatisch — niet herkend';
+                })()}
+              </option>
+              <option value="roosendaal">Roosendaal</option>
+              <option value="goes">Goes</option>
+              <option value="dordrecht">Dordrecht</option>
+            </select>
           <button
               className="delete-tab-btn"
               title="Klas verwijderen"

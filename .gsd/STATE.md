@@ -1,7 +1,109 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-09-14 — Fase 3 M41 afgerond (DESIGN.md + plan-design-review 5→9/10). Volgende: handmatige T0 + T1, daarna Fase 2.
+> Laatste update: 2026-09-22 — M42 volledig klaar (Lane A t/m D, T1-T12), gereviewd (`/review`), gemerged op `feature/deelgebieden-schema-2026-2027` (commit 6d0f5b9). Branch klaar voor master: PR #29 open, CI groen, `npm audit --audit-level=high` schoon, axe wcag2aa volledig schoon (0 violations, live geverifieerd over alle schermen), CHANGELOG + versiebump (2.12.0) gedaan. **Nog niet getagd/gereleased** — dat is een aparte, bewuste vervolgstap. `/qa`-skill nog te draaien vóór merge naar master. M41 ongewijzigd: Fase 2, wacht op T0 + T1.
 ---
+
+## Handoff 2026-09-22b (Fase 4, vervolg) — resterende axe-schuld alsnog gefixt
+
+Van/naar: GStack — Fase 4, zelfde sessie als handoff hieronder
+
+**Status:** Op expliciet verzoek van de projectlead zijn de bij de vorige handoff bewust opengelaten, vooraf-bestaande axe-bevindingen alsnog gefixt (commit 6d0f5b9), plús de merkkleur-knop-contrast:
+- `--accent-button`/`--accent-button-hover` toegevoegd (zelfde kleurtoon als `--accent`, verdonkerd tot ≥4.5:1 met witte tekst) en toegepast op `.btn-primary`, `.sort-btn.active`, `.btn-primary-accent`. `--accent` zelf ongewijzigd (niet-tekst-gebruik: iconen, randen, decoratieve vullingen).
+- `--text-faint` (donkere modus) van `#475569` naar `#7C90A8` (≥4.84:1 op alle donkere achtergronden waar hij op voorkomt).
+- `KlasTabStrip.tsx`: `role="tab"` → `role="button"` (dit widget implementeert geen volledig ARIA Tabs-patroon — geen tabpanel/aria-controls/aria-selected — dus `role="tablist"` toevoegen zou alleen een nieuwe `aria-required-children`-fout hebben gegeven zonder de onderliggende select/verwijder-knop-nesting op te lossen).
+- Instellingen "Deelgebieden & Leerlijnen"-tabel: 12x `aria-label` op naam-inputs + 12x per-rij `aria-label` op leerlijn-selects + 3x `htmlFor`/`id`-koppeling op de verzuim/BPV-labels.
+- `KeuzedeelSection.tsx`: `aria-label` op de 2 naamloze selects.
+
+**Geverifieerd:** live axe-core wcag2aa-sweep opnieuw gedraaid over onboarding, dashboard, Instellingen (volledige pagina) en het leerling-detailscherm met echte PDF-data — **0 violations overal**, tegenover 1 (M42-regressie) + ~30 (vooraf bestaand) bij de vorige sweep. Volledige testsuite + beide typecheck-configs groen; `KlasTabStrip`'s 18 tests ongewijzigd geslaagd na de role-wijziging. Gepusht naar PR #29, CI groen.
+
+**Openstaand voor Fase 4:** `/qa`-skill draaien, daarna merge PR #29 → `master` (op expliciet verzoek van de projectlead, in die volgorde). LEARNINGS nog niet geschreven. Geen release-tag gepusht.
+
+---
+
+## Handoff 2026-09-22 (Fase 2 → Fase 4) — M42 doorstroomnormering 2026/2027, release-prep
+
+Van: Superpowers (Fase 2, Lane C+D) + GStack (`/review`, release-prep)
+Naar: GStack — Fase 4 (Review & ship), resterende DoD-punten
+
+**Status:** Lane C (T7-T10, vestiging-bewuste BJ1/BJ2-engine) en Lane D (T11/T12, UI) zijn klaar, individueel gereviewd, en gemerged via PR #28 → `feature/deelgebieden-schema-2026-2027` (commit 65d64cd). `/review` op de Lane C+D-diff vond en fixte: een lost-update race in per-vestiging-normen-opslag, een verouderd diagnose-hulpmiddel (`debugPrognose`) dat sinds T8 foutieve waarden toonde voor BJ1, en een echte domain-correctness-bug in `telLevelsAfgerond` (telde losse activiteiten i.p.v. volledig afgeronde levels — tot 4x te soepel voor de Roosendaal-drempels). Alle fixes TDD-geverifieerd (falende test zonder fix, groen met fix).
+
+PR #29 (`feature/deelgebieden-schema-2026-2027` → `master`) is geopend — dit bundelt zowel de deelgebieden-schema-2026/2027-config-swap (ADR-16) als heel M42 (ADR-17-serie). Dit is de EERSTE PR die `ci.yml` daadwerkelijk triggert (dat draait alleen op push/PR naar `master`) — CI is groen.
+
+**Resterende Fase-4-DoD-punten deze sessie afgehandeld:**
+- `npm audit --audit-level=high`: was NIET schoon (3 high: postcss padtraversal, undici TLS/header-injectie/DoS-serie). Opgelost via `npm audit fix` (alleen lockfile, geen package.json-wijziging). 3 moderate vitest/@vitest/mocker-advisories blijven over (test-tooling, onder de --audit-level=high-grens, geen fix beschikbaar zonder breaking vitest-major).
+- **axe wcag2aa-sweep** (live, via axe-core in de browser — geen bestaande test-harness hiervoor aanwezig): 1 echte M42-regressie gevonden en gefixt (een `<select>` genest in een `role="tab"`-element in `KlasTabStrip.tsx`, door T1's vestiging-override-veld — nested-interactive-violation, herschreven zodat de tab-rol alleen de klasnaam-label omvat). Daarnaast 2 kleine, veilige, vooraf-bestaande bugs gefixt (donkere-modus-contrast van `--text-muted` over alle 4 achtergronden waar hij op voorkomt; een niet-gekoppeld label in de onboarding-verzuimvelden). **Nog open, bewust niet gefixt deze sessie** (groter, vooraf bestaand, buiten scope van deze PR — zie hieronder).
+- CHANGELOG-entry geschreven (`## [2.12.0] — 2026-09-22`) + versiebump naar 2.12.0 in `package.json`/`package-lock.json`/`src-tauri/tauri.conf.json` (commit bcab1f6). **Geen tag gepusht** — dat triggert `release.yml` + de auto-updater richting echte gebruikers en is bewust niet gedaan zonder expliciete projectlead-bevestiging op dat exacte moment.
+
+**Nog open — moet Fase 4 weten (bewust niet in deze sessie gefixt, allemaal vooraf bestaand sinds mei/juni 2026, NIET veroorzaakt door M42):**
+- `--text-faint` (donkere modus, `#475569`) faalt WCAG AA-contrast op `.prognose-block-name`-koppen (2.09:1, minstens 3 instanties gevonden in `DoortstroomPrognoseSection`) — waarschijnlijk breder gebruikt.
+- `.btn-primary-accent` (witte tekst op CIOS-blauw `--accent`, `#009FE3`) haalt maar 2.97:1 — dit is een merkkleur-beslissing (5+ knoppen app-breed), geen simpele tokenfix; vraagt projectlead-input voor een nieuwe tint.
+- Instellingen-pagina sectie "Deelgebieden & Leerlijnen" (vooraf bestaand sinds mei 2026, NIET aangeraakt door T11): 12 ongelabelde naam-`<input>`'s + 12 naamloze leerlijn-`<select>`'s.
+- `KeuzedeelSection.tsx`: 2 naamloze `<select>`'s (`#kd-nieuw-basisjaar`, `#kd-nieuw-status`), vooraf bestaand sinds juni 2026.
+- `div[role="tab"]` in `KlasTabStrip.tsx` heeft geen `role="tablist"`-ouder (ARIA-structuurfout, vooraf bestaand sinds mei 2026).
+- Handmatige/visuele Tauri-QA is gedaan via `vite-dev` (frontend-only, browser-preview) + een levensechte PDF-import — de volledige native Tauri-build zelf is deze sessie niet opnieuw getest (zie Afwijking 2026-09-15 voor de bekende lokale Xcode-licentie-blokkade op een volledige `npm run build`).
+- `.gsd/ROADMAP.md` regel M42 is stale (toont nog "Fase 1, wacht op /plan-eng-review") — moet bijgewerkt naar "Fase 4, PR #29 open" of vergelijkbaar.
+- Geen `S01-SUMMARY.md` geschreven voor M42 (Superpowers-eigendom, Fase 2 DoD-punt) — taken/uitkomsten staan verspreid in commit-historie en deze handoff i.p.v. één samenvattend bestand.
+
+**DoD Fase 4 nog NIET volledig afgevinkt:** `/review` ✅, CI groen ✅, `npm audit --audit-level=high` schoon ✅, CHANGELOG ✅ — axe wcag2aa **gedeeltelijk** (M42-regressie + 2 vooraf-bestaande issues gefixt, grotere vooraf-bestaande debt bewust opengelaten, zie boven), `/qa` (GStack-skill) **niet gedraaid** (alleen handmatige browser-QA door de sessie zelf), LEARNINGS **niet geschreven**, milestone-status **niet op DONE gezet**.
+
+---
+
+## Handoff 2026-09-15 (Fase 0 → Fase 1) — M42 doorstroomnormering 2026/2027
+
+Van: GStack — Fase 0 (architectuurdiscussie met projectlead)
+Naar: GSD — Fase 1 (spec-verfijning), daarna `/plan-eng-review`
+
+**Status:** Projectlead leverde `26-27 Doorstroomnormeringen N3N4.pdf` aan (CIOS Zuidwest-NL). Dit is geen drempelwaarden-update maar een ander beoordelingsmodel (fase-scoping, per-vestiging criteria, nieuwe sub-criteria). Architectuurbeslissingen vastgelegd in ADR-17: vestiging = klas-eigenschap, WVO-traject = nieuw handmatig veld, fase = nieuw structureel datapunt-veld (afgeleid uit bestaande labeltekst), Betekenisvol-Bewegen/Rekenen-domeintelling = afleidbaar uit bestaande datapunten (geen nieuwe velden), KD-deadline bewust niet geautomatiseerd. Milestone-map + concept-taakverdeling: `.gsd/milestones/M42-doorstroomnormering-2026-2027/S01-PLAN.md` (Lane A t/m D). REQUIREMENTS.md F-17 toegevoegd. ROADMAP.md: M42 → Fase 1.
+
+**Openstaand — moet Fase 1 weten:**
+- **OQ-1/OQ-3 beantwoord (ADR-17a):** vestiging automatisch afgeleid uit klascode (CSD/CSG/CSR) met handmatige override als fallback; opleidingsactiviteiten/stage-eisen via hybride BPV-import (Onstage-export + handmatig) — parsertaak T13 blijft on hold tot voorbeeldbestand binnen is.
+- **OQ-2 opgelost (ADR-17b):** 2 Roosendaal-voorbeeldexports ontvangen (Beij BJ1 Fase 1, Benders BJ2). "Levels" = benoemde datapunten (`Level <n> <activiteit>`) in sectie "Extern praktijkleren" — afleidbaar zonder nieuw veld (T6b). T9c niet langer geblokkeerd.
+- **Enige resterende blokkade: T13 (Onstage-BPV-import)** — wacht op voorbeeldbestand; de rest (T1–T12) kan door naar `/plan-eng-review`.
+- Geen code geschreven deze sessie voor M42 — Fase 0/1 alleen, conform "geen code vóór Fase 0 afgesloten". Implementatie start pas na `/plan-eng-review`.
+- M42 en M41 zijn onafhankelijke tracks; geen wederzijdse blokkade.
+
+**DoD Fase 0 afgevinkt:** architectuurbeslissingen in DECISIONS.md (ADR-17, ADR-17a, ADR-17b) ✅, handoff geschreven ✅. Eng review nog niet gedaan (Fase 1 eigen DoD-punt, zie S01-PLAN.md) — kan nu op T1–T12 in hun geheel starten.
+
+---
+
+## Handoff 2026-09-16 (Fase 1 → Fase 2) — M42 doorstroomnormering 2026/2027
+
+Van: GStack — `/plan-eng-review`
+Naar: Superpowers — Fase 2 (executie, TDD)
+
+**Status:** `/plan-eng-review` CLEAR. Volledig plan met taken, testvereisten, faalscenario's, worktree-parallellisatie en implementatietaken staat in `.gsd/milestones/M42-doorstroomnormering-2026-2027/S01-PLAN.md` (eindigt met `## GSTACK REVIEW REPORT`). 10 bevindingen verwerkt: 4 architectuur (normen-API-vorm, normen-opslag, Roosendaal fase-gat, Roosendaal-traject-veld), 2 code-kwaliteit (DRY-helper, klascode-matching), 2 test (bespreekgeval-label, WVO=null-gedrag), 2 nieuwe taken uit de outside-voice (T3b, T7b) + KERN_SBC-verwijdering + expliciete fase-telbron-precisering.
+
+**Openstaand — moet Fase 2 weten:**
+- **T9b (Goes/Dordrecht) blijft geblokkeerd** op T9b-1 (databron B1K1/B1K2 — projectlead zoekt dit zelf uit bij collega's, geen actie nodig van Fase 2 hierop).
+- **T13 (Onstage-import) blijft geblokkeerd** op een voorbeeldbestand.
+- **Verplichte regressietest (IRON RULE):** T3/T3b se handmatige velden moeten getest worden op re-import-persistentie (zelfde patroon als bestaande `kdStatus`-tests) — dit is een Verify-vereiste in de Implementation Tasks-lijst, niet optioneel.
+- **T10 raakt een bestaande test:** `tests/prognosis.schemaGuard.test.ts` moet herschreven worden zodra T7b/T10 landen — het huidige schema wordt dan weer "ondersteund" en mag geen `normen_onbekend` meer teruggeven.
+- Volgorde: Lane A (T1/T2/T3/T3b, parallel) → Lane B (T4/T5/T6/T6b, T6 wacht op T2) → Lane C (T7→T7b→T8→T9→T10, **sequentieel, zelfde bestand** `utils/prognosis.ts`) → Lane D (T11/T12, parallel).
+
+**DoD Fase 1 afgevinkt:** architectuurbeslissingen (ADR-17/17a/17b) ✅, `/plan-eng-review` CLEAR ✅ (0 unresolved, 0 open kritieke gaps), test-plan-artifact geschreven ✅, handoff geschreven ✅.
+
+---
+
+## Afwijking 2026-09-15: Rust build-cache stale path + Xcode-licentie (omgevingsissues, geen codefout)
+
+Tijdens verificatie van de deelgebieden-config-update bleek `npm run build` (volledige Tauri-build) te falen. Root cause: (1) `src-tauri/target/` bevatte stale build-script-output die verwees naar een oud pad (`~/Desktop/mentordashboard-cios/...`) van vóór een directory-verplaatsing — opgelost door `src-tauri/target/` te verwijderen (regenereerbare cache, niet getrackt). (2) Na de cache-clean bleek de eigenlijke blokkade de macOS Xcode-licentie te zijn (`cc`-linker weigert te draaien tot geaccepteerd) — dit vereist `sudo xcodebuild -license` door de gebruiker zelf (wachtwoord + interactieve bevestiging, buiten agent-bereik). Geen van beide is een regressie van deze sessie se wijzigingen; `vite build` (frontend-only) en de volledige testsuite zijn wel groen.
+
+## Afwijking 2026-09-15: deelgebieden-schema 2026/2027 — bounded config-update
+
+**Reden om Fase 0 over te slaan:** architectuur (config-driven, open-world parser) al besloten in M35/M37/M38 — dit is precies het scenario waarvoor die flexibiliteit gebouwd is. Wijziging raakt data (`src/config/leerlijn.json`) + een schema-guard in de reeds bestaande engine, geen nieuw ontwerp.
+
+**Aanleiding:** nieuw schooljaar — CIOS-deelgebieden zijn herzien van 19 naar 12, en de 3 leerlijnen (`lesgeven`/`organiseren`/`prof_handelen`) zijn samengevoegd tot 2 (`lesgeven_en_organiseren`/`professioneel_handelen`). Zie ADR-16 in DECISIONS.md.
+
+**Gedaan:**
+- `src/config/leerlijn.json` bijgewerkt naar de 12 nieuwe deelgebieden (bron: "2026-03 Hernieuwde set deelgebieden.docx" + twee SomToday/Cumlaude-PDF-exports 2026/2027, door projectlead aangeleverd).
+- `utils/schema.ts` `Deelgebied.group`-type bijgewerkt; parser/matrix/spiderchart/instellingen-UI (`DeelgebiedenMatrix.tsx`, `SpiderChartCard.tsx` + `DetailWeergave.tsx`, `SettingsPage.tsx` leerlijn-dropdown) volgen nu de nieuwe 2-groepen-indeling.
+- **Doorstroomprognose-engine bewust NIET herijkt** (projectlead-besluit): `KERN_SBC` en `DEFAULT_NORMEN` (sbl/sbc/versneld-drempels) in `utils/prognosis.ts` / `utils/normen.ts` zijn gekalibreerd op het oude 19/3-schema en kloppen niet meer. In plaats van een gok te wagen, geeft `berekenPrognose()` nu `label: 'normen_onbekend'` terug zodra het actieve schema niet overeenkomt met `SUPPORTED_LEERLIJNEN` — `berekenStatus()` toont dit als grijs/"Normen onbekend", `DoortstroomPrognoseSection` toont een duidelijke tekst i.p.v. cijfers. Geen stilzwijgend foutieve doorstroomprognoses.
+- Geen schema-co-existentie nodig (bevestigd door projectlead: geen actieve klassen met oude 19-deelgebieden-data naast nieuwe klassen) → één globale config-swap volstaat, geen versionering per klas/periode.
+- Tests: rekenlogica-tests (`prognosis.test.ts`, `prognosis.normen.test.ts`, `prognose.diagnose.test.ts`, `status.test.ts`, `aggregation.test.ts`, `pdf.columnAssignment.test.ts`) mocken nu expliciet het oude 19-schema (ze testen de formules, niet welk schooljaar toevallig actief is); nieuw `tests/prognosis.schemaGuard.test.ts` toetst het gedrag tegen het echte, live 2026/2027-schema. 486 tests, typecheck (beide configs) en `vite build` groen. `npm run build` (volledige Tauri-build) faalt lokaal op een vooraf bestaand, ongerelateerd Rust-buildcache-pad (verwijst naar een oude `~/Desktop/mentordashboard-cios`-locatie) — niet veroorzaakt door deze wijziging.
+
+**Nog open (nieuwe follow-up, niet blokkerend voor deze commit):**
+- Nieuwe doorstroomnormen (kern-vakken, sbl/sbc-drempelwaarden, per-leerlijn minima) zijn nog niet bekend bij de projectlead. Zodra CIOS die vaststelt: `KERN_SBC`, `DEFAULT_NORMEN`, `SUPPORTED_LEERLIJNEN` in `utils/prognosis.ts`/`utils/normen.ts` herijken + `SettingsPage.tsx` normen-sectie (labels/max-waarden verwijzen nog naar de oude 3-leerlijnen-structuur en max=19).
+- Visuele/Tauri-QA nog niet gedaan deze sessie: browser-preview in deze omgeving faalt op een sandbox-EPERM in de preview-tool en de volledige Tauri-build faalt op de bovengenoemde stale buildcache — beide omgevingsbeperkingen, geen codefout. Aanbevolen: handmatige visuele check (Instellingen-pagina leerlijn-dropdown, spiderchart met 2 kaarten, deelgebieden-matrix) op een schone build vóór release.
 
 ## Handoff 2026-09-14 (Fase 3 → Fase 2)
 

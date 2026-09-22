@@ -1,32 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { StatusResult, detectTraject } from '../utils/status';
-import { getNormenSync } from '../../utils/normen';
 import { normalizeRekenScore } from '../../utils/schema';
-import { aggregateKdStatus } from '../../utils/keuzedelen';
 import { getVerzuimDrempelsSync } from '../../utils/verzuimDrempels';
 import { getBpvConfig, getBpvData } from '../../utils/bpv';
+import type { Vestiging } from '../../utils/klassen';
+import { normalizeRoosendaalTraject } from '../../utils/trajectNormalisatie';
 
 interface DoortstroomPrognoseSectionProps {
   student: any;
   status: StatusResult;
+  vestiging: Vestiging | null;
 }
 
-const LEERLIJN_LABEL: Record<string, string> = {
-  lesgeven: 'Lesgeven',
-  organiseren: 'Organiseren',
-  prof_handelen: 'Professioneel handelen',
-};
+// M42 T12 — component-local mirrors of the engine's actual runtime gaps shapes
+// (utils/prognosis.ts's exported Bj1Uitkomst/Bj2Uitkomst/Bj2RoosendaalSblKeuzeUitkomst
+// interfaces type `gaps` as `any` — these give us real compile-time checking for
+// this component's own field access without touching the (read-only) engine file).
+type Niveau = 'goed' | 'voldoende' | 'onvoldoende' | null;
 
-const KERN_NAMES = ['V&A', 'P&O', 'C&B', '1E&B'] as const;
+interface Bj1Gaps {
+  aantalOnvoldoendeDeelgebieden: number;
+  onvoldoendeDeelgebiedenRuimte: number;
+  aantalOnbeoordeeldFase2: number;
+  onbeoordeeldRuimte: number;
+  nodigNaarBj2Deelgebieden: number;
+  nodigNaarBj2ProfHoudingBvb: number;
+  nodigNaarBj2RekenDomeinen: number;
+  nodigVersneldSbc_lesgevenOrganiseren: number;
+  nodigVersneldSbc_profHandelen: number;
+  nodigVersneldSbc_profHoudingBvb: number;
+  nodigVersneldSbc_rekenDomeinen: number;
+  wvoTraject: boolean | null;
+  nederlandsNiveau: Niveau;
+  rekenNiveau: Niveau;
+  levelsAfgerond: number;
+}
+
+interface Bj2Gaps {
+  aantalVoldoendeOfHoger: number;
+  nodigSBC_deelgebieden: number;
+  nodigSBL_deelgebieden: number;
+  nodigSBC_rekenDomeinen: number;
+  nodigSBL_rekenDomeinen: number;
+  nlSchrijvenNiveau: Niveau;
+  nlGesprekvoerenNiveau: Niveau;
+  nederlandsNiveau: Niveau;
+  rekenNiveau: Niveau;
+  kdStatus: string | null;
+  wvoTraject: boolean | null;
+  sbcRoosendaalLevelsOk: boolean;
+  sblRoosendaalLevelsOk: boolean;
+}
+
+interface Bj2RoosendaalSblKeuzeGaps {
+  fase3DeelgebiedenVoldoende: number;
+  nodigDeelgebiedenFase3: number;
+  nodigRekenDomeinen: number;
+  nederlandsNiveau: Niveau;
+  rekenNiveau: Niveau;
+  kdStatus: string | null;
+  levelsOk: boolean;
+}
 
 // Maps prognose label to readable uitkomst text shown in the badge
 const UITKOMST_LABEL: Record<string, string> = {
-  sbl:          'SBL',
-  sbc:          'SBC',
-  naar_bj2:     'Naar BJ2',
-  versneld_sbc: 'Versneld SBC',
-  neutraal:     'Twijfelgeval',
-  negatief:     'Risico',
+  sbl:           'SBL',
+  sbc:           'SBC',
+  naar_bj2:      'Naar BJ2',
+  versneld_sbc:  'Versneld SBC',
+  neutraal:      'Twijfelgeval',
+  bespreekgeval: 'Bespreekgeval', // BJ2's own fallback label (D17/ADR-17d) — NOT the same as BJ1's 'neutraal'/Twijfelgeval
+  negatief:      'Risico',
 };
 
 function criterionStatus(nodig: number): 'groen' | 'oranje' | 'rood' {
@@ -35,18 +79,71 @@ function criterionStatus(nodig: number): 'groen' | 'oranje' | 'rood' {
   return 'rood';
 }
 
-// 'behaald' → 0, null/undefined → 1 (oranje/onbekend), 'niet_behaald' → 3 (rood)
-function behaaldNodig(status: string | null | undefined): number {
-  if (!status) return 1;
+// 'behaald'/'haalbaar' → 0 (groen, both satisfy every KD gate in the new engine —
+// see berekenBj2GeneriekPad/berekenBj2RoosendaalSblKeuze's shared kdVoldoet check),
+// null/missing → 1 (oranje, not yet known), 'niet_behaald' → 3 (rood).
+function kdNodig(status: string | null | undefined): number {
+  if (status === 'behaald' || status === 'haalbaar') return 0;
   if (status === 'niet_behaald') return 3;
-  return 0;
+  return 1;
 }
 
 function behaaldDisplay(status: string | null | undefined): string {
   if (!status) return '—';
   if (status === 'behaald') return 'Behaald';
   if (status === 'niet_behaald') return 'Niet behaald';
+  if (status === 'haalbaar') return 'Haalbaar';
   return status;
+}
+
+// BPV/POK-uren fallback display — unrelated to Lane C (student.pokUren is a manual
+// legacy field), kept exactly as before.
+function behaaldNodig(status: string | null | undefined): number {
+  if (!status) return 1;
+  if (status === 'niet_behaald') return 3;
+  return 0;
+}
+
+// Generic "shortfall count" display for every `nodig*` gaps field — the new engine
+// only exposes HOW MUCH is still missing (a delta), not the raw achieved-count/
+// threshold pair the old getNormenSync()-based UI used to show alongside it.
+function nodigDisplay(nodig: number): string {
+  return nodig === 0 ? 'Voldaan' : `Nog ${nodig} nodig`;
+}
+
+// Tiered pass/fail for the niveau gaps fields (nederlandsNiveau/rekenNiveau/
+// nlSchrijvenNiveau/nlGesprekvoerenNiveau) — the required tier differs per
+// criterion exactly as berekenBj1Uitkomst/berekenBj2GeneriekPad/
+// berekenBj2RoosendaalSblKeuze enforce it. Do NOT collapse to a uniform
+// "any non-null value passes" rule.
+function niveauNodig(niveau: Niveau, minTier: 'voldoende' | 'goed'): number {
+  if (niveau === null) return 1;
+  if (minTier === 'goed') {
+    if (niveau === 'goed') return 0;
+    if (niveau === 'voldoende') return 1; // close, but this criterion requires exactly 'goed'
+    return 3;
+  }
+  // minTier === 'voldoende': 'voldoende' or 'goed' both pass
+  if (niveau === 'voldoende' || niveau === 'goed') return 0;
+  return 3;
+}
+
+// Raw student-record value for human-readable display — the pass/fail itself comes
+// from the gaps-derived niveau via niveauNodig above, per task-T12-brief.md.
+function niveauScoreDisplay(raw: unknown): string {
+  return raw !== null && raw !== undefined && raw !== '' ? String(raw) : '—';
+}
+
+function wvoDisplay(wvo: boolean | null): string {
+  if (wvo === true) return 'Ja';
+  if (wvo === false) return 'Nee, vereist';
+  return 'Nog niet ingevuld';
+}
+
+function wvoNodig(wvo: boolean | null): number {
+  if (wvo === true) return 0;
+  if (wvo === false) return 3;
+  return 1;
 }
 
 function CriterionRow({ label, scoreDisplay, nodig }: { label: string; scoreDisplay: string; nodig: number }) {
@@ -95,38 +192,44 @@ function PrognoseBlock({
   );
 }
 
-export default function DoortstroomPrognoseSection({ student, status }: DoortstroomPrognoseSectionProps) {
+export default function DoortstroomPrognoseSection({ student, status, vestiging }: DoortstroomPrognoseSectionProps) {
   // Use pre-computed prognose from status — do NOT call berekenPrognose again
   const p = status.prognose;
-  const n = getNormenSync();
   const traject = detectTraject(student);
+
+  // Nieuw schooljaar 2026/2027: deelgebieden-schema is bijgewerkt, maar de
+  // doorstroomnormen (kern-vakken, drempelwaarden) zijn nog niet bekend. Toon dat
+  // expliciet i.p.v. een cijfer te berekenen met de oude (niet meer kloppende) normen.
+  if (p.label === 'normen_onbekend') {
+    return (
+      <div className="detail-section">
+        <p className="detail-section-title">Doorstroomprognose</p>
+        <p style={{ color: 'var(--text-muted)', margin: 0 }}>
+          Doorstroomnormen nog niet ingesteld voor het huidige deelgebieden-schema. Zodra de
+          nieuwe CIOS-doorstroomcriteria bekend zijn, worden ze hier verwerkt.
+        </p>
+      </div>
+    );
+  }
 
   const globalEmpty = p.totaalVoldoendeOfHoger === 0 && p.totaalOnvoldoende === 0;
 
-  // Build per-leerlijn lookup map for score access
-  const llMap: Record<string, any> = Object.fromEntries(
-    (p.leerlijnen ?? []).map((l: any) => [l.leerlijn, l])
-  );
+  // M42 T12 — disambiguating which of the 3 possible gaps shapes `p.gaps` actually
+  // is. See task-T12-brief.md "The 3 possible result shapes you're rendering":
+  // berekenPrognose's own routing decides this the SAME way (vestiging +
+  // student.roosendaalTraject) — the label alone is NOT enough, since both
+  // berekenBj2GeneriekPad and berekenBj2RoosendaalSblKeuze can produce
+  // label: 'sbl' with completely different gaps field names.
+  const isRoosendaalSblKeuze =
+    vestiging === 'roosendaal' && normalizeRoosendaalTraject(student.roosendaalTraject) === 'sbl';
 
-  // Versneld SBC threshold field names (normen.ts: versneldLesgeven / versneldOrganiseren / versneldProfHandelen)
-  const bj1VersneldLesgeven = n.versneldLesgeven;
-  const bj1VersneldOrganiseren = n.versneldOrganiseren;
-  const bj1VersneldProfHandelen = n.versneldProfHandelen;
+  // Gates the Roosendaal-only "levels" criterion rows across BOTH bj1 and bj2 blocks
+  // (ADR-17e: for Goes/Dordrecht this criterion is always trivially satisfied, so
+  // showing it there would be confusing noise).
+  const toonRoosendaalLevels = vestiging === 'roosendaal';
 
-  // Rekenen & Nederlands — read directly from student record (not from prognose)
-  const rekenStatus = normalizeRekenScore(student.rekenResultaat ?? null);
-  const nederlandsStatus = normalizeRekenScore(student.nederlandsResultaat ?? null);
-
-  function rnlNodig(score: ReturnType<typeof normalizeRekenScore>): number {
-    if (score === null) return 1;          // not entered → oranje
-    if (score === 'onvoldoende') return 3; // rood
-    return 0;                              // voldoende / goed → groen
-  }
-
-  const rekenNodig = rnlNodig(rekenStatus);
-  const nederlandsNodig = rnlNodig(nederlandsStatus);
-
-  // BJ1 → Versneld SBC: alle datapunten op tijd
+  // BJ1 → Versneld SBC: alle datapunten op tijd — UNRELATED to Lane C (reads
+  // student.datapunten directly, no engine field changed here), kept as-is.
   const aantalNietIngeleverd = (student.datapunten || []).filter((dp: any) =>
     ((dp.status || '') as string).toLowerCase() === 'niet ingeleverd'
   ).length;
@@ -136,7 +239,8 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
   const aantalNietOpTijd = aantalNietIngeleverd + aantalTeLaat;
   const datapuntenOpTijdNodig = aantalNietOpTijd > 0 ? 3 : 0;
 
-  // BPV-uren — async; valt terug op handmatig student.pokUren
+  // BPV-uren — async; valt terug op handmatig student.pokUren. UNRELATED to Lane C,
+  // kept as-is.
   const [bpvGerealiseerd, setBpvGerealiseerd] = useState<number | null>(null);
   const [bpvVerwacht, setBpvVerwacht] = useState<number>(200);
   useEffect(() => {
@@ -156,90 +260,19 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
     ? `${bpvGerealiseerd} / ${bpvVerwacht}u`
     : behaaldDisplay(student.pokUren);
 
-  // Stage-uren (BJ1 Versneld SBC) — zelfde BPV-bron als POK-uren
+  // Stage-uren (BJ1 Versneld SBC) — zelfde BPV-bron als POK-uren, unrelated to Lane C.
   const stageNodig = pokNodig;
   const stageDisplay = pokDisplay;
 
-  // BJ2 → SBC: Nederlands schrijven ≥2F — gebruikt bestaand nlSchrijven sub-score
-  const schrijvenStatus = normalizeRekenScore(student.nlSchrijven ?? null);
-  const schrijvenNodig = schrijvenStatus === null ? 1 : schrijvenStatus === 'onvoldoende' ? 3 : 0;
-  const schrijvenDisplay = student.nlSchrijven != null ? String(student.nlSchrijven) : '—';
-
-  // BJ2 → SBC: Gesprekken ≥3F — nlGesprekvoeren; 'goed'=groen, 'voldoende'=oranje, ontbrekend=oranje
-  const gesprekkenStatus = normalizeRekenScore(student.nlGesprekvoeren ?? null);
-  const gesprekkenNodig = gesprekkenStatus === null ? 1
-    : gesprekkenStatus === 'goed' ? 0
-    : gesprekkenStatus === 'voldoende' ? 2
-    : 3;
-  const gesprekkenDisplay = student.nlGesprekvoeren != null ? String(student.nlGesprekvoeren) : '—';
-
-  // keuzedelen array takes precedence; fall back to legacy kdStatus for existing data
-  const keuzedelen = Array.isArray(student.keuzedelen) ? student.keuzedelen : [];
-  const kdStatus = keuzedelen.length > 0 ? aggregateKdStatus(keuzedelen) : (student.kdStatus ?? null);
-
-  // BJ2 → SBL/SBC: KD/KB uit BJ1 — afgeleid uit keuzedelen met basisjaar 'bj1'
-  const keuzedelenBJ1 = keuzedelen.filter((k: any) => k.basisjaar === 'bj1');
-  const kdBJ1Status = aggregateKdStatus(keuzedelenBJ1);
-  const kdBJ1Nodig = kdBJ1Status === 'behaald' ? 0 : kdBJ1Status === 'niet_behaald' ? 3 : 1;
-  const kdBJ1Display = kdBJ1Status === 'behaald' ? 'Behaald' : kdBJ1Status === 'niet_behaald' ? 'Niet behaald' : kdBJ1Status === 'haalbaar' ? 'Haalbaar' : '—';
-  const kbBJ1Nodig = kdBJ1Nodig;
-  const kbBJ1Display = kdBJ1Display;
-  // BJ2 doorstroom: behaald of haalbaar volstaat
-  const kdNodigBJ2 = kdStatus === 'behaald' || kdStatus === 'haalbaar' ? 0 : kdStatus === 'niet_behaald' ? 3 : 1;
-  // Versneld SBC / BJ2 SBC: alleen behaald volstaat
-  const kdNodigSBC = kdStatus === 'behaald' ? 0 : kdStatus === 'niet_behaald' ? 3 : 1;
-
-  // T04: uitkomst badge label
   const uitkomstLabel = UITKOMST_LABEL[p.label] ?? p.label;
 
-  // T05: verzuim signaal — not a formal doorstroom criterion, shown as attention block
+  // T05: verzuim signaal — not a formal doorstroom criterion, shown as attention
+  // block. Unrelated to Lane C (reads student.verzuim directly), kept as-is.
   const verzuimDrempels = getVerzuimDrempelsSync();
   const vz = student.verzuim;
   const ongeoorloofdOver = !!(vz && vz.ongeoorloofd > verzuimDrempels.ongeoorloofd);
   const geoorloofdOver   = !!(vz && vz.geoorloofd   > verzuimDrempels.geoorloofd);
 
-  // Negatief per-leerlijn rows (shared between BJ1 and BJ2)
-  const negatiefPerLeerlijnen = (['lesgeven', 'organiseren', 'prof_handelen'] as const).map((l) => {
-    const ruimte = p.gaps.onvoldoendeRuimtePerLeerlijn?.[l] ?? 0;
-    const nodig = Math.max(0, -ruimte);
-    return (
-      <CriterionRow
-        key={l}
-        label={`≤${n.negatiefPerLeerlijn} O ${LEERLIJN_LABEL[l].toLowerCase()}`}
-        scoreDisplay={`${llMap[l]?.onvoldoende ?? 0} / ${n.negatiefPerLeerlijn}`}
-        nodig={nodig}
-      />
-    );
-  });
-
-  // Negatief totaal: how many onvoldoende over the threshold (0 = groen, >0 = direct rood — no oranje zone)
-  const negatiefTotaalNodig = Math.max(0, p.totaalOnvoldoende - n.negatiefTotaal);
-
-  // BJ1-only: onbeoordeeld/niet ingeleverd datapunten criterion
-  const aantalOnbeoordeeld = p.gaps?.aantalOnbeoordeeld ?? 0;
-  const onbeoordeeldNodig = traject === 'bj1' && aantalOnbeoordeeld > n.negatiefOnbeoordeeldBJ1 ? 3 : 0;
-
-  const negatiefOverallNodig = negatiefTotaalNodig > 0 || onbeoordeeldNodig > 0 ? 3 : 0;
-
-  const negatiefBlock = (
-    <PrognoseBlock name="Negatief" overallNodig={negatiefOverallNodig} isEmpty={globalEmpty}>
-      <CriterionRow
-        label={`≤${n.negatiefTotaal} O totaal`}
-        scoreDisplay={`${p.totaalOnvoldoende} / ${n.negatiefTotaal}`}
-        nodig={negatiefTotaalNodig}
-      />
-      {negatiefPerLeerlijnen}
-      {traject === 'bj1' && (
-        <CriterionRow
-          label={`≤${n.negatiefOnbeoordeeldBJ1} datapunten onbeoordeeld/niet ingeleverd`}
-          scoreDisplay={`${aantalOnbeoordeeld} / ${n.negatiefOnbeoordeeldBJ1}`}
-          nodig={onbeoordeeldNodig}
-        />
-      )}
-    </PrognoseBlock>
-  );
-
-  // T05: verzuim signaalblok — shown after all doorstroom blocks
   const verzuimBlok = vz ? (
     <PrognoseBlock
       name="Verzuim — signaal"
@@ -262,217 +295,351 @@ export default function DoortstroomPrognoseSection({ student, status }: Doortstr
     </PrognoseBlock>
   ) : null;
 
-  // T04: BJ2 blocks — extracted for reordering
-  const sblBlock = (
-    <PrognoseBlock
-      name="SBL"
-      overallNodig={Math.max(p.gaps.nodigSBL, rekenNodig, nederlandsNodig, kdNodigBJ2, kdBJ1Nodig, pokNodig)}
-      isEmpty={globalEmpty}
-    >
-      <CriterionRow
-        label={`≥${n.sbl} deelgebieden ≥V`}
-        scoreDisplay={`${p.totaalVoldoendeOfHoger} / ${n.sbl}`}
-        nodig={p.gaps.nodigSBL}
-      />
-      <CriterionRow
-        label="Rekenen ≥2F"
-        scoreDisplay={student.rekenResultaat ?? '—'}
-        nodig={rekenNodig}
-      />
-      <CriterionRow
-        label="Nederlands ≥2F"
-        scoreDisplay={student.nederlandsResultaat ?? '—'}
-        nodig={nederlandsNodig}
-      />
-      <CriterionRow
-        label="KD behaald of voor 1 dec haalbaar"
-        scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
-        nodig={kdNodigBJ2}
-      />
-      <CriterionRow
-        label="KD uit BJ1 behaald"
-        scoreDisplay={kdBJ1Display}
-        nodig={kdBJ1Nodig}
-      />
-      <CriterionRow
-        label="POK-uren behaald"
-        scoreDisplay={pokDisplay}
-        nodig={pokNodig}
-      />
+  // BPV/POK-uren — its own standalone block for BJ2 (previously duplicated as a row
+  // inside both the SBL and SBC blocks; the new engine's gaps shapes don't carry a
+  // POK-uren field at all — this criterion is genuinely unrelated to Lane C, only
+  // its RENDER LOCATION changes here to avoid duplicating it in every BJ2 block).
+  const pokBlock = (
+    <PrognoseBlock name="BPV / POK-uren" overallNodig={pokNodig} isEmpty={globalEmpty}>
+      <CriterionRow label="POK-uren behaald" scoreDisplay={pokDisplay} nodig={pokNodig} />
     </PrognoseBlock>
   );
 
-  const sbcBlock = (
-    <PrognoseBlock
-      name="SBC"
-      overallNodig={Math.max(
-        p.gaps.nodigSBC_deelgebieden,
-        (p.gaps.nodigSBC_kern ?? []).length,
-        rekenNodig,
-        nederlandsNodig,
-        kdNodigBJ2,
-        schrijvenNodig,
-        gesprekkenNodig,
-        kbBJ1Nodig,
-        pokNodig,
-      )}
-      isEmpty={globalEmpty}
-    >
-      <CriterionRow
-        label={`≥${n.sbc} deelgebieden ≥V`}
-        scoreDisplay={`${p.totaalVoldoendeOfHoger} / ${n.sbc}`}
-        nodig={p.gaps.nodigSBC_deelgebieden}
-      />
-      {KERN_NAMES.map((kern) => (
+  let bj1Ordered: React.ReactNode = null;
+  if (traject === 'bj1') {
+    const gaps = p.gaps as Bj1Gaps;
+
+    // ── Negatief (M42 T12: rebuilt against the new gaps fields) ────────────────
+    // The new engine has exactly 2 negatief-triggers (berekenBj1Uitkomst) — no
+    // more per-leerlijn onvoldoende breakdown. onvoldoendeDeelgebiedenRuimte is
+    // Math.max(0, ...)-clamped so it cannot go negative — a value of 0 means
+    // "at or past the edge" (ambiguous between "exactly at the last safe count"
+    // and "already over"), so we lean on the overall p.label to disambiguate that
+    // specific row's color when it's at 0. onbeoordeeldRuimte is NOT clamped and
+    // goes negative once the trigger actually fires, so that one is unambiguous.
+    const onvoldoendeDeelgebiedenNodig = gaps.onvoldoendeDeelgebiedenRuimte === 0
+      ? (p.label === 'negatief' ? 3 : 1)
+      : 0;
+    const onbeoordeeldFase2Nodig = gaps.onbeoordeeldRuimte < 0
+      ? 3
+      : gaps.onbeoordeeldRuimte === 0 ? 1 : 0;
+
+    const negatiefBlock = (
+      <PrognoseBlock
+        name="Negatief"
+        overallNodig={Math.max(onvoldoendeDeelgebiedenNodig, onbeoordeeldFase2Nodig)}
+        isEmpty={globalEmpty}
+      >
         <CriterionRow
-          key={kern}
-          label={`${kern} ≥V`}
-          scoreDisplay={(p.gaps.nodigSBC_kern ?? []).includes(kern) ? '< V' : '≥ V'}
-          nodig={(p.gaps.nodigSBC_kern ?? []).includes(kern) ? 3 : 0}
+          label="Deelgebieden onvoldoende"
+          scoreDisplay={`${gaps.aantalOnvoldoendeDeelgebieden} (ruimte: ${gaps.onvoldoendeDeelgebiedenRuimte})`}
+          nodig={onvoldoendeDeelgebiedenNodig}
         />
-      ))}
-      <CriterionRow
-        label="Rekenen ≥2F"
-        scoreDisplay={student.rekenResultaat ?? '—'}
-        nodig={rekenNodig}
-      />
-      <CriterionRow
-        label="Nederlands schrijven ≥2F"
-        scoreDisplay={schrijvenDisplay}
-        nodig={schrijvenNodig}
-      />
-      <CriterionRow
-        label="Gesprekken ≥3F"
-        scoreDisplay={gesprekkenDisplay}
-        nodig={gesprekkenNodig}
-      />
-      <CriterionRow
-        label="KB BJ1 afgerond"
-        scoreDisplay={kbBJ1Display}
-        nodig={kbBJ1Nodig}
-      />
-      <CriterionRow
-        label="KD voor 1 december haalbaar"
-        scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
-        nodig={kdNodigBJ2}
-      />
-      <CriterionRow
-        label="POK-uren voldaan"
-        scoreDisplay={pokDisplay}
-        nodig={pokNodig}
-      />
-    </PrognoseBlock>
-  );
+        <CriterionRow
+          label="Onbeoordeeld/niet ingeleverd (fase 2)"
+          scoreDisplay={`${gaps.aantalOnbeoordeeldFase2} (ruimte: ${gaps.onbeoordeeldRuimte})`}
+          nodig={onbeoordeeldFase2Nodig}
+        />
+      </PrognoseBlock>
+    );
 
-  // T04: BJ2 block order — actual outcome block first, then other positive routes, negatief last
-  // Exception: when outcome is negatief, show negatief block first
-  let bj2Ordered: React.ReactNode;
-  if (p.label === 'sbc') {
-    bj2Ordered = <>{sbcBlock}{sblBlock}{negatiefBlock}</>;
-  } else if (p.label === 'negatief') {
-    bj2Ordered = <>{negatiefBlock}{sblBlock}{sbcBlock}</>;
-  } else {
-    // sbl or neutraal: SBL first (closest/most relevant positive outcome)
-    bj2Ordered = <>{sblBlock}{sbcBlock}{negatiefBlock}</>;
+    // ── BJ2 doorstroom ("naar_bj2") ─────────────────────────────────────────────
+    const naarBj2Block = (
+      <PrognoseBlock
+        name="BJ2 doorstroom"
+        overallNodig={Math.max(
+          gaps.nodigNaarBj2Deelgebieden,
+          gaps.nodigNaarBj2ProfHoudingBvb,
+          gaps.nodigNaarBj2RekenDomeinen,
+          niveauNodig(gaps.nederlandsNiveau, 'voldoende'),
+          niveauNodig(gaps.rekenNiveau, 'voldoende'),
+        )}
+        isEmpty={globalEmpty}
+      >
+        <CriterionRow
+          label="Deelgebieden fase 2 ≥V"
+          scoreDisplay={nodigDisplay(gaps.nodigNaarBj2Deelgebieden)}
+          nodig={gaps.nodigNaarBj2Deelgebieden}
+        />
+        <CriterionRow
+          label="Betekenisvol Bewegen (professionele houding)"
+          scoreDisplay={nodigDisplay(gaps.nodigNaarBj2ProfHoudingBvb)}
+          nodig={gaps.nodigNaarBj2ProfHoudingBvb}
+        />
+        <CriterionRow
+          label="Nederlands ≥2F"
+          scoreDisplay={niveauScoreDisplay(student.nederlandsResultaat)}
+          nodig={niveauNodig(gaps.nederlandsNiveau, 'voldoende')}
+        />
+        <CriterionRow
+          label="Rekenen ≥3 domeinen (MBO3)"
+          scoreDisplay={niveauScoreDisplay(student.rekenResultaat)}
+          nodig={niveauNodig(gaps.rekenNiveau, 'voldoende')}
+        />
+        {toonRoosendaalLevels && (
+          // ADR-17e: for Goes/Dordrecht this criterion is trivially satisfied
+          // (norm 0) — showing it there would be confusing noise, so it's gated
+          // on vestiging. The engine exposes the achieved count (levelsAfgerond)
+          // but no separate "nodig" delta for it, so this row is informational
+          // (neutral/oranje) rather than a definitive pass/fail claim — see
+          // task-T12-report.md for the full reasoning.
+          <CriterionRow
+            label="Roosendaal levels afgerond"
+            scoreDisplay={`${gaps.levelsAfgerond}`}
+            nodig={1}
+          />
+        )}
+      </PrognoseBlock>
+    );
+
+    // ── Versneld SBC ─────────────────────────────────────────────────────────
+    const versneldSBCBlock = (
+      <PrognoseBlock
+        name="Versneld SBC"
+        overallNodig={Math.max(
+          gaps.nodigVersneldSbc_lesgevenOrganiseren,
+          gaps.nodigVersneldSbc_profHandelen,
+          gaps.nodigVersneldSbc_profHoudingBvb,
+          gaps.nodigVersneldSbc_rekenDomeinen,
+          niveauNodig(gaps.nederlandsNiveau, 'goed'),
+          niveauNodig(gaps.rekenNiveau, 'goed'),
+          wvoNodig(gaps.wvoTraject),
+          datapuntenOpTijdNodig,
+          stageNodig,
+        )}
+        isEmpty={globalEmpty}
+      >
+        <CriterionRow
+          label="Lesgeven & organiseren ≥G"
+          scoreDisplay={nodigDisplay(gaps.nodigVersneldSbc_lesgevenOrganiseren)}
+          nodig={gaps.nodigVersneldSbc_lesgevenOrganiseren}
+        />
+        <CriterionRow
+          label="Professioneel handelen ≥G"
+          scoreDisplay={nodigDisplay(gaps.nodigVersneldSbc_profHandelen)}
+          nodig={gaps.nodigVersneldSbc_profHandelen}
+        />
+        <CriterionRow
+          label="Betekenisvol Bewegen (professionele houding) ≥G"
+          scoreDisplay={nodigDisplay(gaps.nodigVersneldSbc_profHoudingBvb)}
+          nodig={gaps.nodigVersneldSbc_profHoudingBvb}
+        />
+        <CriterionRow
+          label="Nederlands ≥3F"
+          scoreDisplay={niveauScoreDisplay(student.nederlandsResultaat)}
+          nodig={niveauNodig(gaps.nederlandsNiveau, 'goed')}
+        />
+        <CriterionRow
+          label="Rekenen ≥3 domeinen (MBO4)"
+          scoreDisplay={niveauScoreDisplay(student.rekenResultaat)}
+          nodig={niveauNodig(gaps.rekenNiveau, 'goed')}
+        />
+        <CriterionRow
+          label="WVO-traject"
+          scoreDisplay={wvoDisplay(gaps.wvoTraject)}
+          nodig={wvoNodig(gaps.wvoTraject)}
+        />
+        {toonRoosendaalLevels && (
+          <CriterionRow
+            label="Roosendaal levels afgerond"
+            scoreDisplay={`${gaps.levelsAfgerond}`}
+            nodig={1}
+          />
+        )}
+        <CriterionRow
+          label="Alle datapunten op tijd"
+          scoreDisplay={aantalNietOpTijd === 0 ? 'Op tijd' : `${aantalNietOpTijd} niet op tijd`}
+          nodig={datapuntenOpTijdNodig}
+        />
+        <CriterionRow
+          label="Stage-uren behaald"
+          scoreDisplay={stageDisplay}
+          nodig={stageNodig}
+        />
+      </PrognoseBlock>
+    );
+
+    if (p.label === 'versneld_sbc') {
+      bj1Ordered = <>{versneldSBCBlock}{naarBj2Block}{negatiefBlock}</>;
+    } else if (p.label === 'negatief') {
+      bj1Ordered = <>{negatiefBlock}{naarBj2Block}{versneldSBCBlock}</>;
+    } else {
+      // naar_bj2 or neutraal: BJ2 doorstroom first (closest/most relevant positive outcome)
+      bj1Ordered = <>{naarBj2Block}{versneldSBCBlock}{negatiefBlock}</>;
+    }
   }
 
-  // T04: BJ1 blocks — extracted for reordering
-  const bj2DoorstroomBlock = (
-    <PrognoseBlock
-      name="BJ2 doorstroom"
-      overallNodig={Math.max(p.gaps.nodigBJ2, rekenNodig, nederlandsNodig, kdNodigBJ2)}
-      isEmpty={globalEmpty}
-    >
-      <CriterionRow
-        label={`≥${n.bj1Positief} deelgebieden ≥V`}
-        scoreDisplay={`${p.totaalVoldoendeOfHoger} / ${n.bj1Positief}`}
-        nodig={p.gaps.nodigBJ2}
-      />
-      <CriterionRow
-        label="Nederlands op weg naar 2F"
-        scoreDisplay={student.nederlandsResultaat ?? '—'}
-        nodig={nederlandsNodig}
-      />
-      <CriterionRow
-        label="Rekenen ≥3 domeinen MBO3"
-        scoreDisplay={student.rekenResultaat ?? '—'}
-        nodig={rekenNodig}
-      />
-      <CriterionRow
-        label="KD behaald of haalbaar (vóór 1 dec.)"
-        scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
-        nodig={kdNodigBJ2}
-      />
-    </PrognoseBlock>
-  );
+  let bj2Ordered: React.ReactNode = null;
+  if (traject === 'bj2') {
+    if (isRoosendaalSblKeuze) {
+      // ── Roosendaal SBL-keuze pad (berekenBj2RoosendaalSblKeuze) ───────────────
+      // Smaller, Roosendaal-exclusive criteria set. Never produces label 'sbc' —
+      // only 'sbl' | 'bespreekgeval' — so there is no SBC block to render here.
+      const gaps = p.gaps as Bj2RoosendaalSblKeuzeGaps;
+      const sblBlock = (
+        <PrognoseBlock
+          name="SBL"
+          overallNodig={Math.max(
+            gaps.nodigDeelgebiedenFase3,
+            niveauNodig(gaps.nederlandsNiveau, 'voldoende'),
+            gaps.nodigRekenDomeinen,
+            niveauNodig(gaps.rekenNiveau, 'voldoende'),
+            kdNodig(gaps.kdStatus),
+            gaps.levelsOk ? 0 : 3,
+          )}
+          isEmpty={globalEmpty}
+        >
+          <CriterionRow
+            label="Deelgebieden fase 3 ≥V"
+            scoreDisplay={nodigDisplay(gaps.nodigDeelgebiedenFase3)}
+            nodig={gaps.nodigDeelgebiedenFase3}
+          />
+          <CriterionRow
+            label="Nederlands ≥2F"
+            scoreDisplay={niveauScoreDisplay(student.nederlandsResultaat)}
+            nodig={niveauNodig(gaps.nederlandsNiveau, 'voldoende')}
+          />
+          <CriterionRow
+            label="Rekenen — domeinen"
+            scoreDisplay={nodigDisplay(gaps.nodigRekenDomeinen)}
+            nodig={gaps.nodigRekenDomeinen}
+          />
+          <CriterionRow
+            label="Rekenen ≥2F"
+            scoreDisplay={niveauScoreDisplay(student.rekenResultaat)}
+            nodig={niveauNodig(gaps.rekenNiveau, 'voldoende')}
+          />
+          <CriterionRow
+            label="KD behaald of voor 1 december haalbaar"
+            scoreDisplay={behaaldDisplay(gaps.kdStatus)}
+            nodig={kdNodig(gaps.kdStatus)}
+          />
+          {toonRoosendaalLevels && (
+            <CriterionRow
+              label="Alle levels 2 behaald"
+              scoreDisplay={gaps.levelsOk ? 'Voldaan' : 'Niet voldaan'}
+              nodig={gaps.levelsOk ? 0 : 3}
+            />
+          )}
+        </PrognoseBlock>
+      );
+      bj2Ordered = <>{sblBlock}{pokBlock}</>;
+    } else {
+      // ── Generic pad (berekenBj2GeneriekPad) — also used for Roosendaal
+      // students who did NOT choose 'sbl' in the mid-year keuzeproces. ─────────
+      const gaps = p.gaps as Bj2Gaps;
+      const sblBlock = (
+        <PrognoseBlock
+          name="SBL"
+          overallNodig={Math.max(
+            gaps.nodigSBL_deelgebieden,
+            niveauNodig(gaps.nederlandsNiveau, 'voldoende'),
+            gaps.nodigSBL_rekenDomeinen,
+            niveauNodig(gaps.rekenNiveau, 'voldoende'),
+            kdNodig(gaps.kdStatus),
+            gaps.sblRoosendaalLevelsOk ? 0 : 3,
+          )}
+          isEmpty={globalEmpty}
+        >
+          <CriterionRow
+            label="Deelgebieden ≥V"
+            scoreDisplay={nodigDisplay(gaps.nodigSBL_deelgebieden)}
+            nodig={gaps.nodigSBL_deelgebieden}
+          />
+          <CriterionRow
+            label="Nederlands ≥2F"
+            scoreDisplay={niveauScoreDisplay(student.nederlandsResultaat)}
+            nodig={niveauNodig(gaps.nederlandsNiveau, 'voldoende')}
+          />
+          <CriterionRow
+            label="Rekenen — domeinen"
+            scoreDisplay={nodigDisplay(gaps.nodigSBL_rekenDomeinen)}
+            nodig={gaps.nodigSBL_rekenDomeinen}
+          />
+          <CriterionRow
+            label="Rekenen ≥2F"
+            scoreDisplay={niveauScoreDisplay(student.rekenResultaat)}
+            nodig={niveauNodig(gaps.rekenNiveau, 'voldoende')}
+          />
+          <CriterionRow
+            label="KD behaald of voor 1 december haalbaar"
+            scoreDisplay={behaaldDisplay(gaps.kdStatus)}
+            nodig={kdNodig(gaps.kdStatus)}
+          />
+          {toonRoosendaalLevels && (
+            <CriterionRow
+              label="Alle levels 2 behaald"
+              scoreDisplay={gaps.sblRoosendaalLevelsOk ? 'Voldaan' : 'Niet voldaan'}
+              nodig={gaps.sblRoosendaalLevelsOk ? 0 : 3}
+            />
+          )}
+        </PrognoseBlock>
+      );
 
-  const versneldSBCBlock = (
-    <PrognoseBlock
-      name="Versneld SBC"
-      overallNodig={Math.max(
-        p.gaps.nodigVersneld_lesgeven ?? 0,
-        p.gaps.nodigVersneld_organiseren ?? 0,
-        p.gaps.nodigVersneld_profHandelen ?? 0,
-        rekenNodig,
-        nederlandsNodig,
-        kdNodigSBC,
-        datapuntenOpTijdNodig,
-        stageNodig,
-      )}
-      isEmpty={globalEmpty}
-    >
-      <CriterionRow
-        label={`≥${bj1VersneldLesgeven} ≥G lesgeven`}
-        scoreDisplay={`${llMap['lesgeven']?.goedOfHoger ?? 0} / ${bj1VersneldLesgeven}`}
-        nodig={p.gaps.nodigVersneld_lesgeven ?? 0}
-      />
-      <CriterionRow
-        label={`≥${bj1VersneldOrganiseren} ≥G organiseren`}
-        scoreDisplay={`${llMap['organiseren']?.goedOfHoger ?? 0} / ${bj1VersneldOrganiseren}`}
-        nodig={p.gaps.nodigVersneld_organiseren ?? 0}
-      />
-      <CriterionRow
-        label={`≥${bj1VersneldProfHandelen} ≥G professioneel handelen`}
-        scoreDisplay={`${llMap['prof_handelen']?.goedOfHoger ?? 0} / ${bj1VersneldProfHandelen}`}
-        nodig={p.gaps.nodigVersneld_profHandelen ?? 0}
-      />
-      <CriterionRow
-        label="Nederlands op weg naar 3F"
-        scoreDisplay={student.nederlandsResultaat ?? '—'}
-        nodig={nederlandsNodig}
-      />
-      <CriterionRow
-        label="Rekenen ≥3 domeinen MBO4"
-        scoreDisplay={student.rekenResultaat ?? '—'}
-        nodig={rekenNodig}
-      />
-      <CriterionRow
-        label="KD afgerond"
-        scoreDisplay={kdStatus === 'behaald' ? 'Behaald' : kdStatus === 'haalbaar' ? 'Haalbaar' : kdStatus === 'niet_behaald' ? 'Niet behaald' : '—'}
-        nodig={kdNodigSBC}
-      />
-      <CriterionRow
-        label="Alle datapunten op tijd"
-        scoreDisplay={aantalNietOpTijd === 0 ? 'Op tijd' : `${aantalNietOpTijd} niet op tijd`}
-        nodig={datapuntenOpTijdNodig}
-      />
-      <CriterionRow
-        label="Stage-uren behaald"
-        scoreDisplay={stageDisplay}
-        nodig={stageNodig}
-      />
-    </PrognoseBlock>
-  );
+      const sbcBlock = (
+        <PrognoseBlock
+          name="SBC"
+          overallNodig={Math.max(
+            gaps.nodigSBC_deelgebieden,
+            niveauNodig(gaps.nlSchrijvenNiveau, 'voldoende'),
+            niveauNodig(gaps.nlGesprekvoerenNiveau, 'goed'),
+            gaps.nodigSBC_rekenDomeinen,
+            niveauNodig(gaps.rekenNiveau, 'goed'),
+            kdNodig(gaps.kdStatus),
+            wvoNodig(gaps.wvoTraject),
+            gaps.sbcRoosendaalLevelsOk ? 0 : 3,
+          )}
+          isEmpty={globalEmpty}
+        >
+          <CriterionRow
+            label="Deelgebieden ≥V"
+            scoreDisplay={nodigDisplay(gaps.nodigSBC_deelgebieden)}
+            nodig={gaps.nodigSBC_deelgebieden}
+          />
+          <CriterionRow
+            label="Nederlands schrijven ≥2F"
+            scoreDisplay={niveauScoreDisplay(student.nlSchrijven)}
+            nodig={niveauNodig(gaps.nlSchrijvenNiveau, 'voldoende')}
+          />
+          <CriterionRow
+            label="Nederlands gesprekken ≥3F"
+            scoreDisplay={niveauScoreDisplay(student.nlGesprekvoeren)}
+            nodig={niveauNodig(gaps.nlGesprekvoerenNiveau, 'goed')}
+          />
+          <CriterionRow
+            label="Rekenen — domeinen"
+            scoreDisplay={nodigDisplay(gaps.nodigSBC_rekenDomeinen)}
+            nodig={gaps.nodigSBC_rekenDomeinen}
+          />
+          <CriterionRow
+            label="Rekenen ≥3F"
+            scoreDisplay={niveauScoreDisplay(student.rekenResultaat)}
+            nodig={niveauNodig(gaps.rekenNiveau, 'goed')}
+          />
+          <CriterionRow
+            label="KD behaald of voor 1 december haalbaar"
+            scoreDisplay={behaaldDisplay(gaps.kdStatus)}
+            nodig={kdNodig(gaps.kdStatus)}
+          />
+          <CriterionRow
+            label="WVO-traject"
+            scoreDisplay={wvoDisplay(gaps.wvoTraject)}
+            nodig={wvoNodig(gaps.wvoTraject)}
+          />
+          {toonRoosendaalLevels && (
+            <CriterionRow
+              label="Alle levels 3 behaald"
+              scoreDisplay={gaps.sbcRoosendaalLevelsOk ? 'Voldaan' : 'Niet voldaan'}
+              nodig={gaps.sbcRoosendaalLevelsOk ? 0 : 3}
+            />
+          )}
+        </PrognoseBlock>
+      );
 
-  // T04: BJ1 block order
-  let bj1Ordered: React.ReactNode;
-  if (p.label === 'versneld_sbc') {
-    bj1Ordered = <>{versneldSBCBlock}{bj2DoorstroomBlock}{negatiefBlock}</>;
-  } else if (p.label === 'negatief') {
-    bj1Ordered = <>{negatiefBlock}{bj2DoorstroomBlock}{versneldSBCBlock}</>;
-  } else {
-    // naar_bj2 or neutraal: BJ2 doorstroom first (closest/most relevant positive outcome)
-    bj1Ordered = <>{bj2DoorstroomBlock}{versneldSBCBlock}{negatiefBlock}</>;
+      // Actual outcome block first, then the other positive route. D17: BJ2 has
+      // no negatief-tier anymore — 'bespreekgeval' (like 'sbl') orders SBL first.
+      bj2Ordered = p.label === 'sbc' ? <>{sbcBlock}{sblBlock}{pokBlock}</> : <>{sblBlock}{sbcBlock}{pokBlock}</>;
+    }
   }
 
   return (

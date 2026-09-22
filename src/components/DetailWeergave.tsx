@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getAllRecordsForStudent, klassenState } from '../../utils/klassen';
+import { getAllRecordsForStudent, klassenState, getEffectieveVestiging } from '../../utils/klassen';
 import { berekenStatus } from '../utils/status';
 import DoortstroomPrognoseSection from './DoortstroomPrognoseSection';
 import FeedbackActiepuntenSection from './FeedbackActiepuntenSection';
@@ -9,6 +9,8 @@ import VerzuimSection from './VerzuimSection';
 import BpvProgressSection from './BpvProgressSection';
 import RekenenNederlandsSection from './RekenenNederlandsSection';
 import KeuzedeelSection from './KeuzedeelSection';
+import TrajectVeldenSection from './TrajectVeldenSection';
+import RoosendaalTrajectSection from './RoosendaalTrajectSection';
 
 interface DetailWeergaveProps {
   leerlingId: string;
@@ -45,9 +47,10 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
   }
   const student = records[idx]; // original array reference — not a copy
 
-  const status = berekenStatus(student);
-  const meta = [student.periode, student.leerjaar].filter(Boolean).join(' · ');
   const klas = klassenState.activeKlasId ? klassenState.klassen[klassenState.activeKlasId] : null;
+  const vestiging = klas ? getEffectieveVestiging(klas) : null;
+  const status = berekenStatus(student, undefined, undefined, vestiging);
+  const meta = [student.periode, student.leerjaar].filter(Boolean).join(' · ');
 
   // Aggregate deelgebiedScores across ALL periods: latest non-null wins.
   // Most-recent record alone only covers one period — when 2+ PDFs are imported,
@@ -125,7 +128,7 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       </div>
 
       {/* Section 1: DoortstroomPrognoseSection */}
-      <DoortstroomPrognoseSection student={student} status={status} />
+      <DoortstroomPrognoseSection student={student} status={status} vestiging={vestiging} />
 
       {/* Section 2: RekenenNederlandsSection — RNL-01..03 */}
       <RekenenNederlandsSection student={student} onSaved={() => setRevision(r => r + 1)} />
@@ -133,30 +136,29 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
       {/* Section 3: KeuzedeelSection */}
       <KeuzedeelSection student={student} onSaved={() => setRevision(r => r + 1)} />
 
+      {/* Section 4: TrajectVeldenSection — BJ1-only (wvoTraject) */}
+      <TrajectVeldenSection student={student} onSaved={() => setRevision(r => r + 1)} />
+
+      {/* Section 4b: RoosendaalTrajectSection — BJ2-only, Roosendaal-only (M42 T3b) */}
+      <RoosendaalTrajectSection student={student} onSaved={() => setRevision(r => r + 1)} />
+
       {/* Section 5: SpiderChartCard row */}
       <div className="detail-section">
         <p className="detail-section-title">Spiderweb overzicht</p>
         <div className="spider-charts-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'flex-start' }}>
           <SpiderChartCard
-            group="lesgeven"
+            group="lesgeven_en_organiseren"
             scores={aggregatedScores}
             fillVar="--spider-lesgeven"
             strokeVar="--spider-lesgeven-stroke"
-            title="Lesgeven"
+            title="Lesgeven en organiseren"
           />
           <SpiderChartCard
-            group="organiseren"
-            scores={aggregatedScores}
-            fillVar="--spider-organiseren"
-            strokeVar="--spider-organiseren-stroke"
-            title="Organiseren"
-          />
-          <SpiderChartCard
-            group="prof_handelen"
+            group="professioneel_handelen"
             scores={aggregatedScores}
             fillVar="--spider-prof-handelen"
             strokeVar="--spider-prof-handelen-stroke"
-            title="Prof. handelen"
+            title="Professioneel handelen"
           />
         </div>
       </div>

@@ -19,6 +19,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
+        onSetVestigingOverride={vi.fn()}
         onHelp={vi.fn()}
         isSettingsActive={false}
         isHelpActive={false}
@@ -40,6 +41,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
+        onSetVestigingOverride={vi.fn()}
         onHelp={vi.fn()}
         isSettingsActive={false}
         isHelpActive={false}
@@ -61,6 +63,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
+        onSetVestigingOverride={vi.fn()}
         onHelp={vi.fn()}
         isSettingsActive={true}
         isHelpActive={false}
@@ -82,6 +85,7 @@ describe('KlasTabStrip — gear icon (Phase 17)', () => {
         onFeedback={vi.fn()}
         onDeleteKlas={vi.fn()}
         onRenameKlas={vi.fn()}
+        onSetVestigingOverride={vi.fn()}
         onHelp={vi.fn()}
         isSettingsActive={false}
         isHelpActive={false}
@@ -106,6 +110,7 @@ function makeProps(overrides?: Partial<Parameters<typeof KlasTabStrip>[0]>) {
     onFeedback: vi.fn(),
     onDeleteKlas: vi.fn(),
     onRenameKlas: vi.fn(),
+    onSetVestigingOverride: vi.fn(),
     onHelp: vi.fn(),
     isSettingsActive: false,
     isHelpActive: false,
@@ -123,6 +128,91 @@ describe('KlasTabStrip — TAB-01: delete button visibility (Phase 33)', () => {
     expect(deleteButtons).toHaveLength(2);
     expect(deleteButtons[0].getAttribute('aria-label')).toMatch(/Klas A verwijderen/i);
     expect(deleteButtons[1].getAttribute('aria-label')).toMatch(/Klas B verwijderen/i);
+  });
+});
+
+describe('KlasTabStrip — vestiging-override select (M42 T1)', () => {
+  it('renders a select per klas met de juiste huidige waarde', () => {
+    render(<KlasTabStrip {...makeProps({
+      klassen: [
+        { id: 'k1', naam: 'Klas A', vestigingOverride: 'goes' },
+        { id: 'k2', naam: 'Klas B', vestigingOverride: null },
+      ],
+    })} />);
+
+    const selects = screen.getAllByRole('combobox') as HTMLSelectElement[];
+    expect(selects).toHaveLength(2);
+    expect(selects[0].value).toBe('goes');
+    expect(selects[1].value).toBe('');
+  });
+
+  it('roept onSetVestigingOverride aan met (klasId, vestiging) bij wijziging', () => {
+    const onSetVestigingOverride = vi.fn();
+    render(<KlasTabStrip {...makeProps({
+      klassen: [
+        { id: 'k1', naam: 'Klas A', vestigingOverride: null },
+        { id: 'k2', naam: 'Klas B', vestigingOverride: null },
+      ],
+      onSetVestigingOverride,
+    })} />);
+
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[0], { target: { value: 'dordrecht' } });
+
+    expect(onSetVestigingOverride).toHaveBeenCalledTimes(1);
+    expect(onSetVestigingOverride).toHaveBeenCalledWith('k1', 'dordrecht');
+  });
+
+  it('kiezen van "Vestiging: auto" (lege waarde) roept onSetVestigingOverride aan met null', () => {
+    const onSetVestigingOverride = vi.fn();
+    render(<KlasTabStrip {...makeProps({
+      klassen: [
+        { id: 'k1', naam: 'Klas A', vestigingOverride: 'goes' },
+        { id: 'k2', naam: 'Klas B', vestigingOverride: null },
+      ],
+      onSetVestigingOverride,
+    })} />);
+
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[0], { target: { value: '' } });
+
+    expect(onSetVestigingOverride).toHaveBeenCalledWith('k1', null);
+  });
+
+  it('klikken/wijzigen van de select triggert niet het switchen van klas (onSwitch)', () => {
+    const onSwitch = vi.fn();
+    const onSetVestigingOverride = vi.fn();
+    render(<KlasTabStrip {...makeProps({ onSwitch, onSetVestigingOverride })} />);
+
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.click(selects[0]);
+    fireEvent.change(selects[0], { target: { value: 'roosendaal' } });
+
+    expect(onSwitch).not.toHaveBeenCalled();
+    expect(onSetVestigingOverride).toHaveBeenCalledWith('k1', 'roosendaal');
+  });
+});
+
+describe('KlasTabStrip — vestiging auto-detectie label zichtbaar in select (final review fix #5)', () => {
+  it('toont "Automatisch (Roosendaal)" als auto-optie wanneer de klasnaam op CSR herkend wordt', () => {
+    render(<KlasTabStrip {...makeProps({
+      klassen: [{ id: 'k1', naam: 'CSR 2A', vestigingOverride: null }],
+    })} />);
+
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    const autoOption = select.querySelector('option[value=""]') as HTMLOptionElement;
+    expect(autoOption.textContent).toBe('Automatisch (Roosendaal)');
+    expect(autoOption.value).toBe(''); // value ongewijzigd — alleen het label verandert
+  });
+
+  it('toont "Automatisch — niet herkend" als de klasnaam geen CSD/CSG/CSR-token bevat', () => {
+    render(<KlasTabStrip {...makeProps({
+      klassen: [{ id: 'k1', naam: 'Sport 2A', vestigingOverride: null }],
+    })} />);
+
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    const autoOption = select.querySelector('option[value=""]') as HTMLOptionElement;
+    expect(autoOption.textContent).toBe('Automatisch — niet herkend');
   });
 });
 
