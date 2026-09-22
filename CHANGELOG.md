@@ -1,5 +1,19 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.12.0] — 2026-09-22 — Nieuw beoordelingsmodel 2026/2027: vestiging-bewuste doorstroomnormering
+
+### Added
+- **Deelgebieden-schema 2026/2027** — de CIOS-deelgebieden zijn herzien van 19 naar 12, en de 3 leerlijnen zijn samengevoegd tot 2 (Lesgeven en organiseren / Professioneel handelen). Instellingen, deelgebieden-matrix en spiderchart tonen voortaan het nieuwe schema.
+- **Vestiging-bewuste doorstroomnormering** — de doorstroomprognose (BJ1 → BJ2, versneld SBC-traject, SBL/SBC in BJ2) houdt nu rekening met de vestiging van de klas (Roosendaal, Goes, Dordrecht), met eigen drempelwaarden per vestiging die aanpasbaar zijn in Instellingen. Vestiging wordt automatisch herkend uit de klascode, met een handmatige overschrijf-optie per klas.
+- Nieuwe leerling-velden: WVO-traject en (voor Roosendaal) een BJ2-traject-keuze (SBL/SBC), beide zichtbaar en bewerkbaar in het leerling-detailscherm.
+- Doorstroomprognose toont nu ook per-vestiging Roosendaal-level-voortgang ("levels afgerond") waar van toepassing.
+
+### Fixed
+- **Roosendaal "levels afgerond"-telling** — telde voorheen elke afgeronde deel-activiteit van een level apart (lesgeven/organiseren/begeleiden/promoten), waardoor één volledig afgerond level tot 4x te zwaar meetelde. Telt nu correct per volledig afgeronde level-mijlpaal.
+- **Toegankelijkheid (WCAG AA)** — een select-element genest in een tab-rij verwarde toetsenbord-/schermlezernavigatie (M42-regressie, direct opgelost); onvoldoende kleurcontrast van gedimde tekst in donkere modus op meerdere achtergronden (vooraf bestaand, sinds mei 2026); een niet-gekoppeld formulierlabel bij de verzuim-instellingen in de onboarding-wizard (vooraf bestaand).
+- Een race condition waarbij twee snel na elkaar opgeslagen wijzigingen aan de per-vestiging-drempelwaarden elkaar konden overschrijven.
+- Een verouderd diagnose-hulpmiddel (`debugPrognose`, alleen zichtbaar in de dev-console) toonde onjuiste waarden voor BJ1-leerlingen sinds de vorige doorstroom-herziening.
+
 ## [2.11.4] — 2026-06-20 — Windows-build en landingspagina-automatisering hersteld
 
 ### Fixed
