@@ -50,11 +50,15 @@
   --bg-surface-alt:   #F8FAFC;
   --nav-bg:           #FFFFFF;
 
-  /* Text — WCAG AA+ */
+  /* Text — WCAG AA+ (the "AA+" label was aspirational, not verified: --text-muted
+     and --text-faint both failed 4.5:1 against these surfaces — worst-case 4.34
+     and 2.34 respectively. Found via /qa's live axe-core sweep. Retuned to clear
+     >=4.5:1 on bg-page/bg-surface/bg-surface-alt while staying visually distinct
+     from --text-secondary.) */
   --text-primary:     #0F172A;
   --text-secondary:   #475569;
-  --text-muted:       #64748B;
-  --text-faint:       #94A3B8;
+  --text-muted:       #5A6B85;
+  --text-faint:       #637089;
 
   /* Borders */
   --border-default:   #E2E8F0;
