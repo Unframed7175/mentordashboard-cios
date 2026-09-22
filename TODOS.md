@@ -1,5 +1,14 @@
 # TODOS
 
+## T-2026-09-22-01 · React hydration warning in DeelgebiedenMatrix (whitespace text node in tfoot)
+
+- **What:** Console toont bij het renderen van `DeelgebiedenMatrix` een React-waarschuwing: "In HTML, whitespace text nodes cannot be a child of `<%s>`" met een stack die eindigt in `<tfoot><tr><td>{" "}...`. Geen zichtbaar visueel probleem geconstateerd, maar het is een echte hydration-waarschuwing.
+- **Why:** Gevonden tijdens handmatige browser-QA en opnieuw bevestigd tijdens `/qa` (2026-09-22) — bevestigd via `git diff` dat `DeelgebiedenMatrix.tsx` niet is aangeraakt door de M42-doorstroomnormering- of deelgebieden-schema-2026/2027-wijzigingen, dus vooraf bestaand, geen regressie van deze branch.
+- **Pros:** Klein, waarschijnlijk een kwestie van overbodige witruimte tussen JSX-tags in de `<tfoot>`-rij weghalen.
+- **Cons:** Niet onderzocht welke exacte regel de whitespace veroorzaakt — vereist een korte source-duik in `DeelgebiedenMatrix.tsx`'s tfoot-render.
+- **Context:** Gevonden tijdens handmatige QA + `/qa` op `feature/deelgebieden-schema-2026-2027`, 2026-09-22.
+- **Depends on / blocked by:** Niets.
+
 ## T-2026-09-14-01 · Backup restore: inhoud van klas-objecten valideren
 
 - **What:** `applyBackupRestore` controleert alleen dat `payload.klassen` een object is. Per klas worden `id`, `naam` en `students` (array) niet gevalideerd vóór ze in `klassenState` belanden.
@@ -47,6 +56,8 @@
 
 ## T-2026-06-18-14 · Doorstroomprognose: niet-ingeleverd/te laat datapunt → twijfelgeval voor dichtstbijzijnde niveau
 
+> **Staleness note (/qa, 2026-09-22):** dit item verwijst naar de M39 S/C-compensatieformule en de "negatief-trigger bij >4 onbeoordeelde/niet-ingeleverde datapunten". M42 (`feature/deelgebieden-schema-2026-2027`) heeft de kern-prognoselogica sindsdien vervangen door `berekenBj1Uitkomst`/`berekenBj2GeneriekPad`/`berekenBj2RoosendaalSblKeuze` — de negatief-trigger-criteria zijn nu "Deelgebieden onvoldoende (min.)" en "Onbeoordeeld/niet ingeleverd (fase 2, max.)", per-vestiging instelbaar. Dit item moet opnieuw beoordeeld worden tegen de NIEUWE engine vóór implementatie — de onderstaande tekst is ongewijzigd gelaten als historisch record.
+
 - **What:** Aanvulling op de doorstroomprognose-berekening (`utils/prognosis.ts`, M39 S/C-compensatieformule): wanneer een datapunt niet is ingeleverd of te laat is, wordt de leerling een "twijfelgeval" voor het niveau waar hij het dichtste bij zit in termen van haalbaarheid — dus "twijfelgeval sportbewegingsleider" (SBL) of "twijfelgeval sportbeweegcoördinator" (SBC), afhankelijk van welk niveau het dichtstbij is.
 - **Why:** Niet-ingeleverde/te late datapunten worden nu meegenomen in de negatief-trigger-telling (M39: "negatief-trigger bij >4 onbeoordeelde/niet-ingeleverde datapunten"), maar er is nog geen tussenstatus "twijfelgeval" die specifiek aangeeft vóór welk niveau de onzekerheid bestaat.
 - **Pros:** Geeft mentoren een concreter signaal dan een vlakke "negatief"-status — laat zien welk niveau nog haalbaar is ondanks het ontbrekende datapunt.
@@ -55,6 +66,8 @@
 - **Depends on / blocked by:** Ontwerpbesluit nodig: exacte definitie van "dichtstbijzijnde niveau" (bv. afstand in punten/percentage tot SBL- resp. SBC-drempel).
 
 ## T-2026-06-18-13 · Lichte kleurcodering van leerlijnen in DeelgebiedenMatrix (Spiderweb-kleuren)
+
+> **Staleness note (/qa, 2026-09-22):** "19 deelgebied-kolommen" is niet meer accuraat — ADR-16 (`feature/deelgebieden-schema-2026-2027`) heeft het schema teruggebracht naar 12 deelgebieden en 2 leerlijnen (`lesgeven_en_organiseren`/`professioneel_handelen`, was 3). De onderliggende suggestie (leerlijn-kleurcodering hergebruiken in de matrix) blijft geldig, maar de kolomaantallen/leerlijn-namen in de tekst hieronder zijn verouderd.
 
 - **What:** De 19 deelgebied-kolommen in `DeelgebiedenMatrix` lichte achtergrondkleur geven per leerlijn-groep (lesgeven/organiseren/professioneel handelen), met dezelfde kleuren als het Spiderweb-chart (`--spider-lesgeven`, `--spider-organiseren`, `--spider-prof-handelen` in `src/index.css`).
 - **Why:** Op dit moment zijn de 19 kolommen visueel gelijk; de leerlijn-groepering (al aanwezig als data via `getLeerlijnenMapping()`/`utils/leerlijnen.ts`) is nergens in de matrix zichtbaar, terwijl de spider chart elders die kleurcodering al gebruikt.
