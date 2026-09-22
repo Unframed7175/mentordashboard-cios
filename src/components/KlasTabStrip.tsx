@@ -79,47 +79,50 @@ export default function KlasTabStrip({
       {klassen.map(klas => (
         <div
           key={klas.id}
-          role="tab"
-          tabIndex={0}
           className={`nav-tab${klas.id === activeKlasId ? ' active' : ''}`}
-          onClick={() => { if (editingKlasId !== klas.id) onSwitch(klas.id); }}
-          onKeyDown={e => {
-            if ((e.key === 'Enter' || e.key === ' ') && editingKlasId !== klas.id) {
-              e.preventDefault(); // WR-05: prevent Space from scrolling the page
-              onSwitch(klas.id);
-            }
-          }}
         >
-          {editingKlasId === klas.id ? (
-            <input
-              ref={inputRef}
-              type="text"
-              value={editValue}
-              autoFocus
-              className="tab-rename-input"
-              onChange={e => setEditValue(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') commitRename(klas.id);
-                if (e.key === 'Escape') {
-                  setEditingKlasId(null);
+          <div
+            role="tab"
+            tabIndex={0}
+            onClick={() => { if (editingKlasId !== klas.id) onSwitch(klas.id); }}
+            onKeyDown={e => {
+              if ((e.key === 'Enter' || e.key === ' ') && editingKlasId !== klas.id) {
+                e.preventDefault(); // WR-05: prevent Space from scrolling the page
+                onSwitch(klas.id);
+              }
+            }}
+          >
+            {editingKlasId === klas.id ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={editValue}
+                autoFocus
+                className="tab-rename-input"
+                onChange={e => setEditValue(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') commitRename(klas.id);
+                  if (e.key === 'Escape') {
+                    setEditingKlasId(null);
+                    isCommittingRef.current = false;
+                  }
+                }}
+                onBlur={() => { setEditingKlasId(null); isCommittingRef.current = false; }}
+                onClick={e => e.stopPropagation()}
+              />
+            ) : (
+              <span
+                onDoubleClick={e => {
+                  e.stopPropagation();
+                  setEditingKlasId(klas.id);
+                  setEditValue(klas.naam);
                   isCommittingRef.current = false;
-                }
-              }}
-              onBlur={() => { setEditingKlasId(null); isCommittingRef.current = false; }}
-              onClick={e => e.stopPropagation()}
-            />
-          ) : (
-            <span
-              onDoubleClick={e => {
-                e.stopPropagation();
-                setEditingKlasId(klas.id);
-                setEditValue(klas.naam);
-                isCommittingRef.current = false;
-              }}
-            >
-              {klas.naam}
-            </span>
-          )}
+                }}
+              >
+                {klas.naam}
+              </span>
+            )}
+          </div>
           <select
               className="vestiging-override-select"
               title="Vestiging (override)"
