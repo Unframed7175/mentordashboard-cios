@@ -2,6 +2,7 @@
 // TypeScript (Phase 11, Plan 04) — directe TypeScript versie, geen .js tussenversie
 
 import { DEELGEBIEDEN } from './schema';
+import { getFase } from './scoreAggregation';
 
 // Build a set of all valid deelgebied labels once at module load.
 // Unknown or misspelled labels (e.g., 'V & A' vs 'V&A') are silently skipped
@@ -75,4 +76,42 @@ export function aggregateDeelgebiedScores(
   }
 
   return { aggregationDetail };
+}
+
+/**
+ * M43 — de enige bron voor het eindoordeel per deelgebied (ADR-18/18a).
+ * Prognose (BJ1/BJ2), spider chart en matrix rekenen allemaal via deze functie
+ * op de datapunten van één record (= meest recente upload van die periode).
+ *
+ *   record.datapunten ──► berekenEindoordelen(datapunten, { fase? })
+ *                          ├─ fasefilter: getFase(dp) === fase || null
+ *                          ├─ S/C-formule + E-plafond (aggregateDeelgebiedScores)
+ *                          └─ elk DEELGEBIEDEN-label, null zonder beoordeling
+ *                                   │
+ *        BJ1/BJ2-engines ◄──────────┼──────────► spider chart / matrix
+ *
+ *   record.deelgebiedScores (latest-wins, parsers/pdf.ts) is alleen nog een
+ *   compatibiliteitsveld voor opslag/backups — NIET lezen voor eindoordelen.
+ *
+ * @param datapunten - datapunten van één record (undefined → alles null)
+ * @param opties.fase - alleen datapunten van deze fase + datapunten zonder fase-tag
+ * @returns { [deelgebiedLabel]: 'excellent'|'goed'|'voldoende'|'onvoldoende'|null }
+ */
+export function berekenEindoordelen(
+  datapunten: Array<{ scores?: Record<string, string | null>; fase?: number | null }> | undefined,
+  opties: { fase?: number } = {},
+): Record<string, string | null> {
+  const bron = datapunten ?? [];
+  const gefilterd = opties.fase === undefined
+    ? bron
+    : bron.filter(dp => {
+        const dpFase = getFase(dp);
+        return dpFase === opties.fase || dpFase === null;
+      });
+  const { aggregationDetail } = aggregateDeelgebiedScores(gefilterd);
+  const resultaat: Record<string, string | null> = {};
+  for (const dg of DEELGEBIEDEN) {
+    resultaat[dg.label] = aggregationDetail[dg.label] ?? null;
+  }
+  return resultaat;
 }
