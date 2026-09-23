@@ -1,5 +1,14 @@
 # TODOS
 
+## T-2026-09-23-01 · Oud telLeerlijnen/isNegatief-pad uit berekenPrognose verwijderen (na M43)
+
+- **What:** `berekenPrognose` (`utils/prognosis.ts:705-727`) berekent nog de oude `telLeerlijnen`-telling en een `isNegatief`-vlag. Sinds M42 bepalen die geen BJ1/BJ2-label meer; ze leven alleen nog voor het "heeft deze leerling scores"-signaal in `berekenStatus` (`src/utils/status.ts:126`: `p.totaalVoldoendeOfHoger + p.totaalOnvoldoende > 0`) en de `leerlijnen`-teruggave (o.a. `debugPrognose`). Vervang het signaal door "heeft ≥1 niet-null eindoordeel" uit `berekenEindoordelen` en verwijder `isNegatief` + het oude telpad.
+- **Why:** Dode rekenpaden naast de echte engine veroorzaakten in M42 al een stil foute `debugPrognose`; na M43 bestaan er anders twee tellingen van hetzelfde naast elkaar.
+- **Pros:** Eén telling, minder code, geen verwarring over welke "totaal O" geldt.
+- **Cons:** Raakt `berekenStatus` (klasoverzicht-tegels + trendpijl) en `debugPrognose`; vereist eigen regressietests op het "geen scores"-grijs.
+- **Context:** Vastgelegd in `/plan-eng-review` van M43 (R5, 2026-09-23, `docs/designs/m43-eindoordeel-sc-formule-overal.md`). Bewust niet in M43 zelf, zodat de voor/na-snapshot maar één oorzaak van verschillen heeft.
+- **Depends on / blocked by:** M43 (`berekenEindoordelen` moet bestaan).
+
 ## T-2026-09-22-01 · React hydration warning in DeelgebiedenMatrix (whitespace text node in tfoot)
 
 - **What:** Console toont bij het renderen van `DeelgebiedenMatrix` een React-waarschuwing: "In HTML, whitespace text nodes cannot be a child of `<%s>`" met een stack die eindigt in `<tfoot><tr><td>{" "}...`. Geen zichtbaar visueel probleem geconstateerd, maar het is een echte hydration-waarschuwing.
@@ -8,6 +17,7 @@
 - **Cons:** Niet onderzocht welke exacte regel de whitespace veroorzaakt — vereist een korte source-duik in `DeelgebiedenMatrix.tsx`'s tfoot-render.
 - **Context:** Gevonden tijdens handmatige QA + `/qa` op `feature/deelgebieden-schema-2026-2027`, 2026-09-22.
 - **Depends on / blocked by:** Niets.
+- **Update (/plan-eng-review M43, 2026-09-23):** oorzaak gevonden: `DeelgebiedenMatrix.tsx:232` (`<td /> {/* … */}` → spatie-tekstnode in `<tr>`). Ingepland in M43 (R6); naar Completed bij oplevering.
 
 ## T-2026-09-14-01 · Backup restore: inhoud van klas-objecten valideren
 

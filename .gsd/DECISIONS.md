@@ -317,3 +317,37 @@
 **Cijferfout gevonden en gecorrigeerd:** bij een verse, zorgvuldige herverificatie van élk T7-getal tegen het brondocument (vóór T9a's brief geschreven werd) bleek `bj2RoosendaalSblKeuzeRekenDomeinenMin` in de reeds gemergde T7-code op `3` te staan, terwijl p.6 letterlijk "minimaal 5 domeinen eindtoets afgerond op rekenniveau MBO3" zegt — waarschijnlijk verward met BJ1's naar_bj2-criterium (óók "3 domeinen, MBO3", ander getal toevallig dezelfde niveau-tekst). Gecorrigeerd naar `5` (commit `ba0dd6f`), inclusief de bijbehorende test. Alle overige T7-getallen zijn bij deze herverificatie opnieuw geverifieerd tegen p.3/4/6 en kloppen.
 
 **Belangrijke ontwerp-valkuil voor T9a/T9c (nieuw, moet in hun taakbrieven staan):** de Roosendaal-levels-eisen in T7's `VestigingNormen` zijn NIET allemaal hetzelfde soort check. BJ1's velden (`bj1NaarBj2RoosendaalLevelsMin`/`bj1VersneldSbcRoosendaalLevelsMin`) zijn een COUNT ("minimaal N levels afgerond", vergeleken met `>=`, waarbij `0` voor Goes/Dordrecht triviaal voldaan is — T8's ontwerp, correct). De BJ2-velden (`bj2SblRoosendaalLevelsMin`/`bj2SbcRoosendaalLevelsMin`/`bj2RoosendaalSblKeuzeLevelsMin`) horen echter bij een ANDERS soort eis: "Alle levels N behaald" — een ALLES-OF-NIETS-check op ÉÉN specifiek levelnummer, bedoeld voor `alleLevelsBehaald(datapunten, N)`, niet voor een `>=`-vergelijking. `alleLevelsBehaald(dp, 0)` zoekt naar niet-bestaande "Level 0"-datapunten en geeft daardoor ALTIJD `false` terug (nooit `totaal > 0`) — het cijfer `0` is dus GEEN triviaal-voldaan-sentinel voor deze velden zoals het dat wel is bij T8's velden. **T9a/T9c moeten deze velden expliciet als "0 = niet van toepassing, sla deze check over" behandelen** (niet doorgeven aan `alleLevelsBehaald`), anders worden Goes/Dordrecht-leerlingen stilzwijgend van SBL/SBC uitgesloten.
+
+---
+
+## ADR-18 · Eindoordeel per deelgebied overal via S/C-formule (M43) — architectuurbeslissingen Fase 0 (2026-09-23)
+
+**Status:** Vastgelegd (Fase 0, `/office-hours`, design doc goedgekeurd: `docs/designs/m43-eindoordeel-sc-formule-overal.md`)
+
+**Context:** alleen de matrix-rij "Eindoordeel" gebruikt de S/C-compensatieformule (`utils/aggregation.ts`); prognose BJ1/BJ2, spider chart, twee-periode-matrix en `telLeerlijnenPerFase` gebruiken "laatste niet-lege score wint" (`aggregateLatestScores` / opgeslagen `deelgebiedScores`). Daardoor spreken matrix en prognose elkaar tegen.
+
+**Projectlead-beslissingen:**
+- **D1** Formule ongewijzigd, inclusief het bewuste E-plafond (S > 2.0 zonder E → Goed, commit `2eb1805`). De spec-notitie in Obsidian is aangepast, niet de code.
+- **D2** Bron = datapunten van de meest recente upload van die periode (= het StudentRecord; `addStudent` vervangt per `leerlingId + periode`). Geen cross-periode samenvoeging meer.
+- **D2a** Spider chart = formule-eindoordelen van de laatste periode.
+- **D3** BJ2-leerlijncriteria: formule over fase-2-datapunten + datapunten zonder fase-tag.
+- **D4** Twee-periode-matrix: formule-eindoordeel per periode-record (oudste vs nieuwste).
+- **D5** Niet-ingeleverd / te laat en niet beoordeeld = één O per betrokken deelgebied in S en C. **Voorwaardelijk:** T0 verifieert op echte PDF's of de betrokken deelgebieden te bepalen zijn; zo niet → D5 geparkeerd tot nieuwe projectleadbeslissing, rest van M43 gaat door.
+- **D6** Deelgebied zonder beoordeling → `null`, telt nergens mee.
+- **D7** Berekenen bij het lezen uit `record.datapunten`; `deelgebiedScores` wordt nog geschreven (compatibiliteit, latest-wins, backups) maar door geen enkele consument meer gelezen. Geen datamigratie.
+
+**Architectuur (aanpak B):** één ingang `berekenEindoordelen(datapunten, { fase? })` in `utils/aggregation.ts`; alle consumenten gaan erover (tabel in design doc). `ONVOLDOENDE_INLEVER_STATUSSEN` verhuist naar `utils/scoreAggregation.ts` (laaggrens, geen circulaire import). `berekenPrognose` rekent één keer per student. Afgewezen: A (per consumer swappen: regels verspreid), C (bij laden overschrijven: datamigratie, tegen D7).
+
+**Gevolg:** doorstroomprognoses kunnen veranderen → MINOR-bump + CHANGELOG; verplichte voor/na-snapshot op echte PDF's (alleen `leerlingId`s, niet gecommit) met verklaring per verschil.
+
+## ADR-18a · M43 `/plan-eng-review`-beslissingen (2026-09-23)
+
+**Status:** Vastgelegd (Fase 0 afgerond; volledige ledger in `docs/designs/m43-eindoordeel-sc-formule-overal.md` § Decision ledger)
+
+- **R1** Rekenplek: elke engine-functie roept zelf `berekenEindoordelen(student.datapunten[, {fase}])` aan; geen signaturewijziging (vervangt "één keer rekenen en doorgeven" uit ADR-18).
+- **R2** ASCII-datastroomdiagram in design doc én doc-comment van `berekenEindoordelen`.
+- **R3** Helper `actieveDeelgebieden(activeIds?)` vervangt 4 inline filters in `prognosis.ts`.
+- **R4** Regressiecontract: bij één beoordeling per deelgebied blijven alle bestaande BJ1/BJ2/status-verwachtingen gelijk; bedoelde wijzigingen expliciet getest; nieuwe componenttests voor `DeelgebiedenMatrix` en spider-bron.
+- **R5** Opruimen oud `telLeerlijnen`/`isNegatief`-pad → TODO T-2026-09-23-01 (niet in M43).
+- **R6** Hydration-fix `DeelgebiedenMatrix.tsx:232` (TODO T-2026-09-22-01) meegenomen in M43.
+- Feitelijke correctie: het Roosendaal-SBL-keuzepad gebruikt fase 3 (`prognosis.ts:594`) en krijgt dezelfde formule.
