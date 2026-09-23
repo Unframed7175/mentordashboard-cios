@@ -351,3 +351,13 @@
 - **R5** Opruimen oud `telLeerlijnen`/`isNegatief`-pad → TODO T-2026-09-23-01 (niet in M43).
 - **R6** Hydration-fix `DeelgebiedenMatrix.tsx:232` (TODO T-2026-09-22-01) meegenomen in M43.
 - Feitelijke correctie: het Roosendaal-SBL-keuzepad gebruikt fase 3 (`prognosis.ts:594`) en krijgt dezelfde formule.
+
+## ADR-18b · M43 T0-uitkomst en vervolgbeslissingen (2026-09-23)
+
+**Status:** Vastgelegd (Fase 2, na T0; details in `.gsd/milestones/M43-eindoordeel-sc-formule/S01-SUMMARY.md`)
+
+**Nieuw feit (projectlead):** één export bevat nu alle fases van een leerjaar; niet meer één export per fase.
+
+- **D5 geparkeerd.** Geen enkele van de 4 echte exports bevat een niet-ingeleverd datapunt (begin schooljaar). M43 wordt gebouwd zonder D5; niet-ingeleverd blijft zich gedragen zoals nu. D5 wordt een eigen taak zodra er een export mét zo'n datapunt is (TODO T-2026-09-23-02).
+- **Verificatie T5:** formule en latest-wins zijn identiek voor de huidige exports (≤1 beoordeling per deelgebied). T5 gebruikt nu een synthetische testset op basis van deze exports met extra beoordelingen (compensatie, knock-out, E-plafond); later in het jaar hetzelfde script op echte exports met meer beoordelingen.
+- **Trendpijl-sortering:** `KlasOverzicht.computeTrend` sorteert nieuwe periodestrings verkeerd ("BJ1 Fase 1 RSD ‐ 2026/2027" na "BJ2 RSD ‐ 2026/2027"). Buiten M43: aparte fix-branch (TODO T-2026-09-23-03).

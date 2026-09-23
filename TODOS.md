@@ -1,5 +1,23 @@
 # TODOS
 
+## T-2026-09-23-03 · Trendpijl: periode-sortering fout bij nieuw exportformaat 2026/2027
+
+- **What:** `KlasOverzicht.computeTrend` (`src/components/KlasOverzicht.tsx:57-58`) sorteert records op "alle cijfers uit de periodestring aan elkaar". "BJ1 Fase 1 RSD ‐ 2026/2027" → 1120262027 en "BJ2 RSD ‐ 2026/2027" → 220262027, dus BJ1 komt ná BJ2 en de trendpijl draait om. Sorteer op BJ-nummer en daarna fase (bv. regex `BJ(\d)` + `Fase (\d)`), met regressietest op de nieuwe periodestrings.
+- **Why:** Mentor ziet een verkeerde trendrichting (op/neer) voor leerlingen met records uit meerdere leerjaren.
+- **Pros:** Klein, lokaal, goed te testen.
+- **Cons:** Raakt alleen de trendpijl; moet ook oude formaten ("P2", "BJ2 Fase 2 DD") blijven ondersteunen.
+- **Context:** Gevonden in M43 T0 (2026-09-23) met echte exports; bewust buiten M43 gehouden (ADR-18b).
+- **Depends on / blocked by:** Niets. Aparte `fix/`-branch.
+
+## T-2026-09-23-02 · D5: niet-ingeleverd datapunt telt als O in de S/C-formule (geparkeerd uit M43)
+
+- **What:** In `berekenEindoordelen` een datapunt met status in `ONVOLDOENDE_INLEVER_STATUSSEN` laten tellen als één O per betrokken deelgebied (ADR-18 D5).
+- **Why:** Projectleadbeslissing D5; niet te bouwen zonder te weten of zo'n rij in de PDF al O-cellen heeft (dan dubbeltelling) of lege cellen (dan is de bron van "betrokken deelgebieden" onbekend).
+- **Pros:** Niet-ingeleverd werk telt eindelijk echt mee; de huidige T06-lus doet dat vermoedelijk nooit.
+- **Cons:** Wisselwerking met BJ1 Trigger B (telt dan dubbel mee in twee triggers, bedoeld maar verklaren).
+- **Context:** M43 T0 (2026-09-23): geen van de 4 echte exports bevat een niet-ingeleverd datapunt (begin schooljaar). Zie S01-SUMMARY.md M43 en ADR-18b.
+- **Depends on / blocked by:** een echte export mét een niet-ingeleverd datapunt; M43 (`berekenEindoordelen`).
+
 ## T-2026-09-23-01 · Oud telLeerlijnen/isNegatief-pad uit berekenPrognose verwijderen (na M43)
 
 - **What:** `berekenPrognose` (`utils/prognosis.ts:705-727`) berekent nog de oude `telLeerlijnen`-telling en een `isNegatief`-vlag. Sinds M42 bepalen die geen BJ1/BJ2-label meer; ze leven alleen nog voor het "heeft deze leerling scores"-signaal in `berekenStatus` (`src/utils/status.ts:126`: `p.totaalVoldoendeOfHoger + p.totaalOnvoldoende > 0`) en de `leerlijnen`-teruggave (o.a. `debugPrognose`). Vervang het signaal door "heeft ≥1 niet-null eindoordeel" uit `berekenEindoordelen` en verwijder `isNegatief` + het oude telpad.
