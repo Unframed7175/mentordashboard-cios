@@ -12,10 +12,9 @@
  * each datapunt's scores are applied in array order, so a later datapunt's
  * non-null score overwrites an earlier one for the same label.
  *
- * Shared by parsers/pdf.ts's parseDeelgebiedTable (whole-document aggregate
- * across every datapunt) and utils/prognosis.ts's telLeerlijnenPerFase (same
- * rule, scoped to a fase-filtered subset of datapunten) — previously
- * duplicated verbatim in both places.
+ * Used only by parsers/pdf.ts's parseDeelgebiedTable to fill the stored
+ * deelgebiedScores compatibility field. Eindoordelen (prognose, spider chart,
+ * matrix) use berekenEindoordelen in utils/aggregation.ts instead (M43).
  */
 export function aggregateLatestScores(
   datapunten: { scores: Record<string, string | null> }[],

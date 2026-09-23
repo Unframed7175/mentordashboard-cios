@@ -20,6 +20,7 @@ import { berekenStatus, detectTraject, STATUS_VOLGORDE, computeKpiCounts } from 
 import type { StatusResult } from '../src/utils/status';
 import { appState } from '../utils/datamodel';
 import { DEELGEBIEDEN } from '../utils/schema';
+import { metScoreDatapunten } from './helpers/datapuntenVoorScores';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -30,7 +31,8 @@ import { DEELGEBIEDEN } from '../utils/schema';
  * Default periode/leerjaar point to bj2 so berekenPrognose uses bj2 traject.
  */
 function makeStudent(overrides: Partial<any> = {}): any {
-  return {
+  // M43: deelgebiedScores → fixture-datapunten (regressiecontract R4a)
+  return metScoreDatapunten({
     leerlingId:        'L1',
     naam:              'Test Leerling',
     deelgebiedScores:  {},
@@ -39,7 +41,7 @@ function makeStudent(overrides: Partial<any> = {}): any {
     periode:           'bj2 fase 2',
     leerjaar:          '2',
     ...overrides,
-  };
+  });
 }
 
 /**

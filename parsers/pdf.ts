@@ -679,12 +679,14 @@ function isVakNameContinuation(text: string, line: any[], headingThreshold: numb
  *     - Vak grouping: rows whose label exactly matches a known VAK_HEADINGS
  *       string are treated as group separators.  All other no-score rows are
  *       datapunten with blank scores (not yet graded).
- *  3. "Latest non-null wins" aggregation for deelgebiedScores.
+ *  3. "Latest non-null wins" aggregation for deelgebiedScores — COMPATIBILITEITS-
+ *     veld (opslag/backups). Eindoordelen worden sinds M43 NIET hieruit gelezen
+ *     maar berekend met berekenEindoordelen(record.datapunten) (utils/aggregation.ts).
  *
  * Returns:
  *   {
  *     datapunten: Array<{ vak, datapunt, scores: { label: level|null } }>,
- *     deelgebiedScores: { label: level|null }   // all 19 keys, aggregated
+ *     deelgebiedScores: { label: level|null }   // every DEELGEBIEDEN key, latest-wins (compat only)
  *   }
  *
  * @param lines
@@ -836,8 +838,9 @@ function parseDeelgebiedTable(lines: any[][], startIndex: number): { datapunten:
   }
 
   // Aggregate deelgebiedScores: "latest non-null wins" across datapunten
-  // (document order = latest last) — shared with utils/prognosis.ts's
-  // telLeerlijnenPerFase via utils/scoreAggregation.ts (M42 Lane B review-fix #1).
+  // (document order = latest last). Alleen nog een compatibiliteitsveld: geen
+  // enkele consument leest dit voor eindoordelen (M43, ADR-18 D7) — die rekenen
+  // via berekenEindoordelen(record.datapunten).
   const deelgebiedScores = aggregateLatestScores(datapunten, DEELGEBIEDEN);
 
   console.log(

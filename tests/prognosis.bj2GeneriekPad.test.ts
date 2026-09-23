@@ -17,6 +17,7 @@ import { berekenBj2GeneriekPad, berekenPrognose } from '../utils/prognosis';
 import { DEFAULT_VESTIGING_NORMEN } from '../utils/normen';
 import { DEELGEBIEDEN } from '../utils/schema';
 import type { Datapunt } from '../utils/datapuntTelling';
+import { metScoreDatapunten } from './helpers/datapuntenVoorScores';
 
 const NORMEN_GOES = DEFAULT_VESTIGING_NORMEN.goes;
 const NORMEN_ROOSENDAAL = DEFAULT_VESTIGING_NORMEN.roosendaal;
@@ -25,13 +26,14 @@ const NORMEN_DORDRECHT = DEFAULT_VESTIGING_NORMEN.dordrecht;
 const LABELS = DEELGEBIEDEN.map(dg => dg.label); // 12 real labels
 
 function makeStudent(overrides: any = {}): any {
-  return {
+  // M43: deelgebiedScores → fixture-datapunten (regressiecontract R4a)
+  return metScoreDatapunten({
     leerlingId: 'L1',
     naam: 'Test Leerling',
     deelgebiedScores: {},
     datapunten: [],
     ...overrides,
-  };
+  });
 }
 
 // Zet de eerste n (van de 12) deelgebieden op 'voldoende', de rest op null.

@@ -25,15 +25,17 @@ import { berekenPrognose, berekenAllePrognoses, berekenBj2GeneriekPad } from '..
 import { DEELGEBIEDEN } from '../utils/schema';
 import { appState } from '../utils/datamodel';
 import { getNormenVoorVestigingSync } from '../utils/normen';
+import { metScoreDatapunten } from './helpers/datapuntenVoorScores';
 
 // Helper: build a minimal student record with specific deelgebied scores
 function makeStudent(scores: Record<string, string | null> = {}): any {
-  return {
+  // M43: deelgebiedScores → fixture-datapunten (regressiecontract R4a)
+  return metScoreDatapunten({
     leerlingId: 'L1',
     naam: 'Test Leerling',
     deelgebiedScores: scores,
     datapunten: [],
-  };
+  });
 }
 
 // Helper: set all 19 deelgebieden to the given score level
@@ -230,11 +232,13 @@ describe('M42 T9c — berekenPrognose bj2-tak routing (Roosendaal SBL-keuzeproce
     const student = {
       leerlingId: 'L1',
       naam: 'Test Leerling',
-      // Heel-jaar-aggregaat leeg -> berekenBj2GeneriekPad's eigen
-      // aantalVoldoendeOfHoger is 0, dus generic sbl (drempel 7) EN sbc
-      // (drempel 10) zijn allebei onbereikbaar via die functie — bewijst dat
-      // een 'sbl'-resultaat hier alleen via de nieuwe SBL-keuze-fase-3-telling
-      // (op student.datapunten, een andere databron) kan komen.
+      // M43: beide paden lezen nu dezelfde bron (student.datapunten via de
+      // S/C-formule). Het onderscheid zit in de fase: over het HELE record zijn
+      // deze 7 deelgebieden onvoldoende (fase 3: V, fase 2: 2×O → S = -4), dus
+      // berekenBj2GeneriekPad's aantalVoldoendeOfHoger is 0 en generic sbl
+      // (drempel 7) EN sbc (drempel 10) zijn onbereikbaar. Alleen de fase-3-
+      // telling van het SBL-keuzepad ziet 7× V — bewijst dat 'sbl' via die
+      // route komt.
       deelgebiedScores: {},
       datapunten: [
         // Alle 7 lesgeven_en_organiseren-labels (ECHTE, live schema), fase 3,
@@ -243,6 +247,10 @@ describe('M42 T9c — berekenPrognose bj2-tak routing (Roosendaal SBL-keuzeproce
           'O&V': 'voldoende', 'S&O': 'voldoende', 'PH': 'voldoende',
           'DH': 'voldoende', 'I&P': 'voldoende', 'O&C': 'voldoende', 'E&V': 'voldoende',
         }),
+        ...[1, 2].map(() => ({ vak: 'Resultaten', datapunt: 'Resultatentabel', fase: 2, scores: {
+          'O&V': 'onvoldoende', 'S&O': 'onvoldoende', 'PH': 'onvoldoende',
+          'DH': 'onvoldoende', 'I&P': 'onvoldoende', 'O&C': 'onvoldoende', 'E&V': 'onvoldoende',
+        } })),
         ...vijfRekenDomeinen(),
         ...tweeLevelsAfgerond(),
       ],
