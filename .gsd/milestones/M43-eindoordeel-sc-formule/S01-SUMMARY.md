@@ -23,3 +23,30 @@
 | 3 | PCD_S1 | BJ1 DD | 60 | geen | ja | grijs Onbekend (neutraal) |
 
 - Omdat elk deelgebied hoogstens één beoordeling heeft, geven formule en latest-wins **exact hetzelfde** voor alle 4. M43 verandert voor deze exports niets zichtbaars; de echte voor/na-vergelijking (T5) heeft data met meerdere beoordelingen per deelgebied nodig.
+
+## T1-T4 — Implementatie (2026-09-23, branch `feature/m43-eindoordeel`)
+
+| Taak | Commit | Inhoud |
+|---|---|---|
+| T1 | `391e9dd` | `berekenEindoordelen(datapunten, {fase?})` in `utils/aggregation.ts` (hergebruikt S/C-kern + E-plafond, elk label aanwezig, null zonder beoordeling, fasefilter), doc-comment-diagram (R2). 16 nieuwe tests, eerst RED. |
+| T2+T3 | `7c8102f` | BJ1 Trigger A, BJ2 ≥V, `berekenPrognose`, `telLeerlijnenPerFase` (fase 2 + Roosendaal fase 3) via `berekenEindoordelen`; elke functie roept zelf aan (R1); helper `actieveDeelgebieden` (R3); T06-lus weg (was no-op); comments bijgewerkt. Fixture-helper `datapuntenVoorScores` (fase 0), geen assert gewijzigd (R4a). 4 fixtures met tegenstrijdige bronnen consistent gemaakt; `telLeerlijnenPerFase`-test herschreven naar formule en bewezen falend op oude code (R4b). |
+| T4 | `0fcfcda` | Spider chart = formule over laatste record (D2a); matrix-voettekst 1 en 2 periodes via formule per record (D4); whitespace-tekstnodes in tfoot weg (R6). Componenttests met bewust tegenstrijdige bronnen (R4c). |
+
+Afwijking van het plan: `ONVOLDOENDE_INLEVER_STATUSSEN` niet verplaatst (D5 geparkeerd, ADR-18b). `aggregateLatestScores` wordt alleen nog door `parsers/pdf.ts` gebruikt (compatibiliteitsveld).
+
+**Verificatie:** `npm test` 666 passed / 5 skipped; `npm run typecheck` en `npm run typecheck-migrated` schoon.
+
+## T5 — Voor/na-meting (ADR-18b: synthetisch + later echt)
+
+Zelfde script op `master` (oud, tijdelijke worktree) en op deze branch (nieuw), over de 4 echte exports plus synthetische extra beoordelingen op de eerste 4 deelgebieden (alleen `leerlingId`s, niet gecommit).
+
+| Variant | Matrix | Spider | Prognose-tellingen | Verklaring |
+|---|---|---|---|---|
+| echt | = | = | = | ≤1 beoordeling per deelgebied → formule = latest-wins |
+| compensatie (G,O / G,O / E,O) | = | O→V, O→V, O→G | 3 O → ≥V (BJ1 `aantalO` −3, BJ2 `aantalV` +3) | O wordt gecompenseerd i.p.v. overschreven |
+| E-plafond (G,G,V ×2) | = | V→G | = | blijft ≥V; categorie verandert niet |
+| knock-out (7O, 1G, 4E) | = | E→O | ≥V −1, O +1 | C = 3 blokkeert ondanks 4 E's |
+
+- Matrix: nergens verschil — de Eindoordeel-rij gebruikte de formule al.
+- Alle 3 vestigingen gaven identieke uitkomsten. Geen status-/prognoselabel kantelde (tellingen blijven onder de drempels).
+- Elk verschil is terug te voeren op een bedoelde regel. **Wacht op akkoord projectlead.** Later in het jaar: hetzelfde script op echte exports met meerdere beoordelingen per deelgebied.

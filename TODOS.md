@@ -35,7 +35,7 @@
 - **Cons:** Niet onderzocht welke exacte regel de whitespace veroorzaakt — vereist een korte source-duik in `DeelgebiedenMatrix.tsx`'s tfoot-render.
 - **Context:** Gevonden tijdens handmatige QA + `/qa` op `feature/deelgebieden-schema-2026-2027`, 2026-09-22.
 - **Depends on / blocked by:** Niets.
-- **Update (/plan-eng-review M43, 2026-09-23):** oorzaak gevonden: `DeelgebiedenMatrix.tsx:232` (`<td /> {/* … */}` → spatie-tekstnode in `<tr>`). Ingepland in M43 (R6); naar Completed bij oplevering.
+- **Update (/plan-eng-review M43, 2026-09-23):** oorzaak gevonden: `DeelgebiedenMatrix.tsx:232` (`<td /> {/* … */}` → spatie-tekstnode in `<tr>`). Ingepland in M43 (R6); opgelost op `feature/m43-eindoordeel` (commit `0fcfcda`, 3× `<td />`-patroon in de tfoot); naar Completed bij merge.
 
 ## T-2026-09-14-01 · Backup restore: inhoud van klas-objecten valideren
 
