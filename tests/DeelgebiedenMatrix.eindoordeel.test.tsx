@@ -74,6 +74,18 @@ describe('DeelgebiedenMatrix — eindoordeel via S/C-formule (M43)', () => {
     expect(container.querySelectorAll('tfoot .growth-up').length).toBe(rijen[1].length);
   });
 
+  it('1 periode, 2 records met gelijke periode: Eindoordeel-rij = alleen het student-record (D2)', () => {
+    // Normaal onmogelijk (addStudent vervangt per leerlingId + periode), maar als het
+    // toch gebeurt telt alleen het getoonde record — niet alle records samengevoegd.
+    const oud = { leerlingId: 'L1', periode: 'BJ2 DD ‐ 2026/2027', deelgebiedScores: {}, datapunten: datapuntenVoor(['onvoldoende', 'onvoldoende']) };
+    const nieuw = { leerlingId: 'L1', periode: 'BJ2 DD ‐ 2026/2027', deelgebiedScores: {}, datapunten: datapuntenVoor(['goed']) };
+    mockRecords.list = [oud, nieuw];
+    const { container } = render(<DeelgebiedenMatrix student={nieuw} leerlingId="L1" />);
+    const rijen = voettekstChips(container);
+    expect(rijen).toHaveLength(1);
+    expect(new Set(rijen[0])).toEqual(new Set(['G'])); // samengevoegd zou O+O+G → O geven
+  });
+
   it('voettekstrijen bevatten geen whitespace-tekstnodes direct in <tr> (TODO T-2026-09-22-01)', () => {
     // Oorzaak van de hydration-warning in de browser: `<td /> {/* … */}` laat een
     // spatie als tekstnode in <tr> achter. jsdom logt de React-waarschuwing niet,

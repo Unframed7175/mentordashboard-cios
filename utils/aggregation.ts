@@ -42,7 +42,10 @@ export function aggregateDeelgebiedScores(
     for (const label of Object.keys(scores)) {
       if (!KNOWN_LABELS.has(label)) continue;
       const score = scores[label];
-      if (score === null || score === undefined) continue;
+      // Alleen de 4 genormaliseerde niveaus tellen; een onbekende waarde (bv. uit
+      // een oude of bewerkte backup) wordt genegeerd zoals een lege cel, anders
+      // zou een label met alleen nullen stil als 'voldoende' uitkomen (M43 /review F3).
+      if (score === null || score === undefined || !Object.prototype.hasOwnProperty.call(SCORE_VALUE, score)) continue;
       if (!countMap[label]) countMap[label] = { nE: 0, nG: 0, nV: 0, nO: 0 };
       if (score === 'excellent')   countMap[label].nE++;
       else if (score === 'goed')   countMap[label].nG++;

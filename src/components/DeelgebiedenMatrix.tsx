@@ -91,7 +91,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
   // datapunten van één record, via berekenEindoordelen — nooit het opgeslagen
   // latest-wins deelgebiedScores.
   // Single-period: Eindoordeel-rij over het (enige) record
-  const aggregationDetail = berekenEindoordelen(student.datapunten);
+  const eindoordelen = berekenEindoordelen(student.datapunten);
 
   // Two-period: oldest/newest records, elk met hun eigen eindoordeel
   const oldest = hasTwoPeriods ? allRecords[0] : null;
@@ -235,7 +235,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                 <td>{/* status column — leeg in voettekst */}</td>
                 {allDG.map(dg => (
                   <td key={dg.id} className="vote-count-cell" style={{ padding: '0.3rem 0.2rem', textAlign: 'center' }}>
-                    <DmChip score={aggregationDetail[dg.label] || null} />
+                    <DmChip score={eindoordelen[dg.label] || null} />
                   </td>
                 ))}
               </tr>

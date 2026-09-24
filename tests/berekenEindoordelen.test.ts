@@ -35,6 +35,15 @@ describe('berekenEindoordelen — contract', () => {
     expect(r).toEqual({ 'V&A': 'voldoende', 'M&M': null, INS: null });
   });
 
+  test('onbekende scorewaarde telt niet mee (geen stille voldoende) — /review F3', () => {
+    // Alleen genormaliseerde waarden tellen. 'Goed'/'V'/'' (bv. uit een oude of
+    // handmatig bewerkte backup) worden genegeerd zoals een lege cel.
+    expect(berekenEindoordelen([{ scores: { 'V&A': 'Goed' } }])['V&A']).toBeNull();
+    expect(berekenEindoordelen([{ scores: { 'V&A': '' } }])['V&A']).toBeNull();
+    expect(berekenEindoordelen([{ scores: { 'V&A': 'constructor' } }])['V&A']).toBeNull(); // prototype-sleutel
+    expect(berekenEindoordelen([{ scores: { 'V&A': 'V' } }, { scores: { 'V&A': G } }])['V&A']).toBe('goed');
+  });
+
   test('null-score telt niet mee', () => {
     const r = berekenEindoordelen([{ scores: { 'V&A': null } }, { scores: { 'V&A': G } }]);
     expect(r['V&A']).toBe('goed');

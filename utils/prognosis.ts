@@ -11,6 +11,7 @@
 //   utils/leerlijnen.ts — getLeerlijnenMapping
 //   utils/datamodel.ts — appState (voor berekenAllePrognoses)
 //   utils/normen.ts — getNormenSync (doorstroomnormen)
+//   utils/scoreAggregation.ts — getFase (fase-filter voor BJ1 Trigger B)
 //   utils/aggregation.ts — berekenEindoordelen (M43: enige bron voor het
 //     eindoordeel per deelgebied, S/C-formule over record.datapunten; deze
 //     aggregatie-laag importeert bewust NIET van parsers/pdf.ts — dat zou de

@@ -17,7 +17,7 @@
 import { berekenBj1Uitkomst } from '../utils/prognosis';
 import { DEFAULT_VESTIGING_NORMEN } from '../utils/normen';
 import type { Datapunt } from '../utils/datapuntTelling';
-import { metScoreDatapunten } from './helpers/datapuntenVoorScores';
+import { metScoreDatapunten, datapuntenVoorScores } from './helpers/datapuntenVoorScores';
 
 const NORMEN_GOES = DEFAULT_VESTIGING_NORMEN.goes;
 const NORMEN_ROOSENDAAL = DEFAULT_VESTIGING_NORMEN.roosendaal;
@@ -189,7 +189,7 @@ describe('berekenBj1Uitkomst — happy paths (één per uitkomst)', () => {
     // per label (fase 0: buiten de fase-2-criteria) maakt het eindoordeel echt
     // onvoldoende (2×O + G → S = -2), zodat Trigger A én versneld_sbc tegelijk gelden.
     student.datapunten.push(
-      ...['O&V', 'S&O', 'PH', 'DH'].map(l => ({ vak: 'Fixture', datapunt: `extra O ${l}`, fase: 0, scores: { [l]: 'onvoldoende' } })),
+      ...datapuntenVoorScores({ 'O&V': 'onvoldoende', 'S&O': 'onvoldoende', 'PH': 'onvoldoende', 'DH': 'onvoldoende' }),
     );
     const result = berekenBj1Uitkomst(student, 'goes', NORMEN_GOES);
     expect(result.label).toBe('negatief');

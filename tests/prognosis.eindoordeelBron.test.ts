@@ -70,6 +70,18 @@ describe('M43: prognose-engines lezen datapunten via de S/C-formule', () => {
     expect(totaalO).toBe(0);
   });
 
+  test('BJ1 Trigger A telt alleen actieve deelgebieden (activeDeelgebiedenIds)', () => {
+    const student = { leerlingId: 'L1', deelgebiedScores: {}, datapunten: LABELS.slice(0, 4).map(l => dp(l, 'onvoldoende')) };
+    const actief = DEELGEBIEDEN.slice(0, 2).map(dg => dg.id);
+    expect(berekenBj1Uitkomst(student, 'goes', NORMEN_GOES, actief).gaps.aantalOnvoldoendeDeelgebieden).toBe(2);
+  });
+
+  test('BJ2 ≥V-telling telt alleen actieve deelgebieden (activeDeelgebiedenIds)', () => {
+    const student = { leerlingId: 'L1', deelgebiedScores: {}, datapunten: LABELS.slice(0, 5).map(l => dp(l, 'voldoende')) };
+    const actief = DEELGEBIEDEN.slice(1, 4).map(dg => dg.id);
+    expect(berekenBj2GeneriekPad(student, 'goes', NORMEN_GOES, actief).gaps.aantalVoldoendeOfHoger).toBe(3);
+  });
+
   test('berekenPrognose-totalen (berekenStatus "heeft scores") komen uit de formule', () => {
     const student = {
       leerlingId: 'L1',
