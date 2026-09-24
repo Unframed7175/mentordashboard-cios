@@ -3,6 +3,30 @@
 > Laatste update: 2026-09-22 — M42 + deelgebieden-schema-2026/2027 **gemerged op `master`** (PR #29, commit 2b9fa93), CI groen op master. `/qa` gedraaid vóór merge (Standard tier, health score 98/100) — vond en fixte 1 nieuwe bevinding (light-mode contrast, dezelfde bug-klasse als een al-gefixte dark-mode variant). Milestone-werk (T1-T12 + review + release-prep + qa) is inhoudelijk compleet. **Nog niet getagd/gereleased** (`v2.12.0`) — dat is een aparte, bewuste vervolgstap die de projectlead expliciet moet triggeren (fires `release.yml` + de auto-updater richting echte gebruikers). LEARNINGS-write-up nog niet gedaan. M41 ongewijzigd: Fase 2, wacht op T0 + T1.
 ---
 
+## Handoff 2026-09-23b (Fase 0 → Fase 1, M43) — eng review afgerond, S01-PLAN klaar
+
+Van/naar: GStack `/plan-eng-review` → GSD Fase 1 (plan klaar) → Superpowers Fase 2 (start met T0)
+
+**Status:** `/plan-eng-review` op het M43-design afgerond: 6 beslissingen (R1-R6) allemaal door de projectlead gekozen, vastgelegd in **ADR-18a** en in de ledger van het design doc. 16 bevindingen omgezet in taken, 0 critical gaps, 0 open beslissingen. Outside voice (Codex) niet beschikbaar: niet geauthenticeerd. `S01-PLAN.md` geschreven: `.gsd/milestones/M43-eindoordeel-sc-formule/S01-PLAN.md` (T0-T5). Geen Fase 3 (geen nieuwe UI). TODOS.md: T-2026-09-23-01 toegevoegd; T-2026-09-22-01 (hydration) oorzaak gevonden en ingepland in M43.
+
+**Volgende stap (Fase 2):** T0 vóór enige code: op echte PDF's (1) nagaan of niet-ingeleverde datapunten deelgebiedcellen hebben (bepaalt D5), (2) periode-sortering vergelijken, (3) nulmeting-snapshot. T0 vraagt echte PDF's van de projectlead (niet in de repo).
+
+**Nog niet gecommit:** ADR-18/18a, ROADMAP, STATE, TODOS.md, design doc, S01-PLAN.md. Voorstel: branch `docs/m43-design` + PR.
+
+---
+
+## Handoff 2026-09-23 (Fase 0, M43) — Eindoordeel overal via S/C-formule: design goedgekeurd
+
+Van/naar: GStack `/office-hours` → GStack `/plan-eng-review` (Fase 0-DoD)
+
+**Status:** Nieuwe milestone M43 geopend. Aanleiding: alleen de matrix-rij "Eindoordeel" gebruikt de S/C-formule; prognose BJ1/BJ2, spider chart en twee-periode-matrix gebruiken "laatste score wint". Projectlead-beslissingen D1-D7 vastgelegd in **ADR-18**; design doc goedgekeurd: `docs/designs/m43-eindoordeel-sc-formule-overal.md` (aanpak B: één functie `berekenEindoordelen`). Obsidian-spec "Beoordelingssysteem Compensatie & Prestatie" bijgewerkt met het bewuste E-plafond en de null-regel. Onafhankelijke spec-review (7/10) → alle bevindingen verwerkt.
+
+**Openstaand voor Fase 0:** `/plan-eng-review` op het design doc. Daarna Fase 1: `.gsd/milestones/M43-eindoordeel-sc-formule/S01-PLAN.md`, met **T0 vóór enige code**: (1) op echte PDF's nagaan of niet-ingeleverde datapunten deelgebiedcellen hebben (bepaalt of D5 uitvoerbaar is; zo niet → D5 parkeren), (2) alfabetische vs numerieke periode-sortering vergelijken, (3) nulmeting-snapshot van alle prognose-uitkomsten (alleen `leerlingId`s, niet committen). Geen Fase 3 (geen nieuwe UI).
+
+**Nog niet gecommit:** ADR-18, ROADMAP-regel M43, dit handoff-blok en het design doc.
+
+---
+
 ## Handoff 2026-09-22c (Fase 4 → afgerond) — /qa gedraaid, PR #29 gemerged naar master
 
 Van/naar: GStack — Fase 4, zelfde sessie als de handoffs hieronder
