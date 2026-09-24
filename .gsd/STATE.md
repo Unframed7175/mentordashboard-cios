@@ -3,6 +3,23 @@
 > Laatste update: 2026-09-22 — M42 + deelgebieden-schema-2026/2027 **gemerged op `master`** (PR #29, commit 2b9fa93), CI groen op master. `/qa` gedraaid vóór merge (Standard tier, health score 98/100) — vond en fixte 1 nieuwe bevinding (light-mode contrast, dezelfde bug-klasse als een al-gefixte dark-mode variant). Milestone-werk (T1-T12 + review + release-prep + qa) is inhoudelijk compleet. **Nog niet getagd/gereleased** (`v2.12.0`) — dat is een aparte, bewuste vervolgstap die de projectlead expliciet moet triggeren (fires `release.yml` + de auto-updater richting echte gebruikers). LEARNINGS-write-up nog niet gedaan. M41 ongewijzigd: Fase 2, wacht op T0 + T1.
 ---
 
+## Handoff 2026-09-24 (Fase 4, M43) — /review + /qa klaar; resterend: audit, CHANGELOG, PR
+
+Van/naar: GStack (Fase 4) → nieuwe sessie, GStack (Fase 4 afronden)
+
+**Status:** Branch `feature/m43-eindoordeel` (bovenop `docs/m43-design` = PR #31, nog niet gemerged), laatste commit `450ca99`, gepusht. T5-voor/na-meting akkoord projectlead (2026-09-24).
+- `/review`: 6 specialisten + red team + Claude-adversarial (Codex niet ingelogd → geen outside coverage). Eén echte bug gefixt: onbekende scorewaarden telden als voldoende (`a09337f`, hasOwnProperty-check + tests). Extra regressietests, 4 auto-fixes. Beslissingen in **ADR-18c** (V=0 → geen verbetering door het jaar, bewust behouden; TODO T-2026-09-23-04). Spider-volgorde bij gemengde periodeformaten → TODO T-2026-09-23-03 (uitgebreid). Obsidian-notitie sectie 5 toegevoegd.
+- `/qa` (vite-dev + 4 echte exports, klas CSD): 0 issues, health 100 (provisional). axe wcag2aa 0 violations op overzicht + detail, licht én donker (`body.dark`). Rapport lokaal: `.gstack/qa-reports/qa-report-localhost-2026-09-24-m43.md`.
+- `npm test` 670 passed / 5 skipped; beide typechecks schoon.
+
+**Volgende sessie — Fase 4 afronden (in deze volgorde):**
+1. `npm audit --audit-level=high` (bij high: `## Security-blokkade` of `npm audit fix`).
+2. CHANGELOG-entry + MINOR-bump in `package.json`/`package-lock.json`/`src-tauri/tauri.conf.json` (prognoses kunnen veranderen). Let op: `v2.12.0` (M42) staat klaar maar is niet getagd — versienummer M43 afstemmen met projectlead.
+3. PR #31 (docs) mergen, daarna PR `feature/m43-eindoordeel` → `master`; `/review`-uitkomst als PR-comment; CI groen.
+4. LEARNINGS schrijven, M43 op DONE in ROADMAP, TODO T-2026-09-22-01 naar Completed na merge.
+
+---
+
 ## Handoff 2026-09-23c (Fase 2 → Fase 4, M43) — implementatie klaar, wacht op akkoord voor/na-meting
 
 Van/naar: Superpowers (Fase 2) → GStack (Fase 4)
