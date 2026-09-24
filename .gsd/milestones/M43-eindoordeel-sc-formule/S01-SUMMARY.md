@@ -49,4 +49,4 @@ Zelfde script op `master` (oud, tijdelijke worktree) en op deze branch (nieuw), 
 
 - Matrix: nergens verschil — de Eindoordeel-rij gebruikte de formule al.
 - Alle 3 vestigingen gaven identieke uitkomsten. Geen status-/prognoselabel kantelde (tellingen blijven onder de drempels).
-- Elk verschil is terug te voeren op een bedoelde regel. **Wacht op akkoord projectlead.** Later in het jaar: hetzelfde script op echte exports met meerdere beoordelingen per deelgebied.
+- Elk verschil is terug te voeren op een bedoelde regel. **Akkoord projectlead: 2026-09-24.** Later in het jaar: hetzelfde script op echte exports met meerdere beoordelingen per deelgebied.
