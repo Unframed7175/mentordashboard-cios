@@ -37,7 +37,7 @@
 - **Context:** Vastgelegd in `/plan-eng-review` van M43 (R5, 2026-09-23, `docs/designs/m43-eindoordeel-sc-formule-overal.md`). Bewust niet in M43 zelf, zodat de voor/na-snapshot maar één oorzaak van verschillen heeft.
 - **Depends on / blocked by:** M43 (`berekenEindoordelen` moet bestaan).
 
-## T-2026-09-22-01 · React hydration warning in DeelgebiedenMatrix (whitespace text node in tfoot)
+## ~~T-2026-09-22-01~~ (Completed) · React hydration warning in DeelgebiedenMatrix (whitespace text node in tfoot)
 
 - **What:** Console toont bij het renderen van `DeelgebiedenMatrix` een React-waarschuwing: "In HTML, whitespace text nodes cannot be a child of `<%s>`" met een stack die eindigt in `<tfoot><tr><td>{" "}...`. Geen zichtbaar visueel probleem geconstateerd, maar het is een echte hydration-waarschuwing.
 - **Why:** Gevonden tijdens handmatige browser-QA en opnieuw bevestigd tijdens `/qa` (2026-09-22) — bevestigd via `git diff` dat `DeelgebiedenMatrix.tsx` niet is aangeraakt door de M42-doorstroomnormering- of deelgebieden-schema-2026/2027-wijzigingen, dus vooraf bestaand, geen regressie van deze branch.
@@ -46,6 +46,7 @@
 - **Context:** Gevonden tijdens handmatige QA + `/qa` op `feature/deelgebieden-schema-2026-2027`, 2026-09-22.
 - **Depends on / blocked by:** Niets.
 - **Update (/plan-eng-review M43, 2026-09-23):** oorzaak gevonden: `DeelgebiedenMatrix.tsx:232` (`<td /> {/* … */}` → spatie-tekstnode in `<tr>`). Ingepland in M43 (R6); opgelost op `feature/m43-eindoordeel` (commit `0fcfcda`, 3× `<td />`-patroon in de tfoot); naar Completed bij merge.
+- **Completed:** Fixed in M43 (PR #32, commit 0fcfcda), 2026-09-24.
 
 ## T-2026-09-14-01 · Backup restore: inhoud van klas-objecten valideren
 
