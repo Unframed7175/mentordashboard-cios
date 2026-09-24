@@ -1,6 +1,28 @@
 # STATE.md — Mentordashboard CIOS
 
-> Laatste update: 2026-09-22 — M42 + deelgebieden-schema-2026/2027 **gemerged op `master`** (PR #29, commit 2b9fa93), CI groen op master. `/qa` gedraaid vóór merge (Standard tier, health score 98/100) — vond en fixte 1 nieuwe bevinding (light-mode contrast, dezelfde bug-klasse als een al-gefixte dark-mode variant). Milestone-werk (T1-T12 + review + release-prep + qa) is inhoudelijk compleet. **Nog niet getagd/gereleased** (`v2.12.0`) — dat is een aparte, bewuste vervolgstap die de projectlead expliciet moet triggeren (fires `release.yml` + de auto-updater richting echte gebruikers). LEARNINGS-write-up nog niet gedaan. M41 ongewijzigd: Fase 2, wacht op T0 + T1.
+> Laatste update: 2026-09-24 — **M43 DONE** (Eindoordeel per deelgebied overal via S/C-formule): gemerged op `master` via PR #31 (docs) + PR #32 (code, merge `a7ab976`), CI groen, versie `v2.13.0` in CHANGELOG/manifesten. LEARNINGS geschreven (`.gsd/milestones/M43-eindoordeel-sc-formule/M43-LEARNINGS.md`). **Nog niet getagd:** `v2.13.0` (en `v2.12.0` van M42) — taggen is een bewuste actie van de projectlead (triggert `release.yml` + auto-updater). M41 ongewijzigd: Fase 2, wacht op T0 + T1.
+---
+
+## Handoff 2026-09-24b (Fase 4 → afgerond, M43)
+
+Van/naar: GStack (Fase 4) → projectlead (release) / volgende milestone (Fase 0)
+
+**Status:** M43 **DONE**. PR #31 (`docs/m43-design`) en PR #32 (`feature/m43-eindoordeel`, merge-commit `a7ab976`) gemerged naar `master`; CI groen op master. Fase 4-DoD: `/review` ✅ (geen blokkers, bevindingen in ADR-18c) · `/qa` ✅ (0 issues, health 100 provisional) · axe wcag2aa ✅ (0 violations, licht + donker) · `npm audit --audit-level=high` ✅ schoon · CHANGELOG `## [2.13.0] — 2026-09-24` ✅ · LEARNINGS ✅ (`.gsd/milestones/M43-eindoordeel-sc-formule/M43-LEARNINGS.md`) · ROADMAP M43 op DONE ✅ · TODO T-2026-09-22-01 (hydration) naar Completed ✅.
+
+**Openstaand:**
+- Tag `v2.13.0` pushen — alleen door de projectlead (triggert `release.yml` + auto-updater). `v2.12.0` (M42) is ook nog niet getagd; releasevolgorde is aan de projectlead.
+- TODO T-2026-09-23-02 (D5: niet-ingeleverd → O; wacht op echte export met zo'n datapunt).
+- TODO T-2026-09-23-03 (periode-sortering trendpijl + spider bij gemengde formaten; aparte `fix/`-branch).
+- TODO T-2026-09-23-04 (herkansingen/late verbetering in de S/C-formule; voor/na-script later in het jaar opnieuw op echte exports).
+
+**DoD afgevinkt:** ja (Fase 4), op het taggen na (bewust buiten de sessie).
+
+## Milestone afgerond 2026-09-24
+
+- **Versie:** 2.13.0 (nog niet getagd)
+- **Milestone:** M43-eindoordeel-sc-formule — status **DONE**
+- **Learnings:** `.gsd/milestones/M43-eindoordeel-sc-formule/M43-LEARNINGS.md`
+
 ---
 
 ## Handoff 2026-09-24 (Fase 4, M43) — /review + /qa klaar; resterend: audit, CHANGELOG, PR
