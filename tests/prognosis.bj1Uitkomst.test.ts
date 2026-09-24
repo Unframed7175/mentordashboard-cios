@@ -17,19 +17,21 @@
 import { berekenBj1Uitkomst } from '../utils/prognosis';
 import { DEFAULT_VESTIGING_NORMEN } from '../utils/normen';
 import type { Datapunt } from '../utils/datapuntTelling';
+import { metScoreDatapunten, datapuntenVoorScores } from './helpers/datapuntenVoorScores';
 
 const NORMEN_GOES = DEFAULT_VESTIGING_NORMEN.goes;
 const NORMEN_ROOSENDAAL = DEFAULT_VESTIGING_NORMEN.roosendaal;
 const NORMEN_DORDRECHT = DEFAULT_VESTIGING_NORMEN.dordrecht;
 
 function makeStudent(overrides: any = {}): any {
-  return {
+  // M43: deelgebiedScores → fixture-datapunten (regressiecontract R4a)
+  return metScoreDatapunten({
     leerlingId: 'L1',
     naam: 'Test Leerling',
     deelgebiedScores: {},
     datapunten: [],
     ...overrides,
-  };
+  });
 }
 
 // Eén datapunt dat één of meer deelgebied-scores tegelijk aanlevert (net als de
@@ -181,6 +183,14 @@ describe('berekenBj1Uitkomst — happy paths (één per uitkomst)', () => {
       // versneld_sbc-criteria die versneldSbcStudent() al laat slagen.
       deelgebiedScores: { 'O&V': 'onvoldoende', 'S&O': 'onvoldoende', 'PH': 'onvoldoende', 'DH': 'onvoldoende' },
     });
+    // M43: het eindoordeel komt nu uit ALLE datapunten van het record (S/C-formule).
+    // versneldSbcStudent() levert voor deze labels al een G in fase 2; één O
+    // (uit deelgebiedScores) zou daartegen wegcompenseren (O+G → V). Een tweede O
+    // per label (fase 0: buiten de fase-2-criteria) maakt het eindoordeel echt
+    // onvoldoende (2×O + G → S = -2), zodat Trigger A én versneld_sbc tegelijk gelden.
+    student.datapunten.push(
+      ...datapuntenVoorScores({ 'O&V': 'onvoldoende', 'S&O': 'onvoldoende', 'PH': 'onvoldoende', 'DH': 'onvoldoende' }),
+    );
     const result = berekenBj1Uitkomst(student, 'goes', NORMEN_GOES);
     expect(result.label).toBe('negatief');
   });

@@ -2,8 +2,8 @@
 // tests/prognosis.telLeerlijnenPerFase.test.ts — telLeerlijnenPerFase (M42 T6)
 //
 // D14 (eng-review): bron is student.datapunten (fase-tag uit T2), NIET
-// student.deelgebiedScores — dat laatste is een hele-jaar "laatste-score-
-// wint"-aggregaat zonder fase-informatie. Deze tests draaien tegen het ECHTE
+// student.deelgebiedScores. Sinds M43 (ADR-18 D3) geldt binnen de fase de
+// S/C-formule (berekenEindoordelen), niet meer "laatste score wint". Deze tests draaien tegen het ECHTE
 // live schema (src/config/leerlijn.json — 12 deelgebieden, 2 groepen:
 // lesgeven_en_organiseren / professioneel_handelen), niet tegen een mock,
 // om te bewijzen dat de groepering dynamisch is en niet de oude hardcoded
@@ -49,17 +49,16 @@ describe('telLeerlijnenPerFase', () => {
     expect(result['professioneel_handelen'].onbeoordeeld).toBe(AANTAL_PROF_HANDELEN);
   });
 
-  it('filtert op fase EN past "latest non-null wins" toe BINNEN de gefilterde fase-subset', () => {
+  it('filtert op fase EN past de S/C-formule toe BINNEN de gefilterde fase-subset (M43)', () => {
     // O&V (lesgeven_en_organiseren) krijgt scores in fase 1, twee keer in fase 2, en fase 3.
-    // Alleen de LAATSTE fase-2 score ('goed') mag meetellen — niet de fase-1 score
-    // ('onvoldoende', staat eerder in de array), niet de fase-3 score, en niet de
-    // EERSTE fase-2 score ('voldoende') — als dat laatste wel meetelt zou goedOfHoger
-    // ten onrechte 0 blijven i.p.v. 1, wat bewijst dat dit een echte "laatste-wint
-    // binnen de subset"-test is, niet slechts "er bestaat een fase-2-datapunt".
+    // Alleen de twee fase-2 scores tellen: G + V → S = 2, C = 0 → goed. De fase-1-
+    // en fase-3-O's mogen niet meetellen (anders: S = -2 → onvoldoende).
+    // De volgorde G-dan-V bewijst dat het de formule is en niet "laatste score
+    // wint": dat zou 'voldoende' geven en goedOfHoger op 0 laten.
     const datapunten = [
       dp(1, { 'O&V': 'onvoldoende' }),
-      dp(2, { 'O&V': 'voldoende' }),
       dp(2, { 'O&V': 'goed' }),
+      dp(2, { 'O&V': 'voldoende' }),
       dp(3, { 'O&V': 'onvoldoende' }),
     ];
 

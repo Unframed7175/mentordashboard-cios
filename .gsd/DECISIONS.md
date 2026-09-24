@@ -361,3 +361,11 @@
 - **D5 geparkeerd.** Geen enkele van de 4 echte exports bevat een niet-ingeleverd datapunt (begin schooljaar). M43 wordt gebouwd zonder D5; niet-ingeleverd blijft zich gedragen zoals nu. D5 wordt een eigen taak zodra er een export mét zo'n datapunt is (TODO T-2026-09-23-02).
 - **Verificatie T5:** formule en latest-wins zijn identiek voor de huidige exports (≤1 beoordeling per deelgebied). T5 gebruikt nu een synthetische testset op basis van deze exports met extra beoordelingen (compensatie, knock-out, E-plafond); later in het jaar hetzelfde script op echte exports met meer beoordelingen.
 - **Trendpijl-sortering:** `KlasOverzicht.computeTrend` sorteert nieuwe periodestrings verkeerd ("BJ1 Fase 1 RSD ‐ 2026/2027" na "BJ2 RSD ‐ 2026/2027"). Buiten M43: aparte fix-branch (TODO T-2026-09-23-03).
+
+## ADR-18c · M43 `/review`-beslissingen (2026-09-24)
+
+**Status:** Vastgelegd (Fase 4, `/review` op `feature/m43-eindoordeel`)
+
+- **F1 — verbetering door het jaar heen: formule blijft (projectlead).** Omdat V = 0 in het saldo en de formule volgorde-ongevoelig is, blijft een deelgebied met O in fase 1 en V in fase 2 het hele jaar **onvoldoende** (S = −2); een herkansing die als aparte PDF-rij verschijnt telt als extra beoordeling (een extra O), niet als vervanging. Dit is de letterlijke uitwerking van D1 en wordt bewust zo gelaten. Vastgelegd in de Obsidian-notitie. TODO T-2026-09-23-04: zodra echte exports met herkansingen/meerdere beoordelingen bestaan, nagaan hoe herkansingen in de PDF staan en dit effect opnieuw beoordelen.
+- **F3 — onbekende scorewaarden worden genegeerd.** `aggregateDeelgebiedScores` telt alleen de 4 genormaliseerde niveaus; een onbekende waarde gedraagt zich als een lege cel i.p.v. stil als voldoende te tellen. Formule en E-plafond ongewijzigd.
+- **Spider-volgorde bij gemengde periodeformaten** → uitbreiding van TODO T-2026-09-23-03 (één gedeelde periode-sortering voor tegel, trend en spider), niet in M43.

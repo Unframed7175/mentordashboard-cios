@@ -25,16 +25,18 @@ import { berekenPrognose } from '../utils/prognosis';
 import { berekenStatus } from '../src/utils/status';
 import { DEELGEBIEDEN } from '../utils/schema';
 import type { Datapunt } from '../utils/datapuntTelling';
+import { metScoreDatapunten } from './helpers/datapuntenVoorScores';
 
 function makeStudent(scores: Record<string, string | null> = {}): any {
-  return {
+  // M43: deelgebiedScores → fixture-datapunten (regressiecontract R4a)
+  return metScoreDatapunten({
     leerlingId: 'L1',
     naam: 'Test Leerling',
     periode: 'bj2 fase 2',
     leerjaar: '2',
     deelgebiedScores: scores,
     datapunten: [],
-  };
+  });
 }
 
 test('het live schema is het nieuwe 2026/2027-schema (12 deelgebieden, 2 groepen)', () => {
@@ -93,7 +95,7 @@ test('berekenPrognose bereikt na T10 een ECHT bj2-label zodra een vestiging beke
   } as Datapunt));
 
   const student = makeStudent(deelgebiedScores);
-  student.datapunten = vijfRekenDomeinen;
+  student.datapunten = [...student.datapunten, ...vijfRekenDomeinen]; // M43: fixture-datapunten niet overschrijven
   student.nlSchrijven = '2f';
   student.nlGesprekvoeren = '3f';
   student.rekenResultaat = '3f';
@@ -184,7 +186,7 @@ test('berekenStatus toont na T10 een ECHTE, niet-grijze RAG-kleur zodra een vest
   } as Datapunt));
 
   const student = makeStudent(deelgebiedScores);
-  student.datapunten = vijfRekenDomeinen;
+  student.datapunten = [...student.datapunten, ...vijfRekenDomeinen]; // M43: fixture-datapunten niet overschrijven
   student.nlSchrijven = '2f';
   student.nlGesprekvoeren = '3f';
   student.rekenResultaat = '3f';

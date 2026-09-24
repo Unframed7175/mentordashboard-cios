@@ -27,7 +27,7 @@ export default function SpiderChartCard({ group, scores, fillVar, strokeVar, tit
   const activeIds = new Set(dgConfig.filter(c => c.active).map(c => c.id));
   const labelById = new Map(dgConfig.map(c => [c.id, c.label]));
 
-  // SCORE-KEY INVARIANT (Phase 18): axis.key MUST be the schema dg.label to match deelgebiedScores storage keys
+  // SCORE-KEY INVARIANT (Phase 18): axis.key MUST be the schema dg.label to match the keys of berekenEindoordelen() (utils/aggregation.ts, M43)
   const axes = DEELGEBIEDEN
     .filter(dg => dg.group === group)
     .filter(dg => activeIds.has(dg.id))

@@ -11,16 +11,19 @@
 //   utils/leerlijnen.ts — getLeerlijnenMapping
 //   utils/datamodel.ts — appState (voor berekenAllePrognoses)
 //   utils/normen.ts — getNormenSync (doorstroomnormen)
-//   utils/scoreAggregation.ts — getFase, aggregateLatestScores (gedeeld met
-//     parsers/pdf.ts; deze aggregatie-laag importeert bewust NIET van
-//     parsers/pdf.ts zelf — dat zou de open-world-parse/closed-world-
-//     aggregatie-laagscheiding omkeren, zie M42 Lane B review-fix #2)
+//   utils/scoreAggregation.ts — getFase (fase-filter voor BJ1 Trigger B)
+//   utils/aggregation.ts — berekenEindoordelen (M43: enige bron voor het
+//     eindoordeel per deelgebied, S/C-formule over record.datapunten; deze
+//     aggregatie-laag importeert bewust NIET van parsers/pdf.ts — dat zou de
+//     open-world-parse/closed-world-aggregatie-laagscheiding omkeren, zie M42
+//     Lane B review-fix #2)
 
 import { DEELGEBIEDEN, normalizeRekenScore } from './schema';
 import { getLeerlijnenMappingSync } from './leerlijnen';
 import { appState } from './datamodel';
 import { getNormenSync, getNormenVoorVestigingSync, type Normen, type VestigingNormen } from './normen';
-import { getFase, aggregateLatestScores } from './scoreAggregation';
+import { getFase } from './scoreAggregation';
+import { berekenEindoordelen } from './aggregation';
 import { telBetekenisvolBewegenProfHouding, telRekenDomeinen, telLevelsAfgerond, alleLevelsBehaald } from './datapuntTelling';
 import type { Datapunt } from './datapuntTelling';
 import type { Vestiging } from './klassen';
@@ -90,12 +93,20 @@ function isOnvoldoende(score: string | null): boolean {
   return score === 'onvoldoende';
 }
 
+// Alleen de ingeschakelde deelgebieden (Instellingen), of alle als er geen
+// selectie is meegegeven. Eén plek voor dit filter (M43, eng-review R3).
+function actieveDeelgebieden(activeDeelgebiedenIds?: string[]) {
+  return activeDeelgebiedenIds
+    ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id))
+    : DEELGEBIEDEN;
+}
+
 // ---------------------------------------------------------------------------
 // Interne hulpfunctie: tellingen per leerlijn
 // ---------------------------------------------------------------------------
 
 function telLeerlijnen(scores: any, activeDeelgebiedenIds?: string[]): any {
-  const deelgebieden = activeDeelgebiedenIds ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id)) : DEELGEBIEDEN;
+  const deelgebieden = actieveDeelgebieden(activeDeelgebiedenIds);
   // M42 T10-bevinding: dit was hardcoded op de OUDE 3-leerlijn-namen
   // ('lesgeven'/'organiseren'/'prof_handelen', ADR-06), los van
   // SUPPORTED_LEERLIJNEN hierboven. Zolang de schema-guard altijd 'false'
@@ -146,9 +157,9 @@ function telLeerlijnen(scores: any, activeDeelgebiedenIds?: string[]): any {
 // telLeerlijnenPerFase(datapunten, fase, activeDeelgebiedenIds?) — M42 T6
 //
 // Zusje van telLeerlijnen() hierboven, maar met twee cruciale verschillen:
-//  1. Bron is student.datapunten (met fase-tag uit T2), NIET
-//     student.deelgebiedScores — dat laatste is een hele-jaar "laatste-
-//     score-wint"-aggregaat zonder fase-informatie (D14, eng-review).
+//  1. Telt alleen de datapunten van één fase (plus datapunten zonder fase-tag),
+//     via berekenEindoordelen(datapunten, { fase }) — de S/C-formule over die
+//     subset (M43, ADR-18 D3; fase 3 voor het Roosendaal-SBL-keuzepad).
 //  2. Groepeert DYNAMISCH naar de leerlijn/groep-namen die nu daadwerkelijk
 //     actief zijn (via getLeerlijnenMappingSync(), net als
 //     isNormenSchemaOndersteund() hierboven doet) i.p.v. de hardcoded
@@ -172,27 +183,13 @@ export function telLeerlijnenPerFase(
   fase: number,
   activeDeelgebiedenIds?: string[],
 ): Record<string, LeerlijnTelling> {
-  // Stap 1: filter op fase. Missende/onherkende fase (undefined of null, via
-  // getFase()) telt mee voor ELKE fase-query (D4) — nooit dp.fase rechtstreeks
-  // lezen, want pre-Lane-A-datapunten hebben geen fase-property (undefined,
-  // geen null) en zouden anders stilzwijgend uitgesloten worden.
-  const gefilterd = (datapunten || []).filter(dp => {
-    const dpFase = getFase(dp);
-    return dpFase === fase || dpFase === null;
-  });
-
-  // Stap 2: reconstrueer een per-deelgebied-label score-map uit de gefilterde
-  // subset, met dezelfde "laatste non-null wint over document-volgorde"-regel
-  // als parsers/pdf.ts's parseDeelgebiedTable gebruikt voor het hele-jaar-
-  // aggregaat — hier geschaald naar alleen de fase-gefilterde datapunten via
-  // de gedeelde aggregateLatestScores() (utils/scoreAggregation.ts, M42
-  // Lane B review-fix #1).
-  const scores = aggregateLatestScores(gefilterd, DEELGEBIEDEN);
+  // Stap 1+2: eindoordeel per deelgebied over alleen deze fase. Missende/
+  // onherkende fase (undefined of null, via getFase()) telt mee voor ELKE
+  // fase-query (D4) — dat filter zit in berekenEindoordelen.
+  const scores = berekenEindoordelen(datapunten, { fase });
 
   // Stap 3: pas activeDeelgebiedenIds toe, zoals telLeerlijnen() ook doet.
-  const deelgebieden = activeDeelgebiedenIds
-    ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id))
-    : DEELGEBIEDEN;
+  const deelgebieden = actieveDeelgebieden(activeDeelgebiedenIds);
 
   // Stap 4: groepeer DYNAMISCH naar de daadwerkelijk actieve groep-namen
   // (geen hardcoded lijst) en tel exact zoals telLeerlijnen() intern doet.
@@ -246,9 +243,10 @@ export function telLeerlijnenPerFase(
 // is. Zie task-T8-brief.md ("Why this task is structured the way it is").
 //
 // Alle deelgebieden-tellingen zijn hetzelfde soort grootheid als de OUDE motor's
-// totaalVoldoendeOfHoger/totaalOnvoldoende — d.w.z. berekend op
-// student.deelgebiedScores (heel-jaar "laatste-score-wint"-aggregaat) —
-// BEHALVE waar een criterium expliciet "in fase twee" zegt, wat
+// totaalVoldoendeOfHoger/totaalOnvoldoende — d.w.z. het eindoordeel per
+// deelgebied over het hele record via berekenEindoordelen(student.datapunten)
+// (M43: S/C-formule, niet meer "laatste score wint") — BEHALVE waar een
+// criterium expliciet "in fase twee" zegt, wat
 // telLeerlijnenPerFase(student.datapunten, 2, activeDeelgebiedenIds) gebruikt.
 // Zie task-T8-brief.md voor de exacte, per-criterium fase-scoping-tabel
 // (bewust NIET uniform — het brondocument scoopt sommige bullets wel naar
@@ -280,16 +278,12 @@ export function berekenBj1Uitkomst(
   const datapunten: Datapunt[] = student.datapunten ?? [];
 
   // ── Negatief — Trigger A: >= X deelgebieden onvoldoende ───────────────────
-  // Heel-jaar-aggregaat (student.deelgebiedScores), GEEN fase-scoping — het
-  // brondocument noemt bij deze bullet geen fase. Zelfde filter-patroon als
-  // telLeerlijnen() hierboven (activeDeelgebiedenIds, indien gegeven).
-  const deelgebiedenActief = activeDeelgebiedenIds
-    ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id))
-    : DEELGEBIEDEN;
-  const rawScores: Record<string, string | null> = student.deelgebiedScores || {};
+  // Eindoordeel over het hele record (berekenEindoordelen, M43), GEEN
+  // fase-scoping — het brondocument noemt bij deze bullet geen fase.
+  const deelgebiedenActief = actieveDeelgebieden(activeDeelgebiedenIds);
+  const eindoordelen = berekenEindoordelen(datapunten);
   const aantalOnvoldoende = deelgebiedenActief.filter(dg => {
-    const score: string | null = rawScores[dg.label] !== undefined ? rawScores[dg.label] : null;
-    return isOnvoldoende(score);
+    return isOnvoldoende(eindoordelen[dg.label] ?? null);
   }).length;
   // Let op: >=, NIET > (brondocument: "4 of meer") — andere richting dan Trigger B.
   const negatiefTriggerA = aantalOnvoldoende >= normen.bj1NegatiefDeelgebiedenOnvoldoendeMin;
@@ -410,7 +404,8 @@ export function berekenBj1Uitkomst(
 // en de fallback-uitkomst is het NIEUWE, eigen label 'bespreekgeval' (niet
 // BJ1's 'neutraal' hergebruikt).
 //
-// Alle tellingen zijn heel-jaar-aggregaat (student.deelgebiedScores) — pagina 4
+// Alle tellingen zijn eindoordelen over het hele record (berekenEindoordelen,
+// M43) — pagina 4
 // van het brondocument noemt bij GEEN van deze bullets "fase twee" (anders dan
 // BJ1's pagina-3-tabel), dus geen fase-scoping hier.
 //
@@ -448,14 +443,11 @@ export function berekenBj2GeneriekPad(
 ): Bj2Uitkomst {
   const datapunten: Datapunt[] = student.datapunten ?? [];
 
-  // ── Deelgebieden ≥V — heel-jaar-aggregaat, zelfde filter-patroon als elders ──
-  const deelgebiedenActief = activeDeelgebiedenIds
-    ? DEELGEBIEDEN.filter(dg => activeDeelgebiedenIds.includes(dg.id))
-    : DEELGEBIEDEN;
-  const rawScores: Record<string, string | null> = student.deelgebiedScores || {};
+  // ── Deelgebieden ≥V — eindoordeel over het hele record (M43) ──────────────
+  const deelgebiedenActief = actieveDeelgebieden(activeDeelgebiedenIds);
+  const eindoordelen = berekenEindoordelen(datapunten);
   const aantalVoldoendeOfHoger = deelgebiedenActief.filter(dg => {
-    const score: string | null = rawScores[dg.label] !== undefined ? rawScores[dg.label] : null;
-    return isVoldoendeOfHoger(score);
+    return isVoldoendeOfHoger(eindoordelen[dg.label] ?? null);
   }).length;
 
   // ── KD: "minimaal één KD behaald of haalbaar voor 1 december" ──────────────
@@ -647,7 +639,7 @@ export function berekenBj2RoosendaalSblKeuze(
 // ---------------------------------------------------------------------------
 // berekenPrognose(student, traject)
 //
-// @param student   - StudentRecord (student.deelgebiedScores)
+// @param student   - StudentRecord (eindoordelen via berekenEindoordelen(student.datapunten))
 // @param traject   - 'bj1' | 'bj2' (standaard: 'bj2')
 //
 // @returns PrognosisResult
@@ -682,20 +674,11 @@ export function berekenPrognose(student: any, traject?: string, activeDeelgebied
   }
 
   const n = normen ?? getNormenSync();
-  var rawScores = student.deelgebiedScores || {};
-
-  // T06: datapunten with 'niet ingeleverd' / 'te laat ingeleverd en niet beoordeeld' status
-  // contribute onvoldoende for each deelgebied where no explicit score is present yet.
-  var scores: Record<string, string | null> = { ...rawScores };
-  for (var dp of (student.datapunten || [])) {
-    var dpStatus = ((dp.status as string) || '').toLowerCase().trim();
-    if (!ONVOLDOENDE_INLEVER_STATUSSEN.has(dpStatus)) continue;
-    for (var [dgLabel, dpScore] of Object.entries(dp.scores || {})) {
-      if (scores[dgLabel] === undefined || scores[dgLabel] === null) {
-        scores[dgLabel] = 'onvoldoende';
-      }
-    }
-  }
+  // M43: eindoordeel per deelgebied via de S/C-formule over record.datapunten.
+  // De oude T06-lus ("niet ingeleverd → O invullen") is vervallen: hij liep over
+  // dp.scores, dat alleen ingevulde cellen bevat, en voegde daardoor nooit iets
+  // toe. Niet-ingeleverd als O is geparkeerd (ADR-18b, TODO T-2026-09-23-02).
+  var scores: Record<string, string | null> = berekenEindoordelen(student.datapunten);
 
   // M42 T10: zelfde bron van waarheid als telLeerlijnen()'s eigen fix hierboven
   // — dit was een tweede, losse kopie van dezelfde (inmiddels achterhaalde)

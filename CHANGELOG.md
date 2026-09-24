@@ -1,5 +1,17 @@
 # Changelog — Mentordashboard CIOS
 
+## [2.13.0] — 2026-09-24 — Eindoordeel per deelgebied overal via de compensatieformule
+
+### Changed
+- **Eén eindoordeel per deelgebied, overal hetzelfde** — de doorstroomprognose (BJ1 en BJ2), de spiderchart en de deelgebieden-matrix rekenen het eindoordeel nu allemaal met dezelfde saldo/compensatie-formule (E +3, G +2, V 0, O −2, met knock-out bij te veel onvoldoendes; Excellent alleen als er minstens één E is). Voorheen gebruikte alleen de Eindoordeel-rij in de matrix deze formule en telde de prognose "de laatste score telt". Daardoor kon een leerling in de matrix onvoldoende hebben terwijl de prognose hetzelfde deelgebied als goed meetelde. Let op: prognoses kunnen hierdoor veranderen zodra een deelgebied meerdere beoordelingen heeft — een onvoldoende wordt nu gecompenseerd door een G of E in plaats van overschreven, en een V compenseert een eerdere O niet.
+- **Spiderchart toont de laatste periode** — de spiderchart laat de eindoordelen van de meest recente export van de leerling zien, in plaats van periodes samen te voegen. Een deelgebied dat alleen in een eerdere periode beoordeeld is, blijft daar leeg.
+- **Matrix met twee periodes** — de onderste twee rijen tonen per periode het eindoordeel volgens de formule, zodat de groei tussen beide zichtbaar blijft.
+
+### Fixed
+- Een onbekende of lege scorewaarde (bijvoorbeeld uit een oude back-up) telde ongemerkt als voldoende; die wordt nu genegeerd zoals een lege cel.
+- Een React-waarschuwing in de console bij het tonen van de deelgebieden-matrix (overbodige witruimte in de voettekstrij).
+- Testtooling bijgewerkt (vitest 4.1.11) om een beveiligingsmelding in de ontwikkelomgeving op te lossen; geen invloed op de app zelf.
+
 ## [2.12.0] — 2026-09-22 — Nieuw beoordelingsmodel 2026/2027: vestiging-bewuste doorstroomnormering
 
 ### Added

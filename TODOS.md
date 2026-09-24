@@ -1,5 +1,14 @@
 # TODOS
 
+## T-2026-09-23-04 · Herkansingen en late verbetering in de S/C-formule: controleren met echte exports
+
+- **What:** Nagaan hoe herkansingen en latere beoordelingen in echte 2026/2027-exports verschijnen (aparte rij? zelfde datapunt?) en of het gedrag van de formule dan klopt met wat de projectlead bedoelt.
+- **Why:** In de S/C-formule is V = 0 en telt elke beoordeling mee: O in fase 1 + V in fase 2 blijft het hele jaar onvoldoende, en een herkansing als aparte rij is een extra beoordeling, geen vervanging (ADR-18c F1). Dat werd pas zichtbaar in `/review`; de T5-meting had alleen exports met ≤1 beoordeling per deelgebied.
+- **Pros:** Voorkomt dat mentoren halverwege het jaar onverwacht 'negatief'/'onvoldoende' zien voor leerlingen die zich verbeterd hebben.
+- **Cons:** Kan tot een formulewijziging leiden (nieuwe projectleadbeslissing, nieuwe ADR).
+- **Context:** `/review` M43 (adversarial F1), 2026-09-24. Zelfde script als M43 T5 (zie S01-SUMMARY) opnieuw draaien op echte exports later in het jaar.
+- **Depends on / blocked by:** echte exports met meerdere beoordelingen per deelgebied en/of herkansingen.
+
 ## T-2026-09-23-03 · Trendpijl: periode-sortering fout bij nieuw exportformaat 2026/2027
 
 - **What:** `KlasOverzicht.computeTrend` (`src/components/KlasOverzicht.tsx:57-58`) sorteert records op "alle cijfers uit de periodestring aan elkaar". "BJ1 Fase 1 RSD ‐ 2026/2027" → 1120262027 en "BJ2 RSD ‐ 2026/2027" → 220262027, dus BJ1 komt ná BJ2 en de trendpijl draait om. Sorteer op BJ-nummer en daarna fase (bv. regex `BJ(\d)` + `Fase (\d)`), met regressietest op de nieuwe periodestrings.
@@ -8,6 +17,7 @@
 - **Cons:** Raakt alleen de trendpijl; moet ook oude formaten ("P2", "BJ2 Fase 2 DD") blijven ondersteunen.
 - **Context:** Gevonden in M43 T0 (2026-09-23) met echte exports; bewust buiten M43 gehouden (ADR-18b).
 - **Depends on / blocked by:** Niets. Aparte `fix/`-branch.
+- **Uitbreiding (/review M43, 2026-09-24):** sinds M43 toont ook de spider chart alleen het "laatste" record, en dat wordt gekozen via de alfabetische sortering in `getAllRecordsForStudent` (`utils/klassen.ts:340`). Bij gemengde formaten (oude per-fase-export "BJ2 Fase 1 DD" naast nieuwe jaarexport "BJ2 DD ‐ 2026/2027") wint de oude. Eén gedeelde periode-vergelijker voor `getAllRecordsForStudent`, `getActiveStudents` en `computeTrend`, met test op gemengde formaten.
 
 ## T-2026-09-23-02 · D5: niet-ingeleverd datapunt telt als O in de S/C-formule (geparkeerd uit M43)
 
@@ -35,7 +45,7 @@
 - **Cons:** Niet onderzocht welke exacte regel de whitespace veroorzaakt — vereist een korte source-duik in `DeelgebiedenMatrix.tsx`'s tfoot-render.
 - **Context:** Gevonden tijdens handmatige QA + `/qa` op `feature/deelgebieden-schema-2026-2027`, 2026-09-22.
 - **Depends on / blocked by:** Niets.
-- **Update (/plan-eng-review M43, 2026-09-23):** oorzaak gevonden: `DeelgebiedenMatrix.tsx:232` (`<td /> {/* … */}` → spatie-tekstnode in `<tr>`). Ingepland in M43 (R6); naar Completed bij oplevering.
+- **Update (/plan-eng-review M43, 2026-09-23):** oorzaak gevonden: `DeelgebiedenMatrix.tsx:232` (`<td /> {/* … */}` → spatie-tekstnode in `<tr>`). Ingepland in M43 (R6); opgelost op `feature/m43-eindoordeel` (commit `0fcfcda`, 3× `<td />`-patroon in de tfoot); naar Completed bij merge.
 
 ## T-2026-09-14-01 · Backup restore: inhoud van klas-objecten valideren
 

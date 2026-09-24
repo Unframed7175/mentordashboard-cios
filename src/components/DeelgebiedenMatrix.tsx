@@ -1,5 +1,5 @@
 import React from 'react';
-import { aggregateDeelgebiedScores } from '../../utils/aggregation';
+import { berekenEindoordelen } from '../../utils/aggregation';
 import { getAllRecordsForStudent } from '../../utils/klassen';
 import { DEELGEBIEDEN, SCORE_LEVELS, normalizeScore } from '../../utils/schema';
 import { getDeelgebiedenConfigSync, type DeelgebiedConfig } from '../../utils/deelgebieden';
@@ -87,14 +87,17 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
 
   const allDG = GROEPEN.flatMap(g => groepDG[g.key]);
 
-  // Single-period: aggregate scores for modus footer
-  const { aggregationDetail } = aggregateDeelgebiedScores(datapunten);
+  // M43 (ADR-18 D4): elke voettekstrij = eindoordeel (S/C-formule) over de
+  // datapunten van één record, via berekenEindoordelen — nooit het opgeslagen
+  // latest-wins deelgebiedScores.
+  // Single-period: Eindoordeel-rij over het (enige) record
+  const eindoordelen = berekenEindoordelen(student.datapunten);
 
-  // Two-period: oldest/newest records
+  // Two-period: oldest/newest records, elk met hun eigen eindoordeel
   const oldest = hasTwoPeriods ? allRecords[0] : null;
   const newest = hasTwoPeriods ? allRecords[allRecords.length - 1] : null;
-  const scores1: Record<string, string | null> = oldest ? (oldest.deelgebiedScores || {}) : {};
-  const scores2: Record<string, string | null> = newest ? (newest.deelgebiedScores || {}) : {};
+  const scores1: Record<string, string | null> = oldest ? berekenEindoordelen(oldest.datapunten) : {};
+  const scores2: Record<string, string | null> = newest ? berekenEindoordelen(newest.datapunten) : {};
 
   // +2 = Datapunt column + Status column
   const totalCols = allDG.length + 2;
@@ -200,7 +203,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                   <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', fontWeight: 700 }}>
                     <strong>{oldest?.periode || 'Periode 1'}</strong>
                   </td>
-                  <td /> {/* status column — leeg in voettekst */}
+                  <td>{/* status column — leeg in voettekst */}</td>
                   {allDG.map(dg => (
                     <td key={dg.id} style={{ padding: '0.3rem 0.2rem', textAlign: 'center' }}>
                       <DmChip score={scores1[dg.label] || null} />
@@ -211,7 +214,7 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                   <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', fontWeight: 700 }}>
                     <strong>{newest?.periode || 'Periode 2'}</strong>
                   </td>
-                  <td /> {/* status column — leeg in voettekst */}
+                  <td>{/* status column — leeg in voettekst */}</td>
                   {allDG.map(dg => {
                     const s1 = scores1[dg.label] || null;
                     const s2 = scores2[dg.label] || null;
@@ -229,10 +232,10 @@ export default function DeelgebiedenMatrix({ student, leerlingId }: Deelgebieden
                 <td className="cell-naam" style={{ padding: '0.4rem 0.75rem', fontWeight: 700 }}>
                   <strong>Eindoordeel</strong>
                 </td>
-                <td /> {/* status column — leeg in voettekst */}
+                <td>{/* status column — leeg in voettekst */}</td>
                 {allDG.map(dg => (
                   <td key={dg.id} className="vote-count-cell" style={{ padding: '0.3rem 0.2rem', textAlign: 'center' }}>
-                    <DmChip score={aggregationDetail[dg.label] || null} />
+                    <DmChip score={eindoordelen[dg.label] || null} />
                   </td>
                 ))}
               </tr>

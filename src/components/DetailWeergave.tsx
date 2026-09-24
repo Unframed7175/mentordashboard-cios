@@ -11,6 +11,7 @@ import RekenenNederlandsSection from './RekenenNederlandsSection';
 import KeuzedeelSection from './KeuzedeelSection';
 import TrajectVeldenSection from './TrajectVeldenSection';
 import RoosendaalTrajectSection from './RoosendaalTrajectSection';
+import { berekenEindoordelen } from '../../utils/aggregation';
 
 interface DetailWeergaveProps {
   leerlingId: string;
@@ -52,15 +53,11 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
   const status = berekenStatus(student, undefined, undefined, vestiging);
   const meta = [student.periode, student.leerjaar].filter(Boolean).join(' · ');
 
-  // Aggregate deelgebiedScores across ALL periods: latest non-null wins.
-  // Most-recent record alone only covers one period — when 2+ PDFs are imported,
-  // the spider chart would otherwise show zeroes for deelgebieden only scored in older periods.
-  const aggregatedScores: Record<string, string | null> = {};
-  for (const rec of records) {
-    for (const [label, score] of Object.entries(rec.deelgebiedScores || {})) {
-      if (score !== null) aggregatedScores[label] = score as string;
-    }
-  }
+  // M43 (ADR-18 D2a): spider chart = eindoordelen (S/C-formule) van het laatste
+  // record — dezelfde bron als de prognose en de matrix. Geen samenvoeging over
+  // periodes heen: een deelgebied dat alleen in een eerdere periode beoordeeld
+  // is, blijft hier leeg. Eén export bevat nu alle fases van een leerjaar.
+  const eindoordelen = berekenEindoordelen(student.datapunten);
 
   return (
     <div className="print-target view-fade-in" style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1rem' }}>
@@ -148,14 +145,14 @@ export default function DetailWeergave({ leerlingId, prevId, nextId, onNavigate,
         <div className="spider-charts-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'flex-start' }}>
           <SpiderChartCard
             group="lesgeven_en_organiseren"
-            scores={aggregatedScores}
+            scores={eindoordelen}
             fillVar="--spider-lesgeven"
             strokeVar="--spider-lesgeven-stroke"
             title="Lesgeven en organiseren"
           />
           <SpiderChartCard
             group="professioneel_handelen"
-            scores={aggregatedScores}
+            scores={eindoordelen}
             fillVar="--spider-prof-handelen"
             strokeVar="--spider-prof-handelen-stroke"
             title="Professioneel handelen"

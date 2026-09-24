@@ -40,7 +40,7 @@
  * @property {string} leerjaar - Year level
  * @property {string} filename - Source PDF filename
  * @property {Vak[]} vakken - Subjects with assignments (status + feedforward)
- * @property {Object<string, string|null>} deelgebiedScores - Aggregated scores per deelgebied
+ * @property {Object<string, string|null>} deelgebiedScores - Latest-wins scores per deelgebied; compatibiliteitsveld, NIET lezen voor eindoordelen (M43: gebruik berekenEindoordelen(datapunten))
  * @property {Datapunt[]} datapunten - Per-assignment scores for gap analysis
  * @property {string}  [taalniveauSchrijven]   - '' | '2F' | '3F' (Phase 12)
  * @property {string}  [taalniveauGesprekken]  - '' | '2F' | '3F' (Phase 12)
